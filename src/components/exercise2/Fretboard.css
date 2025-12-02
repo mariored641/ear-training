@@ -1,0 +1,150 @@
+.fretboard-container {
+  padding: var(--spacing-lg);
+  overflow-x: auto;
+}
+
+.fretboard {
+  min-width: 600px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+}
+
+.string-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--spacing-md);
+}
+
+.string-label {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--color-text);
+  width: 30px;
+}
+
+.fretboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.fretboard-string {
+  display: flex;
+  gap: 2px;
+  height: 40px;
+  align-items: center;
+}
+
+.fret-cell {
+  flex: 1;
+  min-width: 50px;
+  height: 40px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.fret-cell:hover {
+  background-color: #e3f2fd;
+  border-color: var(--color-primary);
+}
+
+.fret-cell.marked {
+  background-color: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+}
+
+.fret-cell.highlighted {
+  background-color: var(--color-primary);
+  animation: flash 0.5s ease;
+}
+
+.marked-note {
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.note-numbers {
+  font-size: 10px;
+  margin-top: -4px;
+}
+
+.note-name {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.fret-numbers {
+  display: flex;
+  gap: 2px;
+  margin-bottom: var(--spacing-sm);
+  padding-left: 30px;
+}
+
+.fret-number {
+  flex: 1;
+  min-width: 50px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.fret-dots {
+  display: flex;
+  gap: 2px;
+  padding-left: 30px;
+}
+
+.dot-container {
+  flex: 1;
+  min-width: 50px;
+  text-align: center;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot {
+  color: var(--color-text-secondary);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.dot.double {
+  letter-spacing: 10px;
+}
+
+@media (max-width: 768px) {
+  .fretboard {
+    min-width: 500px;
+  }
+
+  .fret-cell {
+    min-width: 40px;
+  }
+
+  .fret-number {
+    min-width: 40px;
+  }
+
+  .dot-container {
+    min-width: 40px;
+  }
+}

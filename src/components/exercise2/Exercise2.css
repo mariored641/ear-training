@@ -1,0 +1,43 @@
+.exercise2 {
+  min-height: 100vh;
+  background-color: var(--color-bg-secondary);
+}
+
+.exercise2-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.audio-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.audio-button {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-lg);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.audio-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.audio-button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .exercise2-content {
+    padding: var(--spacing-md);
+  }
+}

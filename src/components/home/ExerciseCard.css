@@ -1,0 +1,77 @@
+.exercise-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow var(--transition-fast);
+}
+
+.exercise-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.exercise-card-title {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+}
+
+.exercise-card-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.exercise-card-description {
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.exercise-card-subtitle {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.exercise-card-list {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  color: var(--color-text);
+}
+
+.exercise-card-list li {
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.6;
+}
+
+.exercise-card-button {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.exercise-card-button:hover:not(.disabled) {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.exercise-card-button.disabled {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .exercise-card {
+    padding: var(--spacing-md);
+  }
+}

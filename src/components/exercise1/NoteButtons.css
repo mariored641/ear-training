@@ -1,0 +1,73 @@
+.note-buttons-container {
+  padding: var(--spacing-lg);
+}
+
+.note-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--spacing-md);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.note-button {
+  padding: var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  background-color: var(--color-bg);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 60px;
+}
+
+.note-button:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.note-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.note-button.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: var(--border-color);
+}
+
+.note-button.correct {
+  background-color: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+  animation: successPulse 0.5s ease;
+}
+
+.note-button.incorrect {
+  background-color: var(--color-error);
+  color: white;
+  border-color: var(--color-error);
+  animation: shake 0.5s ease;
+}
+
+@media (max-width: 768px) {
+  .note-buttons-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .note-button {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-md);
+    min-height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .note-buttons-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

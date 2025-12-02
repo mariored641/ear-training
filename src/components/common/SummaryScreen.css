@@ -1,0 +1,80 @@
+.summary-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: var(--spacing-xl);
+}
+
+.summary-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-xl);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.summary-title {
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+}
+
+.summary-stats {
+  margin-bottom: var(--spacing-xl);
+}
+
+.summary-stat {
+  margin: var(--spacing-sm) 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
+
+.summary-stat.success {
+  color: var(--color-success);
+  font-weight: 500;
+}
+
+.summary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.summary-button {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.summary-button.primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.summary-button.primary:hover {
+  opacity: 0.9;
+}
+
+.summary-button.secondary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.summary-button.secondary:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+@media (max-width: 768px) {
+  .summary-card {
+    padding: var(--spacing-lg);
+  }
+}
