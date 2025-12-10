@@ -34,10 +34,11 @@ const Fretboard = ({
     frets.push(i);
   }
 
+  // Reverse the string order so high e string appears at top (like looking at a real guitar)
   const activeStrings = GUITAR_STRINGS.filter((_, i) => {
     const stringKey = Object.keys(strings)[i];
     return strings[stringKey];
-  });
+  }).reverse();
 
   const getMarkedNote = (stringIndex, fret) => {
     return markedNotes.find(

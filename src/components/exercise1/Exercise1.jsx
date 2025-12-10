@@ -31,61 +31,116 @@ const Exercise1 = () => {
     statusMessage: ''
   });
   const [waitingForNext, setWaitingForNext] = useState(false);
+  const isPlayingRef = React.useRef(false);
+  const currentNoteRef = React.useRef(null);
 
   // Load new question
-  const loadNewQuestion = () => {
-    const { noteName, fullNote } = generateRandomNote(
-      settings,
-      sessionState.usedNotes
-    );
+  const loadNewQuestion = React.useCallback(() => {
+    console.log('=== loadNewQuestion called ===');
 
-    const newState = {
-      ...sessionState,
-      correctNote: noteName,
-      correctNoteWithOctave: fullNote,
-      usedNotes: [...sessionState.usedNotes, fullNote],
-      selectedNote: null,
-      isCorrect: null,
-      statusMessage: ''
-    };
+    // Stop any currently playing audio first
+    AudioPlayer.stop();
 
-    setSessionState(newState);
+    // Reset playing flag to allow new question to play
+    isPlayingRef.current = false;
+
+    setSessionState(prev => {
+      const { noteName, fullNote } = generateRandomNote(
+        settings,
+        prev.usedNotes
+      );
+
+      console.log('New question generated:', noteName, fullNote);
+
+      // Store the note in ref so it doesn't get lost in double rendering
+      currentNoteRef.current = {
+        noteName,
+        fullNote,
+        hasPlayedC: prev.hasPlayedCAtStart
+      };
+
+      return {
+        ...prev,
+        correctNote: noteName,
+        correctNoteWithOctave: fullNote,
+        usedNotes: [...prev.usedNotes, fullNote],
+        selectedNote: null,
+        isCorrect: null,
+        statusMessage: ''
+      };
+    });
+
     setWaitingForNext(false);
 
-    // Play audio
+    // Play audio after state update using the ref
     setTimeout(() => {
-      playQuestionAudio(newState.hasPlayedCAtStart, fullNote);
-    }, 100);
-  };
+      if (currentNoteRef.current) {
+        console.log('About to play audio for new question:', currentNoteRef.current.fullNote);
+        playQuestionAudio(currentNoteRef.current.hasPlayedC, currentNoteRef.current.fullNote);
+      }
+    }, 150);
+  }, [settings]);
 
   // Play audio for a question
   const playQuestionAudio = async (hasPlayedC, noteToPlay) => {
-    if (settings.playC === 'everyTime') {
-      await AudioPlayer.playNote(REFERENCE_NOTE, 1);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await AudioPlayer.playNote(noteToPlay, 1);
-    } else if (settings.playC === 'onceAtStart' && !hasPlayedC) {
-      await AudioPlayer.playNote(REFERENCE_NOTE, 1);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await AudioPlayer.playNote(noteToPlay, 1);
-      setSessionState(prev => ({ ...prev, hasPlayedCAtStart: true }));
-    } else {
-      await AudioPlayer.playNote(noteToPlay, 1);
+    console.log('playQuestionAudio called with:', noteToPlay, 'isPlaying:', isPlayingRef.current);
+
+    // Prevent double playing
+    if (isPlayingRef.current) {
+      console.log('Already playing, skipping...');
+      return;
+    }
+
+    isPlayingRef.current = true;
+
+    // Stop any currently playing sounds first
+    AudioPlayer.stop();
+
+    await AudioPlayer.init();
+
+    try {
+      if (settings.playC === 'everyTime') {
+        await AudioPlayer.playNote(REFERENCE_NOTE, 1);
+        await new Promise(resolve => setTimeout(resolve, 1100));
+        await AudioPlayer.playNote(noteToPlay, 1);
+      } else if (settings.playC === 'onceAtStart' && !hasPlayedC) {
+        await AudioPlayer.playNote(REFERENCE_NOTE, 1);
+        await new Promise(resolve => setTimeout(resolve, 1100));
+        await AudioPlayer.playNote(noteToPlay, 1);
+        setSessionState(prev => ({ ...prev, hasPlayedCAtStart: true }));
+      } else {
+        await AudioPlayer.playNote(noteToPlay, 1);
+      }
+    } finally {
+      // Reset flag after playing is done
+      setTimeout(() => {
+        isPlayingRef.current = false;
+      }, 100);
     }
   };
 
   // Initialize first question
   useEffect(() => {
-    loadNewQuestion();
+    // Initialize AudioPlayer first, then load question
+    AudioPlayer.setInstrument(settings.instrument || 'piano').then(() => {
+      loadNewQuestion();
+    });
     // eslint-disable-next-line
   }, []);
 
+  // Update instrument when settings change
+  useEffect(() => {
+    AudioPlayer.setInstrument(settings.instrument || 'piano');
+  }, [settings.instrument]);
+
   const handlePlayC = () => {
+    AudioPlayer.stop();
     AudioPlayer.playNote(REFERENCE_NOTE, 1);
   };
 
   const handlePlayNote = () => {
     if (sessionState.correctNoteWithOctave) {
+      AudioPlayer.stop();
       AudioPlayer.playNote(sessionState.correctNoteWithOctave, 1);
     }
   };
@@ -116,20 +171,22 @@ const Exercise1 = () => {
 
       // Wait 1 second then move to next
       setTimeout(() => {
-        if (sessionState.currentQuestion >= settings.numQuestions) {
-          // Exercise complete
-          setSessionState(prev => ({ ...prev, isComplete: true }));
-        } else if (settings.transition === 'auto') {
-          // Auto transition
-          setSessionState(prev => ({
-            ...prev,
-            currentQuestion: prev.currentQuestion + 1
-          }));
-          setTimeout(() => loadNewQuestion(), 100);
-        } else {
-          // Manual transition - show next button
-          setWaitingForNext(true);
-        }
+        setSessionState(prev => {
+          if (prev.currentQuestion >= settings.numQuestions) {
+            // Exercise complete
+            return { ...prev, isComplete: true };
+          } else if (settings.transition === 'auto') {
+            // Auto transition - increment question number
+            setTimeout(() => loadNewQuestion(), 100);
+            return {
+              ...prev,
+              currentQuestion: prev.currentQuestion + 1
+            };
+          } else {
+            // Manual transition - show next button
+            return prev;
+          }
+        });
       }, 1000);
     } else {
       // Incorrect answer - flash red for 0.5s then reset

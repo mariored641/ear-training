@@ -1,6 +1,6 @@
 export const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-export const REFERENCE_NOTE = 'C3';
+export const REFERENCE_NOTE = 'C4'; // Middle C
 
 export const GUITAR_STRINGS = [
   { name: 'E', openNote: 'E2', index: 0 },

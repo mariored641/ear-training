@@ -53,19 +53,102 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
       </div>
 
       {settings.source === 'random' && (
-        <div className="settings-section">
-          <h4 className="settings-section-title">Number of Notes:</h4>
-          <input
-            type="range"
-            min="1"
-            max="10"
-            value={settings.numNotes}
-            onChange={(e) =>
-              onSettingsChange({ ...settings, numNotes: parseInt(e.target.value) })
-            }
-          />
-          <span className="range-value">{settings.numNotes}</span>
-        </div>
+        <>
+          <div className="settings-section">
+            <h4 className="settings-section-title">Number of Notes:</h4>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={settings.numNotes}
+              onChange={(e) =>
+                onSettingsChange({ ...settings, numNotes: parseInt(e.target.value) })
+              }
+            />
+            <span className="range-value">{settings.numNotes}</span>
+          </div>
+
+          <div className="settings-section">
+            <h4 className="settings-section-title">Available Notes:</h4>
+            <div className="notes-grid">
+              {Object.keys(settings.availableNotes).map(note => (
+                <label key={note} className="note-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={settings.availableNotes[note]}
+                    onChange={(e) => {
+                      const newNotes = { ...settings.availableNotes };
+                      const selectedCount = Object.values(newNotes).filter(Boolean).length;
+
+                      if (newNotes[note] && selectedCount <= 1) {
+                        alert('You must have at least 1 note selected');
+                        return;
+                      }
+
+                      newNotes[note] = e.target.checked;
+                      onSettingsChange({ ...settings, availableNotes: newNotes });
+                    }}
+                  />
+                  <span>{note}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h4 className="settings-section-title">Movement Pattern:</h4>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="movement"
+                value="mixed"
+                checked={settings.movement === 'mixed'}
+                onChange={(e) =>
+                  onSettingsChange({ ...settings, movement: e.target.value })
+                }
+              />
+              <span>Mixed (steps and leaps)</span>
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="movement"
+                value="steps"
+                checked={settings.movement === 'steps'}
+                onChange={(e) =>
+                  onSettingsChange({ ...settings, movement: e.target.value })
+                }
+              />
+              <span>Steps only (1-2 semitones)</span>
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="movement"
+                value="leaps"
+                checked={settings.movement === 'leaps'}
+                onChange={(e) =>
+                  onSettingsChange({ ...settings, movement: e.target.value })
+                }
+              />
+              <span>Leaps only (>2 semitones)</span>
+            </label>
+          </div>
+
+          <div className="settings-section">
+            <h4 className="settings-section-title">Octave Range:</h4>
+            <input
+              type="range"
+              min="1"
+              max="4"
+              value={settings.octaveRange}
+              onChange={(e) =>
+                onSettingsChange({ ...settings, octaveRange: parseInt(e.target.value) })
+              }
+            />
+            <span className="range-value">{settings.octaveRange}</span>
+          </div>
+        </>
       )}
 
       <div className="settings-section">
@@ -190,6 +273,34 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
           }
         />
         <span className="range-value">{settings.numQuestions}</span>
+      </div>
+
+      <div className="settings-section">
+        <h4 className="settings-section-title">Instrument Sound:</h4>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="instrument"
+            value="piano"
+            checked={settings.instrument === 'piano'}
+            onChange={(e) =>
+              onSettingsChange({ ...settings, instrument: e.target.value })
+            }
+          />
+          <span>Piano</span>
+        </label>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="instrument"
+            value="guitar"
+            checked={settings.instrument === 'guitar'}
+            onChange={(e) =>
+              onSettingsChange({ ...settings, instrument: e.target.value })
+            }
+          />
+          <span>Guitar</span>
+        </label>
       </div>
 
       <div className="settings-section">

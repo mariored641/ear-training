@@ -85,9 +85,16 @@ export function getNoteAtFret(string, fret) {
  * Checks if selected position matches correct note
  * @param {Number} selectedString - 0-5
  * @param {Number} selectedFret - 0-24
- * @param {Object} correctNote - Note object from melody
+ * @param {Object} correctNote - Note object from melody with {note, octave, fullNote}
  * @returns {Boolean}
  */
 export function checkNotePosition(selectedString, selectedFret, correctNote) {
-  return selectedString === correctNote.string && selectedFret === correctNote.fret;
+  // Get the note at the selected position
+  const selectedNoteInfo = getNoteAtFret(selectedString, selectedFret);
+
+  // Check if it matches the correct note (any valid position is accepted)
+  return (
+    selectedNoteInfo.note === correctNote.note &&
+    selectedNoteInfo.octave === correctNote.octave
+  );
 }

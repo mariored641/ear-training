@@ -30,39 +30,65 @@ const Exercise2 = () => {
     isComplete: false,
     highlightedNote: null
   });
+  const isPlayingRef = React.useRef(false);
+  const currentMelodyRef = React.useRef(null);
 
   // Load new melody
-  const loadNewMelody = () => {
+  const loadNewMelody = React.useCallback((autoPlay = true, questionNumber = null) => {
     try {
-      const melody = getMelody(
+      // Use questionNumber if provided, otherwise use current state
+      const melodyIndex = questionNumber !== null
+        ? questionNumber - 1
+        : sessionState.currentQuestion - 1;
+
+      const newMelody = getMelody(
         settings.source,
         settings,
-        sessionState.currentQuestion - 1
+        melodyIndex
       );
+
+      // Store melody in ref to prevent double-playing
+      currentMelodyRef.current = newMelody;
 
       setSessionState(prev => ({
         ...prev,
-        currentMelody: melody,
+        currentMelody: newMelody,
         currentNoteIndex: 0,
         selectedNoteIndex: 0,
         markedNotes: [],
         highlightedNote: null
       }));
 
-      // Play melody automatically
-      setTimeout(() => {
-        playMelody(melody);
-      }, 500);
+      // Play melody automatically only if autoPlay is true
+      if (autoPlay) {
+        setTimeout(() => {
+          // Only play if not already playing
+          if (!isPlayingRef.current && currentMelodyRef.current) {
+            isPlayingRef.current = true;
+            playMelody(currentMelodyRef.current).finally(() => {
+              isPlayingRef.current = false;
+            });
+          }
+        }, 500);
+      }
     } catch (error) {
       alert(error.message);
     }
-  };
+  }, [settings.source, settings, sessionState.currentQuestion]);
 
   // Initialize first melody
   useEffect(() => {
-    loadNewMelody();
+    // Initialize AudioPlayer first, then load melody
+    AudioPlayer.setInstrument(settings.instrument || 'guitar').then(() => {
+      loadNewMelody();
+    });
     // eslint-disable-next-line
   }, []);
+
+  // Update instrument when settings change
+  useEffect(() => {
+    AudioPlayer.setInstrument(settings.instrument || 'guitar');
+  }, [settings.instrument]);
 
   // Play the melody
   const playMelody = async (melody) => {
@@ -154,11 +180,12 @@ const Exercise2 = () => {
           if (sessionState.currentQuestion >= settings.numQuestions) {
             setSessionState(prev => ({ ...prev, isComplete: true }));
           } else {
+            const nextQuestion = sessionState.currentQuestion + 1;
             setSessionState(prev => ({
               ...prev,
-              currentQuestion: prev.currentQuestion + 1
+              currentQuestion: nextQuestion
             }));
-            setTimeout(() => loadNewMelody(), 100);
+            setTimeout(() => loadNewMelody(true, nextQuestion), 100);
           }
         }, 1000);
       } else {

@@ -153,6 +153,34 @@ const Exercise1Settings = ({ settings, onSettingsChange, onReset }) => {
       </div>
 
       <div className="settings-section">
+        <h4 className="settings-section-title">Instrument Sound:</h4>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="instrument"
+            value="piano"
+            checked={settings.instrument === 'piano'}
+            onChange={(e) =>
+              onSettingsChange({ ...settings, instrument: e.target.value })
+            }
+          />
+          <span>Piano</span>
+        </label>
+        <label className="radio-label">
+          <input
+            type="radio"
+            name="instrument"
+            value="guitar"
+            checked={settings.instrument === 'guitar'}
+            onChange={(e) =>
+              onSettingsChange({ ...settings, instrument: e.target.value })
+            }
+          />
+          <span>Guitar</span>
+        </label>
+      </div>
+
+      <div className="settings-section">
         <button className="settings-button reset-button" onClick={onReset}>
           Reset Exercise
         </button>

@@ -16,7 +16,8 @@ export const DEFAULT_EXERCISE1_SETTINGS = {
   octaveRange: 2,
   playC: 'everyTime',
   transition: 'auto',
-  numQuestions: 10
+  numQuestions: 10,
+  instrument: 'piano' // 'piano' or 'guitar'
 };
 
 export const DEFAULT_EXERCISE2_SETTINGS = {
@@ -57,5 +58,6 @@ export const DEFAULT_EXERCISE2_SETTINGS = {
     afterAttempts: 3
   },
   transition: 'auto',
-  numQuestions: 10
+  numQuestions: 10,
+  instrument: 'guitar' // 'piano' or 'guitar'
 };
