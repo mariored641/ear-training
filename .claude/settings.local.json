@@ -5,7 +5,16 @@
       "Bash(npm create:*)",
       "Bash(npm install)",
       "Bash(dir:*)",
-      "Bash(npm run dev)"
+      "Bash(npm run dev)",
+      "Bash(npm install:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(node test-ui.mjs:*)",
+      "Bash(node test-complete.mjs:*)",
+      "Bash(node test-instrument.mjs:*)",
+      "Bash(node test-all-fixes.mjs:*)",
+      "Bash(node:*)",
+      "Bash(mkdir:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

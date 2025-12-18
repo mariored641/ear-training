@@ -53,6 +53,24 @@ const HomePage = () => {
         'Coming soon'
       ],
       isAvailable: false
+    },
+    {
+      id: 4,
+      title: 'Rhythm Training',
+      description: 'A creative exploration tool for rhythm. Build rhythmic patterns, explore polyrhythms, and experiment with complex subdivisions - all without needing to know music theory beforehand.',
+      pedagogicalGoals: [
+        'Understand how rhythms work through play',
+        'Build rhythmic patterns creatively',
+        'Explore polyrhythms and complex subdivisions',
+        'Gradual exposure to musical notation without pressure'
+      ],
+      practiceMethods: [
+        'Rhythm Explorer: Build basic rhythms with customizable subdivisions',
+        'Polyrhythm: Experience two independent rhythms running simultaneously',
+        'Advanced Subdivisions: Create complex rhythmic patterns with different beat lengths',
+        'All modes support free exploration and real-time editing while playing'
+      ],
+      isAvailable: true
     }
   ];
 
