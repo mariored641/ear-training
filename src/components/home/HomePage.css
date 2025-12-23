@@ -23,9 +23,12 @@
 }
 
 .home-content {
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto;
   padding: var(--spacing-xl) var(--spacing-lg);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xl);
 }
 
 @media (max-width: 768px) {
@@ -35,5 +38,7 @@
 
   .home-content {
     padding: var(--spacing-lg) var(--spacing-md);
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
   }
 }

@@ -14,7 +14,8 @@
       "Bash(node test-all-fixes.mjs:*)",
       "Bash(node:*)",
       "Bash(mkdir:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

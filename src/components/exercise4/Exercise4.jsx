@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../common/Header';
 import RhythmExplorer from './RhythmExplorer';
 import './Exercise4.css';
 
 const Exercise4 = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('rhythmExplorer');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const handleStop = () => {
+    navigate('/');
+  };
 
   return (
     <div className="exercise4-container">
       <Header
         title="Rhythm Training"
+        showStop={true}
+        onStopClick={handleStop}
         onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
       />
 

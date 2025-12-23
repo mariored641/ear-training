@@ -62,81 +62,33 @@ class RhythmAudioPlayer {
         break;
 
       case 'drumKit':
-        // Kick drum for accent
-        this.sounds.accent = new Tone.MembraneSynth({
-          pitchDecay: 0.05,
-          octaves: 10,
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
-        }).toDestination();
-        this.sounds.accent.volume.value = 0;
+        // Real drum samples - using CDN hosted samples
+        try {
+          // Kick drum for accent
+          this.sounds.accent = new Tone.Player({
+            url: 'https://tonejs.github.io/audio/drum-samples/acoustic-kit/kick.mp3',
+            volume: 0
+          }).toDestination();
 
-        // Snare for normal
-        this.sounds.normal = new Tone.NoiseSynth({
-          noise: { type: 'white' },
-          envelope: { attack: 0.005, decay: 0.1, sustain: 0 }
-        }).toDestination();
-        this.sounds.normal.volume.value = -3;
+          // Snare for normal
+          this.sounds.normal = new Tone.Player({
+            url: 'https://tonejs.github.io/audio/drum-samples/acoustic-kit/snare.mp3',
+            volume: -3
+          }).toDestination();
 
-        // Hi-hat for soft
-        this.sounds.soft = new Tone.MetalSynth({
-          frequency: 200,
-          envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
-          harmonicity: 5.1,
-          modulationIndex: 32,
-          resonance: 4000,
-          octaves: 1.5
-        }).toDestination();
-        this.sounds.soft.volume.value = -10;
+          // Hi-hat for soft
+          this.sounds.soft = new Tone.Player({
+            url: 'https://tonejs.github.io/audio/drum-samples/acoustic-kit/hihat.mp3',
+            volume: -8
+          }).toDestination();
+
+          // Wait for all samples to load
+          await Tone.loaded();
+        } catch (error) {
+          console.error('Error loading drum samples:', error);
+        }
         break;
 
-      case 'woodblock':
-        // Woodblock sounds with different volumes
-        this.sounds.accent = new Tone.MembraneSynth({
-          pitchDecay: 0.008,
-          octaves: 2,
-          oscillator: { type: 'square' },
-          envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
-        }).toDestination();
-        this.sounds.accent.volume.value = 0;
-
-        this.sounds.normal = new Tone.MembraneSynth({
-          pitchDecay: 0.008,
-          octaves: 2,
-          oscillator: { type: 'square' },
-          envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
-        }).toDestination();
-        this.sounds.normal.volume.value = -5;
-
-        this.sounds.soft = new Tone.MembraneSynth({
-          pitchDecay: 0.008,
-          octaves: 2,
-          oscillator: { type: 'square' },
-          envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
-        }).toDestination();
-        this.sounds.soft.volume.value = -12;
-        break;
-
-      case 'electronicBeep':
-        // Electronic beeps with different frequencies
-        this.sounds.accent = new Tone.Synth({
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
-        }).toDestination();
-        this.sounds.accent.volume.value = 0;
-
-        this.sounds.normal = new Tone.Synth({
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
-        }).toDestination();
-        this.sounds.normal.volume.value = -5;
-
-        this.sounds.soft = new Tone.Synth({
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
-        }).toDestination();
-        this.sounds.soft.volume.value = -12;
-        break;
     }
   }
 
@@ -167,21 +119,11 @@ class RhythmAudioPlayer {
     }
 
     if (this.soundSet === 'drumKit') {
-      // Drum kit uses different triggering
-      if (cellState === 'accent') {
-        sound.triggerAttackRelease('C1', '32n', time);
-      } else if (cellState === 'normal') {
-        sound.triggerAttackRelease('16n', time);
-      } else if (cellState === 'soft') {
-        sound.triggerAttackRelease('32n', time);
-      }
-    } else if (this.soundSet === 'electronicBeep') {
-      // Electronic beep with different frequencies
-      const freq = cellState === 'accent' ? '800Hz' : cellState === 'normal' ? '600Hz' : '400Hz';
-      sound.triggerAttackRelease(freq, '16n', time);
+      // Drum kit - real samples with Tone.Player
+      sound.start(time);
     } else {
-      // Classic click / woodblock
-      const note = cellState === 'accent' ? 'C4' : cellState === 'normal' ? 'C4' : 'C4';
+      // Classic click - simple metronome
+      const note = 'C4';
       sound.triggerAttackRelease(note, '32n', time);
     }
 

@@ -1,77 +1,80 @@
 .exercise-card {
   background-color: var(--color-bg);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
   border-radius: var(--border-radius);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: box-shadow var(--transition-fast);
+  padding: var(--spacing-xl);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+  text-align: center;
 }
 
-.exercise-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.exercise-card:hover:not(.disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(33, 150, 243, 0.2);
+  border-color: var(--color-primary);
+}
+
+.exercise-card:active:not(.disabled) {
+  transform: translateY(-2px);
+}
+
+.exercise-card.disabled {
+  background-color: var(--color-bg-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.exercise-card-icon {
+  font-size: 5rem;
+  margin-bottom: var(--spacing-sm);
+  filter: grayscale(0%);
+  transition: filter var(--transition-normal);
+}
+
+.exercise-card.disabled .exercise-card-icon {
+  filter: grayscale(100%);
+  opacity: 0.5;
 }
 
 .exercise-card-title {
-  margin: 0 0 var(--spacing-md) 0;
+  margin: 0;
   font-size: var(--font-size-xl);
-  color: var(--color-text);
-}
-
-.exercise-card-section {
-  margin-bottom: var(--spacing-lg);
-}
-
-.exercise-card-description {
-  color: var(--color-text);
-  line-height: 1.6;
-}
-
-.exercise-card-subtitle {
-  margin: 0 0 var(--spacing-sm) 0;
-  font-size: var(--font-size-md);
   font-weight: 600;
   color: var(--color-text);
 }
 
-.exercise-card-list {
-  margin: 0;
-  padding-left: var(--spacing-lg);
-  color: var(--color-text);
-}
-
-.exercise-card-list li {
-  margin-bottom: var(--spacing-xs);
-  line-height: 1.6;
-}
-
-.exercise-card-button {
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  font-size: var(--font-size-md);
-  font-weight: 500;
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.exercise-card-button:hover:not(.disabled) {
-  opacity: 0.9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
-}
-
-.exercise-card-button.disabled {
-  background-color: var(--color-bg-secondary);
+.exercise-card.disabled .exercise-card-title {
   color: var(--color-text-secondary);
-  cursor: not-allowed;
+}
+
+.exercise-card-badge {
+  background-color: var(--color-warning);
+  color: var(--color-text);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin-top: var(--spacing-sm);
 }
 
 @media (max-width: 768px) {
   .exercise-card {
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+
+  .exercise-card-icon {
+    font-size: 4rem;
+  }
+
+  .exercise-card-title {
+    font-size: var(--font-size-lg);
   }
 }
