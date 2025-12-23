@@ -469,7 +469,25 @@
 /* Responsive */
 @media (max-width: 768px) {
   .exercise4-container {
+    padding: 0;
+  }
+
+  /* Change layout to vertical - controls below grid */
+  .rhythm-explorer {
+    flex-direction: column;
+  }
+
+  .rhythm-left-panel {
     padding: var(--spacing-md);
+    overflow-y: visible;
+  }
+
+  .rhythm-right-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 2px solid var(--border-color);
+    padding: var(--spacing-md);
+    overflow-y: visible;
   }
 
   .beat-cell {
