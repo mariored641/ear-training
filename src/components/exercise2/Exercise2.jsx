@@ -28,7 +28,8 @@ const Exercise2 = () => {
     correctFirstTry: 0,
     totalNotes: 0,
     isComplete: false,
-    highlightedNote: null
+    highlightedNote: null,
+    noteAttempts: {} // Track attempts per note index
   });
   const isPlayingRef = React.useRef(false);
   const currentMelodyRef = React.useRef(null);
@@ -56,7 +57,8 @@ const Exercise2 = () => {
         currentNoteIndex: 0,
         selectedNoteIndex: 0,
         markedNotes: [],
-        highlightedNote: null
+        highlightedNote: null,
+        noteAttempts: {} // Reset attempts for new melody
       }));
 
       // Play melody automatically only if autoPlay is true
@@ -136,6 +138,9 @@ const Exercise2 = () => {
       // Correct! Mark the note
       AudioPlayer.playNote(correctNote.fullNote, 1);
 
+      // Check if this is first try for this note
+      const isFirstTry = !sessionState.noteAttempts[currentNoteIndex];
+
       // Check if this position already has marks
       const existingNote = sessionState.markedNotes.find(
         note => note.string === string && note.fret === fret
@@ -164,7 +169,7 @@ const Exercise2 = () => {
       setSessionState(prev => ({
         ...prev,
         markedNotes: newMarkedNotes,
-        correctFirstTry: prev.correctFirstTry + 1,
+        correctFirstTry: isFirstTry ? prev.correctFirstTry + 1 : prev.correctFirstTry,
         totalNotes: prev.totalNotes + 1
       }));
 
@@ -198,10 +203,13 @@ const Exercise2 = () => {
         }
       }
     } else {
-      // Incorrect
+      // Incorrect - mark that this note had an attempt
       setSessionState(prev => ({
         ...prev,
-        totalNotes: prev.totalNotes + 1
+        noteAttempts: {
+          ...prev.noteAttempts,
+          [currentNoteIndex]: true
+        }
       }));
     }
   };
@@ -229,7 +237,8 @@ const Exercise2 = () => {
       correctFirstTry: 0,
       totalNotes: 0,
       isComplete: false,
-      highlightedNote: null
+      highlightedNote: null,
+      noteAttempts: {}
     });
     setTimeout(() => loadNewMelody(), 100);
   };

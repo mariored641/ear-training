@@ -28,11 +28,13 @@ const Exercise1 = () => {
     hasPlayedCAtStart: false,
     selectedNote: null,
     isCorrect: null,
-    statusMessage: ''
+    statusMessage: '',
+    questionResults: [] // Array to track each question: true = first try, false = needed more attempts
   });
   const [waitingForNext, setWaitingForNext] = useState(false);
   const isPlayingRef = React.useRef(false);
   const currentNoteRef = React.useRef(null);
+  const currentQuestionAttemptsRef = React.useRef(0); // Track attempts for current question
 
   // Load new question
   const loadNewQuestion = React.useCallback(() => {
@@ -43,6 +45,9 @@ const Exercise1 = () => {
 
     // Reset playing flag to allow new question to play
     isPlayingRef.current = false;
+
+    // Reset attempts counter for new question
+    currentQuestionAttemptsRef.current = 0;
 
     setSessionState(prev => {
       const { noteName, fullNote } = generateRandomNote(
@@ -150,21 +155,19 @@ const Exercise1 = () => {
 
     const isCorrect = note === sessionState.correctNote;
 
-    setSessionState(prev => ({
-      ...prev,
-      selectedNote: note,
-      isCorrect,
-      totalAttempts: prev.totalAttempts + 1
-    }));
+    // Increment attempts for this question
+    currentQuestionAttemptsRef.current += 1;
 
     if (isCorrect) {
-      // Correct answer
-      const isFirstTry = sessionState.totalAttempts === sessionState.currentQuestion - 1;
+      // Correct answer - check if this was first attempt
+      const isFirstTry = currentQuestionAttemptsRef.current === 1;
 
       setSessionState(prev => ({
         ...prev,
+        selectedNote: note,
+        isCorrect,
         statusMessage: 'Correct! ✅',
-        correctFirstTry: isFirstTry ? prev.correctFirstTry + 1 : prev.correctFirstTry
+        questionResults: [...prev.questionResults, isFirstTry]
       }));
 
       setWaitingForNext(true);
@@ -189,7 +192,14 @@ const Exercise1 = () => {
         });
       }, 1000);
     } else {
-      // Incorrect answer - flash red for 0.5s then reset
+      // Incorrect answer - just show the error visually
+      setSessionState(prev => ({
+        ...prev,
+        selectedNote: note,
+        isCorrect
+      }));
+
+      // Flash red for 0.5s then reset
       setTimeout(() => {
         setSessionState(prev => ({
           ...prev,
@@ -219,6 +229,7 @@ const Exercise1 = () => {
 
   const handleReset = () => {
     setIsSettingsOpen(false);
+    currentQuestionAttemptsRef.current = 0;
     setSessionState({
       currentQuestion: 1,
       correctNote: null,
@@ -230,7 +241,8 @@ const Exercise1 = () => {
       hasPlayedCAtStart: false,
       selectedNote: null,
       isCorrect: null,
-      statusMessage: ''
+      statusMessage: '',
+      questionResults: []
     });
     setTimeout(() => loadNewQuestion(), 100);
   };
@@ -244,10 +256,14 @@ const Exercise1 = () => {
   };
 
   if (sessionState.isComplete) {
+    // Calculate stats from questionResults array
+    const totalQuestions = sessionState.questionResults.length;
+    const correctFirstTry = sessionState.questionResults.filter(result => result === true).length;
+
     return (
       <SummaryScreen
-        totalQuestions={Math.min(sessionState.currentQuestion, settings.numQuestions)}
-        correctFirstTry={sessionState.correctFirstTry}
+        totalQuestions={totalQuestions}
+        correctFirstTry={correctFirstTry}
         onRestart={handleRestart}
         itemName="questions"
       />
