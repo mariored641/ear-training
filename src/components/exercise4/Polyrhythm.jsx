@@ -1,0 +1,326 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import * as Tone from 'tone';
+import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
+import {
+  DEFAULT_POLYRHYTHM,
+  CELL_STATES,
+  POLYRHYTHM_PRESETS,
+  BPM_MIN,
+  BPM_MAX,
+  TEMPO_MARKINGS
+} from '../../constants/exercise4Defaults';
+
+const Polyrhythm = () => {
+  const [topCount, setTopCount] = useState(DEFAULT_POLYRHYTHM.top.count);
+  const [bottomCount, setBottomCount] = useState(DEFAULT_POLYRHYTHM.bottom.count);
+  const [topCells, setTopCells] = useState([]);
+  const [bottomCells, setBottomCells] = useState([]);
+  const [bpm, setBpm] = useState(DEFAULT_POLYRHYTHM.bpm);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTopCell, setCurrentTopCell] = useState(-1);
+  const [currentBottomCell, setCurrentBottomCell] = useState(-1);
+  const [tapTimes, setTapTimes] = useState([]);
+
+  // Initialize cells
+  useEffect(() => {
+    initializeRow('top', topCount);
+  }, [topCount]);
+
+  useEffect(() => {
+    initializeRow('bottom', bottomCount);
+  }, [bottomCount]);
+
+  const initializeRow = (row, count) => {
+    const setCells = row === 'top' ? setTopCells : setBottomCells;
+    setCells(prevCells => {
+      const newCells = [];
+      for (let i = 0; i < count; i++) {
+        // Keep existing cell state if it exists
+        if (prevCells[i] !== undefined) {
+          newCells.push(prevCells[i]);
+        } else {
+          // New cell - initialize to NORMAL
+          newCells.push(CELL_STATES.NORMAL);
+        }
+      }
+      return newCells;
+    });
+  };
+
+  // Toggle cell state
+  const toggleCell = (row, cellIndex) => {
+    const setCells = row === 'top' ? setTopCells : setBottomCells;
+    setCells(prevCells => {
+      const newCells = [...prevCells];
+      const currentState = newCells[cellIndex];
+
+      // Cycle through states
+      const stateOrder = [CELL_STATES.ACCENT, CELL_STATES.NORMAL, CELL_STATES.SOFT, CELL_STATES.MUTE];
+      const currentIndex = stateOrder.indexOf(currentState);
+      const nextIndex = (currentIndex + 1) % stateOrder.length;
+      newCells[cellIndex] = stateOrder[nextIndex];
+
+      return newCells;
+    });
+  };
+
+  // Apply preset
+  const applyPreset = (preset) => {
+    setTopCount(preset.top);
+    setBottomCount(preset.bottom);
+    // Reset cells to NORMAL
+    setTimeout(() => {
+      setTopCells(new Array(preset.top).fill(CELL_STATES.NORMAL));
+      setBottomCells(new Array(preset.bottom).fill(CELL_STATES.NORMAL));
+    }, 50);
+  };
+
+  // Play/Stop
+  const handlePlayStop = async () => {
+    if (isPlaying) {
+      RhythmAudioPlayer.stop();
+      setIsPlaying(false);
+      setCurrentTopCell(-1);
+      setCurrentBottomCell(-1);
+    } else {
+      await RhythmAudioPlayer.init();
+      playPolyrhythm();
+      setIsPlaying(true);
+    }
+  };
+
+  const playPolyrhythm = useCallback(() => {
+    Tone.Transport.cancel();
+    Tone.Transport.bpm.value = bpm;
+
+    const cycleDuration = 60 / bpm; // One full cycle in seconds
+    const topCellDuration = cycleDuration / topCount;
+    const bottomCellDuration = cycleDuration / bottomCount;
+
+    // Schedule Top row
+    let time = 0;
+    topCells.forEach((cellState, index) => {
+      Tone.Transport.schedule((scheduleTime) => {
+        RhythmAudioPlayer.playCell(cellState, scheduleTime, index === 0);
+        setCurrentTopCell(index);
+
+        setTimeout(() => {
+          setCurrentTopCell(-1);
+        }, topCellDuration * 1000 * 0.5);
+      }, time);
+      time += topCellDuration;
+    });
+
+    // Schedule Bottom row
+    time = 0;
+    bottomCells.forEach((cellState, index) => {
+      Tone.Transport.schedule((scheduleTime) => {
+        RhythmAudioPlayer.playCell(cellState, scheduleTime, index === 0);
+        setCurrentBottomCell(index);
+
+        setTimeout(() => {
+          setCurrentBottomCell(-1);
+        }, bottomCellDuration * 1000 * 0.5);
+      }, time);
+      time += bottomCellDuration;
+    });
+
+    // Set up looping
+    Tone.Transport.loop = true;
+    Tone.Transport.loopEnd = cycleDuration;
+    Tone.Transport.start();
+  }, [topCells, bottomCells, bpm, topCount, bottomCount]);
+
+  // Live updates during playback
+  useEffect(() => {
+    if (isPlaying) {
+      RhythmAudioPlayer.stop();
+      Tone.Transport.cancel();
+      playPolyrhythm();
+    }
+  }, [topCells, bottomCells, bpm]);
+
+  // Clear
+  const handleClear = () => {
+    setTopCells(new Array(topCount).fill(CELL_STATES.NORMAL));
+    setBottomCells(new Array(bottomCount).fill(CELL_STATES.NORMAL));
+  };
+
+  // Tap tempo
+  const handleTap = () => {
+    const now = Date.now();
+    const newTapTimes = [...tapTimes, now].slice(-4);
+    setTapTimes(newTapTimes);
+
+    if (newTapTimes.length >= 2) {
+      const intervals = [];
+      for (let i = 1; i < newTapTimes.length; i++) {
+        intervals.push(newTapTimes[i] - newTapTimes[i - 1]);
+      }
+      const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+      const newBpm = Math.round(60000 / avgInterval);
+
+      if (newBpm >= BPM_MIN && newBpm <= BPM_MAX) {
+        setBpm(newBpm);
+      }
+    }
+
+    setTimeout(() => {
+      setTapTimes(prev => prev.filter(t => Date.now() - t < 3000));
+    }, 3000);
+  };
+
+  // Get tempo marking
+  const getTempoMarking = () => {
+    for (const marking of TEMPO_MARKINGS) {
+      if (bpm >= marking.min && bpm <= marking.max) {
+        return marking.name;
+      }
+    }
+    return 'Andante';
+  };
+
+  // Calculate cell width as percentage
+  const getTopCellWidth = () => `${100 / topCount}%`;
+  const getBottomCellWidth = () => `${100 / bottomCount}%`;
+
+  return (
+    <div className="polyrhythm">
+      {/* Polyrhythm Grid */}
+      <div className="polyrhythm-grid">
+        {/* Top Row */}
+        <div className="polyrhythm-row">
+          <div className="row-label">Top:</div>
+          <div className="row-cells-container">
+            <div className="row-cells">
+              {topCells.map((cellState, index) => (
+                <div
+                  key={index}
+                  className={`poly-cell poly-cell-${cellState} ${
+                    currentTopCell === index ? 'playing' : ''
+                  }`}
+                  style={{ width: getTopCellWidth() }}
+                  onClick={() => toggleCell('top', index)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="row-controls">
+            <button
+              className="control-btn"
+              onClick={() => setTopCount(Math.max(1, topCount - 1))}
+            >
+              -
+            </button>
+            <button
+              className="control-btn"
+              onClick={() => setTopCount(Math.min(16, topCount + 1))}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Row */}
+        <div className="polyrhythm-row">
+          <div className="row-label">Bottom:</div>
+          <div className="row-cells-container">
+            <div className="row-cells">
+              {bottomCells.map((cellState, index) => (
+                <div
+                  key={index}
+                  className={`poly-cell poly-cell-${cellState} ${
+                    currentBottomCell === index ? 'playing' : ''
+                  }`}
+                  style={{ width: getBottomCellWidth() }}
+                  onClick={() => toggleCell('bottom', index)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="row-controls">
+            <button
+              className="control-btn"
+              onClick={() => setBottomCount(Math.max(1, bottomCount - 1))}
+            >
+              -
+            </button>
+            <button
+              className="control-btn"
+              onClick={() => setBottomCount(Math.min(16, bottomCount + 1))}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Ratio Display */}
+        <div className="ratio-display">
+          {topCount} : {bottomCount}
+        </div>
+      </div>
+
+      {/* Polyrhythm Presets */}
+      <div className="preset-section">
+        <div className="control-label">Polyrhythm Presets</div>
+        <div className="preset-buttons">
+          {POLYRHYTHM_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              className="preset-btn"
+              onClick={() => applyPreset(preset)}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* BPM Control */}
+      <div className="bpm-section">
+        <div className="control-label">BPM</div>
+        <div className="bpm-control">
+          <div className="bpm-display">
+            <button
+              className="control-btn"
+              onClick={() => setBpm(Math.max(BPM_MIN, bpm - 1))}
+            >
+              -
+            </button>
+            <div className="bpm-value">{bpm}</div>
+            <button
+              className="control-btn"
+              onClick={() => setBpm(Math.min(BPM_MAX, bpm + 1))}
+            >
+              +
+            </button>
+          </div>
+          <input
+            type="range"
+            min={BPM_MIN}
+            max={BPM_MAX}
+            value={bpm}
+            onChange={(e) => setBpm(parseInt(e.target.value))}
+            className="bpm-slider"
+          />
+          <div className="tempo-marking">{getTempoMarking()}</div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="action-buttons">
+        <button className="action-btn secondary" onClick={handleTap}>
+          👆 Tap
+        </button>
+        <button className="action-btn primary" onClick={handlePlayStop}>
+          {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+        </button>
+        <button className="action-btn secondary" onClick={handleClear}>
+          🔄 Clear
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Polyrhythm;
