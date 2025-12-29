@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
   BPM_MIN,
   BPM_MAX,
@@ -11,7 +12,9 @@ const StickyControls = ({
   isPlaying,
   onPlayStop,
   onClear,
-  onTap
+  onTap,
+  soundSet,
+  setSoundSet
 }) => {
   const [isStuck, setIsStuck] = useState(false);
   const [showBPMModal, setShowBPMModal] = useState(false);
@@ -28,33 +31,22 @@ const StickyControls = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Sticky detection
+  // Sticky detection using scroll
   useEffect(() => {
-    const sentinel = document.createElement('div');
-    sentinel.style.height = '1px';
-    sentinel.style.position = 'absolute';
-    sentinel.style.top = '0';
+    const handleScroll = () => {
+      const controls = document.querySelector('.sticky-controls');
+      if (!controls) return;
 
-    const controls = document.querySelector('.sticky-controls');
-    if (controls && controls.parentElement) {
-      controls.parentElement.insertBefore(sentinel, controls);
+      const rect = controls.getBoundingClientRect();
+      const originalTop = controls.offsetTop;
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          setIsStuck(!entry.isIntersecting);
-        },
-        { threshold: 1 }
-      );
+      // If scrolled past the original position, make it fixed
+      setIsStuck(window.scrollY > originalTop);
+    };
 
-      observer.observe(sentinel);
-
-      return () => {
-        observer.disconnect();
-        if (sentinel.parentElement) {
-          sentinel.parentElement.removeChild(sentinel);
-        }
-      };
-    }
+    handleScroll(); // Initial check
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Get tempo marking
@@ -72,19 +64,42 @@ const StickyControls = ({
     setBpm(value);
   };
 
+  const handleSoundSetChange = async (newSoundSet) => {
+    setSoundSet(newSoundSet);
+    await RhythmAudioPlayer.setSoundSet(newSoundSet);
+  };
+
   return (
     <>
       <div className={`sticky-controls ${isStuck ? 'is-stuck' : ''}`}>
         {/* Playback Buttons */}
         <div className="playback-buttons">
           <button className="action-btn secondary tap-btn" onClick={onTap}>
-            👆 Tap
+            👆<span> Tap</span>
           </button>
           <button className="action-btn primary play-btn" onClick={onPlayStop}>
-            {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+            {isPlaying ? '⏸️' : '▶️'}<span> {isPlaying ? 'Pause' : 'Play'}</span>
           </button>
           <button className="action-btn secondary clear-btn" onClick={onClear}>
-            🔄 Clear
+            🔄<span> Clear</span>
+          </button>
+        </div>
+
+        {/* Sound Switcher */}
+        <div className="sound-switcher">
+          <button
+            className={`sound-btn ${soundSet === 'classicClick' ? 'active' : ''}`}
+            onClick={() => handleSoundSetChange('classicClick')}
+            title="Classic Click"
+          >
+            🔘
+          </button>
+          <button
+            className={`sound-btn ${soundSet === 'drumKit' ? 'active' : ''}`}
+            onClick={() => handleSoundSetChange('drumKit')}
+            title="Drum Kit"
+          >
+            🥁
           </button>
         </div>
 
@@ -140,8 +155,8 @@ const StickyControls = ({
       {/* Mobile BPM Modal */}
       {isMobile && showBPMModal && (
         <div className="bpm-modal active" onClick={() => setShowBPMModal(false)}>
-          <div className="modal-overlay"></div>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="bpm-modal-overlay"></div>
+          <div className="bpm-modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>BPM: <span id="modalBpmValue">{bpm}</span></h3>
 
             <div className="bpm-controls-modal">

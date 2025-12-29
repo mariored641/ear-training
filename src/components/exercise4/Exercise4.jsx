@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import Header from '../common/Header';
 import RhythmExplorer from './RhythmExplorer';
 import Polyrhythm from './Polyrhythm';
@@ -15,6 +16,7 @@ const Exercise4 = () => {
   // Shared playback state
   const [sharedBpm, setSharedBpm] = useState(90);
   const [sharedIsPlaying, setSharedIsPlaying] = useState(false);
+  const [sharedSoundSet, setSharedSoundSet] = useState('classicClick');
   const [tapTimes, setTapTimes] = useState([]);
 
   // Refs to tab component methods
@@ -22,7 +24,27 @@ const Exercise4 = () => {
   const polyrhythmRef = React.useRef(null);
   const advancedSubdivisionsRef = React.useRef(null);
 
+  // Stop all playback
+  const stopPlayback = () => {
+    RhythmAudioPlayer.stop();
+    setSharedIsPlaying(false);
+  };
+
+  // Handle tab change - stop playback first
+  const handleTabChange = (newTab) => {
+    stopPlayback();
+    setActiveTab(newTab);
+  };
+
+  // Cleanup on unmount - stop playback when leaving page
+  useEffect(() => {
+    return () => {
+      RhythmAudioPlayer.stop();
+    };
+  }, []);
+
   const handleStop = () => {
+    stopPlayback();
     navigate('/');
   };
 
@@ -84,19 +106,19 @@ const Exercise4 = () => {
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === 'rhythmExplorer' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rhythmExplorer')}
+          onClick={() => handleTabChange('rhythmExplorer')}
         >
           Rhythm Explorer
         </button>
         <button
           className={`tab-button ${activeTab === 'polyrhythm' ? 'active' : ''}`}
-          onClick={() => setActiveTab('polyrhythm')}
+          onClick={() => handleTabChange('polyrhythm')}
         >
           Polyrhythm
         </button>
         <button
           className={`tab-button ${activeTab === 'advanced' ? 'active' : ''}`}
-          onClick={() => setActiveTab('advanced')}
+          onClick={() => handleTabChange('advanced')}
         >
           Advanced Subdivisions
         </button>
@@ -110,6 +132,8 @@ const Exercise4 = () => {
         onPlayStop={handlePlayStop}
         onClear={handleClear}
         onTap={handleTap}
+        soundSet={sharedSoundSet}
+        setSoundSet={setSharedSoundSet}
       />
 
       {/* Tab Content */}
@@ -121,6 +145,8 @@ const Exercise4 = () => {
             setSharedBpm={setSharedBpm}
             sharedIsPlaying={sharedIsPlaying}
             setSharedIsPlaying={setSharedIsPlaying}
+            sharedSoundSet={sharedSoundSet}
+            setSharedSoundSet={setSharedSoundSet}
           />
         )}
         {activeTab === 'polyrhythm' && (
@@ -130,6 +156,7 @@ const Exercise4 = () => {
             setSharedBpm={setSharedBpm}
             sharedIsPlaying={sharedIsPlaying}
             setSharedIsPlaying={setSharedIsPlaying}
+            sharedSoundSet={sharedSoundSet}
           />
         )}
         {activeTab === 'advanced' && (
@@ -139,6 +166,7 @@ const Exercise4 = () => {
             setSharedBpm={setSharedBpm}
             sharedIsPlaying={sharedIsPlaying}
             setSharedIsPlaying={setSharedIsPlaying}
+            sharedSoundSet={sharedSoundSet}
           />
         )}
       </div>

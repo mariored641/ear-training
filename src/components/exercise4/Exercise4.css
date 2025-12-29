@@ -47,7 +47,7 @@
    ======================================== */
 
 .sticky-controls {
-  position: sticky;
+  position: relative;
   top: 0;
   z-index: 100;
   background: white;
@@ -58,11 +58,15 @@
   align-items: center;
   padding: 8px 24px;
   gap: 24px;
-  transition: box-shadow 0.3s ease;
+  transition: all 0.3s ease;
   width: 100%;
 }
 
 .sticky-controls.is-stuck {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -102,6 +106,33 @@
 
 .sticky-controls .action-btn.secondary:hover {
   background-color: var(--border-color);
+}
+
+/* Sound Switcher */
+.sound-switcher {
+  display: flex;
+  gap: 6px;
+  margin: 0 8px;
+}
+
+.sound-switcher .sound-btn {
+  padding: 8px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+
+.sound-switcher .sound-btn:hover {
+  background-color: var(--border-color);
+}
+
+.sound-switcher .sound-btn.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
 /* BPM Control in Sticky - Desktop */
@@ -233,16 +264,17 @@
   display: block;
 }
 
-.modal-overlay {
+.bpm-modal-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
+  z-index: 1;
 }
 
-.modal-content {
+.bpm-modal-content {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -254,6 +286,7 @@
   max-width: 320px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+  z-index: 2;
 }
 
 @keyframes slideUp {
@@ -267,7 +300,7 @@
   }
 }
 
-.modal-content h3 {
+.bpm-modal-content h3 {
   text-align: center;
   margin-bottom: 24px;
   font-size: 20px;
@@ -376,6 +409,16 @@
 
   .sticky-controls .action-btn span {
     display: none;
+  }
+
+  .sound-switcher {
+    gap: 4px;
+    margin: 0 4px;
+  }
+
+  .sound-switcher .sound-btn {
+    padding: 6px 10px;
+    font-size: 16px;
   }
 
   .bpm-control-sticky {
@@ -518,6 +561,21 @@
   font-weight: 600;
   color: var(--color-primary);
   min-width: 80px;
+}
+
+/* Subdivision Group */
+.subdivision-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.subdivision-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 120px;
 }
 
 .beats-slider {
@@ -1239,15 +1297,71 @@
 }
 
 /* Mobile Responsive */
+/* Mobile Headers - Hidden on desktop */
+.polyrhythm-headers-mobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .polyrhythm,
   .advanced-subdivisions {
     padding: var(--spacing-md);
   }
 
-  .polyrhythm-row {
+  /* Show mobile headers */
+  .polyrhythm-headers-mobile {
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding: 0 var(--spacing-sm);
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .row-label-mobile {
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  .row-controls-mobile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .count-display {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  /* Hide desktop labels and controls */
+  .polyrhythm-row .row-label-container {
+    display: none;
+  }
+
+  .polyrhythm-row .row-controls {
+    display: none;
+  }
+
+  /* Make rows stick together */
+  .polyrhythm-row {
+    margin-bottom: 0 !important;
+  }
+
+  .row-cells-container {
+    margin-bottom: 4px; /* רווח מינימלי בין השורות */
+  }
+
+  .polyrhythm-grid {
+    margin-bottom: var(--spacing-md);
   }
 
   .row-label {
@@ -1291,6 +1405,44 @@
   .beat-card {
     min-width: unset;
     max-width: unset;
+    width: 100%; /* וודא שהכרטיס תופס 100% */
+  }
+
+  .beat-card-controls {
+    gap: 8px;
+    width: 100%; /* וודא שהקונטיינר תופס 100% */
+  }
+
+  .control-group {
+    gap: 6px;
+    width: 100%; /* זה הקריטי! */
+    max-width: 100%;
+    overflow: hidden; /* למקרה הצורך */
+  }
+
+  .control-group label {
+    min-width: 50px;
+    flex-shrink: 0; /* הלייבל לא יתכווץ */
+    font-size: 13px;
+  }
+
+  .division-select {
+    flex: 1;
+    min-width: 0; /* מאפשר התכווצות */
+    max-width: 100%;
+    font-size: 13px;
+    width: auto; /* חשוב! */
+  }
+
+  .length-input {
+    flex: 1;
+    max-width: 80px; /* תן קצת יותר מקום */
+    font-size: 13px;
+  }
+
+  .unit {
+    flex-shrink: 0; /* "beats" לא יתכווץ */
+    font-size: 13px;
   }
 
   .advanced-header {

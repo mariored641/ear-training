@@ -11,11 +11,12 @@ import {
   TEMPO_MARKINGS
 } from '../../constants/exercise4Defaults';
 
-const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying }, ref) => {
+const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const [beats, setBeats] = useState([]);
   const bpm = sharedBpm;
   const setBpm = setSharedBpm;
-  const [isPlaying, setIsPlaying] = useState(false);
+  const isPlaying = sharedIsPlaying;
+  const setIsPlaying = setSharedIsPlaying;
   const [currentBeat, setCurrentBeat] = useState(-1);
   const [currentCell, setCurrentCell] = useState(-1);
   const [tapTimes, setTapTimes] = useState([]);
@@ -26,11 +27,18 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
   }, []);
 
   const initializeBeats = () => {
-    setBeats(DEFAULT_ADVANCED.beats.map(beat => ({
-      length: beat.length,
-      division: beat.division,
-      cells: new Array(beat.division).fill(CELL_STATES.NORMAL)
-    })));
+    setBeats(DEFAULT_ADVANCED.beats.map(beat => {
+      const cells = [];
+      for (let i = 0; i < beat.division; i++) {
+        // First cell is ACCENT, rest are SOFT
+        cells.push(i === 0 ? CELL_STATES.ACCENT : CELL_STATES.SOFT);
+      }
+      return {
+        length: beat.length,
+        division: beat.division,
+        cells: cells
+      };
+    }));
   };
 
   // Add new beat
@@ -40,7 +48,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       {
         length: 1,
         division: 1,
-        cells: [CELL_STATES.NORMAL]
+        cells: [CELL_STATES.ACCENT]
       }
     ]);
   };
@@ -70,8 +78,13 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       const newCells = [];
 
       for (let i = 0; i < newDivision; i++) {
-        // Keep existing cell state if available
-        newCells.push(oldCells[i] || CELL_STATES.NORMAL);
+        if (oldCells[i] !== undefined) {
+          // Keep existing cell state if available
+          newCells.push(oldCells[i]);
+        } else {
+          // New cells: first cell is ACCENT, additional cells are SOFT
+          newCells.push(i === 0 ? CELL_STATES.ACCENT : CELL_STATES.SOFT);
+        }
       }
 
       newBeats[beatIndex] = {
@@ -129,7 +142,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
 
       beat.cells.forEach((cellState, cellIndex) => {
         Tone.Transport.schedule((scheduleTime) => {
-          RhythmAudioPlayer.playCell(cellState, scheduleTime, cellIndex === 0);
+          RhythmAudioPlayer.playCell(cellState, scheduleTime, cellIndex === 0, sharedSoundSet);
           setCurrentBeat(beatIndex);
           setCurrentCell(cellIndex);
 
@@ -147,7 +160,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
     Tone.Transport.loop = true;
     Tone.Transport.loopEnd = time;
     Tone.Transport.start();
-  }, [beats, bpm]);
+  }, [beats, bpm, sharedSoundSet]);
 
   // Live updates during playback
   useEffect(() => {
@@ -156,7 +169,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       Tone.Transport.cancel();
       playPattern();
     }
-  }, [beats, bpm]);
+  }, [beats, bpm, sharedSoundSet]);
 
   // Clear - reset to default
   const handleClear = () => {

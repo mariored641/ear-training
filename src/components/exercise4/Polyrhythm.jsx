@@ -10,14 +10,15 @@ import {
   TEMPO_MARKINGS
 } from '../../constants/exercise4Defaults';
 
-const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying }, ref) => {
+const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const [topCount, setTopCount] = useState(DEFAULT_POLYRHYTHM.top.count);
   const [bottomCount, setBottomCount] = useState(DEFAULT_POLYRHYTHM.bottom.count);
   const [topCells, setTopCells] = useState([]);
   const [bottomCells, setBottomCells] = useState([]);
   const bpm = sharedBpm;
   const setBpm = setSharedBpm;
-  const [isPlaying, setIsPlaying] = useState(false);
+  const isPlaying = sharedIsPlaying;
+  const setIsPlaying = setSharedIsPlaying;
   const [currentTopCell, setCurrentTopCell] = useState(-1);
   const [currentBottomCell, setCurrentBottomCell] = useState(-1);
   const [tapTimes, setTapTimes] = useState([]);
@@ -119,7 +120,7 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
     let time = 0;
     topCells.forEach((cellState, index) => {
       Tone.Transport.schedule((scheduleTime) => {
-        RhythmAudioPlayer.playCell(cellState, scheduleTime, index === 0);
+        RhythmAudioPlayer.playCell(cellState, scheduleTime, index === 0, sharedSoundSet);
         setCurrentTopCell(index);
 
         setTimeout(() => {
@@ -133,7 +134,7 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
     time = 0;
     bottomCells.forEach((cellState, index) => {
       Tone.Transport.schedule((scheduleTime) => {
-        RhythmAudioPlayer.playCell(cellState, scheduleTime, index === 0);
+        RhythmAudioPlayer.playCell(cellState, scheduleTime, index === 0, sharedSoundSet);
         setCurrentBottomCell(index);
 
         setTimeout(() => {
@@ -147,7 +148,7 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
     Tone.Transport.loop = true;
     Tone.Transport.loopEnd = cycleDuration;
     Tone.Transport.start();
-  }, [topCells, bottomCells, bpm, topCount, bottomCount]);
+  }, [topCells, bottomCells, bpm, topCount, bottomCount, sharedSoundSet]);
 
   // Live updates during playback
   useEffect(() => {
@@ -156,7 +157,7 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
       Tone.Transport.cancel();
       playPolyrhythm();
     }
-  }, [topCells, bottomCells, bpm]);
+  }, [topCells, bottomCells, bpm, sharedSoundSet]);
 
   // Clear
   const handleClear = () => {
@@ -210,6 +211,65 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
 
   return (
     <div className="polyrhythm">
+      {/* Mobile Headers - Only visible on mobile */}
+      <div className="polyrhythm-headers-mobile">
+        {/* Top Header */}
+        <div className="header-row">
+          <div className="row-label-mobile">
+            Top:
+            <button
+              className={`row-level-btn poly-cell-${topCells[0] || CELL_STATES.NORMAL}`}
+              onClick={() => setRowLevel('top')}
+              title="Click to change all cells in this row to the same level"
+              style={{ marginLeft: '8px' }}
+            />
+          </div>
+          <div className="row-controls-mobile">
+            <button
+              className="control-btn"
+              onClick={() => setTopCount(Math.max(1, topCount - 1))}
+            >
+              -
+            </button>
+            <span className="count-display">{topCount}</span>
+            <button
+              className="control-btn"
+              onClick={() => setTopCount(Math.min(16, topCount + 1))}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Header */}
+        <div className="header-row">
+          <div className="row-label-mobile">
+            Bottom:
+            <button
+              className={`row-level-btn poly-cell-${bottomCells[0] || CELL_STATES.NORMAL}`}
+              onClick={() => setRowLevel('bottom')}
+              title="Click to change all cells in this row to the same level"
+              style={{ marginLeft: '8px' }}
+            />
+          </div>
+          <div className="row-controls-mobile">
+            <button
+              className="control-btn"
+              onClick={() => setBottomCount(Math.max(1, bottomCount - 1))}
+            >
+              -
+            </button>
+            <span className="count-display">{bottomCount}</span>
+            <button
+              className="control-btn"
+              onClick={() => setBottomCount(Math.min(16, bottomCount + 1))}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Polyrhythm Grid */}
       <div className="polyrhythm-grid">
         {/* Top Row */}
