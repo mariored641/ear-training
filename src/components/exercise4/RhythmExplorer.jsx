@@ -17,10 +17,11 @@ const SOUND_SETS = [
   { value: 'drumKit', label: '🥁 Drum Kit', description: 'Realistic drum sounds' }
 ];
 
-const RhythmExplorer = forwardRef((props, ref) => {
+const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying }, ref) => {
   const [beats, setBeats] = useState(DEFAULT_RHYTHM_EXPLORER.beats);
   const [subdivision, setSubdivision] = useState(DEFAULT_RHYTHM_EXPLORER.subdivision);
-  const [bpm, setBpm] = useState(DEFAULT_RHYTHM_EXPLORER.bpm);
+  const bpm = sharedBpm;
+  const setBpm = setSharedBpm;
   const [timeSignature, setTimeSignature] = useState(DEFAULT_RHYTHM_EXPLORER.timeSignature);
   const [grid, setGrid] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -448,19 +449,6 @@ const RhythmExplorer = forwardRef((props, ref) => {
             <div className="tempo-marking">{getTempoMarking()}</div>
           </div>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="action-buttons">
-        <button className="action-btn secondary" onClick={handleTap}>
-          👆 Tap
-        </button>
-        <button className="action-btn primary" onClick={handlePlayStop}>
-          {isPlaying ? '⏸️ Pause' : '▶️ Play'}
-        </button>
-        <button className="action-btn secondary" onClick={handleClear}>
-          🔄 Clear
-        </button>
       </div>
 
       {/* Time Signature Selector */}

@@ -10,12 +10,13 @@ import {
   TEMPO_MARKINGS
 } from '../../constants/exercise4Defaults';
 
-const Polyrhythm = forwardRef((props, ref) => {
+const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying }, ref) => {
   const [topCount, setTopCount] = useState(DEFAULT_POLYRHYTHM.top.count);
   const [bottomCount, setBottomCount] = useState(DEFAULT_POLYRHYTHM.bottom.count);
   const [topCells, setTopCells] = useState([]);
   const [bottomCells, setBottomCells] = useState([]);
-  const [bpm, setBpm] = useState(DEFAULT_POLYRHYTHM.bpm);
+  const bpm = sharedBpm;
+  const setBpm = setSharedBpm;
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTopCell, setCurrentTopCell] = useState(-1);
   const [currentBottomCell, setCurrentBottomCell] = useState(-1);
@@ -313,49 +314,6 @@ const Polyrhythm = forwardRef((props, ref) => {
         </div>
       </div>
 
-      {/* BPM Control */}
-      <div className="bpm-section">
-        <div className="control-label">BPM</div>
-        <div className="bpm-control">
-          <div className="bpm-display">
-            <button
-              className="control-btn"
-              onClick={() => setBpm(Math.max(BPM_MIN, bpm - 1))}
-            >
-              -
-            </button>
-            <div className="bpm-value">{bpm}</div>
-            <button
-              className="control-btn"
-              onClick={() => setBpm(Math.min(BPM_MAX, bpm + 1))}
-            >
-              +
-            </button>
-          </div>
-          <input
-            type="range"
-            min={BPM_MIN}
-            max={BPM_MAX}
-            value={bpm}
-            onChange={(e) => setBpm(parseInt(e.target.value))}
-            className="bpm-slider"
-          />
-          <div className="tempo-marking">{getTempoMarking()}</div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="action-buttons">
-        <button className="action-btn secondary" onClick={handleTap}>
-          👆 Tap
-        </button>
-        <button className="action-btn primary" onClick={handlePlayStop}>
-          {isPlaying ? '⏸️ Pause' : '▶️ Play'}
-        </button>
-        <button className="action-btn secondary" onClick={handleClear}>
-          🔄 Clear
-        </button>
-      </div>
     </div>
   );
 });
