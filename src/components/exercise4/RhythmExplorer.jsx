@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as Tone from 'tone';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
@@ -12,21 +12,19 @@ import {
   TEMPO_MARKINGS
 } from '../../constants/exercise4Defaults';
 
-const SOUND_SETS = [
-  { value: 'classicClick', label: '🎵 Classic Click', description: 'Simple metronome click' },
-  { value: 'drumKit', label: '🥁 Drum Kit', description: 'Realistic drum sounds' }
-];
-
-const RhythmExplorer = () => {
+const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet, setSharedSoundSet }, ref) => {
   const [beats, setBeats] = useState(DEFAULT_RHYTHM_EXPLORER.beats);
   const [subdivision, setSubdivision] = useState(DEFAULT_RHYTHM_EXPLORER.subdivision);
-  const [bpm, setBpm] = useState(DEFAULT_RHYTHM_EXPLORER.bpm);
+  const bpm = sharedBpm;
+  const setBpm = setSharedBpm;
   const [timeSignature, setTimeSignature] = useState(DEFAULT_RHYTHM_EXPLORER.timeSignature);
   const [grid, setGrid] = useState([]);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const isPlaying = sharedIsPlaying;
+  const setIsPlaying = setSharedIsPlaying;
   const [currentCell, setCurrentCell] = useState({ beat: -1, cell: -1 });
   const [showSubdivisionModal, setShowSubdivisionModal] = useState(false);
-  const [soundSet, setSoundSet] = useState(DEFAULT_EXERCISE4_SETTINGS.soundSet);
+  const soundSet = sharedSoundSet;
+  const setSoundSet = setSharedSoundSet;
   const [tapTimes, setTapTimes] = useState([]);
 
   // Ref to track current position in the loop
@@ -326,11 +324,11 @@ const RhythmExplorer = () => {
     return sub ? sub.icon : '♩';
   };
 
-  // Change sound set
-  const handleSoundSetChange = async (newSoundSet) => {
-    setSoundSet(newSoundSet);
-    await RhythmAudioPlayer.setSoundSet(newSoundSet);
-  };
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    handlePlayStop,
+    handleClear
+  }));
 
   return (
     <div className="rhythm-explorer">
@@ -359,119 +357,64 @@ const RhythmExplorer = () => {
 
       {/* Right Panel - Controls */}
       <div className="rhythm-right-panel">
-        {/* Sound Set Selector */}
+        {/* Beats and Subdivision Control */}
         <div className="control-section">
-          <div className="control-label">Sound</div>
-          <div className="sound-set-selector">
-            {SOUND_SETS.map((set) => (
-              <button
-                key={set.value}
-                className={`sound-set-btn ${soundSet === set.value ? 'active' : ''}`}
-                onClick={() => handleSoundSetChange(set.value)}
-                title={set.description}
-              >
-                {set.label}
-              </button>
-            ))}
+          {/* Beats Control */}
+          <div className="control-group">
+            <div className="beats-control">
+              <div className="beats-display">Beats: {beats}</div>
+              <input
+                type="range"
+                min="1"
+                max="16"
+                value={beats}
+                onChange={(e) => setBeats(parseInt(e.target.value))}
+                className="beats-slider"
+              />
+              <div className="control-buttons">
+                <button
+                  className="control-btn"
+                  onClick={() => setBeats(Math.max(1, beats - 1))}
+                >
+                  -
+                </button>
+                <button
+                  className="control-btn"
+                  onClick={() => setBeats(Math.min(16, beats + 1))}
+                >
+                  +
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Beats Control */}
-        <div className="control-section">
-        <div className="control-group">
-          <div className="beats-control">
-            <div className="beats-display">Beats: {beats}</div>
+          {/* Subdivision Control */}
+          <div className="control-group subdivision-group">
+            <div className="subdivision-label">Subdivision:</div>
             <button
               className="control-btn subdivision-trigger"
               onClick={() => setShowSubdivisionModal(true)}
             >
               {getSubdivisionIcon()}
             </button>
-            <input
-              type="range"
-              min="1"
-              max="16"
-              value={beats}
-              onChange={(e) => setBeats(parseInt(e.target.value))}
-              className="beats-slider"
-            />
-            <div className="control-buttons">
-              <button
-                className="control-btn"
-                onClick={() => setBeats(Math.max(1, beats - 1))}
-              >
-                -
-              </button>
-              <button
-                className="control-btn"
-                onClick={() => setBeats(Math.min(16, beats + 1))}
-              >
-                +
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* BPM Control */}
-        <div className="control-group">
-          <div className="control-label">BPM</div>
-          <div className="bpm-control">
-            <div className="bpm-display">
+        {/* Time Signature Selector */}
+        <div className="time-signature-selector">
+          <div className="control-label">Time Signature</div>
+          <div className="time-sig-grid">
+            {TIME_SIGNATURES.map((sig) => (
               <button
-                className="control-btn"
-                onClick={() => setBpm(Math.max(BPM_MIN, bpm - 1))}
+                key={sig}
+                className={`time-sig-btn ${timeSignature === sig ? 'active' : ''}`}
+                onClick={() => handleTimeSignatureChange(sig)}
               >
-                -
+                {sig}
               </button>
-              <div className="bpm-value">{bpm}</div>
-              <button
-                className="control-btn"
-                onClick={() => setBpm(Math.min(BPM_MAX, bpm + 1))}
-              >
-                +
-              </button>
-            </div>
-            <input
-              type="range"
-              min={BPM_MIN}
-              max={BPM_MAX}
-              value={bpm}
-              onChange={(e) => setBpm(parseInt(e.target.value))}
-              className="bpm-slider"
-            />
-            <div className="tempo-marking">{getTempoMarking()}</div>
+            ))}
           </div>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="action-buttons">
-        <button className="action-btn secondary" onClick={handleTap}>
-          👆 Tap
-        </button>
-        <button className="action-btn primary" onClick={handlePlayStop}>
-          {isPlaying ? '⏸️ Pause' : '▶️ Play'}
-        </button>
-        <button className="action-btn secondary" onClick={handleClear}>
-          🔄 Clear
-        </button>
-      </div>
-
-      {/* Time Signature Selector */}
-      <div className="time-signature-selector">
-        <div className="control-label">Time Signature</div>
-        <div className="time-sig-grid">
-          {TIME_SIGNATURES.map((sig) => (
-            <button
-              key={sig}
-              className={`time-sig-btn ${timeSignature === sig ? 'active' : ''}`}
-              onClick={() => handleTimeSignatureChange(sig)}
-            >
-              {sig}
-            </button>
-          ))}
-        </div>
-      </div>
       </div>
       {/* End Right Panel */}
 
@@ -500,6 +443,6 @@ const RhythmExplorer = () => {
       )}
     </div>
   );
-};
+});
 
 export default RhythmExplorer;

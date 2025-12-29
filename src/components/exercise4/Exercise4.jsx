@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import Header from '../common/Header';
 import RhythmExplorer from './RhythmExplorer';
+import Polyrhythm from './Polyrhythm';
+import AdvancedSubdivisions from './AdvancedSubdivisions';
+import StickyControls from './StickyControls';
 import './Exercise4.css';
 
 const Exercise4 = () => {
@@ -9,8 +13,84 @@ const Exercise4 = () => {
   const [activeTab, setActiveTab] = useState('rhythmExplorer');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  // Shared playback state
+  const [sharedBpm, setSharedBpm] = useState(90);
+  const [sharedIsPlaying, setSharedIsPlaying] = useState(false);
+  const [sharedSoundSet, setSharedSoundSet] = useState('classicClick');
+  const [tapTimes, setTapTimes] = useState([]);
+
+  // Refs to tab component methods
+  const rhythmExplorerRef = React.useRef(null);
+  const polyrhythmRef = React.useRef(null);
+  const advancedSubdivisionsRef = React.useRef(null);
+
+  // Stop all playback
+  const stopPlayback = () => {
+    RhythmAudioPlayer.stop();
+    setSharedIsPlaying(false);
+  };
+
+  // Handle tab change - stop playback first
+  const handleTabChange = (newTab) => {
+    stopPlayback();
+    setActiveTab(newTab);
+  };
+
+  // Cleanup on unmount - stop playback when leaving page
+  useEffect(() => {
+    return () => {
+      RhythmAudioPlayer.stop();
+    };
+  }, []);
+
   const handleStop = () => {
+    stopPlayback();
     navigate('/');
+  };
+
+  const handlePlayStop = () => {
+    // Call the appropriate tab's play/stop handler
+    if (activeTab === 'rhythmExplorer' && rhythmExplorerRef.current) {
+      rhythmExplorerRef.current.handlePlayStop();
+    } else if (activeTab === 'polyrhythm' && polyrhythmRef.current) {
+      polyrhythmRef.current.handlePlayStop();
+    } else if (activeTab === 'advanced' && advancedSubdivisionsRef.current) {
+      advancedSubdivisionsRef.current.handlePlayStop();
+    }
+  };
+
+  const handleClear = () => {
+    // Call the appropriate tab's clear handler
+    if (activeTab === 'rhythmExplorer' && rhythmExplorerRef.current) {
+      rhythmExplorerRef.current.handleClear();
+    } else if (activeTab === 'polyrhythm' && polyrhythmRef.current) {
+      polyrhythmRef.current.handleClear();
+    } else if (activeTab === 'advanced' && advancedSubdivisionsRef.current) {
+      advancedSubdivisionsRef.current.handleClear();
+    }
+  };
+
+  const handleTap = () => {
+    const now = Date.now();
+    const newTapTimes = [...tapTimes, now].slice(-4);
+    setTapTimes(newTapTimes);
+
+    if (newTapTimes.length >= 2) {
+      const intervals = [];
+      for (let i = 1; i < newTapTimes.length; i++) {
+        intervals.push(newTapTimes[i] - newTapTimes[i - 1]);
+      }
+      const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+      const newBpm = Math.round(60000 / avgInterval);
+
+      if (newBpm >= 40 && newBpm <= 240) {
+        setSharedBpm(newBpm);
+      }
+    }
+
+    setTimeout(() => {
+      setTapTimes(prev => prev.filter(t => Date.now() - t < 3000));
+    }, 3000);
   };
 
   return (
@@ -26,33 +106,69 @@ const Exercise4 = () => {
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === 'rhythmExplorer' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rhythmExplorer')}
+          onClick={() => handleTabChange('rhythmExplorer')}
         >
           Rhythm Explorer
         </button>
         <button
           className={`tab-button ${activeTab === 'polyrhythm' ? 'active' : ''}`}
-          onClick={() => setActiveTab('polyrhythm')}
-          disabled
-          style={{ opacity: 0.5, cursor: 'not-allowed' }}
+          onClick={() => handleTabChange('polyrhythm')}
         >
-          Polyrhythm (Coming Soon)
+          Polyrhythm
         </button>
         <button
           className={`tab-button ${activeTab === 'advanced' ? 'active' : ''}`}
-          onClick={() => setActiveTab('advanced')}
-          disabled
-          style={{ opacity: 0.5, cursor: 'not-allowed' }}
+          onClick={() => handleTabChange('advanced')}
         >
-          Advanced (Coming Soon)
+          Advanced Subdivisions
         </button>
       </div>
 
+      {/* Sticky Controls - Shared across all tabs */}
+      <StickyControls
+        bpm={sharedBpm}
+        setBpm={setSharedBpm}
+        isPlaying={sharedIsPlaying}
+        onPlayStop={handlePlayStop}
+        onClear={handleClear}
+        onTap={handleTap}
+        soundSet={sharedSoundSet}
+        setSoundSet={setSharedSoundSet}
+      />
+
       {/* Tab Content */}
       <div className="tab-content">
-        {activeTab === 'rhythmExplorer' && <RhythmExplorer />}
-        {activeTab === 'polyrhythm' && <div>Polyrhythm - Coming Soon</div>}
-        {activeTab === 'advanced' && <div>Advanced Subdivisions - Coming Soon</div>}
+        {activeTab === 'rhythmExplorer' && (
+          <RhythmExplorer
+            ref={rhythmExplorerRef}
+            sharedBpm={sharedBpm}
+            setSharedBpm={setSharedBpm}
+            sharedIsPlaying={sharedIsPlaying}
+            setSharedIsPlaying={setSharedIsPlaying}
+            sharedSoundSet={sharedSoundSet}
+            setSharedSoundSet={setSharedSoundSet}
+          />
+        )}
+        {activeTab === 'polyrhythm' && (
+          <Polyrhythm
+            ref={polyrhythmRef}
+            sharedBpm={sharedBpm}
+            setSharedBpm={setSharedBpm}
+            sharedIsPlaying={sharedIsPlaying}
+            setSharedIsPlaying={setSharedIsPlaying}
+            sharedSoundSet={sharedSoundSet}
+          />
+        )}
+        {activeTab === 'advanced' && (
+          <AdvancedSubdivisions
+            ref={advancedSubdivisionsRef}
+            sharedBpm={sharedBpm}
+            setSharedBpm={setSharedBpm}
+            sharedIsPlaying={sharedIsPlaying}
+            setSharedIsPlaying={setSharedIsPlaying}
+            sharedSoundSet={sharedSoundSet}
+          />
+        )}
       </div>
     </div>
   );
