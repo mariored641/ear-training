@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import * as Tone from 'tone';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
@@ -11,7 +11,7 @@ import {
   TEMPO_MARKINGS
 } from '../../constants/exercise4Defaults';
 
-const AdvancedSubdivisions = () => {
+const AdvancedSubdivisions = forwardRef((props, ref) => {
   const [beats, setBeats] = useState([]);
   const [bpm, setBpm] = useState(DEFAULT_ADVANCED.bpm);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -206,6 +206,12 @@ const AdvancedSubdivisions = () => {
     return beats.reduce((sum, beat) => sum + beat.length, 0);
   };
 
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    handlePlayStop,
+    handleClear
+  }));
+
   return (
     <div className="advanced-subdivisions">
       {/* Header with Add Beat and Total */}
@@ -332,6 +338,6 @@ const AdvancedSubdivisions = () => {
       </div>
     </div>
   );
-};
+});
 
 export default AdvancedSubdivisions;

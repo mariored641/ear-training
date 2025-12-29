@@ -17,8 +17,35 @@ const Exercise4 = () => {
   const [sharedIsPlaying, setSharedIsPlaying] = useState(false);
   const [tapTimes, setTapTimes] = useState([]);
 
+  // Refs to tab component methods
+  const rhythmExplorerRef = React.useRef(null);
+  const polyrhythmRef = React.useRef(null);
+  const advancedSubdivisionsRef = React.useRef(null);
+
   const handleStop = () => {
     navigate('/');
+  };
+
+  const handlePlayStop = () => {
+    // Call the appropriate tab's play/stop handler
+    if (activeTab === 'rhythmExplorer' && rhythmExplorerRef.current) {
+      rhythmExplorerRef.current.handlePlayStop();
+    } else if (activeTab === 'polyrhythm' && polyrhythmRef.current) {
+      polyrhythmRef.current.handlePlayStop();
+    } else if (activeTab === 'advanced' && advancedSubdivisionsRef.current) {
+      advancedSubdivisionsRef.current.handlePlayStop();
+    }
+  };
+
+  const handleClear = () => {
+    // Call the appropriate tab's clear handler
+    if (activeTab === 'rhythmExplorer' && rhythmExplorerRef.current) {
+      rhythmExplorerRef.current.handleClear();
+    } else if (activeTab === 'polyrhythm' && polyrhythmRef.current) {
+      polyrhythmRef.current.handleClear();
+    } else if (activeTab === 'advanced' && advancedSubdivisionsRef.current) {
+      advancedSubdivisionsRef.current.handleClear();
+    }
   };
 
   const handleTap = () => {
@@ -80,8 +107,8 @@ const Exercise4 = () => {
         bpm={sharedBpm}
         setBpm={setSharedBpm}
         isPlaying={sharedIsPlaying}
-        onPlayStop={() => {}}
-        onClear={() => {}}
+        onPlayStop={handlePlayStop}
+        onClear={handleClear}
         onTap={handleTap}
       />
 
@@ -89,6 +116,7 @@ const Exercise4 = () => {
       <div className="tab-content">
         {activeTab === 'rhythmExplorer' && (
           <RhythmExplorer
+            ref={rhythmExplorerRef}
             sharedBpm={sharedBpm}
             setSharedBpm={setSharedBpm}
             sharedIsPlaying={sharedIsPlaying}
@@ -97,6 +125,7 @@ const Exercise4 = () => {
         )}
         {activeTab === 'polyrhythm' && (
           <Polyrhythm
+            ref={polyrhythmRef}
             sharedBpm={sharedBpm}
             setSharedBpm={setSharedBpm}
             sharedIsPlaying={sharedIsPlaying}
@@ -105,6 +134,7 @@ const Exercise4 = () => {
         )}
         {activeTab === 'advanced' && (
           <AdvancedSubdivisions
+            ref={advancedSubdivisionsRef}
             sharedBpm={sharedBpm}
             setSharedBpm={setSharedBpm}
             sharedIsPlaying={sharedIsPlaying}

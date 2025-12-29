@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as Tone from 'tone';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
@@ -17,7 +17,7 @@ const SOUND_SETS = [
   { value: 'drumKit', label: '🥁 Drum Kit', description: 'Realistic drum sounds' }
 ];
 
-const RhythmExplorer = () => {
+const RhythmExplorer = forwardRef((props, ref) => {
   const [beats, setBeats] = useState(DEFAULT_RHYTHM_EXPLORER.beats);
   const [subdivision, setSubdivision] = useState(DEFAULT_RHYTHM_EXPLORER.subdivision);
   const [bpm, setBpm] = useState(DEFAULT_RHYTHM_EXPLORER.bpm);
@@ -332,6 +332,12 @@ const RhythmExplorer = () => {
     await RhythmAudioPlayer.setSoundSet(newSoundSet);
   };
 
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    handlePlayStop,
+    handleClear
+  }));
+
   return (
     <div className="rhythm-explorer">
       {/* Left Panel - Beat Grid */}
@@ -500,6 +506,6 @@ const RhythmExplorer = () => {
       )}
     </div>
   );
-};
+});
 
 export default RhythmExplorer;

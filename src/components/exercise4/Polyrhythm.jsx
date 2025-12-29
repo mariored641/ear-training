@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as Tone from 'tone';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
@@ -10,7 +10,7 @@ import {
   TEMPO_MARKINGS
 } from '../../constants/exercise4Defaults';
 
-const Polyrhythm = () => {
+const Polyrhythm = forwardRef((props, ref) => {
   const [topCount, setTopCount] = useState(DEFAULT_POLYRHYTHM.top.count);
   const [bottomCount, setBottomCount] = useState(DEFAULT_POLYRHYTHM.bottom.count);
   const [topCells, setTopCells] = useState([]);
@@ -62,6 +62,23 @@ const Polyrhythm = () => {
 
       return newCells;
     });
+  };
+
+  // Set all cells in a row to a specific level
+  const setRowLevel = (row) => {
+    const setCells = row === 'top' ? setTopCells : setBottomCells;
+    const cells = row === 'top' ? topCells : bottomCells;
+    const count = row === 'top' ? topCount : bottomCount;
+
+    // Get the current state of the first cell to determine next state
+    const currentState = cells[0] || CELL_STATES.NORMAL;
+    const stateOrder = [CELL_STATES.ACCENT, CELL_STATES.NORMAL, CELL_STATES.SOFT, CELL_STATES.MUTE];
+    const currentIndex = stateOrder.indexOf(currentState);
+    const nextIndex = (currentIndex + 1) % stateOrder.length;
+    const nextState = stateOrder[nextIndex];
+
+    // Set all cells in the row to the next state
+    setCells(new Array(count).fill(nextState));
   };
 
   // Apply preset
@@ -184,13 +201,26 @@ const Polyrhythm = () => {
   const getTopCellWidth = () => `${100 / topCount}%`;
   const getBottomCellWidth = () => `${100 / bottomCount}%`;
 
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    handlePlayStop,
+    handleClear
+  }));
+
   return (
     <div className="polyrhythm">
       {/* Polyrhythm Grid */}
       <div className="polyrhythm-grid">
         {/* Top Row */}
         <div className="polyrhythm-row">
-          <div className="row-label">Top:</div>
+          <div className="row-label-container">
+            <div className="row-label">Top:</div>
+            <button
+              className={`row-level-btn poly-cell-${topCells[0] || CELL_STATES.NORMAL}`}
+              onClick={() => setRowLevel('top')}
+              title="Click to change all cells in this row to the same level"
+            />
+          </div>
           <div className="row-cells-container">
             <div className="row-cells">
               {topCells.map((cellState, index) => (
@@ -223,7 +253,14 @@ const Polyrhythm = () => {
 
         {/* Bottom Row */}
         <div className="polyrhythm-row">
-          <div className="row-label">Bottom:</div>
+          <div className="row-label-container">
+            <div className="row-label">Bottom:</div>
+            <button
+              className={`row-level-btn poly-cell-${bottomCells[0] || CELL_STATES.NORMAL}`}
+              onClick={() => setRowLevel('bottom')}
+              title="Click to change all cells in this row to the same level"
+            />
+          </div>
           <div className="row-cells-container">
             <div className="row-cells">
               {bottomCells.map((cellState, index) => (
@@ -321,6 +358,6 @@ const Polyrhythm = () => {
       </div>
     </div>
   );
-};
+});
 
 export default Polyrhythm;
