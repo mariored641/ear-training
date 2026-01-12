@@ -1,0 +1,200 @@
+.progression-input-container {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.progression-input-section {
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.progression-input-section.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.progression-input-section.completed {
+  background: #F1F8F4;
+  border-color: #4CAF50;
+}
+
+.progression-input-section.locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--bg-secondary);
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.completed-badge {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4CAF50;
+  background: #E8F5E9;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.locked-badge {
+  font-size: 14px;
+  padding: 4px 12px;
+}
+
+.chord-buttons-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.chord-group h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 10px 0;
+}
+
+.chord-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.chord-btn {
+  padding: 10px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 40px;
+}
+
+.chord-btn:hover:not(.disabled) {
+  background: var(--bg-secondary);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.chord-btn:active:not(.disabled) {
+  transform: translateY(0);
+}
+
+.chord-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chord-btn.selected {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.bass-buttons-section {
+  padding-top: 16px;
+  border-top: 2px solid var(--bg-secondary);
+}
+
+.bass-buttons-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 10px 0;
+}
+
+.bass-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.bass-btn {
+  padding: 10px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 40px;
+}
+
+.bass-btn:hover:not(.disabled) {
+  background: var(--bg-secondary);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.bass-btn:active:not(.disabled) {
+  transform: translateY(0);
+}
+
+.bass-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bass-btn.selected {
+  background: #2196F3;
+  color: white;
+  border-color: #2196F3;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .progression-input-container {
+    padding: 0 16px;
+    gap: 16px;
+  }
+
+  .progression-input-section {
+    padding: 16px;
+  }
+
+  .section-header h3 {
+    font-size: 16px;
+  }
+
+  .chord-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .bass-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .chord-btn,
+  .bass-btn {
+    padding: 8px 6px;
+    font-size: 13px;
+    min-height: 36px;
+  }
+}

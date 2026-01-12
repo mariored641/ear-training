@@ -9,12 +9,14 @@ import './SummaryScreen.css';
  * @param {number} props.correctFirstTry - Questions correct on first try
  * @param {Function} props.onRestart - Restart handler
  * @param {string} props.itemName - Name of items (e.g., 'questions', 'melodies', 'notes')
+ * @param {string} props.category - Optional category path (e.g., 'melodic', 'harmonic')
  */
 const SummaryScreen = ({
   totalQuestions,
   correctFirstTry,
   onRestart,
-  itemName = 'questions'
+  itemName = 'questions',
+  category = null
 }) => {
   const navigate = useNavigate();
   const neededMoreAttempts = totalQuestions - correctFirstTry;
@@ -40,6 +42,14 @@ const SummaryScreen = ({
           <button className="summary-button primary" onClick={onRestart}>
             Practice Again
           </button>
+          {category && (
+            <button
+              className="summary-button secondary"
+              onClick={() => navigate(`/category/${category}`)}
+            >
+              Back to Category
+            </button>
+          )}
           <button
             className="summary-button secondary"
             onClick={() => navigate('/')}

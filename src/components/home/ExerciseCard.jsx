@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import './ExerciseCard.css';
 
 /**
- * Exercise card component for home page
+ * Exercise card component for home page and category screens
  * @param {Object} props
- * @param {number} props.exerciseId - Exercise ID (1, 2, 3, or 4)
+ * @param {number|string} props.exerciseId - Exercise ID (1, 2, 4, '4a', '4b', '4c')
  * @param {string} props.title - Exercise title
  * @param {string} props.icon - Exercise icon (emoji)
  * @param {boolean} props.isAvailable - Whether exercise is available
@@ -20,7 +20,11 @@ const ExerciseCard = ({
 
   const handleStart = () => {
     if (isAvailable) {
-      navigate(`/exercise${exerciseId}`);
+      // Handle both numeric IDs (1, 2, 4) and string IDs ('4a', '4b', '4c')
+      const path = typeof exerciseId === 'string' && exerciseId.includes('4')
+        ? `/exercise/${exerciseId}`
+        : `/exercise${exerciseId}`;
+      navigate(path);
     }
   };
 

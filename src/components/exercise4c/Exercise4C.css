@@ -1,0 +1,49 @@
+/* Import shared styles from 4A */
+@import '../exercise4a/Exercise4A.css';
+
+.exercise4c {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding-bottom: 40px;
+}
+
+/* Progression hint */
+.progression-hint {
+  text-align: center;
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* Additional styles for select input (progression dropdown) */
+.select-input {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.select-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Small stat text in summary */
+.stat-small {
+  font-size: 14px !important;
+  color: var(--color-text-secondary) !important;
+  font-weight: 400 !important;
+}
+
+.summary-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 16px 0;
+  text-align: center;
+}

@@ -1,34 +1,47 @@
 import React from 'react';
-import ExerciseCard from './ExerciseCard';
+import { useNavigate } from 'react-router-dom';
+import CategoryCard from '../common/CategoryCard';
 import './HomePage.css';
 
 const HomePage = () => {
-  const exercises = [
+  const navigate = useNavigate();
+
+  const categories = [
     {
-      id: 1,
-      title: 'Interval Recognition',
+      id: 'melodic',
       icon: '🎵',
-      isAvailable: true
+      title: 'Melodic Ear Training',
+      titleHebrew: 'חטיבת שמיעה מלודית',
+      description: 'Develop relative pitch and fretboard mapping skills',
+      numExercises: 2
     },
     {
-      id: 2,
-      title: 'Guitar Fretboard',
-      icon: '🎸',
-      isAvailable: true
+      id: 'harmonic',
+      icon: '🎹',
+      title: 'Harmonic Ear Training',
+      titleHebrew: 'חטיבת שמיעה הרמונית',
+      description: 'Develop chord recognition and harmonic hearing',
+      numExercises: 3
     },
     {
-      id: 3,
-      title: 'Melody Creation',
-      icon: '🎼',
-      isAvailable: false
-    },
-    {
-      id: 4,
-      title: 'Rhythm Training',
+      id: 'rhythm',
       icon: '🥁',
-      isAvailable: true
+      title: 'Rhythm Training',
+      titleHebrew: 'חטיבת קצב',
+      description: 'Develop rhythmic reading and recognition skills',
+      numExercises: 'Active'
     }
   ];
+
+  const handleEnterCategory = (categoryId) => {
+    if (categoryId === 'rhythm') {
+      // Rhythm goes directly to the exercise (no category screen)
+      navigate('/exercise/4');
+    } else {
+      // Other categories go to their category screens
+      navigate(`/category/${categoryId}`);
+    }
+  };
 
   return (
     <div className="home-page">
@@ -38,13 +51,16 @@ const HomePage = () => {
       </header>
 
       <div className="home-content">
-        {exercises.map(exercise => (
-          <ExerciseCard
-            key={exercise.id}
-            exerciseId={exercise.id}
-            title={exercise.title}
-            icon={exercise.icon}
-            isAvailable={exercise.isAvailable}
+        {categories.map(category => (
+          <CategoryCard
+            key={category.id}
+            categoryId={category.id}
+            icon={category.icon}
+            title={category.title}
+            titleHebrew={category.titleHebrew}
+            description={category.description}
+            numExercises={category.numExercises}
+            onEnter={() => handleEnterCategory(category.id)}
           />
         ))}
       </div>

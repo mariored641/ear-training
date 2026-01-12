@@ -1,0 +1,327 @@
+/* Import shared styles from 4A */
+@import '../exercise4a/Exercise4A.css';
+
+.exercise4b {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding-bottom: 40px;
+}
+
+/* Progression Display */
+.progression-display {
+  text-align: center;
+  margin: 24px auto;
+  font-size: 18px;
+  padding: 16px;
+}
+
+.progression-label {
+  font-weight: 600;
+  margin-right: 12px;
+  color: var(--text-secondary);
+}
+
+.chord-badge {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 20px;
+}
+
+/* Chord Tone Table Container */
+.chord-tone-table-container {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+.table-instructions {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Chord Tone Table */
+.chord-tone-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Table Headers */
+.row-label-header {
+  width: 50px;
+  min-width: 50px;
+  background: #f5f5f5;
+}
+
+.chord-column-header {
+  padding: 16px 12px;
+  text-align: center;
+  background: white;
+  border-bottom: 2px solid #e0e0e0;
+  min-width: 140px;
+}
+
+.chord-column-header.completed {
+  background: #e8f5e9;
+}
+
+.chord-column-header.active {
+  background: #e3f2fd;
+}
+
+.chord-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chord-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.status-icon {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chord-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #212121;
+}
+
+.note-count {
+  font-size: 12px;
+  color: #757575;
+  font-weight: 500;
+}
+
+/* Available Tones Row */
+.available-tones-row {
+  background: #fafafa;
+}
+
+.available-tones {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: #757575;
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: 500;
+}
+
+/* Table Body */
+.chord-tone-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.chord-tone-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Row Label */
+.row-label {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #757575;
+  background: #f5f5f5;
+  border-right: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+/* Note Cell */
+.note-cell {
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+  background: white;
+}
+
+.note-cell.empty-cell {
+  background: #f5f5f5;
+}
+
+.empty-cell-content {
+  color: #bdbdbd;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+/* Note Buttons Group */
+.note-buttons-group {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Note Button */
+.note-button {
+  position: relative;
+  min-width: 70px;
+  height: 44px;
+  padding: 8px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #212121;
+}
+
+.note-button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: #f0f8ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.note-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Correct Button State */
+.note-button.correct {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: white;
+  cursor: not-allowed;
+}
+
+.note-button.correct:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Incorrect Flash Animation */
+.note-button.incorrect-flash {
+  background: #f44336;
+  border-color: #f44336;
+  color: white;
+  animation: flashRed 0.5s ease-in-out;
+}
+
+@keyframes flashRed {
+  0% {
+    background: #f44336;
+    border-color: #f44336;
+  }
+  50% {
+    background: #d32f2f;
+    border-color: #d32f2f;
+  }
+  100% {
+    background: white;
+    border-color: #e0e0e0;
+  }
+}
+
+/* Number Badge */
+.number-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: #ff9800;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Additional select input style for progression dropdown */
+.select-input {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.select-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .chord-tone-table-container {
+    padding: 0 12px;
+    margin: 24px auto;
+    overflow-x: auto;
+  }
+
+  .chord-tone-table {
+    font-size: 14px;
+  }
+
+  .chord-column-header {
+    min-width: 100px;
+    padding: 12px 8px;
+  }
+
+  .chord-name {
+    font-size: 16px;
+  }
+
+  .note-count {
+    font-size: 11px;
+  }
+
+  .available-tones {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .note-button {
+    min-width: 50px;
+    height: 36px;
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+
+  .number-badge {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  .row-label {
+    font-size: 14px;
+    padding: 12px 8px;
+  }
+
+  .progression-display {
+    font-size: 16px;
+  }
+
+  .chord-badge {
+    font-size: 18px;
+  }
+}

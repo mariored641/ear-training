@@ -7,6 +7,7 @@ import Fretboard from './Fretboard';
 import NoteIndicator from './NoteIndicator';
 import NoteSelector from './NoteSelector';
 import Exercise2Settings from './Exercise2Settings';
+import PresetButtons2 from './PresetButtons2';
 import AudioPlayer from '../../utils/AudioPlayer';
 import Storage from '../../utils/Storage';
 import { getMelody } from '../../utils/melodyGeneration';
@@ -251,6 +252,64 @@ const Exercise2 = () => {
     handleReset();
   };
 
+  const handlePresetSelect = (preset) => {
+    // Close settings panel if open
+    setIsSettingsOpen(false);
+
+    // Create new settings with preset configuration
+    const newSettings = {
+      ...DEFAULT_EXERCISE2_SETTINGS,
+      ...preset.config,
+      movement: 'steps', // Force steps only movement for all presets
+      display: {
+        noteNames: true,
+        dots: true
+      },
+      marking: 'inOrder',
+      help: {
+        enabled: true,
+        afterAttempts: 3
+      },
+      transition: 'auto'
+    };
+
+    // Apply new settings
+    setSettings(newSettings);
+    Storage.saveSettings(2, newSettings);
+
+    // Generate melody directly with new settings
+    try {
+      const newMelody = getMelody('random', newSettings, 0);
+      currentMelodyRef.current = newMelody;
+
+      // Reset and start new exercise with the new melody
+      setSessionState({
+        currentQuestion: 1,
+        currentMelody: newMelody,
+        currentNoteIndex: 0,
+        selectedNoteIndex: 0,
+        markedNotes: [],
+        correctFirstTry: 0,
+        totalNotes: 0,
+        isComplete: false,
+        highlightedNote: null,
+        noteAttempts: {}
+      });
+
+      // Play melody after state update
+      setTimeout(() => {
+        if (!isPlayingRef.current && currentMelodyRef.current) {
+          isPlayingRef.current = true;
+          playMelody(currentMelodyRef.current).finally(() => {
+            isPlayingRef.current = false;
+          });
+        }
+      }, 500);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   if (sessionState.isComplete) {
     return (
       <SummaryScreen
@@ -258,6 +317,7 @@ const Exercise2 = () => {
         correctFirstTry={sessionState.correctFirstTry}
         onRestart={handleRestart}
         itemName="notes"
+        category="melodic"
       />
     );
   }
@@ -317,6 +377,8 @@ const Exercise2 = () => {
             />
           </>
         )}
+
+        <PresetButtons2 onPresetSelect={handlePresetSelect} />
       </div>
 
       <SettingsPanel

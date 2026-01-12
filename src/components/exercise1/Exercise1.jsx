@@ -5,11 +5,12 @@ import SettingsPanel from '../common/SettingsPanel';
 import SummaryScreen from '../common/SummaryScreen';
 import NoteButtons from './NoteButtons';
 import Exercise1Settings from './Exercise1Settings';
+import PresetButtons from './PresetButtons';
 import AudioPlayer from '../../utils/AudioPlayer';
 import Storage from '../../utils/Storage';
 import { generateRandomNote } from '../../utils/noteGeneration';
 import { DEFAULT_EXERCISE1_SETTINGS } from '../../constants/defaults';
-import { REFERENCE_NOTE } from '../../constants/notes';
+import { REFERENCE_NOTE, NOTES } from '../../constants/notes';
 import './Exercise1.css';
 
 const Exercise1 = () => {
@@ -255,6 +256,47 @@ const Exercise1 = () => {
     handleReset();
   };
 
+  const handlePresetSelect = (preset) => {
+    // Create availableNotes object based on preset
+    const availableNotes = {};
+    NOTES.forEach(note => {
+      availableNotes[note] = preset.notes.includes(note);
+    });
+
+    // Create new settings with preset configuration
+    const newSettings = {
+      ...DEFAULT_EXERCISE1_SETTINGS,
+      availableNotes: availableNotes,
+      octaveRange: 3,
+      playC: 'everyTime',
+      transition: 'auto',
+      numQuestions: 10,
+      instrument: 'piano'
+    };
+
+    // Apply new settings
+    setSettings(newSettings);
+    Storage.saveSettings(1, newSettings);
+
+    // Reset and start new exercise
+    currentQuestionAttemptsRef.current = 0;
+    setSessionState({
+      currentQuestion: 1,
+      correctNote: null,
+      correctNoteWithOctave: null,
+      usedNotes: [],
+      correctFirstTry: 0,
+      totalAttempts: 0,
+      isComplete: false,
+      hasPlayedCAtStart: false,
+      selectedNote: null,
+      isCorrect: null,
+      statusMessage: '',
+      questionResults: []
+    });
+    setTimeout(() => loadNewQuestion(), 100);
+  };
+
   if (sessionState.isComplete) {
     // Calculate stats from questionResults array
     const totalQuestions = sessionState.questionResults.length;
@@ -266,6 +308,7 @@ const Exercise1 = () => {
         correctFirstTry={correctFirstTry}
         onRestart={handleRestart}
         itemName="questions"
+        category="melodic"
       />
     );
   }
@@ -320,6 +363,8 @@ const Exercise1 = () => {
             </button>
           </div>
         )}
+
+        <PresetButtons onPresetSelect={handlePresetSelect} />
       </div>
 
       <SettingsPanel
