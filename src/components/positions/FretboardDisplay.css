@@ -1,0 +1,268 @@
+.fretboard-container {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0 16px 0;
+  display: flex;
+  flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fret numbers row */
+.fret-numbers {
+  display: flex;
+  padding-left: 0;
+  min-width: fit-content;
+}
+
+.fret-number {
+  flex: 0 0 60px;
+  text-align: center;
+  font-size: 11px;
+  color: #5a5a7a;
+  padding-bottom: 4px;
+  font-weight: 500;
+}
+
+.fret-number.marked {
+  color: #8a8aaa;
+  font-weight: 700;
+}
+
+.nut-label {
+  flex: 0 0 40px;
+}
+
+/* Fretboard */
+.fretboard {
+  position: relative;
+  min-width: fit-content;
+}
+
+/* Position markers (dots between strings) */
+.position-markers {
+  display: flex;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.marker-slot {
+  flex: 0 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.marker-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #3a3a5a;
+}
+
+.marker-dot.double {
+  transform: translateY(-6px);
+}
+
+.marker-dot.second {
+  position: absolute;
+  transform: translateY(12px);
+}
+
+/* String rows */
+.guitar-string-row {
+  display: flex;
+  height: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Nut cell (open string) */
+.nut-cell {
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 3px solid #888;
+}
+
+.string-label {
+  font-size: 11px;
+  color: #5a5a7a;
+  font-weight: 600;
+  position: absolute;
+  left: 4px;
+}
+
+/* Fret cells */
+.fret-cell {
+  flex: 0 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* String line (horizontal) */
+.string-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #555;
+  transform: translateY(-0.5px);
+}
+
+/* Make bass strings thicker */
+.guitar-string-row:nth-child(7) .string-line,
+.guitar-string-row:nth-child(7) .nut-cell::after {
+  height: 2px;
+}
+
+.guitar-string-row:nth-child(6) .string-line {
+  height: 2px;
+}
+
+.guitar-string-row:nth-child(5) .string-line {
+  height: 1.5px;
+}
+
+/* Nut cell string line */
+.nut-cell::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 0;
+  height: 1px;
+  background-color: #555;
+  transform: translateY(-0.5px);
+}
+
+/* Fret line (vertical) */
+.fret-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+  background-color: #444;
+}
+
+/* Note dots */
+.fretboard-note {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  z-index: 2;
+  position: relative;
+  line-height: 1;
+}
+
+.fretboard-note.scale-tone {
+  background-color: #95A5A6;
+  color: #1a1a2e;
+}
+
+.fretboard-note.major-root {
+  background-color: #E74C3C;
+  color: white;
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+}
+
+.fretboard-note.minor-root {
+  background-color: #3498DB;
+  color: white;
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+}
+
+.fretboard-note.dot-only {
+  font-size: 0;
+}
+
+/* Highlighted notes (when showAll is on and specific positions are selected) */
+.fretboard-note.highlighted {
+  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(52, 152, 219, 0.6);
+}
+
+.fretboard-note.highlighted.major-root {
+  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(231, 76, 60, 0.7);
+}
+
+.fretboard-note.highlighted.minor-root {
+  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(52, 152, 219, 0.7);
+}
+
+/* Desktop */
+@media (min-width: 769px) {
+  .fretboard-container {
+    padding: 12px 8px 20px 8px;
+  }
+
+  .fret-cell {
+    flex: 0 0 70px;
+  }
+
+  .fret-number {
+    flex: 0 0 70px;
+  }
+
+  .marker-slot {
+    flex: 0 0 70px;
+  }
+
+  .guitar-string-row {
+    height: 36px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .fretboard-note {
+    width: 22px;
+    height: 22px;
+    font-size: 9px;
+  }
+
+  .fretboard-note.major-root,
+  .fretboard-note.minor-root {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+
+  .fret-cell {
+    flex: 0 0 52px;
+  }
+
+  .fret-number {
+    flex: 0 0 52px;
+    font-size: 10px;
+  }
+
+  .marker-slot {
+    flex: 0 0 52px;
+  }
+
+  .guitar-string-row {
+    height: 30px;
+  }
+}

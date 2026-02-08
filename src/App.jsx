@@ -14,6 +14,9 @@ const Exercise4A = React.lazy(() => import('./components/exercise4a/Exercise4A')
 const Exercise4B = React.lazy(() => import('./components/exercise4b/Exercise4B'));
 const Exercise4C = React.lazy(() => import('./components/exercise4c/Exercise4C'));
 
+// Scale Positions module
+const ScalePositionsPage = React.lazy(() => import('./components/positions/ScalePositionsPage'));
+
 function App() {
   return (
     <Router>
@@ -36,6 +39,9 @@ function App() {
 
           {/* Rhythm Exercise (direct access, no category screen) */}
           <Route path="/exercise/4" element={<Exercise4 />} />
+
+          {/* Scale Positions module */}
+          <Route path="/positions" element={<ScalePositionsPage />} />
 
           {/* Legacy routes for backward compatibility */}
           <Route path="/exercise1" element={<Exercise1 />} />

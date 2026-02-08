@@ -1,0 +1,155 @@
+.quick-ref-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.quick-ref-modal {
+  background-color: #1e2a3a;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.quick-ref-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a3a4a;
+}
+
+.quick-ref-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #ECF0F1;
+  font-weight: 600;
+}
+
+.quick-ref-close {
+  background: none;
+  border: none;
+  color: #8a8aaa;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.quick-ref-close:hover {
+  color: #ECF0F1;
+}
+
+.quick-ref-content {
+  padding: 16px 20px 20px;
+}
+
+/* Table */
+.quick-ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.quick-ref-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #8a8aaa;
+  font-weight: 600;
+  border-bottom: 1px solid #2a3a4a;
+}
+
+.quick-ref-table td {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #ccc;
+  border-bottom: 1px solid #1a2a3a;
+}
+
+.quick-ref-table tr:last-child td {
+  border-bottom: none;
+}
+
+.position-cell {
+  font-weight: 700;
+  color: #3498DB;
+  font-size: 16px;
+}
+
+/* Note */
+.quick-ref-note {
+  background-color: #162030;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+.quick-ref-note strong {
+  color: #ccc;
+}
+
+.color-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot.major-dot {
+  background-color: #E74C3C;
+}
+
+.legend-dot.minor-dot {
+  background-color: #3498DB;
+}
+
+.legend-dot.scale-dot {
+  background-color: #95A5A6;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .quick-ref-modal {
+    max-width: 100%;
+  }
+
+  .quick-ref-header {
+    padding: 14px 16px;
+  }
+
+  .quick-ref-content {
+    padding: 12px 16px 16px;
+  }
+
+  .quick-ref-table th,
+  .quick-ref-table td {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+}

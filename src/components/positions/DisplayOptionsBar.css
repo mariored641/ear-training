@@ -1,0 +1,42 @@
+.display-options-bar {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background-color: #1a1a2e;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.display-mode-btn {
+  padding: 5px 14px;
+  background-color: transparent;
+  color: #8a8aaa;
+  border: 1px solid #3a3a5a;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.display-mode-btn:hover:not(.active) {
+  background-color: #2a2a4a;
+  color: #bbb;
+}
+
+.display-mode-btn.active {
+  background-color: #2a2a4a;
+  color: #ECF0F1;
+  border-color: #3498DB;
+}
+
+@media (max-width: 768px) {
+  .display-options-bar {
+    padding: 6px 12px;
+  }
+
+  .display-mode-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}

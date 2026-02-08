@@ -1,0 +1,174 @@
+.control-panel {
+  background-color: #16213e;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.control-row:last-child {
+  margin-bottom: 0;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-label {
+  font-size: 14px;
+  color: #8a8aaa;
+  white-space: nowrap;
+}
+
+/* Root Select */
+.root-select {
+  background-color: #2a2a4a;
+  color: #ECF0F1;
+  border: 1px solid #3a3a5a;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.root-select:focus {
+  border-color: #3498DB;
+}
+
+/* Scale Type Buttons */
+.scale-type-buttons {
+  display: flex;
+  gap: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #3a3a5a;
+}
+
+.type-btn {
+  padding: 6px 14px;
+  background-color: #2a2a4a;
+  color: #8a8aaa;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.type-btn:first-child {
+  border-right: 1px solid #3a3a5a;
+}
+
+.type-btn.active {
+  background-color: #3498DB;
+  color: white;
+}
+
+.type-btn:hover:not(.active) {
+  background-color: #3a3a5a;
+}
+
+/* Quick Reference Button */
+.quick-ref-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #3a3a5a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.15s ease;
+  color: #ECF0F1;
+}
+
+.quick-ref-btn:hover {
+  background-color: #2a2a4a;
+  border-color: #3498DB;
+}
+
+/* Position Buttons */
+.position-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.position-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #3a3a5a;
+  background-color: transparent;
+  color: #8a8aaa;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.position-btn:hover:not(.active) {
+  border-color: #5a5a7a;
+  color: #bbb;
+}
+
+.position-btn.active {
+  border-color: #3498DB;
+  background-color: #3498DB;
+  color: white;
+}
+
+/* Show All Toggle */
+.show-all-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.show-all-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #3498DB;
+  cursor: pointer;
+}
+
+.toggle-label {
+  font-size: 14px;
+  color: #bbb;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .control-panel {
+    padding: 10px 12px;
+  }
+
+  .control-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .position-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .type-btn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+}

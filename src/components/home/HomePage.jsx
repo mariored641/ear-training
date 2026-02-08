@@ -30,6 +30,14 @@ const HomePage = () => {
       titleHebrew: 'חטיבת קצב',
       description: 'Develop rhythmic reading and recognition skills',
       numExercises: 'Active'
+    },
+    {
+      id: 'positions',
+      icon: '🎸',
+      title: 'Scale Positions',
+      titleHebrew: 'חטיבת פוזיציות',
+      description: 'CAGED system positions for any scale on the fretboard',
+      numExercises: 'Active'
     }
   ];
 
@@ -37,6 +45,9 @@ const HomePage = () => {
     if (categoryId === 'rhythm') {
       // Rhythm goes directly to the exercise (no category screen)
       navigate('/exercise/4');
+    } else if (categoryId === 'positions') {
+      // Positions goes directly to the positions page
+      navigate('/positions');
     } else {
       // Other categories go to their category screens
       navigate(`/category/${categoryId}`);
