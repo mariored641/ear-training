@@ -30,6 +30,17 @@
   border-color: #3498DB;
 }
 
+.display-mode-btn.pentatonic-btn {
+  margin-left: 8px;
+  border-color: #5a5a3a;
+}
+
+.display-mode-btn.pentatonic-btn.active {
+  border-color: #F1C40F;
+  color: #F1C40F;
+  background-color: rgba(241, 196, 15, 0.15);
+}
+
 @media (max-width: 768px) {
   .display-options-bar {
     padding: 6px 12px;

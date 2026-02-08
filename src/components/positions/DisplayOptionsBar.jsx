@@ -7,7 +7,7 @@ const DISPLAY_MODES = [
   { value: 'degrees', label: 'Scale Degrees' },
 ];
 
-const DisplayOptionsBar = ({ selectedMode, onModeChange }) => {
+const DisplayOptionsBar = ({ selectedMode, onModeChange, showPentatonic, onPentatonicChange }) => {
   return (
     <div className="display-options-bar">
       {DISPLAY_MODES.map(mode => (
@@ -19,6 +19,12 @@ const DisplayOptionsBar = ({ selectedMode, onModeChange }) => {
           {mode.label}
         </button>
       ))}
+      <button
+        className={`display-mode-btn pentatonic-btn ${showPentatonic ? 'active' : ''}`}
+        onClick={() => onPentatonicChange(!showPentatonic)}
+      >
+        Pentatonic
+      </button>
     </div>
   );
 };

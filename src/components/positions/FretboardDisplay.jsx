@@ -2,7 +2,13 @@ import React, { useMemo } from 'react';
 import { FRETBOARD_CONFIG, STRING_TUNING } from '../../constants/positionData';
 import './FretboardDisplay.css';
 
-const FretboardDisplay = ({ notes, displayMode, showAll, selectedPositions }) => {
+// Pentatonic scale degrees (1-indexed)
+const PENTATONIC_DEGREES = {
+  major: [1, 2, 3, 5, 6],
+  minor: [1, 3, 4, 5, 7],
+};
+
+const FretboardDisplay = ({ notes, displayMode, showAll, selectedPositions, showPentatonic, selectedType }) => {
   const { frets, positionMarkers, doubleMarkers } = FRETBOARD_CONFIG;
 
   // Build a lookup map for quick access: "string-fret" -> note
@@ -32,6 +38,10 @@ const FretboardDisplay = ({ notes, displayMode, showAll, selectedPositions }) =>
 
     if (showAll && note.isHighlighted) classes.push('highlighted');
     if (displayMode === 'dots') classes.push('dot-only');
+
+    if (showPentatonic && PENTATONIC_DEGREES[selectedType]?.includes(note.scaleDegree)) {
+      classes.push('pentatonic');
+    }
 
     return classes.join(' ');
   };

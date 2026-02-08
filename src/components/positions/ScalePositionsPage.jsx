@@ -15,6 +15,7 @@ const ScalePositionsPage = () => {
   const [selectedPositions, setSelectedPositions] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [displayMode, setDisplayMode] = useState('dots');
+  const [showPentatonic, setShowPentatonic] = useState(false);
   const [isQuickRefOpen, setIsQuickRefOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('positions');
 
@@ -79,6 +80,8 @@ const ScalePositionsPage = () => {
           <DisplayOptionsBar
             selectedMode={displayMode}
             onModeChange={setDisplayMode}
+            showPentatonic={showPentatonic}
+            onPentatonicChange={setShowPentatonic}
           />
 
           <FretboardDisplay
@@ -86,6 +89,8 @@ const ScalePositionsPage = () => {
             displayMode={displayMode}
             showAll={showAll}
             selectedPositions={selectedPositions}
+            showPentatonic={showPentatonic}
+            selectedType={selectedType}
           />
         </div>
       ) : (

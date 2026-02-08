@@ -30,7 +30,7 @@
 }
 
 .nut-label {
-  flex: 0 0 40px;
+  flex: 0 0 40px !important;
 }
 
 /* Fretboard */
@@ -196,6 +196,19 @@
 
 .fretboard-note.dot-only {
   font-size: 0;
+}
+
+/* Pentatonic highlight - yellow ring */
+.fretboard-note.pentatonic {
+  box-shadow: 0 0 0 3px #F1C40F, 0 0 10px rgba(241, 196, 15, 0.6);
+}
+
+.fretboard-note.pentatonic.major-root {
+  box-shadow: 0 0 0 3px #F1C40F, 0 0 10px rgba(241, 196, 15, 0.6);
+}
+
+.fretboard-note.pentatonic.minor-root {
+  box-shadow: 0 0 0 3px #F1C40F, 0 0 10px rgba(241, 196, 15, 0.6);
 }
 
 /* Highlighted notes (when showAll is on and specific positions are selected) */
