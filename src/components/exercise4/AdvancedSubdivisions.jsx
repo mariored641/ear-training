@@ -8,8 +8,10 @@ import {
   NOTE_ICONS,
   BPM_MIN,
   BPM_MAX,
-  TEMPO_MARKINGS
+  TEMPO_MARKINGS,
+  PRESET_TYPES
 } from '../../constants/exercise4Defaults';
+import { getAllPresets, savePreset } from '../../utils/presetManager';
 
 const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const [beats, setBeats] = useState([]);
@@ -20,6 +22,13 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
   const [currentBeat, setCurrentBeat] = useState(-1);
   const [currentCell, setCurrentCell] = useState(-1);
   const [tapTimes, setTapTimes] = useState([]);
+  const [showLoadPresetModal, setShowLoadPresetModal] = useState(false);
+  const [showSavePresetModal, setShowSavePresetModal] = useState(false);
+  const [allPresets, setAllPresets] = useState({ builtIn: [], local: [], global: [], all: [] });
+  const [presetName, setPresetName] = useState('');
+  const [saveAsGlobal, setSaveAsGlobal] = useState(false);
+  const [globalPassword, setGlobalPassword] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   // Initialize beats
   useEffect(() => {
@@ -220,6 +229,74 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
     return beats.reduce((sum, beat) => sum + beat.length, 0);
   };
 
+  // Load all presets when modal opens
+  const loadAllPresets = async () => {
+    const presets = await getAllPresets(PRESET_TYPES.ADVANCED_SUBDIVISIONS, []);
+    setAllPresets(presets);
+  };
+
+  // Load a preset pattern
+  const loadPreset = (preset) => {
+    // Stop playback if playing
+    if (isPlaying) {
+      RhythmAudioPlayer.stop();
+      setIsPlaying(false);
+      setCurrentBeat(-1);
+      setCurrentCell(-1);
+    }
+
+    // Apply preset BPM
+    setBpm(preset.bpm);
+
+    // Apply the beats pattern (deep copy)
+    setBeats(preset.beats.map(beat => ({
+      ...beat,
+      cells: [...beat.cells]
+    })));
+
+    // Close modal
+    setShowLoadPresetModal(false);
+  };
+
+  // Save current pattern as preset
+  const handleSavePreset = async () => {
+    if (!presetName.trim()) {
+      setSaveError('Please enter a preset name');
+      return;
+    }
+
+    const preset = {
+      name: presetName.trim(),
+      bpm,
+      beats: beats.map(beat => ({
+        length: beat.length,
+        division: beat.division,
+        cells: [...beat.cells]
+      }))
+    };
+
+    const result = await savePreset(
+      PRESET_TYPES.ADVANCED_SUBDIVISIONS,
+      preset,
+      saveAsGlobal,
+      globalPassword
+    );
+
+    if (result.success) {
+      // Reset form
+      setPresetName('');
+      setSaveAsGlobal(false);
+      setGlobalPassword('');
+      setSaveError('');
+      setShowSavePresetModal(false);
+
+      // Show success message
+      alert(`Preset "${preset.name}" saved successfully!`);
+    } else {
+      setSaveError(result.error || 'Failed to save preset');
+    }
+  };
+
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
     handlePlayStop,
@@ -232,6 +309,15 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       <div className="advanced-header">
         <button className="add-beat-btn" onClick={addBeat}>
           + Add Beat
+        </button>
+        <button className="presets-btn-inline" onClick={() => {
+          loadAllPresets();
+          setShowLoadPresetModal(true);
+        }}>
+          📋 Load Preset
+        </button>
+        <button className="presets-btn-inline save-btn" onClick={() => setShowSavePresetModal(true)}>
+          💾 Save Preset
         </button>
         <div className="total-beats-header">
           Total: {getTotalBeats()} beats
@@ -307,6 +393,151 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
         ))}
       </div>
 
+      {/* Load Presets Modal */}
+      {showLoadPresetModal && (
+        <div className="modal-overlay" onClick={() => setShowLoadPresetModal(false)}>
+          <div className="modal-content presets-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-title">Load Advanced Subdivision Preset</div>
+            <div className="presets-list">
+              {allPresets.all.length === 0 ? (
+                <div className="no-presets">
+                  No presets available. Create your first preset by clicking "Save Preset"!
+                </div>
+              ) : (
+                <>
+                  {allPresets.global.length > 0 && (
+                    <div className="preset-category">
+                      <div className="preset-category-title">🌍 Global Presets (Everyone)</div>
+                      {allPresets.global.map((preset) => (
+                        <button
+                          key={preset.id}
+                          className="preset-item"
+                          onClick={() => loadPreset(preset)}
+                        >
+                          <div className="preset-name">{preset.name}</div>
+                          <div className="preset-details">
+                            {preset.beats.length} beats • {preset.bpm} BPM
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {allPresets.local.length > 0 && (
+                    <div className="preset-category">
+                      <div className="preset-category-title">💾 My Presets (Local)</div>
+                      {allPresets.local.map((preset) => (
+                        <button
+                          key={preset.id}
+                          className="preset-item"
+                          onClick={() => loadPreset(preset)}
+                        >
+                          <div className="preset-name">{preset.name}</div>
+                          <div className="preset-details">
+                            {preset.beats.length} beats • {preset.bpm} BPM
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <button
+              className="modal-close-btn"
+              onClick={() => setShowLoadPresetModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Save Preset Modal */}
+      {showSavePresetModal && (
+        <div className="modal-overlay" onClick={() => setShowSavePresetModal(false)}>
+          <div className="modal-content save-preset-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-title">Save Advanced Subdivision Preset</div>
+
+            <div className="save-preset-form">
+              {/* Preset Name */}
+              <div className="form-group">
+                <label htmlFor="preset-name-adv">Preset Name:</label>
+                <input
+                  id="preset-name-adv"
+                  type="text"
+                  value={presetName}
+                  onChange={(e) => setPresetName(e.target.value)}
+                  placeholder="Enter preset name..."
+                  className="preset-name-input"
+                />
+              </div>
+
+              {/* Save Type */}
+              <div className="form-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    checked={!saveAsGlobal}
+                    onChange={() => setSaveAsGlobal(false)}
+                  />
+                  <span>💾 Save only for me (Local)</span>
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    checked={saveAsGlobal}
+                    onChange={() => setSaveAsGlobal(true)}
+                  />
+                  <span>🌍 Save for everyone (Global)</span>
+                </label>
+              </div>
+
+              {/* Password (if global) */}
+              {saveAsGlobal && (
+                <div className="form-group">
+                  <label htmlFor="global-password-adv">Password (required for global):</label>
+                  <input
+                    id="global-password-adv"
+                    type="password"
+                    value={globalPassword}
+                    onChange={(e) => setGlobalPassword(e.target.value)}
+                    placeholder="Enter password..."
+                    className="password-input"
+                  />
+                </div>
+              )}
+
+              {/* Error Message */}
+              {saveError && (
+                <div className="error-message">{saveError}</div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="modal-actions">
+                <button
+                  className="modal-action-btn save"
+                  onClick={handleSavePreset}
+                >
+                  Save
+                </button>
+                <button
+                  className="modal-action-btn cancel"
+                  onClick={() => {
+                    setShowSavePresetModal(false);
+                    setPresetName('');
+                    setSaveAsGlobal(false);
+                    setGlobalPassword('');
+                    setSaveError('');
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

@@ -104,3 +104,9 @@ export const NOTE_ICONS = {
   0.5: '♪',  // Eighth
   0.25: '𝅘𝅥𝅯' // Sixteenth
 };
+
+// Preset types for preset manager
+export const PRESET_TYPES = {
+  RHYTHM_EXPLORER: 'rhythm_explorer',
+  ADVANCED_SUBDIVISIONS: 'advanced_subdivisions'
+};
