@@ -1,0 +1,30 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded rectangle background -->
+  <rect width="512" height="512" rx="100" fill="url(#bgGradient)"/>
+
+  <!-- Musical note (eighth note) -->
+  <g transform="translate(160, 120)">
+    <!-- Note stem -->
+    <rect x="80" y="40" width="12" height="180" fill="white" rx="6"/>
+
+    <!-- Note head -->
+    <ellipse cx="70" cy="220" rx="40" ry="30" fill="white" transform="rotate(-20 70 220)"/>
+
+    <!-- Note flag -->
+    <path d="M 92 40 Q 140 60, 130 110 Q 120 90, 92 100 Z" fill="white"/>
+  </g>
+
+  <!-- Treble clef accent -->
+  <g transform="translate(280, 200) scale(0.8)">
+    <path d="M 0,50 Q 20,30 40,50 T 80,50 Q 90,60 80,80 Q 70,90 50,80 T 10,70 Z"
+          fill="rgba(255,255,255,0.3)"/>
+  </g>
+</svg>

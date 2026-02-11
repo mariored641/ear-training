@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create App Icons</title>
+</head>
+<body>
+    <h1>Icon Generator</h1>
+    <p>Creating icons...</p>
+    <canvas id="canvas192" width="192" height="192" style="border:1px solid black"></canvas>
+    <canvas id="canvas512" width="512" height="512" style="border:1px solid black"></canvas>
+    <div id="links"></div>
+
+    <script>
+        async function createIcons() {
+            const sizes = [192, 512];
+            const linksDiv = document.getElementById('links');
+
+            for (const size of sizes) {
+                const canvas = document.getElementById(`canvas${size}`);
+                const ctx = canvas.getContext('2d');
+
+                // Create gradient background
+                const gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+
+                // Draw rounded rectangle
+                const radius = size * 0.2;
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.moveTo(radius, 0);
+                ctx.lineTo(size - radius, 0);
+                ctx.quadraticCurveTo(size, 0, size, radius);
+                ctx.lineTo(size, size - radius);
+                ctx.quadraticCurveTo(size, size, size - radius, size);
+                ctx.lineTo(radius, size);
+                ctx.quadraticCurveTo(0, size, 0, size - radius);
+                ctx.lineTo(0, radius);
+                ctx.quadraticCurveTo(0, 0, radius, 0);
+                ctx.fill();
+
+                // Draw musical note
+                ctx.fillStyle = 'white';
+                const scale = size / 512;
+
+                // Note stem
+                ctx.fillRect(240 * scale, 160 * scale, 12 * scale, 180 * scale);
+
+                // Note head (ellipse)
+                ctx.save();
+                ctx.translate(230 * scale, 340 * scale);
+                ctx.rotate(-0.35);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 40 * scale, 30 * scale, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Note flag
+                ctx.beginPath();
+                ctx.moveTo(252 * scale, 160 * scale);
+                ctx.quadraticCurveTo(300 * scale, 180 * scale, 290 * scale, 230 * scale);
+                ctx.quadraticCurveTo(280 * scale, 210 * scale, 252 * scale, 220 * scale);
+                ctx.closePath();
+                ctx.fill();
+
+                // Add text "ET" (Ear Training)
+                ctx.font = `bold ${80 * scale}px Arial`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.textAlign = 'center';
+                ctx.fillText('ET', size * 0.65, size * 0.75);
+
+                // Create download link
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `icon-${size}.png`;
+                    a.textContent = `Download icon-${size}.png`;
+                    a.style.display = 'block';
+                    a.style.margin = '10px';
+                    linksDiv.appendChild(a);
+                });
+            }
+        }
+
+        createIcons();
+    </script>
+</body>
+</html>

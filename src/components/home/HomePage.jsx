@@ -1,10 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../common/CategoryCard';
 import './HomePage.css';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(true);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // Check if app is already installed (running in standalone mode)
+    const standalone = window.matchMedia('(display-mode: standalone)').matches ||
+                      window.navigator.standalone ||
+                      document.referrer.includes('android-app://');
+
+    setIsStandalone(standalone);
+    setShowInstallButton(!standalone);
+
+    // Listen for the beforeinstallprompt event
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      // If no prompt available, show instructions
+      alert('להתקנת האפליקציה:\n\n' +
+            '1. לחץ על כפתור התפריט (⋮) בדפדפן\n' +
+            '2. בחר "התקן אפליקציה" או "הוסף למסך הבית"\n' +
+            '3. אשר את ההתקנה\n\n' +
+            'או חפש אייקון ⊕ בשורת הכתובת');
+      return;
+    }
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      setShowInstallButton(false);
+    }
+
+    setDeferredPrompt(null);
+  };
 
   const categories = [
     {
@@ -57,8 +102,21 @@ const HomePage = () => {
   return (
     <div className="home-page">
       <header className="home-header">
-        <h1 className="home-title">אלתור בהישג יד - האפליקציה</h1>
-        <p className="home-subtitle">Ear Training Application</p>
+        <div className="header-content">
+          <div className="header-text">
+            <h1 className="home-title">אלתור בהישג יד - האפליקציה</h1>
+            <p className="home-subtitle">Ear Training Application</p>
+          </div>
+          {showInstallButton && (
+            <button
+              className="install-button"
+              onClick={handleInstallClick}
+              title="התקן את האפליקציה לשימוש אופליין"
+            >
+              💾 Download
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="home-content">
