@@ -7,48 +7,73 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(true);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     // Check if app is already installed (running in standalone mode)
     const standalone = window.matchMedia('(display-mode: standalone)').matches ||
-                      window.navigator.standalone ||
-                      document.referrer.includes('android-app://');
+                      window.navigator.standalone;
 
-    setIsStandalone(standalone);
-    setShowInstallButton(!standalone);
+    if (standalone) {
+      setShowInstallButton(false);
+      return;
+    }
 
-    // Listen for the beforeinstallprompt event
+    // Check if we already caught the event globally (in main.jsx)
+    if (window.__pwaInstallPrompt) {
+      setDeferredPrompt(window.__pwaInstallPrompt);
+      console.log('✅ Found global install prompt');
+    }
+
+    // Also listen for future events
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallButton(true);
+      window.__pwaInstallPrompt = e;
+      console.log('✅ Install prompt captured');
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    // Listen for successful installation
+    const installHandler = () => {
+      setShowInstallButton(false);
+      setDeferredPrompt(null);
+      window.__pwaInstallPrompt = null;
+      console.log('✅ App installed successfully');
+    };
+
+    window.addEventListener('appinstalled', installHandler);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', installHandler);
+    };
   }, []);
 
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      // If no prompt available, show instructions
-      alert('להתקנת האפליקציה:\n\n' +
-            '1. לחץ על כפתור התפריט (⋮) בדפדפן\n' +
-            '2. בחר "התקן אפליקציה" או "הוסף למסך הבית"\n' +
-            '3. אשר את ההתקנה\n\n' +
-            'או חפש אייקון ⊕ בשורת הכתובת');
-      return;
+  const handleInstallClick = () => {
+    const prompt = deferredPrompt || window.__pwaInstallPrompt;
+
+    if (prompt) {
+      prompt.prompt();
+      prompt.userChoice.then(({ outcome }) => {
+        console.log(`User choice: ${outcome}`);
+        if (outcome === 'accepted') {
+          setShowInstallButton(false);
+        }
+        setDeferredPrompt(null);
+        window.__pwaInstallPrompt = null;
+      });
+    } else {
+      // Better fallback
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+      const isEdge = /Edg/.test(navigator.userAgent);
+
+      if (isChrome || isEdge) {
+        alert('חפש את אייקון ההתקנה ⊕ בצד ימין של שורת הכתובת בדפדפן');
+      } else {
+        alert('להתקנה: פתח את תפריט הדפדפן ובחר "הוסף למסך הבית"');
+      }
     }
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      setShowInstallButton(false);
-    }
-
-    setDeferredPrompt(null);
   };
 
   const categories = [
