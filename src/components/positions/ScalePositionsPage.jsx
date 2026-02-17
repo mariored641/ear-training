@@ -2,10 +2,13 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ControlPanel from './ControlPanel';
 import DisplayOptionsBar from './DisplayOptionsBar';
+import ArpeggioOptionsBar from './ArpeggioOptionsBar';
 import FretboardDisplay from './FretboardDisplay';
 import QuickReferencePopup from './QuickReferencePopup';
 import { generateFretboardNotes } from '../../utils/positionCalculations';
 import './ScalePositionsPage.css';
+
+const MAX_ACTIVE_ARPEGGIOS = 3;
 
 const ScalePositionsPage = () => {
   const navigate = useNavigate();
@@ -19,16 +22,62 @@ const ScalePositionsPage = () => {
   const [isQuickRefOpen, setIsQuickRefOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('positions');
 
+  // Arpeggio tab state
+  const [activeArpeggios, setActiveArpeggios] = useState([]);
+  const [hideRoots, setHideRoots] = useState(false);
+
   const fretboardNotes = useMemo(
     () => generateFretboardNotes(selectedRoot, selectedType, selectedPositions, showAll),
+    [selectedRoot, selectedType, selectedPositions, showAll]
+  );
+
+  // In the Arpeggios tab, always show all notes (showAll=true) so the fretboard
+  // is never empty — user can still filter by position using the position buttons.
+  const arpeggioFretboardNotes = useMemo(
+    () => generateFretboardNotes(selectedRoot, selectedType, selectedPositions, selectedPositions.length === 0 ? true : showAll),
     [selectedRoot, selectedType, selectedPositions, showAll]
   );
 
   const handleQuickRefOpen = useCallback(() => setIsQuickRefOpen(true), []);
   const handleQuickRefClose = useCallback(() => setIsQuickRefOpen(false), []);
 
-  // Build title string
+  const handleArpeggioToggle = useCallback((id) => {
+    setActiveArpeggios(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(a => a !== id);
+      }
+      if (prev.length >= MAX_ACTIVE_ARPEGGIOS) {
+        // Drop the oldest, add new one
+        return [...prev.slice(1), id];
+      }
+      return [...prev, id];
+    });
+  }, []);
+
+  // Clear arpeggios when switching away from arpeggio tab
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+    if (tab !== 'arpeggios') {
+      setActiveArpeggios([]);
+    }
+  }, []);
+
   const scaleTitle = `${selectedRoot} ${selectedType === 'major' ? 'Major' : 'Minor'}`;
+
+  // Shared fretboard + controls used by both positions and arpeggios tabs
+  const sharedControls = (
+    <ControlPanel
+      selectedRoot={selectedRoot}
+      onRootChange={setSelectedRoot}
+      selectedType={selectedType}
+      onTypeChange={setSelectedType}
+      selectedPositions={selectedPositions}
+      onPositionsChange={setSelectedPositions}
+      showAll={showAll}
+      onShowAllChange={setShowAll}
+      onQuickRefClick={handleQuickRefOpen}
+    />
+  );
 
   return (
     <div className="scale-positions-page">
@@ -50,32 +99,28 @@ const ScalePositionsPage = () => {
       <div className="positions-tabs">
         <button
           className={`tab-btn ${activeTab === 'positions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('positions')}
+          onClick={() => handleTabChange('positions')}
         >
           Positions
         </button>
         <button
+          className={`tab-btn ${activeTab === 'arpeggios' ? 'active' : ''}`}
+          onClick={() => handleTabChange('arpeggios')}
+        >
+          Arpeggios
+        </button>
+        <button
           className={`tab-btn ${activeTab === 'allscales' ? 'active' : ''}`}
-          onClick={() => setActiveTab('allscales')}
+          onClick={() => handleTabChange('allscales')}
         >
           All Scales
         </button>
       </div>
 
       {/* Content */}
-      {activeTab === 'positions' ? (
+      {activeTab === 'positions' && (
         <div className="positions-content">
-          <ControlPanel
-            selectedRoot={selectedRoot}
-            onRootChange={setSelectedRoot}
-            selectedType={selectedType}
-            onTypeChange={setSelectedType}
-            selectedPositions={selectedPositions}
-            onPositionsChange={setSelectedPositions}
-            showAll={showAll}
-            onShowAllChange={setShowAll}
-            onQuickRefClick={handleQuickRefOpen}
-          />
+          {sharedControls}
 
           <DisplayOptionsBar
             selectedMode={displayMode}
@@ -91,9 +136,44 @@ const ScalePositionsPage = () => {
             selectedPositions={selectedPositions}
             showPentatonic={showPentatonic}
             selectedType={selectedType}
+            selectedRoot={selectedRoot}
           />
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'arpeggios' && (
+        <div className="positions-content">
+          {sharedControls}
+
+          <DisplayOptionsBar
+            selectedMode={displayMode}
+            onModeChange={setDisplayMode}
+            showPentatonic={showPentatonic}
+            onPentatonicChange={setShowPentatonic}
+          />
+
+          <ArpeggioOptionsBar
+            activeArpeggios={activeArpeggios}
+            onArpeggioToggle={handleArpeggioToggle}
+            hideRoots={hideRoots}
+            onHideRootsChange={setHideRoots}
+          />
+
+          <FretboardDisplay
+            notes={arpeggioFretboardNotes}
+            displayMode={displayMode}
+            showAll={selectedPositions.length === 0 ? true : showAll}
+            selectedPositions={selectedPositions}
+            showPentatonic={showPentatonic}
+            selectedType={selectedType}
+            selectedRoot={selectedRoot}
+            activeArpeggios={activeArpeggios}
+            hideRoots={hideRoots}
+          />
+        </div>
+      )}
+
+      {activeTab === 'allscales' && (
         <div className="placeholder-content">
           <div className="placeholder-icon">&#128679;</div>
           <h2>All Scales</h2>

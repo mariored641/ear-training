@@ -176,6 +176,50 @@ export function filterByPositions(allNotes, positions, selectedRoot, selectedTyp
 }
 
 /**
+ * Arpeggio degree map — expressed as 1-indexed degrees of the MAJOR scale.
+ * Each arpeggio lists 3 scale degrees from the major scale.
+ *
+ * I   = 1,3,5
+ * IV  = 4,6,1
+ * V   = 5,7,2
+ * i   = 6,1,3  (relative minor tonic)
+ * iv  = 2,4,6  (relative minor subdominant)
+ * v   = 3,5,7  (relative minor dominant)
+ * dim = 7,2,4  (leading-tone diminished)
+ */
+const ARPEGGIO_MAJOR_DEGREES = {
+  'I':   [1, 3, 5],
+  'IV':  [4, 6, 1],
+  'V':   [5, 7, 2],
+  'i':   [6, 1, 3],
+  'iv':  [2, 4, 6],
+  'v':   [3, 5, 7],
+  'dim': [7, 2, 4],
+};
+
+/**
+ * Given an arpeggio ID and a scale (root + type), return the Set of note names
+ * that belong to that arpeggio.
+ *
+ * The mapping is always based on the MAJOR scale of the key (relative major
+ * if the current scale is minor), so that C major and A minor produce identical
+ * highlight sets.
+ */
+export function getArpeggioNoteSet(arpeggioId, root, scaleType) {
+  // Always work from the major root
+  const majorRoot = scaleType === 'major' ? root : getRelativeKey(root, 'minor');
+
+  // Get the 7 notes of that major scale
+  const majorScaleNotes = getScaleNotes(majorRoot, 'major');
+
+  const degrees = ARPEGGIO_MAJOR_DEGREES[arpeggioId];
+  if (!degrees) return new Set();
+
+  // degrees are 1-indexed
+  return new Set(degrees.map(d => majorScaleNotes[d - 1]));
+}
+
+/**
  * Main entry point: generate notes to display on the fretboard.
  */
 export function generateFretboardNotes(selectedRoot, selectedType, selectedPositions, showAll) {

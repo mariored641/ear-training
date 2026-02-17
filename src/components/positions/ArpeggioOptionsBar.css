@@ -1,0 +1,127 @@
+.arpeggio-options-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: #16213e;
+  border-bottom: 1px solid #2a2a4a;
+  flex-wrap: wrap;
+}
+
+.arpeggio-label {
+  font-size: 12px;
+  color: #8a8aaa;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.arpeggio-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.arpeggio-btn {
+  position: relative;
+  min-width: 36px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 2px solid;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arpeggio-btn:hover:not(.active) {
+  opacity: 0.8;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.arpeggio-btn.active {
+  transform: scale(1.05);
+}
+
+.arpeggio-ring-indicator {
+  display: none; /* used only for logic reference, visual done via box-shadow */
+}
+
+.arpeggio-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.hide-roots-btn {
+  background: none;
+  border: 1px solid #4a4a6a;
+  color: #8a8aaa;
+  border-radius: 4px;
+  padding: 0 8px;
+  height: 24px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.hide-roots-btn:hover {
+  border-color: #8a8aaa;
+  color: #ccc;
+}
+
+.hide-roots-btn.active {
+  border-color: #95A5A6;
+  color: #95A5A6;
+  background-color: rgba(149, 165, 166, 0.12);
+}
+
+.arpeggio-clear-btn {
+  background: none;
+  border: 1px solid #4a4a6a;
+  color: #8a8aaa;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.arpeggio-clear-btn:hover {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .arpeggio-options-bar {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+
+  .arpeggio-btn {
+    min-width: 32px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .arpeggio-buttons {
+    gap: 4px;
+  }
+}

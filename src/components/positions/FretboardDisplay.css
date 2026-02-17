@@ -82,6 +82,16 @@
   z-index: 1;
 }
 
+/* Allow arpeggio ring shadows to bleed outside the row without changing its height */
+.fretboard-container.arpeggio-active .guitar-string-row {
+  overflow: visible;
+}
+
+.fretboard-container.arpeggio-active .fret-cell,
+.fretboard-container.arpeggio-active .nut-cell {
+  overflow: visible;
+}
+
 /* Nut cell (open string) */
 .nut-cell {
   flex: 0 0 40px;
@@ -245,6 +255,7 @@
   .guitar-string-row {
     height: 36px;
   }
+
 }
 
 /* Mobile */
@@ -278,4 +289,5 @@
   .guitar-string-row {
     height: 30px;
   }
+
 }
