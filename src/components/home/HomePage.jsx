@@ -129,6 +129,9 @@ const HomePage = () => {
       <header className="home-header">
         <div className="header-content">
           <div className="header-text">
+            <div className="header-logo-wrap">
+              <img src="/logo.png" alt="אלתור בהישג יד" className="header-logo" />
+            </div>
             <h1 className="home-title">אלתור בהישג יד - האפליקציה</h1>
             <p className="home-subtitle">Ear Training Application</p>
           </div>

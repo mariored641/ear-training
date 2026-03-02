@@ -1,8 +1,8 @@
 .fretboard-container {
   flex: 1;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 8px 0 16px 0;
+  overflow-y: visible;
+  padding: 8px 0 50vh 0;
   display: flex;
   flex-direction: column;
   -webkit-overflow-scrolling: touch;
@@ -237,7 +237,7 @@
 /* Desktop */
 @media (min-width: 769px) {
   .fretboard-container {
-    padding: 12px 8px 20px 8px;
+    padding: 12px 8px 50vh 8px;
   }
 
   .fret-cell {

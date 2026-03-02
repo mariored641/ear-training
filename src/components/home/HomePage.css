@@ -51,6 +51,25 @@
   transform: translateY(0);
 }
 
+.header-logo-wrap {
+  display: block;
+  height: 90px;
+  width: 260px;
+  background-color: white;
+  border-radius: 12px;
+  margin: 0 auto var(--spacing-md) auto;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo {
+  width: 130%;
+  height: 130%;
+  object-fit: contain;
+}
+
 .home-title {
   margin: 0 0 var(--spacing-sm) 0;
   font-size: 2.5rem;
