@@ -108,6 +108,14 @@ const HomePage = () => {
       titleHebrew: 'חטיבת פוזיציות',
       description: 'CAGED system positions for any scale on the fretboard',
       numExercises: 'Active'
+    },
+    {
+      id: 'backing-tracks',
+      icon: '🎵',
+      title: 'Backing Tracks',
+      titleHebrew: 'חטיבת ליווי',
+      description: 'Play over Jazz, Blues, Rock & Country backing tracks with custom chord progressions',
+      numExercises: 'Active'
     }
   ];
 
@@ -118,6 +126,8 @@ const HomePage = () => {
     } else if (categoryId === 'positions') {
       // Positions goes directly to the positions page
       navigate('/positions');
+    } else if (categoryId === 'backing-tracks') {
+      navigate('/backing-tracks');
     } else {
       // Other categories go to their category screens
       navigate(`/category/${categoryId}`);
