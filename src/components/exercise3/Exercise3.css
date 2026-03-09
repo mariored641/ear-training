@@ -1,0 +1,413 @@
+/* ════════════════════════════════════════════════════════════════════
+   Exercise 3 — Interactive Melodic Ear Training
+   Single-screen layout: exercise area on top, settings below
+   Dark theme matching the Backing Tracks module
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Page shell ──────────────────────────────────────────────────── */
+.ex3-page {
+  min-height: 100vh;
+  background: #1a1a2e;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.ex3-header {
+  background: #16213e;
+  border-bottom: 1px solid #2a2a4a;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.ex3-header-left  { flex: 0 0 48px; }
+.ex3-header-center { flex: 1; text-align: center; }
+.ex3-header-right { flex: 0 0 72px; text-align: right; }
+
+.ex3-back-btn {
+  background: none; border: none; color: #e2e8f0;
+  font-size: 22px; cursor: pointer; padding: 4px 8px;
+  border-radius: 6px; transition: background 0.15s; line-height: 1;
+}
+.ex3-back-btn:hover { background: rgba(255,255,255,0.1); }
+
+.ex3-title    { margin: 0; font-size: 17px; font-weight: 700; color: #e2e8f0; }
+.ex3-subtitle { margin: 0; font-size: 11px; color: #94a3b8; }
+
+.ex3-stats-badge {
+  font-size: 13px; font-weight: 700; color: #60a5fa;
+  white-space: nowrap;
+}
+.ex3-stats-pct { color: #22c55e; margin-left: 2px; }
+
+/* ── Main ────────────────────────────────────────────────────────── */
+.ex3-main {
+  flex: 1;
+  padding: 12px 16px 20px;
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   EXERCISE AREA
+   ════════════════════════════════════════════════════════════════════ */
+.ex3-exercise-area {
+  background: #16213e;
+  border-radius: 14px;
+  padding: 18px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-height: 160px;
+}
+
+/* ── Phase label ─────────────────────────────────────────────────── */
+.ex3-phase-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
+  min-height: 28px;
+}
+.ex3-phase-label.phase-countin   { color: #94a3b8; letter-spacing: 2px; }
+.ex3-phase-label.phase-playing   { color: #60a5fa; }
+.ex3-phase-label.phase-listening { color: #f59e0b; }
+.ex3-phase-label.phase-correct   { color: #22c55e; }
+.ex3-phase-label.phase-wrong     { color: #ef4444; }
+
+/* ── Beat / note dots ────────────────────────────────────────────── */
+.ex3-beat-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ex3-beat-dot {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid #334155;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  transition: all 0.15s;
+  user-select: none;
+}
+.ex3-beat-dot.empty {
+  border-style: dashed;
+  color: #1e293b;
+}
+/* Currently playing beat — blue pulse */
+.ex3-beat-dot.cur-play {
+  border-color: #3b82f6;
+  background: #1e3a5f;
+  color: #93c5fd;
+  box-shadow: 0 0 16px rgba(59,130,246,0.5);
+  transform: scale(1.12);
+}
+/* Currently listening beat — amber pulse */
+.ex3-beat-dot.cur-listen {
+  border-color: #f59e0b;
+  background: #451a03;
+  color: #fcd34d;
+  box-shadow: 0 0 16px rgba(245,158,11,0.5);
+  transform: scale(1.12);
+  animation: ex3-listen-pulse 0.6s infinite alternate;
+}
+@keyframes ex3-listen-pulse {
+  from { box-shadow: 0 0 10px rgba(245,158,11,0.3); }
+  to   { box-shadow: 0 0 22px rgba(245,158,11,0.7); }
+}
+.ex3-beat-dot.correct {
+  border-color: #22c55e;
+  background: #14532d;
+  color: #86efac;
+  box-shadow: 0 0 12px rgba(34,197,94,0.35);
+}
+.ex3-beat-dot.wrong {
+  border-color: #ef4444;
+  background: #450a0a;
+  color: #fca5a5;
+  animation: ex3-shake 0.3s ease;
+}
+@keyframes ex3-shake {
+  0%,100% { transform: translateX(0); }
+  25%     { transform: translateX(-5px); }
+  75%     { transform: translateX(5px); }
+}
+
+/* ── Pitch display row ───────────────────────────────────────────── */
+.ex3-pitch-row {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #1e3a5f;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.2s;
+}
+.ex3-pitch-row.pitch-active  { border-color: #f59e0b; }
+.ex3-pitch-row.pitch-correct { border-color: #22c55e; }
+
+.ex3-pitch-note {
+  font-size: 28px;
+  font-weight: 800;
+  color: #60a5fa;
+  min-width: 48px;
+  text-align: center;
+  line-height: 1;
+}
+.ex3-pitch-row.pitch-correct .ex3-pitch-note { color: #22c55e; }
+.ex3-pitch-row.pitch-active  .ex3-pitch-note { color: #f59e0b; }
+
+.ex3-pitch-detail {
+  font-size: 13px;
+  color: #64748b;
+  flex: 1;
+}
+.ex3-pitch-cents {
+  margin-left: 6px;
+  color: #475569;
+  font-size: 11px;
+}
+.ex3-hold-bar-wrap {
+  width: 80px;
+  height: 5px;
+  background: #1e293b;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ex3-hold-bar {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 3px;
+  transition: width 0.05s linear;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SETTINGS AREA
+   ════════════════════════════════════════════════════════════════════ */
+.ex3-settings-area {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: opacity 0.2s;
+}
+.ex3-settings-area.locked {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ex3-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ex3-field-label {
+  font-size: 13px;
+  color: #94a3b8;
+  white-space: nowrap;
+  min-width: 76px;
+  font-weight: 500;
+}
+.ex3-field-wide { flex: 1; }
+
+.ex3-row2 {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ex3-row2 .ex3-field { flex: 1; min-width: 120px; }
+
+.ex3-row3 {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.ex3-row3 .ex3-field { flex: 1; min-width: 110px; }
+.ex3-field-tempo { flex-basis: 100% !important; }
+
+/* ── Select ──────────────────────────────────────────────────────── */
+.ex3-select {
+  flex: 1;
+  min-width: 0;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  padding: 7px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+.ex3-select:focus { border-color: #60a5fa; }
+.ex3-select:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Stepper ─────────────────────────────────────────────────────── */
+.ex3-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ex3-step-btn {
+  width: 30px; height: 30px;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 18px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.ex3-step-btn:hover:not(:disabled) { border-color: #60a5fa; color: #e2e8f0; }
+.ex3-step-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.ex3-step-val {
+  font-size: 16px; font-weight: 700; color: #e2e8f0;
+  min-width: 24px; text-align: center;
+}
+
+/* ── Segmented control ───────────────────────────────────────────── */
+.ex3-seg { display: flex; gap: 6px; }
+.ex3-seg-btn {
+  padding: 6px 14px;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 7px;
+  color: #94a3b8;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ex3-seg-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+.ex3-seg-btn.active {
+  background: #4c1d95;
+  border-color: #7c3aed;
+  color: #ede9fe;
+}
+.ex3-seg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Tempo slider ────────────────────────────────────────────────── */
+.ex3-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #334155;
+  outline: none;
+  cursor: pointer;
+  margin-top: 4px;
+  display: block;
+}
+.ex3-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+}
+.ex3-slider:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Mic button ──────────────────────────────────────────────────── */
+.ex3-mic-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+}
+.ex3-mic-btn.off        { background: #b45309; color: #fff; }
+.ex3-mic-btn.off:hover  { background: #d97706; }
+.ex3-mic-btn.requesting { background: #374151; color: #9ca3af; cursor: not-allowed; }
+.ex3-mic-btn.active     { background: #166534; color: #bbf7d0; border: 1.5px solid #22c55e; }
+.ex3-mic-btn.active:hover { background: #14532d; }
+.ex3-mic-btn.error      { background: #7f1d1d; color: #fca5a5; }
+
+/* ── Note grid (button mode fallback) ───────────────────────────── */
+.ex3-note-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+.ex3-note-btn {
+  padding: 10px 4px;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 7px;
+  color: #cbd5e1;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: center;
+}
+.ex3-note-btn:hover { border-color: #f59e0b; background: #1c1203; color: #fcd34d; }
+
+/* ════════════════════════════════════════════════════════════════════
+   BOTTOM CONTROLS
+   ════════════════════════════════════════════════════════════════════ */
+.ex3-controls {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+.ex3-ctrl-btn {
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  letter-spacing: 0.2px;
+}
+.ex3-ctrl-btn.start  { background: #16a34a; color: #fff; }
+.ex3-ctrl-btn.start:hover  { background: #15803d; }
+.ex3-ctrl-btn.stop   { background: #dc2626; color: #fff; }
+.ex3-ctrl-btn.stop:hover   { background: #b91c1c; }
+.ex3-ctrl-btn.skip   { background: #1e293b; border: 1.5px solid #475569; color: #94a3b8; }
+.ex3-ctrl-btn.skip:hover   { border-color: #f59e0b; color: #fbbf24; }
+.ex3-ctrl-btn.back   { background: #1e293b; border: 1.5px solid #334155; color: #94a3b8; }
+.ex3-ctrl-btn.back:hover   { border-color: #60a5fa; color: #e2e8f0; }
+.ex3-space-hint { font-size: 11px; opacity: 0.6; font-weight: 400; }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .ex3-main { padding: 10px 10px 16px; }
+  .ex3-note-grid { grid-template-columns: repeat(4, 1fr); }
+  .ex3-beat-dot { width: 48px; height: 48px; font-size: 12px; }
+  .ex3-row2, .ex3-row3 { flex-direction: column; }
+  .ex3-field-tempo { flex-basis: auto !important; }
+}

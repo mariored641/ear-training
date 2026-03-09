@@ -16,6 +16,11 @@ const MelodicCategoryScreen = () => {
       id: 2,
       icon: '🎸',
       title: 'Fretboard Mapping'
+    },
+    {
+      id: 3,
+      icon: '🎼',
+      title: 'Melodic Dictation'
     }
   ];
 

@@ -9,6 +9,7 @@ const HarmonicCategoryScreen = React.lazy(() => import('./components/category/Ha
 // Lazy load exercises
 const Exercise1 = React.lazy(() => import('./components/exercise1/Exercise1'));
 const Exercise2 = React.lazy(() => import('./components/exercise2/Exercise2'));
+const Exercise3 = React.lazy(() => import('./components/exercise3/Exercise3'));
 const Exercise4 = React.lazy(() => import('./components/exercise4/Exercise4'));
 const Exercise4A = React.lazy(() => import('./components/exercise4a/Exercise4A'));
 const Exercise4B = React.lazy(() => import('./components/exercise4b/Exercise4B'));
@@ -34,6 +35,7 @@ function App() {
           {/* Melodic Exercises */}
           <Route path="/exercise/1" element={<Exercise1 />} />
           <Route path="/exercise/2" element={<Exercise2 />} />
+          <Route path="/exercise/3" element={<Exercise3 />} />
 
           {/* Harmonic Exercises */}
           <Route path="/exercise/4a" element={<Exercise4A />} />
@@ -52,6 +54,7 @@ function App() {
           {/* Legacy routes for backward compatibility */}
           <Route path="/exercise1" element={<Exercise1 />} />
           <Route path="/exercise2" element={<Exercise2 />} />
+          <Route path="/exercise3" element={<Exercise3 />} />
           <Route path="/exercise4" element={<Exercise4 />} />
         </Routes>
       </React.Suspense>
