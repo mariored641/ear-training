@@ -102,6 +102,14 @@ const HomePage = () => {
       numExercises: 'Active'
     },
     {
+      id: 'rhythm-dictation',
+      icon: '🎯',
+      title: 'Rhythm Dictation',
+      titleHebrew: 'הכתבה קצבית',
+      description: 'Rhythm Dictation & Call and Response — 8 difficulty levels',
+      numExercises: 'Active'
+    },
+    {
       id: 'positions',
       icon: '🎸',
       title: 'Scale Positions',
@@ -121,8 +129,11 @@ const HomePage = () => {
 
   const handleEnterCategory = (categoryId) => {
     if (categoryId === 'rhythm') {
-      // Rhythm goes directly to the exercise (no category screen)
+      // Existing Rhythm Explorer
       navigate('/exercise/4');
+    } else if (categoryId === 'rhythm-dictation') {
+      // New Rhythm Dictation module
+      navigate('/rhythm-training');
     } else if (categoryId === 'positions') {
       // Positions goes directly to the positions page
       navigate('/positions');
