@@ -1,0 +1,392 @@
+/* ═══════════════════════════════════════════════════════════════
+   Rhythm Training Module — Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Page shell ────────────────────────────────────────────────── */
+.rt-page {
+  min-height: 100vh;
+  background: var(--color-bg-secondary, #0f0f1e);
+  color: var(--color-text, #e8e8e8);
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+}
+
+/* ── Header ────────────────────────────────────────────────────── */
+.rt-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--color-bg, #1a1a2e);
+  border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08));
+}
+
+.rt-back-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #a0a0c0);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+.rt-back-btn:hover { color: var(--color-text, #e8e8e8); background: rgba(255,255,255,0.07); }
+
+.rt-header-titles { flex: 1; }
+.rt-header-titles h1 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.rt-header-titles p  { margin: 0; font-size: 0.78rem; color: var(--color-text-secondary, #a0a0c0); }
+
+/* ── Tab bar ────────────────────────────────────────────────────── */
+.rt-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border-color, rgba(255,255,255,0.08));
+  background: var(--color-bg, #1a1a2e);
+}
+
+.rt-tab {
+  flex: 1;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--color-text-secondary, #a0a0c0);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.rt-tab:hover { color: var(--color-text, #e8e8e8); }
+.rt-tab.active {
+  color: var(--color-primary, #6c8ebf);
+  border-bottom-color: var(--color-primary, #6c8ebf);
+  font-weight: 700;
+  background: rgba(108,142,191,0.06);
+}
+.rt-tab-name  { display: block; font-size: 0.9rem; }
+.rt-tab-sub   { display: block; font-size: 0.72rem; opacity: 0.7; }
+
+/* ── Main content ──────────────────────────────────────────────── */
+.rt-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+  box-sizing: border-box;
+}
+
+/* ── Phase badge ────────────────────────────────────────────────── */
+.rt-phase {
+  margin: 20px 0 12px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: background 0.3s, color 0.3s;
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text, #e8e8e8);
+}
+.rt-phase.phase-idle     { background: rgba(255,255,255,0.04); color: #9090b8; }
+.rt-phase.phase-playing  { background: rgba(108,142,191,0.2); color: #9bbfff; }
+.rt-phase.phase-waiting  { background: rgba(255,200,80,0.15); color: #ffd060; }
+.rt-phase.phase-recording{ background: rgba(255,100,80,0.2); color: #ff8070; }
+.rt-phase.phase-correct  { background: rgba(80,200,120,0.2); color: #60e090; }
+.rt-phase.phase-wrong    { background: rgba(255,80,80,0.18); color: #ff7070; }
+.rt-phase.phase-app      { background: rgba(108,142,191,0.2); color: #9bbfff; }
+.rt-phase.phase-student  { background: rgba(180,100,255,0.2); color: #d090ff; }
+
+/* ── Beat counter ───────────────────────────────────────────────── */
+.rt-beat-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 8px 0 16px;
+}
+
+.rt-bar-group {
+  display: flex;
+  gap: 4px;
+}
+
+.rt-beat-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  border: 2px solid rgba(255,255,255,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.3);
+  transition: all 0.12s;
+  font-weight: 600;
+}
+
+.rt-beat-dot.active-play {
+  background: rgba(108,142,191,0.55);
+  border-color: #6c8ebf;
+  color: #fff;
+  transform: scale(1.18);
+  box-shadow: 0 0 12px rgba(108,142,191,0.6);
+}
+.rt-beat-dot.active-rec {
+  background: rgba(255,100,80,0.55);
+  border-color: #ff6450;
+  color: #fff;
+  transform: scale(1.18);
+  box-shadow: 0 0 12px rgba(255,100,80,0.6);
+}
+.rt-beat-dot.active-student {
+  background: rgba(180,100,255,0.5);
+  border-color: #b464ff;
+  color: #fff;
+  transform: scale(1.18);
+  box-shadow: 0 0 12px rgba(180,100,255,0.55);
+}
+.rt-beat-dot.accent {
+  border-color: rgba(255,255,255,0.25);
+}
+
+/* Bar separator label */
+.rt-bar-label {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.3);
+  align-self: center;
+  margin: 0 2px;
+}
+
+/* ── Settings section ───────────────────────────────────────────── */
+.rt-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+}
+
+.rt-settings.locked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.rt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rt-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #a0a0c0);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Slider */
+.rt-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rt-slider {
+  flex: 1;
+  accent-color: var(--color-primary, #6c8ebf);
+}
+.rt-slider-val {
+  min-width: 62px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text, #e8e8e8);
+  text-align: right;
+}
+
+/* Button group */
+.rt-btn-group {
+  display: flex;
+  gap: 6px;
+}
+
+.rt-opt-btn {
+  flex: 1;
+  padding: 9px 8px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.13);
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text-secondary, #a0a0c0);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+}
+.rt-opt-btn:hover { background: rgba(255,255,255,0.1); color: var(--color-text, #e8e8e8); }
+.rt-opt-btn.active {
+  background: rgba(108,142,191,0.25);
+  border-color: var(--color-primary, #6c8ebf);
+  color: #9bbfff;
+}
+
+/* Level buttons (1-8, smaller) */
+.rt-level-group {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.rt-level-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.13);
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text-secondary, #a0a0c0);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rt-level-btn:hover { background: rgba(255,255,255,0.1); color: var(--color-text, #e8e8e8); }
+.rt-level-btn.active {
+  background: rgba(108,142,191,0.25);
+  border-color: var(--color-primary, #6c8ebf);
+  color: #9bbfff;
+}
+.rt-level-badge {
+  font-size: 0.65rem;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+/* Bass note selector */
+.rt-note-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.rt-note-btn {
+  min-width: 32px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--color-text-secondary, #a0a0c0);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.rt-note-btn:hover { background: rgba(255,255,255,0.1); color: var(--color-text, #e8e8e8); }
+.rt-note-btn.active {
+  background: rgba(108,142,191,0.25);
+  border-color: var(--color-primary, #6c8ebf);
+  color: #9bbfff;
+}
+
+/* ── Stats badge ────────────────────────────────────────────────── */
+.rt-stats {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary, #a0a0c0);
+}
+.rt-stats strong { color: var(--color-text, #e8e8e8); }
+
+/* ── Result animation ───────────────────────────────────────────── */
+@keyframes rt-pop-in {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.rt-result-anim { animation: rt-pop-in 0.35s ease-out both; }
+
+/* ── Bottom controls ────────────────────────────────────────────── */
+.rt-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.rt-ctrl-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rt-ctrl-btn.start {
+  background: linear-gradient(135deg, #4a7fcb, #7c4dcb);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(74,127,203,0.35);
+}
+.rt-ctrl-btn.start:hover { box-shadow: 0 6px 24px rgba(74,127,203,0.5); transform: translateY(-1px); }
+
+.rt-ctrl-btn.stop {
+  background: rgba(255,80,80,0.18);
+  color: #ff8070;
+  border: 1.5px solid rgba(255,80,80,0.3);
+}
+.rt-ctrl-btn.stop:hover { background: rgba(255,80,80,0.28); }
+
+.rt-ctrl-btn.skip {
+  background: rgba(255,200,80,0.12);
+  color: #ffd060;
+  border: 1.5px solid rgba(255,200,80,0.25);
+}
+.rt-ctrl-btn.skip:hover { background: rgba(255,200,80,0.2); }
+
+.rt-ctrl-btn.back {
+  background: rgba(255,255,255,0.06);
+  color: var(--color-text-secondary, #a0a0c0);
+  border: 1.5px solid rgba(255,255,255,0.1);
+}
+.rt-ctrl-btn.back:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Mic permission note ────────────────────────────────────────── */
+.rt-mic-note {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #a0a0c0);
+  text-align: center;
+  margin-top: 6px;
+  opacity: 0.8;
+}
+
+/* ── Evaluation result bar ──────────────────────────────────────── */
+.rt-eval-bar {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rt-eval-bar.pass  { background: rgba(80,200,120,0.12); border: 1px solid rgba(80,200,120,0.3); }
+.rt-eval-bar.fail  { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.25); }
+.rt-eval-bar .ev-title { font-weight: 700; font-size: 0.95rem; }
+.rt-eval-bar .ev-detail { opacity: 0.8; }
+
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .rt-beat-dot { width: 30px; height: 30px; font-size: 0.6rem; }
+  .rt-level-btn { width: 30px; height: 30px; font-size: 0.78rem; }
+}

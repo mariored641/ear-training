@@ -21,6 +21,9 @@ const ScalePositionsPage = React.lazy(() => import('./components/positions/Scale
 // Backing Tracks module
 const BackingTracksPage = React.lazy(() => import('./components/backing-tracks/BackingTracksPage'));
 
+// Rhythm Training module (new)
+const RhythmTraining = React.lazy(() => import('./components/rhythm-training/RhythmTraining'));
+
 function App() {
   return (
     <Router>
@@ -50,6 +53,9 @@ function App() {
 
           {/* Backing Tracks module */}
           <Route path="/backing-tracks" element={<BackingTracksPage />} />
+
+          {/* Rhythm Training module */}
+          <Route path="/rhythm-training" element={<RhythmTraining />} />
 
           {/* Legacy routes for backward compatibility */}
           <Route path="/exercise1" element={<Exercise1 />} />
