@@ -3,19 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../home/ExerciseCard';
 import './CategoryScreen.css';
 
-const MelodicCategoryScreen = () => {
+const DictationCategoryScreen = () => {
   const navigate = useNavigate();
 
   const exercises = [
     {
-      id: 1,
-      icon: '🎵',
-      title: 'Interval Recognition'
+      id: 'rhythm-dictation',
+      path: '/rhythm-training',
+      icon: '🎯',
+      title: 'Rhythmic Dictation'
     },
     {
-      id: 2,
-      icon: '🎸',
-      title: 'Fretboard Mapping'
+      id: 3,
+      icon: '🎼',
+      title: 'Melodic Dictation'
     }
   ];
 
@@ -30,8 +31,8 @@ const MelodicCategoryScreen = () => {
           ← Back to Home
         </button>
         <div className="category-screen-title-container">
-          <h1 className="category-screen-title">Melodic Ear Training</h1>
-          <h2 className="category-screen-title-hebrew">חטיבת שמיעה מלודית</h2>
+          <h1 className="category-screen-title">Dictation</h1>
+          <h2 className="category-screen-title-hebrew">חטיבת הכתבה</h2>
         </div>
       </header>
 
@@ -40,6 +41,7 @@ const MelodicCategoryScreen = () => {
           <ExerciseCard
             key={exercise.id}
             exerciseId={exercise.id}
+            path={exercise.path}
             icon={exercise.icon}
             title={exercise.title}
             isAvailable={true}
@@ -50,4 +52,4 @@ const MelodicCategoryScreen = () => {
   );
 };
 
-export default MelodicCategoryScreen;
+export default DictationCategoryScreen;

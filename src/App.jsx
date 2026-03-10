@@ -5,6 +5,7 @@ import HomePage from './components/home/HomePage';
 // Lazy load category screens
 const MelodicCategoryScreen = React.lazy(() => import('./components/category/MelodicCategoryScreen'));
 const HarmonicCategoryScreen = React.lazy(() => import('./components/category/HarmonicCategoryScreen'));
+const DictationCategoryScreen = React.lazy(() => import('./components/category/DictationCategoryScreen'));
 
 // Lazy load exercises
 const Exercise1 = React.lazy(() => import('./components/exercise1/Exercise1'));
@@ -34,6 +35,7 @@ function App() {
           {/* Category Screens */}
           <Route path="/category/melodic" element={<MelodicCategoryScreen />} />
           <Route path="/category/harmonic" element={<HarmonicCategoryScreen />} />
+          <Route path="/category/dictation" element={<DictationCategoryScreen />} />
 
           {/* Melodic Exercises */}
           <Route path="/exercise/1" element={<Exercise1 />} />
