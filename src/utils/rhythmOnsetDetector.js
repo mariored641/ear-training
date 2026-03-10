@@ -6,22 +6,28 @@
  * when the recording phase starts.
  *
  * Usage:
- *   const det = new RhythmOnsetDetector();
+ *   const det = new RhythmOnsetDetector({ fluxThreshold: 8, latencyCompMs: 65 });
  *   await det.start();          // start mic early (before session)
  *   // ... at start of recording phase:
  *   det.markRecordingStart();   // stamp the recording window start
  *   // ... at end of recording:
- *   const onsets = det.getRecordingOnsets();  // ms from recording start
+ *   const onsets = det.getRecordingOnsets();     // ms from recording start (compensated)
+ *   const raw    = det.getRawRecordingOnsets();  // [{time, flux}] — no comp, for calibration
  *   det.stop();
  */
 
 const FFT_SIZE           = 256;
 const MIN_INTER_ONSET_MS = 80;
-const FLUX_THRESHOLD     = 18;
-const SMOOTHING          = 0.65;
+
+// Defaults — overridden per-instance via constructor options
+const DEFAULT_FLUX_THRESHOLD  = 8;   // aggressively low for finger taps
+const DEFAULT_LATENCY_COMP_MS = 65;  // measured mean pipeline delay
 
 export class RhythmOnsetDetector {
-  constructor() {
+  constructor({ fluxThreshold = DEFAULT_FLUX_THRESHOLD, latencyCompMs = DEFAULT_LATENCY_COMP_MS } = {}) {
+    this._fluxThreshold = fluxThreshold;
+    this._latencyCompMs = latencyCompMs;
+
     this._ctx      = null;
     this._analyser = null;
     this._stream   = null;
@@ -29,7 +35,7 @@ export class RhythmOnsetDetector {
     this._running  = false;
     this._rafId    = null;
 
-    this._allOnsets       = [];   // all detected onsets in ms from start()
+    this._allOnsets       = [];   // [{time: ms, flux: number}]
     this._startTime       = 0;
     this._lastOnsetTime   = -Infinity;
     this._prevBuffer      = null;
@@ -43,7 +49,7 @@ export class RhythmOnsetDetector {
     this._ctx      = new (window.AudioContext || window.webkitAudioContext)();
     this._analyser = this._ctx.createAnalyser();
     this._analyser.fftSize = FFT_SIZE;
-    this._analyser.smoothingTimeConstant = SMOOTHING;
+    this._analyser.smoothingTimeConstant = 0.3;
 
     this._stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     this._source = this._ctx.createMediaStreamSource(this._stream);
@@ -66,14 +72,27 @@ export class RhythmOnsetDetector {
   }
 
   /**
-   * Returns onsets that occurred after markRecordingStart(),
-   * with timestamps relative to that mark (in ms).
+   * Returns onsets after markRecordingStart(), relative to that mark (ms).
+   * LATENCY_COMP is subtracted and result is clamped to ≥ 0.
    */
   getRecordingOnsets() {
     if (this._recordingStartMs === null) return [];
+    const comp = ((this._ctx?.baseLatency ?? 0) * 1000) + this._latencyCompMs;
     return this._allOnsets
-      .filter(t => t >= this._recordingStartMs)
-      .map(t => t - this._recordingStartMs);
+      .filter(o => o.time >= this._recordingStartMs)
+      .map(o => Math.max(0, o.time - this._recordingStartMs - comp));
+  }
+
+  /**
+   * Raw recording onsets — no latency compensation applied.
+   * Returns [{time: ms, flux: number}] relative to markRecordingStart().
+   * Used by calibration to measure the true pipeline delay.
+   */
+  getRawRecordingOnsets() {
+    if (this._recordingStartMs === null) return [];
+    return this._allOnsets
+      .filter(o => o.time >= this._recordingStartMs)
+      .map(o => ({ time: Math.round(o.time - this._recordingStartMs), flux: o.flux }));
   }
 
   stop() {
@@ -87,6 +106,19 @@ export class RhythmOnsetDetector {
   }
 
   get isRunning() { return this._running; }
+
+  /** Returns current RMS audio level (0–1). Use for VU meter display. */
+  getLevel() {
+    if (!this._analyser || !this._running) return 0;
+    const buf = new Uint8Array(this._analyser.fftSize);
+    this._analyser.getByteTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const v = (buf[i] - 128) / 128;
+      sum += v * v;
+    }
+    return Math.sqrt(sum / buf.length);
+  }
 
   _loop() {
     if (!this._running) return;
@@ -103,8 +135,8 @@ export class RhythmOnsetDetector {
     flux /= buf.length;
 
     const nowMs = (this._ctx.currentTime - this._startTime) * 1000;
-    if (flux > FLUX_THRESHOLD && (nowMs - this._lastOnsetTime) > MIN_INTER_ONSET_MS) {
-      this._allOnsets.push(Math.round(nowMs));
+    if (flux > this._fluxThreshold && (nowMs - this._lastOnsetTime) > MIN_INTER_ONSET_MS) {
+      this._allOnsets.push({ time: Math.round(nowMs), flux });
       this._lastOnsetTime = nowMs;
     }
 

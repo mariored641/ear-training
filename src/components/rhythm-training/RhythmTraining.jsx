@@ -27,6 +27,19 @@ const TABS = [
   { id: 'callResponse', label: 'Call & Response',   sub: 'שאלה ותשובה' },
 ];
 
+const LEVEL_DESCRIPTIONS = [
+  { level: 1, label: 'רמה 1', desc: 'רבעיות' },
+  { level: 2, label: 'רמה 2', desc: 'שמיניות' },
+  { level: 3, label: 'רמה 3', desc: 'סינקופות' },
+  { level: 4, label: 'רמה 4', desc: 'שש-עשרות' },
+  { level: 5, label: 'רמה 5 ³', desc: 'שלישיות (♩)' },
+  { level: 6, label: 'רמה 6 ³', desc: 'שלישיות (𝅗𝅥/𝅝)' },
+  { level: 7, label: 'רמה 7', desc: 'חמישיות/שביעיות' },
+  { level: 8, label: 'רמה 8', desc: 'פוליריתם' },
+];
+
+const NUM_BARS_LABELS = { 1: 'תיבה 1', 2: '2 תיבות', 4: '4 תיבות' };
+
 export default function RhythmTraining() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dictation');
@@ -53,11 +66,14 @@ export default function RhythmTraining() {
 
       {/* ── Header ─────────────────────────────────────────────── */}
       <header className="rt-header">
-        <button className="rt-back-btn" onClick={handleBack}>←</button>
-        <div className="rt-header-titles">
-          <h1>🥁 Rhythm Training</h1>
-          <p>אימון קצב</p>
+        <div className="rt-header-left">
+          <button className="rt-back-btn" onClick={handleBack}>←</button>
         </div>
+        <div className="rt-header-center">
+          <h1 className="rt-title">🥁 Rhythm Training</h1>
+          <p className="rt-subtitle">אימון קצב</p>
+        </div>
+        <div className="rt-header-right" />
       </header>
 
       {/* ── Tabs ────────────────────────────────────────────────── */}
@@ -105,8 +121,10 @@ export default function RhythmTraining() {
 
 // ─── Shared Settings Panel ────────────────────────────────────────────────
 
+const NUM_QUESTIONS_OPTIONS = [5, 10, 20, 0]; // 0 = unlimited
+
 function SettingsPanel({ settings, updateSetting, locked }) {
-  const { bpm, numBars, level, soundChoice, bassNote } = settings;
+  const { bpm, numBars, level, soundChoice, bassNote, numQuestions } = settings;
 
   return (
     <div className={`rt-settings ${locked ? 'locked' : ''}`}>
@@ -138,7 +156,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
               className={`rt-opt-btn ${numBars === n ? 'active' : ''}`}
               onClick={() => updateSetting('numBars', n)}
             >
-              {n}
+              {NUM_BARS_LABELS[n] || n}
             </button>
           ))}
         </div>
@@ -147,15 +165,15 @@ function SettingsPanel({ settings, updateSetting, locked }) {
       {/* Difficulty level */}
       <div className="rt-field">
         <span className="rt-label">רמת קושי</span>
-        <div className="rt-level-group">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(l => (
+        <div className="rt-level-grid">
+          {LEVEL_DESCRIPTIONS.map(({ level: l, label, desc }) => (
             <button
               key={l}
-              className={`rt-level-btn ${level === l ? 'active' : ''}`}
+              className={`rt-level-bar ${level === l ? 'active' : ''}`}
               onClick={() => updateSetting('level', l)}
             >
-              {l}
-              {(l === 5 || l === 6) && <span className="rt-level-badge">³</span>}
+              <span className="rt-level-bar-name">{label}</span>
+              <span className="rt-level-bar-desc">{desc}</span>
             </button>
           ))}
         </div>
@@ -194,6 +212,22 @@ function SettingsPanel({ settings, updateSetting, locked }) {
           </div>
         </div>
       )}
+
+      {/* Number of questions */}
+      <div className="rt-field">
+        <span className="rt-label">מספר שאלות</span>
+        <div className="rt-btn-group">
+          {NUM_QUESTIONS_OPTIONS.map(n => (
+            <button
+              key={n}
+              className={`rt-opt-btn ${numQuestions === n ? 'active' : ''}`}
+              onClick={() => updateSetting('numQuestions', n)}
+            >
+              {n === 0 ? '∞' : n}
+            </button>
+          ))}
+        </div>
+      </div>
 
     </div>
   );

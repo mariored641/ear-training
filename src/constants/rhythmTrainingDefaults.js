@@ -355,11 +355,12 @@ export const DEFAULT_RHYTHM_TRAINING_SETTINGS = {
   level: 1,
   soundChoice: 'woodblock',  // 'woodblock' | 'bass' | 'drums'
   bassNote: 'A',             // base note for bass sound
+  numQuestions: 0,           // 0 = unlimited (∞)
 };
 
 // Calibration thresholds (adjustable after testing)
 export const EVALUATION_CONFIG = {
-  toleranceMs: 50,    // onset tolerance in ms
+  toleranceMs: 70,    // raised from 50 — measured timing spread ~±60ms, 70 covers most real playing
   minMatchPct: 0.80,  // minimum fraction of matched onsets to pass
   minInterOnsetMs: 80, // minimum gap between two detected onsets
 };

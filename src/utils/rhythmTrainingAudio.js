@@ -171,8 +171,8 @@ class RhythmTrainingAudio {
     const recBeats    = numBars * 4;
     const totalBeats  = playBeats + waitBeats + recBeats;
 
-    // ── Metronome: every beat throughout ──────────────────────
-    for (let b = 0; b < totalBeats; b++) {
+    // ── Metronome: playing + waiting phases only (silent during recording) ──
+    for (let b = 0; b < playBeats + waitBeats; b++) {
       Tone.Transport.schedule((at) => this._click(at), b * beatSec);
     }
 
@@ -261,6 +261,45 @@ class RhythmTrainingAudio {
     }, roundEnd - beatSec);
 
     return roundEnd;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Calibration: simple metronome-only sequence for auto-calibration.
+  //
+  // Plays numBeats clicks, then calls onComplete() after one extra beat
+  // of silence so the last tap can be captured.
+  //
+  // Callbacks:
+  //   onBeat(beatIndex)  — fired on each metronome click (0-based)
+  //   onComplete()       — fired after the capture window ends
+  //
+  // Returns expected beat times in ms: [0, beatMs, 2*beatMs, ...]
+  // ══════════════════════════════════════════════════════════════
+  async scheduleCalibration({ bpm, numBeats, onBeat, onComplete }) {
+    await this.init();
+
+    Tone.Transport.stop();
+    Tone.Transport.cancel();
+    Tone.Transport.bpm.value = bpm;
+
+    const beatSec = 60 / bpm;
+
+    for (let b = 0; b < numBeats; b++) {
+      Tone.Transport.schedule((at) => this._click(at), b * beatSec);
+      const _b = b;
+      Tone.Transport.schedule((at) => {
+        Tone.Draw.schedule(() => onBeat?.(_b), at);
+      }, b * beatSec);
+    }
+
+    // Complete one beat after last click so the last tap can be captured
+    Tone.Transport.schedule((at) => {
+      Tone.Draw.schedule(() => onComplete?.(), at);
+    }, numBeats * beatSec);
+
+    Tone.Transport.start();
+
+    return Array.from({ length: numBeats }, (_, i) => i * (beatSec * 1000));
   }
 
   // ── Ensure Transport is running (for Call & Response start) ───
