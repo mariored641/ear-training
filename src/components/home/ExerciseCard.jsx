@@ -6,12 +6,14 @@ import './ExerciseCard.css';
  * Exercise card component for home page and category screens
  * @param {Object} props
  * @param {number|string} props.exerciseId - Exercise ID (1, 2, 4, '4a', '4b', '4c')
+ * @param {string} props.path - Optional custom navigation path (overrides exerciseId routing)
  * @param {string} props.title - Exercise title
  * @param {string} props.icon - Exercise icon (emoji)
  * @param {boolean} props.isAvailable - Whether exercise is available
  */
 const ExerciseCard = ({
   exerciseId,
+  path: customPath,
   title,
   icon,
   isAvailable = true
@@ -20,6 +22,10 @@ const ExerciseCard = ({
 
   const handleStart = () => {
     if (isAvailable) {
+      if (customPath) {
+        navigate(customPath);
+        return;
+      }
       // Handle both numeric IDs (1, 2, 4) and string IDs ('4a', '4b', '4c')
       const path = typeof exerciseId === 'string' && exerciseId.includes('4')
         ? `/exercise/${exerciseId}`
