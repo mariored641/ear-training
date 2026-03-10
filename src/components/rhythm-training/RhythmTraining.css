@@ -1,0 +1,531 @@
+/* ═══════════════════════════════════════════════════════════════
+   Rhythm Training Module — Styles
+   Dark theme matching the Melodic Dictation (Exercise 3)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Page shell ────────────────────────────────────────────────── */
+.rt-page {
+  min-height: 100vh;
+  background: #1a1a2e;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.rt-header {
+  background: #16213e;
+  border-bottom: 1px solid #2a2a4a;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.rt-header-left   { flex: 0 0 48px; }
+.rt-header-center { flex: 1; text-align: center; }
+.rt-header-right  { flex: 0 0 48px; }
+
+.rt-back-btn {
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.rt-back-btn:hover { background: rgba(255,255,255,0.1); }
+
+.rt-title    { margin: 0; font-size: 17px; font-weight: 700; color: #e2e8f0; }
+.rt-subtitle { margin: 0; font-size: 11px; color: #94a3b8; }
+
+/* ── Tab bar ─────────────────────────────────────────────────────── */
+.rt-tabs {
+  display: flex;
+  border-bottom: 2px solid #2a2a4a;
+  background: #16213e;
+}
+.rt-tab {
+  flex: 1;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-family: inherit;
+  margin-bottom: -2px;
+}
+.rt-tab:hover { color: #e2e8f0; }
+.rt-tab.active {
+  color: #60a5fa;
+  border-bottom-color: #60a5fa;
+  font-weight: 700;
+}
+.rt-tab-name { display: block; font-size: 0.9rem; }
+.rt-tab-sub  { display: block; font-size: 0.72rem; opacity: 0.7; }
+
+/* ── Main content ─────────────────────────────────────────────────── */
+.rt-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 16px 24px;
+  box-sizing: border-box;
+  gap: 12px;
+}
+
+/* ── Exercise area card ──────────────────────────────────────────── */
+.rt-exercise-area {
+  background: #16213e;
+  border-radius: 14px;
+  padding: 18px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-height: 140px;
+}
+
+/* ── Phase label ─────────────────────────────────────────────────── */
+.rt-phase {
+  font-size: 20px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
+  min-height: 28px;
+  text-align: center;
+}
+.rt-phase.phase-idle        { color: #64748b; }
+.rt-phase.phase-playing     { color: #60a5fa; }
+.rt-phase.phase-waiting     { color: #94a3b8; letter-spacing: 2px; }
+.rt-phase.phase-recording   { color: #f59e0b; }
+.rt-phase.phase-correct     { color: #22c55e; }
+.rt-phase.phase-wrong       { color: #ef4444; }
+.rt-phase.phase-app         { color: #60a5fa; }
+.rt-phase.phase-student     { color: #f59e0b; }
+.rt-phase.phase-calibrating { color: #38bdf8; font-size: 16px; }
+
+/* ── Beat row ────────────────────────────────────────────────────── */
+.rt-beat-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.rt-bar-group {
+  display: flex;
+  gap: 6px;
+}
+.rt-beat-dot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #334155;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  transition: all 0.15s;
+  user-select: none;
+}
+.rt-beat-dot.accent { border-color: #3d4f6a; }
+
+/* Playing phase — blue */
+.rt-beat-dot.active-play {
+  border-color: #3b82f6;
+  background: #1e3a5f;
+  color: #93c5fd;
+  box-shadow: 0 0 16px rgba(59,130,246,0.5);
+  transform: scale(1.12);
+}
+
+/* Recording phase — amber pulse */
+.rt-beat-dot.active-rec {
+  border-color: #f59e0b;
+  background: #451a03;
+  color: #fcd34d;
+  box-shadow: 0 0 16px rgba(245,158,11,0.5);
+  transform: scale(1.12);
+  animation: rt-listen-pulse 0.6s infinite alternate;
+}
+@keyframes rt-listen-pulse {
+  from { box-shadow: 0 0 10px rgba(245,158,11,0.3); }
+  to   { box-shadow: 0 0 22px rgba(245,158,11,0.7); }
+}
+
+/* Calibration phase — cyan */
+.rt-beat-dot.active-calib {
+  border-color: #38bdf8;
+  background: #082f49;
+  color: #7dd3fc;
+  box-shadow: 0 0 16px rgba(56,189,248,0.5);
+  transform: scale(1.12);
+}
+
+/* Student response — purple */
+.rt-beat-dot.active-student {
+  border-color: #a78bfa;
+  background: #2e1065;
+  color: #ddd6fe;
+  box-shadow: 0 0 16px rgba(167,139,250,0.5);
+  transform: scale(1.12);
+}
+
+.rt-bar-label {
+  font-size: 0.65rem;
+  color: #475569;
+  align-self: center;
+  margin: 0 2px;
+}
+
+/* ── Evaluation bar ──────────────────────────────────────────────── */
+.rt-eval-bar {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-sizing: border-box;
+}
+.rt-eval-bar.pass {
+  background: #14532d;
+  border: 1px solid #22c55e;
+  color: #86efac;
+}
+.rt-eval-bar.fail {
+  background: #450a0a;
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+.rt-eval-bar .ev-title  { font-weight: 700; font-size: 15px; }
+.rt-eval-bar .ev-detail { opacity: 0.85; }
+
+/* ── Stats ───────────────────────────────────────────────────────── */
+.rt-stats {
+  font-size: 13px;
+  font-weight: 700;
+  color: #60a5fa;
+}
+.rt-stats strong { color: #60a5fa; }
+
+/* ── Result animation ────────────────────────────────────────────── */
+@keyframes rt-pop-in {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.rt-result-anim { animation: rt-pop-in 0.35s ease-out both; }
+
+/* ── Settings section ─────────────────────────────────────────────── */
+.rt-settings {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: opacity 0.2s;
+}
+.rt-settings.locked {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.rt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rt-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+}
+
+/* Slider */
+.rt-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rt-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #334155;
+  outline: none;
+  cursor: pointer;
+  display: block;
+}
+.rt-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+}
+.rt-slider:disabled { opacity: 0.3; cursor: not-allowed; }
+.rt-slider-val {
+  min-width: 68px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-align: right;
+}
+
+/* Button group — num bars & sound */
+.rt-btn-group {
+  display: flex;
+  gap: 6px;
+}
+.rt-opt-btn {
+  flex: 1;
+  padding: 9px 8px;
+  border-radius: 8px;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+  font-family: inherit;
+}
+.rt-opt-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+.rt-opt-btn.active {
+  background: #4c1d95;
+  border-color: #7c3aed;
+  color: #ede9fe;
+}
+
+/* ── Level grid — descriptive 2-column bars ──────────────────────── */
+.rt-level-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.rt-level-bar {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: inherit;
+}
+.rt-level-bar:hover { border-color: #60a5fa; color: #e2e8f0; }
+.rt-level-bar.active {
+  background: #4c1d95;
+  border-color: #7c3aed;
+  color: #ede9fe;
+}
+.rt-level-bar-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+.rt-level-bar-desc {
+  font-size: 11px;
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+/* ── Bass note selector ──────────────────────────────────────────── */
+.rt-note-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.rt-note-btn {
+  min-width: 32px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  font-family: inherit;
+}
+.rt-note-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+.rt-note-btn.active {
+  background: #4c1d95;
+  border-color: #7c3aed;
+  color: #ede9fe;
+}
+
+/* ── Mic note ────────────────────────────────────────────────────── */
+.rt-mic-note {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* ── VU Meter ────────────────────────────────────────────────────── */
+.rt-vu-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 0 2px;
+}
+.rt-vu-label {
+  font-size: 14px;
+  opacity: 0.7;
+}
+.rt-vu-meter {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+}
+.rt-vu-seg {
+  width: 10px;
+  height: 20px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  transition: background 0.05s;
+}
+.rt-vu-seg.lit.green  { background: #22c55e; box-shadow: 0 0 4px #16a34a66; }
+.rt-vu-seg.lit.yellow { background: #f59e0b; box-shadow: 0 0 4px #d9770666; }
+.rt-vu-seg.lit.red    { background: #ef4444; box-shadow: 0 0 4px #dc262666; }
+.rt-vu-rec {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ef4444;
+  letter-spacing: 0.08em;
+  animation: rt-rec-blink 0.9s step-start infinite;
+}
+@keyframes rt-rec-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── VU row (meter + calibrate button) ───────────────────────────── */
+.rt-vu-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Calibrate button */
+.rt-calib-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+  color: #38bdf8;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.rt-calib-btn:hover {
+  border-color: #38bdf8;
+  background: #082f49;
+}
+
+/* Calibration result banner */
+.rt-calib-result {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  box-sizing: border-box;
+  animation: rt-pop-in 0.3s ease-out both;
+}
+.rt-calib-result.pass {
+  background: #082f49;
+  border: 1px solid #38bdf8;
+  color: #7dd3fc;
+}
+.rt-calib-result.fail {
+  background: #431407;
+  border: 1px solid #f97316;
+  color: #fdba74;
+}
+
+/* Current calibration info line */
+.rt-calib-info {
+  font-size: 11px;
+  color: #38bdf8;
+  opacity: 0.75;
+  text-align: center;
+}
+
+/* ── Controls ────────────────────────────────────────────────────── */
+.rt-controls {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+.rt-ctrl-btn {
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  letter-spacing: 0.2px;
+}
+/* start is always alone — span full grid width */
+.rt-ctrl-btn.start {
+  background: #16a34a;
+  color: #fff;
+  grid-column: 1 / -1;
+}
+.rt-ctrl-btn.start:hover { background: #15803d; }
+.rt-ctrl-btn.stop  { background: #dc2626; color: #fff; }
+.rt-ctrl-btn.stop:hover  { background: #b91c1c; }
+.rt-ctrl-btn.skip  { background: #1e293b; border: 1.5px solid #475569; color: #94a3b8; }
+.rt-ctrl-btn.skip:hover  { border-color: #f59e0b; color: #fbbf24; }
+.rt-ctrl-btn.back  { background: #1e293b; border: 1.5px solid #334155; color: #94a3b8; }
+.rt-ctrl-btn.back:hover  { border-color: #60a5fa; color: #e2e8f0; }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .rt-content  { padding: 10px 10px 16px; }
+  .rt-beat-dot { width: 38px; height: 38px; font-size: 11px; }
+}
+@media (max-width: 400px) {
+  .rt-level-grid { grid-template-columns: 1fr; }
+}
