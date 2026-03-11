@@ -217,8 +217,9 @@ export default function Exercise3() {
 
       // ── MAIN LOOP ────────────────────────────────────────────────────────
       // seq is null  → generate new sequence
-      // seq is set   → replay same sequence (student failed)
+      // seq is set   → replay same sequence (student failed, first attempt)
       let seq = null;
+      let attempts = 0; // how many times current seq has been attempted
 
       while (genRef.current === myGen) {
         const s = settingsRef.current;
@@ -230,6 +231,7 @@ export default function Exercise3() {
             s.root, s.scale, s.difficulty, s.sequenceLength,
             lastNoteRef.current
           );
+          attempts = 0;
         }
 
         setSequence(seq);
@@ -294,18 +296,19 @@ export default function Exercise3() {
         setAppState(S.RESULT);
         const allOk = roundResults.every(Boolean);
         setLastRoundOk(allOk);
+        attempts += 1;
 
         setStats(prev => ({
           rounds:  prev.rounds + 1,
           correct: prev.correct + (allOk ? 1 : 0),
         }));
 
-        if (allOk) {
-          // Success → save last note for continuation, generate new sequence next round
+        if (allOk || attempts >= 2) {
+          // Success, or second attempt regardless of result → move to next sequence
           lastNoteRef.current = seq[seq.length - 1].midiNote;
           seq = null;
         }
-        // Failure → seq stays set, same sequence will replay next iteration
+        // First failure → seq stays set, same sequence will replay once more
 
         // Result pause: 2 metronome beats so student feels the tempo continuing
         for (let i = 0; i < 2; i++) {
