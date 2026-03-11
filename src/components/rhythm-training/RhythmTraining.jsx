@@ -28,14 +28,17 @@ const TABS = [
 ];
 
 const LEVEL_DESCRIPTIONS = [
-  { level: 1, label: 'רמה 1', desc: 'רבעיות' },
-  { level: 2, label: 'רמה 2', desc: 'שמיניות' },
-  { level: 3, label: 'רמה 3', desc: 'סינקופות' },
-  { level: 4, label: 'רמה 4', desc: 'שש-עשרות' },
-  { level: 5, label: 'רמה 5 ³', desc: 'שלישיות (♩)' },
-  { level: 6, label: 'רמה 6 ³', desc: 'שלישיות (𝅗𝅥/𝅝)' },
-  { level: 7, label: 'רמה 7', desc: 'חמישיות/שביעיות' },
-  { level: 8, label: 'רמה 8', desc: 'פוליריתם' },
+  { level: 1,  label: 'רמה 1',    desc: 'רבעיות' },
+  { level: 2,  label: 'רמה 2',    desc: 'שמיניות' },
+  { level: 3,  label: 'רמה 3',    desc: 'סינקופות' },
+  { level: 4,  label: 'רמה 4',    desc: 'שש-עשרות' },
+  { level: 5,  label: 'רמה 5 ³',  desc: 'שלישיות (♩)' },
+  { level: 6,  label: 'רמה 6 ³',  desc: 'שלישיות (𝅗𝅥/𝅝)' },
+  { level: 7,  label: 'רמה 7 ³',  desc: 'סווינג' },
+  { level: 8,  label: 'רמה 8',    desc: 'דיספלייסמנט' },
+  { level: 9,  label: 'רמה 9 ⁵',  desc: 'קווינטולות' },
+  { level: 10, label: 'רמה 10',   desc: 'פוליריתם' },
+  { level: 11, label: 'רמה 11 ⁷', desc: 'ספטולות' },
 ];
 
 const NUM_BARS_LABELS = { 1: 'תיבה 1', 2: '2 תיבות', 4: '4 תיבות' };

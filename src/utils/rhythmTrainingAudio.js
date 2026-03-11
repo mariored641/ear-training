@@ -32,12 +32,11 @@ class RhythmTrainingAudio {
   async init() {
     await Tone.start();
     if (!this._initialized) {
-      this._metronome = new Tone.MembraneSynth({
-        pitchDecay: 0.008,
-        octaves: 3,
-        envelope: { attack: 0.001, decay: 0.06, sustain: 0, release: 0.06 },
+      this._metronome = new Tone.Synth({
+        oscillator: { type: 'sine' },
+        envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.005 },
       }).toDestination();
-      this._metronome.volume.value = -14;
+      this._metronome.volume.value = -4;
       this._initialized = true;
     }
   }
@@ -103,7 +102,7 @@ class RhythmTrainingAudio {
   // ── Low-level sound triggers ───────────────────────────────────
   _click(audioTime) {
     if (!this._metronome) return;
-    try { this._metronome.triggerAttackRelease('C2', '32n', audioTime); } catch {}
+    try { this._metronome.triggerAttackRelease('A4', '32n', audioTime); } catch {}
   }
 
   _patternNote(audioTime, dur, soundChoice, drumSlot, bassNoteOct) {

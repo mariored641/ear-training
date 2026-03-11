@@ -3,13 +3,17 @@
  *
  * generatePattern(level, numBars) → array of building-block objects
  *
- * Algorithm:
+ * Algorithm (levels 1-7, 9-11):
  *  1. Fill mandatory slots (≥2 current-level blocks per bar, where feasible)
  *  2. Fill remaining beats with weighted-random from full bank
  *     (current-level blocks get 3× weight)
  *  3. Shuffle all blocks so mandatory ones aren't always first
  *  4. Check global constraints; retry up to 10 times
  *  5. Apply optional tie rule (level 3+) post-generation
+ *
+ * Level 8 (Rhythmic Displacement):
+ *  Special algorithm — choose a repeating base pattern of length 3 or 5
+ *  sixteenth notes and tile it across the bar(s). Converted to quarter blocks.
  */
 
 import { getBankForLevel, getNewBlocksForLevel } from '../constants/rhythmTrainingDefaults';
@@ -46,7 +50,7 @@ function weightedPick(pool, currentLevel) {
 
 /**
  * Fill exactly `totalBeats` beats by picking blocks from `bank`.
- * Returns null if no solution is found within 100 iterations.
+ * Returns null if no solution is found within 200 iterations.
  */
 function fillBeats(totalBeats, bank, currentLevel) {
   const blocks = [];
@@ -105,8 +109,16 @@ function checkConstraints(pattern, level) {
     if (leadRests >= 2) return false;
   }
 
-  // 4. For triplet / poly blocks: at least 50% must contain a note
-  const tupleIds = new Set(['t3', 't3_r', 't3_rnr', 't3_rn', 'ht3', 'ht3_r', 'wt3', 'wt3_r', 'q5', 'q5_r', 'q7', 'q7_r']);
+  // 4. For triplet / swing / poly blocks: at least 50% must contain a note
+  //    (All current full-only blocks satisfy this automatically)
+  const tupleIds = new Set([
+    't3',                          // quarter triplet (full)
+    'ht3', 'wt3',                  // half/whole triplets (full)
+    'trt_q', 'trt_h', 'trt_w',    // swing (+-+)
+    'q5',                          // quintuplet (full)
+    'poly_3_4', 'poly_5_4',        // polyrhythm
+    'q7',                          // septuplet (full)
+  ]);
   const tupleBlocks = pattern.filter(b => tupleIds.has(b.id));
   if (tupleBlocks.length > 0) {
     const withNote = tupleBlocks.filter(b => b.events.some(e => e.isNote)).length;
@@ -154,16 +166,78 @@ function applyTieRule(pattern, level) {
   return result;
 }
 
+// ─── Level 8: Rhythmic Displacement ──────────────────────────────────────
+
+/**
+ * Generate a rhythmic displacement pattern.
+ *
+ * Chooses a base pattern of 3 or 5 sixteenth notes (first is always a note,
+ * rest are silences), tiles it across numBars*16 sixteenths, then converts
+ * to quarter-note building blocks (each with 4 sixteenth-note events).
+ *
+ * @param {number} numBars
+ * @returns {Array} array of building-block objects
+ */
+function generateDisplacementBlocks(numBars) {
+  const total = numBars * 16; // total sixteenth notes
+
+  // Choose pattern length: 3 or 5
+  const chosenLength = [3, 5][Math.floor(Math.random() * 2)];
+
+  // Base pattern: first note on, rest silent
+  const basePattern = new Array(chosenLength).fill(false);
+  basePattern[0] = true;
+
+  // Tile pattern across total sixteenth notes
+  const grid = [];
+  let pos = 0;
+  while (pos + chosenLength <= total) {
+    grid.push(...basePattern);
+    pos += chosenLength;
+  }
+  // Fill remainder with random
+  while (pos < total) {
+    grid.push(Math.random() > 0.5);
+    pos++;
+  }
+
+  // Convert 16th-note boolean grid into quarter-note blocks (4 events each)
+  const blocks = [];
+  for (let q = 0; q < numBars * 4; q++) {
+    const s = q * 4;
+    blocks.push({
+      id: `disp_${q}`,
+      duration: 1,
+      level: 8,
+      tieEnd: false,
+      tieStart: false,
+      events: [
+        { time: 0,    duration: 0.25, isNote: !!grid[s]   },
+        { time: 0.25, duration: 0.25, isNote: !!grid[s+1] },
+        { time: 0.5,  duration: 0.25, isNote: !!grid[s+2] },
+        { time: 0.75, duration: 0.25, isNote: !!grid[s+3] },
+      ],
+    });
+  }
+
+  return blocks;
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────
 
 /**
  * Generate a rhythm pattern for the given level and bar count.
  *
- * @param {number} level    1-8
+ * @param {number} level    1-11
  * @param {number} numBars  1 | 2 | 4
  * @returns {Array}  Array of building-block objects (with possible tied events)
  */
 export function generatePattern(level, numBars) {
+  // Level 8: special displacement algorithm
+  if (level === 8) {
+    return generateDisplacementBlocks(numBars);
+  }
+
   const totalBeats = numBars * 4;
   const bank = getBankForLevel(level);
   const newBlocks = getNewBlocksForLevel(level);
@@ -177,7 +251,7 @@ export function generatePattern(level, numBars) {
     let pattern = null;
 
     if (mandatoryPool.length === 0) {
-      // No new blocks with duration ≤ 2 (e.g. level 1 has rests too, fine)
+      // No new blocks with duration ≤ 2 (e.g. level 1)
       const result = fillBeats(totalBeats, bank, level);
       if (result) pattern = shuffle(result);
     } else {
@@ -219,7 +293,7 @@ export function generatePattern(level, numBars) {
     return finalPattern;
   }
 
-  // Fallback: simple quarter notes + quarter rests
+  // Fallback: simple quarter notes
   const fallback = [];
   for (let i = 0; i < totalBeats; i++) {
     fallback.push({ ...getBankForLevel(1)[0] }); // Q_NOTE
@@ -257,11 +331,11 @@ export function computeExpectedOnsets(pattern, bpm) {
  *
  * @param {number[]} expected     ms timestamps of expected onsets
  * @param {number[]} detected     ms timestamps of detected onsets
- * @param {number}   toleranceMs  window for matching (default 50ms)
+ * @param {number}   toleranceMs  window for matching (default 70ms)
  * @param {number}   minMatchPct  minimum fraction to pass (default 0.80)
  * @returns {{ pass, matchPct, matched, total, extraHits }}
  */
-export function evaluateOnsets(expected, detected, toleranceMs = 50, minMatchPct = 0.80) {
+export function evaluateOnsets(expected, detected, toleranceMs = 70, minMatchPct = 0.80) {
   let matched = 0;
   const usedDetected = new Set();
 

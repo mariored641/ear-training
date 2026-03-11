@@ -147,7 +147,10 @@
   transition: all 0.15s;
   user-select: none;
 }
-.rt-beat-dot.accent { border-color: #3d4f6a; }
+.rt-beat-dot.accent {
+  border-color: #4b7aaa;
+  border-width: 3px;
+}
 
 /* Playing phase — blue */
 .rt-beat-dot.active-play {

@@ -9,6 +9,19 @@
  *              time and duration are in quarter notes (beats)
  *   tieEnd   : boolean — true if this block can tie to the next (ends on "and")
  *   tieStart : boolean — true if this block can receive a tie (starts on beat)
+ *
+ * Levels 1–11:
+ *   1  — Quarter notes
+ *   2  — Eighth notes (on-beat)
+ *   3  — Eighth syncopations
+ *   4  — Sixteenth notes
+ *   5  — Quarter triplets (full only, isolated bank)
+ *   6  — Half/whole triplets (full only, isolated bank)
+ *   7  — Swing (triplet feel — +-+), extends 1-6
+ *   8  — Rhythmic displacement (special algorithm, no bank)
+ *   9  — Quintuplets (full only), extends 1-5
+ *  10  — Polyrhythm, extends 1-5
+ *  11  — Septuplets (full only), extends 1-5
  */
 
 // ─── Level 1 — Quarter notes ───────────────────────────────────────────────
@@ -96,7 +109,7 @@ const SS_E = {
 
 const S_S_E = {
   id: 's_s_e', duration: 1, level: 4, tieEnd: true, tieStart: false,
-  name: '♬𝄿♬♪', // 16th rest + 16th + 8th
+  name: '𝄿♬♪',
   events: [
     { time: 0,    duration: 0.25, isNote: false },
     { time: 0.25, duration: 0.25, isNote: true },
@@ -127,7 +140,7 @@ const SSSR = {
 
 const RSSS = {
   id: 'rsss', duration: 1, level: 4, tieEnd: false, tieStart: false,
-  name: '𝄿♬♬♬', // 16th rest + 3 × 16th — off-beat accent
+  name: '𝄿♬♬♬',
   events: [
     { time: 0,    duration: 0.25, isNote: false },
     { time: 0.25, duration: 0.25, isNote: true },
@@ -147,7 +160,8 @@ const SS_R_S = {
   ],
 };
 
-// ─── Level 5 — Quarter triplets (ISOLATED — no binary) ────────────────────
+// ─── Level 5 — Quarter triplets (FULL only, isolated bank) ────────────────
+// Spec: only +++ — no variants with rests
 const T3 = {
   id: 't3', duration: 1, level: 5, tieEnd: false, tieStart: false,
   name: '³♩',
@@ -158,39 +172,11 @@ const T3 = {
   ],
 };
 
-const T3_R = {
-  id: 't3_r', duration: 1, level: 5, tieEnd: false, tieStart: false,
-  name: '³♩𝄽',  // note-note-rest
-  events: [
-    { time: 0,     duration: 1/3, isNote: true },
-    { time: 1/3,   duration: 1/3, isNote: true },
-    { time: 2/3,   duration: 1/3, isNote: false },
-  ],
-};
-
-const T3_RNR = {
-  id: 't3_rnr', duration: 1, level: 5, tieEnd: false, tieStart: false,
-  name: '³♩𝄽♩', // note-rest-note
-  events: [
-    { time: 0,     duration: 1/3, isNote: true },
-    { time: 1/3,   duration: 1/3, isNote: false },
-    { time: 2/3,   duration: 1/3, isNote: true },
-  ],
-};
-
-const T3_RN = {
-  id: 't3_rn', duration: 1, level: 5, tieEnd: false, tieStart: false,
-  name: '³𝄽♩', // rest-note (long)
-  events: [
-    { time: 0,     duration: 1/3, isNote: false },
-    { time: 1/3,   duration: 2/3, isNote: true },
-  ],
-};
-
-// ─── Level 6 — Half and whole triplets (ISOLATED) ─────────────────────────
+// ─── Level 6 — Half and whole triplets (FULL only, isolated bank) ──────────
+// Spec: only +++ — no variants with rests
 const HT3 = {
   id: 'ht3', duration: 2, level: 6, tieEnd: false, tieStart: false,
-  name: '³𝅗𝅥', // half-note triplet
+  name: '³𝅗𝅥',
   events: [
     { time: 0,     duration: 2/3, isNote: true },
     { time: 2/3,   duration: 2/3, isNote: true },
@@ -198,19 +184,9 @@ const HT3 = {
   ],
 };
 
-const HT3_R = {
-  id: 'ht3_r', duration: 2, level: 6, tieEnd: false, tieStart: false,
-  name: '³𝅗𝅥𝄼', // half-note triplet with rest
-  events: [
-    { time: 0,     duration: 2/3, isNote: true },
-    { time: 2/3,   duration: 2/3, isNote: true },
-    { time: 4/3,   duration: 2/3, isNote: false },
-  ],
-};
-
 const WT3 = {
   id: 'wt3', duration: 4, level: 6, tieEnd: false, tieStart: false,
-  name: '³𝅝', // whole-note triplet
+  name: '³𝅝',
   events: [
     { time: 0,     duration: 4/3, isNote: true },
     { time: 4/3,   duration: 4/3, isNote: true },
@@ -218,117 +194,114 @@ const WT3 = {
   ],
 };
 
-const WT3_R = {
-  id: 'wt3_r', duration: 4, level: 6, tieEnd: false, tieStart: false,
-  name: '³𝅝𝄻', // whole-note triplet with rest
+// ─── Level 7 — Swing (triplet feel: +-+), extends 1-6 ────────────────────
+// Pattern: first and third triplet subdivision played, middle silent
+const TRT_Q = {
+  id: 'trt_q', duration: 1, level: 7, tieEnd: false, tieStart: false,
+  name: 'Sw♩',
   events: [
-    { time: 0,     duration: 4/3, isNote: true },
-    { time: 4/3,   duration: 4/3, isNote: true },
-    { time: 8/3,   duration: 4/3, isNote: false },
+    { time: 0,   duration: 1/3, isNote: true  },
+    { time: 1/3, duration: 1/3, isNote: false },
+    { time: 2/3, duration: 1/3, isNote: true  },
   ],
 };
 
-// ─── Level 7 — Quintuplets and Septuplets (extends 1-4) ───────────────────
+const TRT_H = {
+  id: 'trt_h', duration: 2, level: 7, tieEnd: false, tieStart: false,
+  name: 'Sw𝅗𝅥',
+  events: [
+    { time: 0,   duration: 2/3, isNote: true  },
+    { time: 2/3, duration: 2/3, isNote: false },
+    { time: 4/3, duration: 2/3, isNote: true  },
+  ],
+};
+
+const TRT_W = {
+  id: 'trt_w', duration: 4, level: 7, tieEnd: false, tieStart: false,
+  name: 'Sw𝅝',
+  events: [
+    { time: 0,   duration: 4/3, isNote: true  },
+    { time: 4/3, duration: 4/3, isNote: false },
+    { time: 8/3, duration: 4/3, isNote: true  },
+  ],
+};
+
+// ─── Level 8 — Rhythmic Displacement (special algorithm — no bank blocks) ──
+// See rhythmPatternGenerator.js for generateDisplacementBlocks()
+
+// ─── Level 9 — Quintuplets (FULL only), extends 1-5 ──────────────────────
+// 5 equal notes in one quarter — no variants with rests
 const Q5 = {
-  id: 'q5', duration: 1, level: 7, tieEnd: false, tieStart: false,
+  id: 'q5', duration: 1, level: 9, tieEnd: false, tieStart: false,
   name: '⁵♩',
   events: Array.from({ length: 5 }, (_, i) => ({
     time: i / 5, duration: 1 / 5, isNote: true,
   })),
 };
 
-const Q5_R = {
-  id: 'q5_r', duration: 1, level: 7, tieEnd: false, tieStart: false,
-  name: '⁵♩𝄽', // quintuplet with inner rest
-  events: [
-    { time: 0,   duration: 1/5, isNote: true },
-    { time: 1/5, duration: 1/5, isNote: true },
-    { time: 2/5, duration: 1/5, isNote: false },
-    { time: 3/5, duration: 1/5, isNote: true },
-    { time: 4/5, duration: 1/5, isNote: true },
-  ],
-};
-
-const Q7 = {
-  id: 'q7', duration: 1, level: 7, tieEnd: false, tieStart: false,
-  name: '⁷♩',
-  events: Array.from({ length: 7 }, (_, i) => ({
-    time: i / 7, duration: 1 / 7, isNote: true,
-  })),
-};
-
-const Q7_R = {
-  id: 'q7_r', duration: 1, level: 7, tieEnd: false, tieStart: false,
-  name: '⁷♩𝄽', // septuplet with inner rest
-  events: [
-    { time: 0,   duration: 1/7, isNote: true },
-    { time: 1/7, duration: 1/7, isNote: true },
-    { time: 2/7, duration: 1/7, isNote: false },
-    { time: 3/7, duration: 1/7, isNote: true },
-    { time: 4/7, duration: 1/7, isNote: true },
-    { time: 5/7, duration: 1/7, isNote: false },
-    { time: 6/7, duration: 1/7, isNote: true },
-  ],
-};
-
-// Repeat T3 in level 7 (level 5 blocks re-enter level 7 bank)
-const T3_L7 = { ...T3, level: 7 };
-
-// ─── Level 8 — Polyrhythm (extends all previous) ──────────────────────────
-// 3:4 (quarter triplet across 4 beats)
+// ─── Level 10 — Polyrhythm, extends 1-5 ──────────────────────────────────
+// 3:4 — 3 evenly-spaced notes across 4 beats
 const POLY_3_4 = {
-  id: 'poly_3_4', duration: 4, level: 8, tieEnd: false, tieStart: false,
+  id: 'poly_3_4', duration: 4, level: 10, tieEnd: false, tieStart: false,
   name: '3:4',
   events: Array.from({ length: 3 }, (_, i) => ({
     time: i * (4 / 3), duration: 4 / 3, isNote: true,
   })),
 };
 
-// 5:4 (quintuplet across 4 beats)
+// 5:4 — 5 evenly-spaced notes across 4 beats
 const POLY_5_4 = {
-  id: 'poly_5_4', duration: 4, level: 8, tieEnd: false, tieStart: false,
+  id: 'poly_5_4', duration: 4, level: 10, tieEnd: false, tieStart: false,
   name: '5:4',
   events: Array.from({ length: 5 }, (_, i) => ({
     time: i * (4 / 5), duration: 4 / 5, isNote: true,
   })),
 };
 
-// 7:4 (septuplet across 4 beats)
-const POLY_7_4 = {
-  id: 'poly_7_4', duration: 4, level: 8, tieEnd: false, tieStart: false,
-  name: '7:4',
+// ─── Level 11 — Septuplets (FULL only), extends 1-5 ──────────────────────
+// 7 equal notes in one quarter — no variants with rests
+const Q7 = {
+  id: 'q7', duration: 1, level: 11, tieEnd: false, tieStart: false,
+  name: '⁷♩',
   events: Array.from({ length: 7 }, (_, i) => ({
-    time: i * (4 / 7), duration: 4 / 7, isNote: true,
+    time: i / 7, duration: 1 / 7, isNote: true,
   })),
 };
 
-// 3:2 (triplet over half note — 2 beats)
-const POLY_3_2 = {
-  id: 'poly_3_2', duration: 2, level: 8, tieEnd: false, tieStart: false,
-  name: '3:2',
-  events: Array.from({ length: 3 }, (_, i) => ({
-    time: i * (2 / 3), duration: 2 / 3, isNote: true,
-  })),
-};
+// ─── Shared sub-banks ──────────────────────────────────────────────────────
+const _l1 = [Q_NOTE, Q_REST];
+const _l2 = [..._l1, E_E, E_R, R_R];
+const _l3 = [..._l2, R_E];
+const _l4 = [..._l3, SSSS, E_SS, SS_E, S_S_E, E_S_R, SSSR, RSSS, SS_R_S];
 
 // ─── Bank exports ──────────────────────────────────────────────────────────
 /**
  * Returns the full building-block bank for a given level.
- * For levels 5 and 6, the bank is isolated (no binary division).
- * For level 7+, the bank includes levels 1-4 + current level.
+ *
+ *  Levels 1-4  : cumulative binary banks
+ *  Level 5     : isolated — Q/QR + full quarter triplet only
+ *  Level 6     : isolated — adds full half/whole triplets
+ *  Level 7     : extends 1-6 + swing (+-+) patterns
+ *  Level 8     : [] — displacement is generated by special algorithm
+ *  Level 9     : extends 1-5 + full quintuplet
+ *  Level 10    : extends 1-5 + polyrhythm (3:4, 5:4)
+ *  Level 11    : extends 1-5 + full septuplet
  */
 export function getBankForLevel(level) {
-  const l1 = [Q_NOTE, Q_REST];
-  const l2 = [...l1, E_E, E_R, R_R];
-  const l3 = [...l2, R_E];
-  const l4 = [...l3, SSSS, E_SS, SS_E, S_S_E, E_S_R, SSSR, RSSS, SS_R_S];
-  const l5 = [Q_NOTE, Q_REST, T3, T3_R, T3_RNR, T3_RN]; // isolated triplet bank
-  const l6 = [Q_NOTE, Q_REST, T3, T3_R, T3_RNR, HT3, HT3_R, WT3, WT3_R]; // isolated
-  const l7 = [...l4, T3_L7, Q5, Q5_R, Q7, Q7_R];
-  const l8 = [...l7, POLY_3_4, POLY_5_4, POLY_7_4, POLY_3_2];
-
-  const banks = { 1: l1, 2: l2, 3: l3, 4: l4, 5: l5, 6: l6, 7: l7, 8: l8 };
-  return banks[level] || l1;
+  const banks = {
+    1:  _l1,
+    2:  _l2,
+    3:  _l3,
+    4:  _l4,
+    5:  [..._l1, T3],                             // isolated triplet bank
+    6:  [..._l1, T3, HT3, WT3],                   // isolated — adds half/whole
+    7:  [..._l4, T3, HT3, WT3, TRT_Q, TRT_H, TRT_W], // full mix + swing
+    8:  [],                                         // displacement: no standard blocks
+    9:  [..._l4, T3, Q5],                          // extends 1-5 + quintuplet
+    10: [..._l4, T3, POLY_3_4, POLY_5_4],          // extends 1-5 + polyrhythm
+    11: [..._l4, T3, Q7],                          // extends 1-5 + septuplet
+  };
+  return banks[level] || _l1;
 }
 
 /**
@@ -336,14 +309,17 @@ export function getBankForLevel(level) {
  */
 export function getNewBlocksForLevel(level) {
   const all = {
-    1: [Q_NOTE, Q_REST],
-    2: [E_E, E_R, R_R],
-    3: [R_E],
-    4: [SSSS, E_SS, SS_E, S_S_E, E_S_R, SSSR, RSSS, SS_R_S],
-    5: [T3, T3_R, T3_RNR, T3_RN],
-    6: [HT3, HT3_R, WT3, WT3_R],
-    7: [T3_L7, Q5, Q5_R, Q7, Q7_R],
-    8: [POLY_3_4, POLY_5_4, POLY_7_4, POLY_3_2],
+    1:  [Q_NOTE, Q_REST],
+    2:  [E_E, E_R, R_R],
+    3:  [R_E],
+    4:  [SSSS, E_SS, SS_E, S_S_E, E_S_R, SSSR, RSSS, SS_R_S],
+    5:  [T3],
+    6:  [HT3, WT3],
+    7:  [TRT_Q, TRT_H, TRT_W],
+    8:  [],                      // displacement — no standard blocks
+    9:  [Q5],
+    10: [POLY_3_4, POLY_5_4],
+    11: [Q7],
   };
   return all[level] || [];
 }
@@ -373,3 +349,5 @@ export const NUM_BARS_OPTIONS = [1, 2, 4];
 
 export const BPM_MIN = 40;
 export const BPM_MAX = 180;
+
+export const MAX_LEVEL = 11;
