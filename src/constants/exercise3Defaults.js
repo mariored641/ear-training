@@ -60,6 +60,7 @@ export const DEFAULT_EXERCISE3_SETTINGS = {
   sequenceLength: 3,
   instrument: 'piano',
   tempo: 80,
+  maxAttempts: 2,
 };
 
 // ─── Melody generator ─────────────────────────────────────────────────────────
