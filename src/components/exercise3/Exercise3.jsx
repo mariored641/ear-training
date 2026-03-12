@@ -303,8 +303,8 @@ export default function Exercise3() {
           correct: prev.correct + (allOk ? 1 : 0),
         }));
 
-        if (allOk || attempts >= 2) {
-          // Success, or second attempt regardless of result → move to next sequence
+        if (allOk || attempts >= settingsRef.current.maxAttempts) {
+          // Success, or max attempts reached → move to next sequence
           lastNoteRef.current = seq[seq.length - 1].midiNote;
           seq = null;
         }
@@ -518,6 +518,19 @@ export default function Exercise3() {
                 <button className="ex3-step-btn"
                   onClick={() => updateSetting('sequenceLength', Math.min(6, settings.sequenceLength + 1))}
                   disabled={isActive || settings.sequenceLength >= 6}>+</button>
+              </div>
+            </div>
+
+            <div className="ex3-field">
+              <label className="ex3-field-label">ניסיונות לפני דילוג:</label>
+              <div className="ex3-stepper">
+                <button className="ex3-step-btn"
+                  onClick={() => updateSetting('maxAttempts', Math.max(1, settings.maxAttempts - 1))}
+                  disabled={isActive || settings.maxAttempts <= 1}>−</button>
+                <span className="ex3-step-val">{settings.maxAttempts}</span>
+                <button className="ex3-step-btn"
+                  onClick={() => updateSetting('maxAttempts', Math.min(10, settings.maxAttempts + 1))}
+                  disabled={isActive || settings.maxAttempts >= 10}>+</button>
               </div>
             </div>
 
