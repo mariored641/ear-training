@@ -1,0 +1,308 @@
+.asf-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+  touch-action: pan-x;
+}
+
+/* Fret numbers row (top) */
+.asf-fret-numbers {
+  display: flex;
+  min-width: fit-content;
+  padding-left: 0;
+}
+
+.asf-fret-num {
+  flex: 0 0 60px;
+  text-align: center;
+  font-size: 11px;
+  color: #5a5a7a;
+  padding-bottom: 4px;
+  font-weight: 500;
+  user-select: none;
+}
+
+.asf-fret-num.marked {
+  color: #8a8aaa;
+  font-weight: 700;
+}
+
+.asf-fret-num.nut-spacer {
+  flex: 0 0 40px !important;
+}
+
+/* Fretboard */
+.asf-fretboard {
+  position: relative;
+  min-width: fit-content;
+}
+
+/* Position marker dots */
+.asf-markers {
+  display: flex;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.asf-marker-slot {
+  flex: 0 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.asf-marker-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #3a3a5a;
+}
+
+.asf-marker-dot.double {
+  transform: translateY(-6px);
+}
+
+.asf-marker-dot.second {
+  position: absolute;
+  transform: translateY(12px);
+}
+
+/* String rows */
+.asf-string-row {
+  display: flex;
+  height: 32px;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  touch-action: none;
+}
+
+/* Nut cell */
+.asf-nut-cell {
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 3px solid #888;
+  cursor: pointer;
+  overflow: visible;
+}
+
+.asf-nut-cell::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 0;
+  height: 1px;
+  background-color: #555;
+  transform: translateY(-0.5px);
+  pointer-events: none;
+}
+
+.asf-string-label {
+  font-size: 11px;
+  color: #5a5a7a;
+  font-weight: 600;
+  position: absolute;
+  left: 4px;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Fret cells */
+.asf-fret-cell {
+  flex: 0 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.asf-string-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #555;
+  transform: translateY(-0.5px);
+  pointer-events: none;
+}
+
+.asf-fret-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+  background-color: #444;
+  pointer-events: none;
+}
+
+/* Bass string thicknesses */
+.asf-string-row:nth-child(7) .asf-string-line,
+.asf-string-row:nth-child(7) .asf-nut-cell::after { height: 2px; }
+.asf-string-row:nth-child(6) .asf-string-line     { height: 2px; }
+.asf-string-row:nth-child(5) .asf-string-line     { height: 1.5px; }
+
+/* Note dots */
+.asf-note {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  z-index: 2;
+  position: relative;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.1s ease;
+}
+
+.asf-note.inactive {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+/* Ghost hover effect: show faint dot when hovering an empty cell */
+.asf-fret-cell:hover .asf-note.inactive,
+.asf-nut-cell:hover .asf-note.inactive {
+  width: 18px;
+  height: 18px;
+  opacity: 1;
+  background-color: rgba(149, 165, 166, 0.2);
+  border: 1px dashed rgba(149, 165, 166, 0.4);
+}
+
+.asf-note.active {
+  background-color: #95A5A6;
+  color: #1a1a2e;
+}
+
+.asf-note.root {
+  background-color: #E74C3C;
+  color: white;
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+}
+
+.asf-note.highlighted {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+}
+
+.asf-note.dot-mode {
+  font-size: 0 !important;
+}
+
+/* Chord-overlay note not in the active scale — transparent with just the ring */
+.asf-note.chord-only {
+  background-color: transparent;
+  width: 20px;
+  height: 20px;
+  opacity: 1;
+}
+
+/* Dimmed cells (outside fret range) */
+.asf-fret-cell.dimmed,
+.asf-nut-cell.dimmed {
+  opacity: 0.3;
+}
+
+.asf-fret-cell.dimmed .asf-note.active,
+.asf-nut-cell.dimmed .asf-note.active {
+  opacity: 0.4;
+}
+
+/* Fret range selector */
+.asf-range-bar {
+  display: flex;
+  min-width: fit-content;
+  padding-top: 3px;
+  border-top: 1px solid #2a2a4a;
+  background-color: #16213e;
+  gap: 0;
+}
+
+.asf-range-spacer {
+  flex: 0 0 40px;
+}
+
+.asf-range-btn {
+  flex: 0 0 60px;
+  height: 22px;
+  background: none;
+  border: none;
+  border-right: 1px solid #2a2a4a;
+  color: #5a5a7a;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  padding: 0;
+  user-select: none;
+}
+
+.asf-range-btn:hover {
+  color: #aaa;
+  background-color: rgba(255,255,255,0.05);
+}
+
+.asf-range-btn.range-pending {
+  color: #3498DB;
+  background-color: rgba(52, 152, 219, 0.15);
+  font-weight: 700;
+}
+
+.asf-range-btn.range-edge {
+  color: #3498DB;
+  background-color: rgba(52, 152, 219, 0.25);
+  font-weight: 700;
+}
+
+.asf-range-btn.range-inner {
+  color: #8ab4d0;
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Desktop */
+@media (min-width: 769px) {
+  .asf-fret-cell  { flex: 0 0 70px; }
+  .asf-fret-num   { flex: 0 0 70px; }
+  .asf-marker-slot { flex: 0 0 70px; }
+  .asf-range-btn  { flex: 0 0 70px; }
+  .asf-string-row { height: 36px; }
+  .asf-note.root  { width: 30px; height: 30px; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .asf-fret-cell  { flex: 0 0 52px; }
+  .asf-fret-num   { flex: 0 0 52px; font-size: 10px; }
+  .asf-marker-slot { flex: 0 0 52px; }
+  .asf-range-btn  { flex: 0 0 52px; font-size: 9px; }
+  .asf-string-row { height: 30px; }
+  .asf-note       { width: 22px; height: 22px; font-size: 9px; }
+  .asf-note.root  { width: 26px; height: 26px; font-size: 10px; }
+}

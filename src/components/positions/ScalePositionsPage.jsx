@@ -5,6 +5,7 @@ import DisplayOptionsBar from './DisplayOptionsBar';
 import ArpeggioOptionsBar from './ArpeggioOptionsBar';
 import FretboardDisplay from './FretboardDisplay';
 import QuickReferencePopup from './QuickReferencePopup';
+import AllScalesTab from './AllScalesTab';
 import { generateFretboardNotes } from '../../utils/positionCalculations';
 import './ScalePositionsPage.css';
 
@@ -173,14 +174,7 @@ const ScalePositionsPage = () => {
         </div>
       )}
 
-      {activeTab === 'allscales' && (
-        <div className="placeholder-content">
-          <div className="placeholder-icon">&#128679;</div>
-          <h2>All Scales</h2>
-          <p>This feature is under development</p>
-          <p className="placeholder-hebrew">בפיתוח</p>
-        </div>
-      )}
+      {activeTab === 'allscales' && <AllScalesTab />}
 
       {/* Quick Reference Popup */}
       {isQuickRefOpen && (
