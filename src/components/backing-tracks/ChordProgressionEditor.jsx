@@ -1,5 +1,5 @@
 import React from 'react'
-import { chordDisplayName } from '../../lib/backing-tracks/chords.js'
+import { chordDisplayName } from './useBackingTrackEngine.js'
 
 export function ChordProgressionEditor({ chords, currentBar, isPlaying, onChordClick, colsPerRow = 4 }) {
   return (

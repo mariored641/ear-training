@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { chordDisplayName } from '../../lib/backing-tracks/chords.js'
+import { chordDisplayName } from './useBackingTrackEngine.js'
 
 const NOTE_ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 

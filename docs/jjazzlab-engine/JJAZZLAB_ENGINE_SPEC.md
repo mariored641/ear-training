@@ -188,7 +188,7 @@ SpsRandomPicker.java            ← variation selection thresholds
 ---
 
 ### שלב 4 — Humanizer
-**סטטוס:** ⬜ טרם התחיל
+**סטטוס:** ✅ הושלם
 
 **מה Claude Code עושה:**
 - קורא `JJAZZLAB_ANALYSIS.md` → סעיף "מנוע ההומניזציה"
@@ -204,13 +204,13 @@ Humanizer.java    ← כולו (קצר וברור, ~300 שורות)
 ```
 
 **תוצרים:**
-- [ ] `lib/style-engine/Humanizer.js`
-- [ ] preset params לכל ז'אנר
+- [x] `lib/style-engine/Humanizer.js`
+- [x] preset params לכל ז'אנר: jazz, bossa, blues, funk, latin, rock
 
 ---
 
 ### שלב 5 — Event System
-**סטטוס:** ⬜ טרם התחיל
+**סטטוס:** ✅ הושלם
 
 **מה Claude Code עושה:**
 - כותב `lib/style-engine/BackingTrackClock.js` — scheduler מדויק מבוסס Web Audio API clock
@@ -222,15 +222,18 @@ onSectionChange({ section: 'Fill_In_AA' })
 ```
 
 **תוצרים:**
-- [ ] `lib/style-engine/BackingTrackClock.js`
-- [ ] `lib/style-engine/BackingTrackEngine.js` — facade שמחבר הכל
+- [x] `lib/style-engine/BackingTrackClock.js`
+- [x] `lib/style-engine/BackingTrackEngine.js` — facade שמחבר הכל
+- [x] `components/backing-engine-test/BackingEngineTest.jsx` — דף בדיקה ב-`/engine-test`
+- [x] Route `/engine-test` ב-`App.jsx`
+- [x] build עובר ✅
 
 **קבצי Java לקרוא:** לא נדרש.
 
 ---
 
 ### שלב 6 — אינטגרציה לאפליקציה
-**סטטוס:** ⬜ טרם התחיל
+**סטטוס:** ✅ הושלם — אישור ויזואלי: ✅ beat dots + chord display עובדים, 4/4 + 3/4 אומתו
 
 **מה Claude Code עושה:**
 - מחבר `BackingTrackEngine` ל-`BackingTracksPage.jsx`
@@ -239,25 +242,30 @@ onSectionChange({ section: 'Fill_In_AA' })
 - מסיר: קוד Tone.js הישן (לאחר אישור)
 
 **תוצרים:**
-- [ ] `BackingTracksPage.jsx` מעודכן
-- [ ] מחיקת `lib/backing-tracks/` הישן
-- [ ] build עובר, deploy לVercel
+- [x] `src/components/backing-tracks/useBackingTrackEngine.js` — hook חדש (BackingTrackEngine)
+- [x] `BackingPlayer.jsx` מעודכן — משתמש ב-useBackingTrackEngine
+- [x] `GenreSelector.jsx` — ז'אנרים: Jazz, Bossa, Samba, Jazz Waltz
+- [x] CSS: sf2-loading-bar, playback-display, beat-dot, current-chord-label
+- [x] beat indicator (3 או 4 נקודות לפי time signature)
+- [x] תצוגת אקורד נוכחי בזמן אמת
+- [x] build עובר ✅
+- [ ] מחיקת `lib/backing-tracks/` הישן (אחרי אישור push)
+- [ ] deploy לVercel (אחרי אישור push)
 
 ---
 
 ### שלב 7 — הרחבת ז'אנרים
-**סטטוס:** ⬜ ongoing לאחר שלב 6
+**סטטוס:** ✅ הושלם — 4 קטגוריות × 3 סגנונות, אישור שמיעתי ✅
 
-| ז'אנר | עדיפות | סטטוס |
+| קטגוריה | סגנונות | סטטוס |
 |---|---|---|
-| Jazz Swing | ראשון | ⬜ |
-| Bossa Nova | שני | ⬜ |
-| Blues Shuffle | שלישי | ⬜ |
-| Funk | רביעי | ⬜ |
-| Latin (Samba/Rumba) | חמישי | ⬜ |
-| Rock/Pop | נמוך | ⬜ |
+| Jazz | Swing, Cool, Waltz | ✅ |
+| Blues | Shuffle, Kool, Soul | ✅ |
+| Rock | Standard, Pop Rock, Power | ✅ |
+| Country | Train Beat, Fingerpick, Modern Pick | ✅ |
 
-**לכל ז'אנר:** קובץ `.sty` אחד מ-JJazzLab → בדיקת פרסור → מוכן.
+**UI:** 4 כפתורי קטגוריה + chevron dropdown לבחירת תת-סגנון.
+**ניקיון:** `lib/backing-tracks/` הישן נמחק, `useBackingTrack.js` הישן נמחק.
 
 ---
 
@@ -317,4 +325,4 @@ public/soundfonts/        ← קובץ SF2
 
 ---
 
-*נוצר: מרץ 2026 | עודכן: מרץ 2026 — שלב 3 הושלם — ChordEngine עובד, דף בדיקה `/chord-engine-test`*
+*נוצר: מרץ 2026 | עודכן: מרץ 2026 — שלב 7 הושלם — 4 קטגוריות × 3 סגנונות, UI עם dropdown, ניקיון קוד ישן*
