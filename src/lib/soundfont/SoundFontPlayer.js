@@ -13,7 +13,7 @@
 
 import { Synthesizer } from 'js-synthesizer'
 
-const SF2_URL = '/soundfonts/JJazzLab-SoundFont.sf2'
+const SF2_URL = 'https://github.com/mariored641/ear-training/releases/download/assets-v1/JJazzLab-SoundFont.sf2'
 const FLUIDSYNTH_SCRIPT_URL = '/libfluidsynth-2.4.6.js'
 
 // GM Program numbers (0-indexed)
