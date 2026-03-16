@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/soundfonts/JJazzLab-SoundFont.sf2",
+      "destination": "https://github.com/mariored641/ear-training/releases/download/assets-v1/JJazzLab-SoundFont.sf2"
+    }
+  ]
+}
