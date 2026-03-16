@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import { useBackingTrack } from './useBackingTrack.js'
-import { GenreSelector } from './GenreSelector.jsx'
-import { BarCountSelector } from './BarCountSelector.jsx'
+import { useBackingTrackEngine } from './useBackingTrackEngine.js'
+import { GenreSelector }          from './GenreSelector.jsx'
+import { BarCountSelector }       from './BarCountSelector.jsx'
 import { ChordProgressionEditor } from './ChordProgressionEditor.jsx'
-import { ChordPickerModal } from './ChordPickerModal.jsx'
-import { TransportControls } from './TransportControls.jsx'
-import { Mixer } from './Mixer.jsx'
-import { Visualizer } from './Visualizer.jsx'
+import { ChordPickerModal }       from './ChordPickerModal.jsx'
+import { TransportControls }      from './TransportControls.jsx'
+import { Mixer }                  from './Mixer.jsx'
+import { Visualizer }             from './Visualizer.jsx'
 
 const LAYOUT_OPTIONS = [3, 4, 6, 8]
 
@@ -18,9 +18,15 @@ export function BackingPlayer() {
     setGenre, setBarCount, loadPreset,
     setChord, previewChord,
     setVolume,
-  } = useBackingTrack()
+    // New engine props
+    currentChordSymbol,
+    currentBeat,
+    beatsPerBar,
+    sfStatus,
+    sfMsg,
+  } = useBackingTrackEngine()
 
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpen,  setModalOpen]  = useState(false)
   const [editingBar, setEditingBar] = useState(0)
   const [colsPerRow, setColsPerRow] = useState(4)
 
@@ -60,6 +66,17 @@ export function BackingPlayer() {
         </div>
       </div>
 
+      {/* SF2 loading status */}
+      {sfStatus === 'loading' && (
+        <div className="sf2-loading-bar">
+          <span className="sf2-loading-icon">⏳</span>
+          <span className="sf2-loading-msg">{sfMsg || 'טוען SoundFont…'}</span>
+        </div>
+      )}
+      {sfStatus === 'error' && (
+        <div className="sf2-error-bar">⚠️ {sfMsg}</div>
+      )}
+
       <ChordProgressionEditor
         chords={chords}
         currentBar={currentBar}
@@ -80,6 +97,23 @@ export function BackingPlayer() {
         onTempoChange={setTempo}
         onMaxLoopsChange={setMaxLoops}
       />
+
+      {/* Beat dots + current chord — shown while playing */}
+      {isPlaying && (
+        <div className="playback-display">
+          <div className="beat-dots">
+            {Array.from({ length: beatsPerBar }).map((_, i) => (
+              <div
+                key={i}
+                className={`beat-dot${currentBeat === i ? ' beat-dot--active' : ''}`}
+              />
+            ))}
+          </div>
+          <div className="current-chord-label">
+            {currentChordSymbol ?? '…'}
+          </div>
+        </div>
+      )}
 
       <div className="bottom-row">
         <Mixer volumes={volumes} onVolumeChange={setVolume} />
