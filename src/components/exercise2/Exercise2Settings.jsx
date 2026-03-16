@@ -131,7 +131,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
                   onSettingsChange({ ...settings, movement: e.target.value })
                 }
               />
-              <span>Leaps only (>2 semitones)</span>
+              <span>Leaps only (&gt;2 semitones)</span>
             </label>
           </div>
 
