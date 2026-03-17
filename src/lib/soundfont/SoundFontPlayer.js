@@ -13,8 +13,51 @@
 
 import { Synthesizer } from 'js-synthesizer'
 
-const SF2_URL = '/soundfonts/JJazzLab-SoundFont.sf2'
+// בdev: Vite middleware מגיש מהמחשב המקומי
+// בproduction: Vercel Blob URL מתוך env variable
+const SF2_URL = import.meta.env.VITE_SF2_URL || '/soundfonts/JJazzLab-SoundFont.sf2'
 const FLUIDSYNTH_SCRIPT_URL = '/libfluidsynth-2.4.6.js'
+
+// ---- IndexedDB Cache ----
+const IDB_DB = 'ear-training'
+const IDB_STORE = 'sf2-cache'
+const CACHE_KEY = 'jjazzlab-sf2-v1'
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_DB, 1)
+    req.onupgradeneeded = (e) => e.target.result.createObjectStore(IDB_STORE)
+    req.onsuccess = (e) => resolve(e.target.result)
+    req.onerror = (e) => reject(e.target.error)
+  })
+}
+
+async function getFromCache() {
+  try {
+    const db = await openIDB()
+    return new Promise((resolve) => {
+      const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(CACHE_KEY)
+      req.onsuccess = (e) => resolve(e.target.result || null)
+      req.onerror = () => resolve(null)
+    })
+  } catch {
+    return null
+  }
+}
+
+async function saveToCache(buffer) {
+  try {
+    const db = await openIDB()
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite')
+      tx.objectStore(IDB_STORE).put(buffer, CACHE_KEY)
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => resolve()  // fail silently
+    })
+  } catch {
+    // fail silently — cache is optional
+  }
+}
 
 // GM Program numbers (0-indexed)
 export const GM = {
@@ -126,13 +169,22 @@ export async function init(onProgress) {
       _synth.setReverb(0.4, 0.4, 0.5, 0.3)
       _synth.setReverbOn(true)
 
-      // 6. טעינת SF2 עם progress
-      onProgress?.('מוריד SoundFont...', 5)
-      const sf2Buffer = await fetchWithProgress(SF2_URL, (pct, loaded, total) => {
-        const mb = Math.round(loaded / 1024 / 1024)
-        const totalMb = Math.round(total / 1024 / 1024)
-        onProgress?.(`טוען SoundFont... ${mb}/${totalMb} MB`, 5 + Math.round(pct * 0.88))
-      })
+      // 6. טעינת SF2 — מ-cache אם יש, אחרת הורדה ושמירה
+      onProgress?.('בודק cache...', 5)
+      let sf2Buffer = await getFromCache()
+
+      if (sf2Buffer) {
+        onProgress?.('טוען SoundFont מ-cache...', 80)
+      } else {
+        onProgress?.('מוריד SoundFont...', 5)
+        sf2Buffer = await fetchWithProgress(SF2_URL, (pct, loaded, total) => {
+          const mb = Math.round(loaded / 1024 / 1024)
+          const totalMb = Math.round(total / 1024 / 1024)
+          onProgress?.(`מוריד SoundFont... ${mb}/${totalMb} MB`, 5 + Math.round(pct * 0.88))
+        })
+        // שמירה ב-cache ברקע — לא מחכים לה
+        saveToCache(sf2Buffer)
+      }
 
       onProgress?.('מאתחל instruments...', 95)
       _sfontId = await _synth.loadSFont(sf2Buffer)
