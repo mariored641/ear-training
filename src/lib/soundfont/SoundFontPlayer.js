@@ -162,7 +162,7 @@ export async function init(onProgress) {
       _synth.init(_audioCtx.sampleRate)
 
       // 4. חיבור ל-AudioContext
-      _audioNode = _synth.createAudioNode(_audioCtx, 8192)
+      _audioNode = _synth.createAudioNode(_audioCtx, 256)
       _audioNode.connect(_audioCtx.destination)
 
       // 5. הגדרות reverb סטנדרטיות
