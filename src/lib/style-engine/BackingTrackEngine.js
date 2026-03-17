@@ -72,6 +72,10 @@ export class BackingTrackEngine {
     this._partLoopCount  = 0
     this._lastChord      = null
 
+    // Per-beat scheduling: notes are generated once per window,
+    // then dispatched one beat at a time (fixes setTimeout jitter at seams).
+    this._pendingNotes   = null  // { phrases, windowAudioTime, beatDuration }
+
     // Public callbacks
     this.onBeat        = null   // ({ beat, bar, chord, loopBeat }) → void
     this.onChordChange = null   // ({ from, to, bar, beat }) → void
@@ -96,6 +100,8 @@ export class BackingTrackEngine {
   /**
    * Set the parsed Yamaha style (from StyleParser.parseSty()).
    * Reads tempo, time signature, and the active part size.
+   * partSize is aligned to a multiple of beatsPerBar to prevent
+   * window boundaries from drifting mid-bar.
    */
   setStyle(style) {
     this._style = style
@@ -104,7 +110,7 @@ export class BackingTrackEngine {
     this._beatsPerBar = num
 
     const part = style.parts[this._partName]
-    if (part) this._partSize = part.sizeInBeats
+    if (part) this._partSize = this._alignPartSize(part.sizeInBeats, num)
 
     if (this._clock) this._clock.setTempo(style.tempo || 120)
   }
@@ -116,7 +122,7 @@ export class BackingTrackEngine {
   setActivePart(partName) {
     this._partName = partName
     const part = this._style?.parts[partName]
-    if (part) this._partSize = part.sizeInBeats
+    if (part) this._partSize = this._alignPartSize(part.sizeInBeats, this._beatsPerBar)
   }
 
   /**
@@ -173,6 +179,7 @@ export class BackingTrackEngine {
     this._noteTimers    = []
     this._partLoopCount = 0
     this._lastChord     = null
+    this._pendingNotes  = null
 
     // Create clock
     const audioCtx = SFP.getAudioContext()
@@ -196,7 +203,8 @@ export class BackingTrackEngine {
 
     // Cancel all pending note timers
     this._noteTimers.forEach(clearTimeout)
-    this._noteTimers = []
+    this._noteTimers  = []
+    this._pendingNotes = null
 
     // Silence all channels
     SFP.allNotesOff()
@@ -217,10 +225,19 @@ export class BackingTrackEngine {
     const loopBeat = progBeat % this._totalProgBeats
     const partBeat = progBeat % this._partSize
 
-    // Only generate notes at the start of each part window
-    if (partBeat !== 0) return
+    // At the start of each part window, pre-generate all notes for the window.
+    // Notes are NOT scheduled here — only stored for per-beat dispatch below.
+    if (partBeat === 0) {
+      this._pendingNotes = this._generateWindow(loopBeat, audioTime, beatDuration)
+      this._partLoopCount++
+    }
 
-    this._scheduleWindow(loopBeat, audioTime, beatDuration)
+    // Schedule only the notes whose onset falls within this beat.
+    // Max setTimeout ≈ LOOKAHEAD_SECS + beatDuration ≈ 650 ms at 120 BPM
+    // (was partSize * beatDuration ≈ 4000 ms — causing audible jitter at seams).
+    if (this._pendingNotes) {
+      this._scheduleBeatNotes(partBeat)
+    }
   }
 
   _onBeat(beat, bar) {
@@ -241,18 +258,20 @@ export class BackingTrackEngine {
     this.onBeat?.({ beat, bar, chord, loopBeat })
   }
 
-  // ── Internal — note generation and scheduling ──────────────────────────────
+  // ── Internal — window generation (ChordEngine + Humanizer) ────────────────
 
-  _scheduleWindow(loopBeat, audioTime, beatDuration) {
+  /**
+   * Generate and humanize all notes for one part-window.
+   * Returns { phrases, windowAudioTime, beatDuration } — notes are NOT scheduled yet.
+   */
+  _generateWindow(loopBeat, audioTime, beatDuration) {
     const part = this._style?.parts[this._partName]
-    if (!part) return
+    if (!part) return null
 
-    // Build chord list for this window (handles progression wrapping)
     const chordsInWindow = this._getChordsInWindow(loopBeat, this._partSize)
-    if (chordsInWindow.length === 0) return
+    if (chordsInWindow.length === 0) return null
 
-    // Generate adapted MIDI notes (ChordEngine)
-    const loopIdx = this._partLoopCount++
+    const loopIdx = this._partLoopCount
     let phrases
 
     if (chordsInWindow.length === 1) {
@@ -269,7 +288,6 @@ export class BackingTrackEngine {
     const tempo     = this._style.tempo || 120
     const partSize  = this._partSize
     const humanConf = this._humanConfig
-    // Drums: velocity humanization only (no timing drift)
     const drumsConf = { ...humanConf, timingRandomness: 0 }
 
     const humanized = {}
@@ -280,15 +298,31 @@ export class BackingTrackEngine {
       humanized[accType] = humanizeNotes(notes, conf, tempo, partSize)
     }
 
-    // Schedule noteOn / noteOff via setTimeout against audioContext time
+    return { phrases: humanized, windowAudioTime: audioTime, beatDuration }
+  }
+
+  // ── Internal — per-beat note scheduling ───────────────────────────────────
+
+  /**
+   * Schedule noteOn/noteOff for notes whose onset is in [partBeat, partBeat+1).
+   * Uses the windowAudioTime captured when the window was generated,
+   * so timing is consistent regardless of when this callback fires.
+   */
+  _scheduleBeatNotes(partBeat) {
+    const { phrases, windowAudioTime, beatDuration } = this._pendingNotes
     const now = SFP.getAudioContext().currentTime
 
-    for (const [accType, notes] of Object.entries(humanized)) {
+    for (const [accType, notes] of Object.entries(phrases)) {
       const channel = ACCTYPE_TO_CHANNEL[accType]
       if (channel === undefined) continue
 
-      for (const note of notes) {
-        const noteOnAt  = audioTime + note.position * beatDuration
+      // Filter to notes whose onset falls in this beat's slice
+      const beatNotes = notes.filter(
+        n => n.position >= partBeat && n.position < partBeat + 1
+      )
+
+      for (const note of beatNotes) {
+        const noteOnAt  = windowAudioTime + note.position * beatDuration
         const noteOffAt = noteOnAt  + note.duration * beatDuration
 
         const onDelay  = Math.max(0, (noteOnAt  - now) * 1000)
@@ -313,6 +347,19 @@ export class BackingTrackEngine {
     if (this._noteTimers.length > 2000) {
       this._noteTimers = this._noteTimers.slice(-1000)
     }
+  }
+
+  // ── Internal — partSize alignment ─────────────────────────────────────────
+
+  /**
+   * Round partSize to the nearest multiple of beatsPerBar.
+   * Prevents window boundaries from landing mid-bar (which would feel like
+   * an extra or missing beat at every loop seam).
+   */
+  _alignPartSize(rawSize, beatsPerBar) {
+    if (!rawSize || !beatsPerBar) return beatsPerBar || 4
+    const aligned = Math.round(rawSize / beatsPerBar) * beatsPerBar
+    return aligned > 0 ? aligned : beatsPerBar
   }
 
   // ── Internal — chord lookup ────────────────────────────────────────────────
