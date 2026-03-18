@@ -11,7 +11,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { BackingTrackEngine }  from '../../lib/style-engine/BackingTrackEngine'
 import { parseSty }            from '../../lib/style-engine/StyleParser'
 import { PRESETS as HUMAN_PRESETS } from '../../lib/style-engine/Humanizer'
-import { parseChordSymbol, PITCH_NAMES } from '../../lib/style-engine/YamChordMap'
+import { parseChordSymbol, PITCH_NAMES, NOTE_PITCHES } from '../../lib/style-engine/YamChordMap'
 import { getChordData }        from '../../lib/style-engine/YamChordMap'
 import * as SFP                from '../../lib/soundfont/SoundFontPlayer'
 
@@ -204,50 +204,50 @@ export const GENRE_DEFAULTS = {
     ],
   },
 
-  // ── Country ──
+  // ── Country ── (presets in C Major)
   country_train: {
     tempo: 120,
-    defaultChord: { root: 'G', quality: 'major', extensions: [] },
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
     presetBarCount: 8,
     preset: [
-      { root: 'G', quality: 'major', extensions: [] },
-      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
       { root: 'C', quality: 'major', extensions: [] },
       { root: 'C', quality: 'major', extensions: [] },
       { root: 'G', quality: 'major', extensions: [] },
-      { root: 'G', quality: 'major', extensions: [] },
-      { root: 'D', quality: 'major', extensions: [] },
-      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
     ],
   },
   country_finger: {
     tempo: 100,
-    defaultChord: { root: 'G', quality: 'major', extensions: [] },
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
     presetBarCount: 8,
     preset: [
-      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
       { root: 'C', quality: 'major', extensions: [] },
       { root: 'G', quality: 'major', extensions: [] },
-      { root: 'D', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
       { root: 'G', quality: 'major', extensions: [] },
       { root: 'C', quality: 'major', extensions: [] },
-      { root: 'D', quality: 'major', extensions: [] },
-      { root: 'G', quality: 'major', extensions: [] },
     ],
   },
   country_modern: {
     tempo: 115,
-    defaultChord: { root: 'G', quality: 'major', extensions: [] },
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
     presetBarCount: 8,
     preset: [
-      { root: 'G', quality: 'major', extensions: [] },
-      { root: 'E', quality: 'minor', extensions: [] },
       { root: 'C', quality: 'major', extensions: [] },
-      { root: 'D', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
       { root: 'G', quality: 'major', extensions: [] },
-      { root: 'E', quality: 'minor', extensions: [] },
       { root: 'C', quality: 'major', extensions: [] },
-      { root: 'D', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
     ],
   },
 }
@@ -260,6 +260,44 @@ export function chordDisplayName(chord) {
   const exts = (chord.extensions || []).join('')
   const name = `${chord.root}${QUALITY_SYMBOL[chord.quality] || ''}${exts}`
   return chord.bassNote ? `${name}/${chord.bassNote}` : name
+}
+
+// ─── Key Transpose Utilities ──────────────────────────────────────────────────
+
+const SHARP_NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+const FLAT_NOTE_NAMES  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
+
+const FLAT_MAJOR_KEYS  = new Set(['F','Bb','Eb','Ab','Db','Gb'])
+const SHARP_MAJOR_KEYS = new Set(['G','D','A','E','B','F#'])
+const FLAT_MINOR_KEYS  = new Set(['D','G','C','F','Bb','Eb'])
+const SHARP_MINOR_KEYS = new Set(['E','B','F#','C#','G#','D#'])
+
+function noteNamesForKey(root, type) {
+  if (type === 'major') {
+    if (FLAT_MAJOR_KEYS.has(root))  return FLAT_NOTE_NAMES
+    if (SHARP_MAJOR_KEYS.has(root)) return SHARP_NOTE_NAMES
+  } else {
+    if (FLAT_MINOR_KEYS.has(root))  return FLAT_NOTE_NAMES
+    if (SHARP_MINOR_KEYS.has(root)) return SHARP_NOTE_NAMES
+  }
+  return FLAT_NOTE_NAMES // C major / A minor — neutral, use flats for accidentals
+}
+
+function transposeNoteName(noteName, semitones, names) {
+  const pitch = NOTE_PITCHES[noteName]
+  if (pitch === undefined) return noteName
+  return names[((pitch + semitones) % 12 + 12) % 12]
+}
+
+export function transposeChordProgression(chords, semitones, targetRoot, targetType) {
+  if (semitones === 0) return chords.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
+  const names = noteNamesForKey(targetRoot, targetType)
+  return chords.map(chord => {
+    const newRoot = transposeNoteName(chord.root, semitones, names)
+    const result  = { ...chord, root: newRoot, extensions: [...(chord.extensions || [])] }
+    if (chord.bassNote) result.bassNote = transposeNoteName(chord.bassNote, semitones, names)
+    return result
+  })
 }
 
 // ─── Chord format conversion ──────────────────────────────────────────────────
@@ -394,6 +432,7 @@ export function useBackingTrackEngine() {
   const [beatsPerBar,        setBeatsPerBar]          = useState(4)
   const [sfStatus,           setSfStatus]             = useState('idle')
   const [sfMsg,              setSfMsg]                = useState('')
+  const [selectedKey,        setSelectedKeyState]     = useState({ root: 'C', type: 'major' })
 
   // Refs — writable without re-renders
   const chordsRef       = useRef(chords)
@@ -405,6 +444,7 @@ export function useBackingTrackEngine() {
   const isPlayingRef    = useRef(false)
   const beatsPerBarRef  = useRef(4)
 
+  const selectedKeyRef  = useRef({ root: 'C', type: 'major' })
   const engineRef       = useRef(null)
   const styleCache      = useRef({})   // genre → parsed style object
   const loopCountRef    = useRef(0)
@@ -457,6 +497,21 @@ export function useBackingTrackEngine() {
     const bpb = parseInt(style.timeSignature) || 4
     beatsPerBarRef.current = bpb
     setBeatsPerBar(bpb)
+  }, [])
+
+  // ── Key selector ─────────────────────────────────────────────────────────────
+  const setKey = useCallback((root, type) => {
+    const oldPitch = NOTE_PITCHES[selectedKeyRef.current.root] ?? 0
+    const newPitch = NOTE_PITCHES[root] ?? 0
+    const semitones = ((newPitch - oldPitch) % 12 + 12) % 12
+    if (semitones !== 0) {
+      const transposed = transposeChordProgression(chordsRef.current, semitones, root, type)
+      setChordsState(transposed)
+      chordsRef.current = transposed
+    }
+    const newKey = { root, type }
+    setSelectedKeyState(newKey)
+    selectedKeyRef.current = newKey
   }, [])
 
   // ── Stop ────────────────────────────────────────────────────────────────────
@@ -565,9 +620,16 @@ export function useBackingTrackEngine() {
     const wasPlaying = isPlayingRef.current
     if (wasPlaying) stop()
 
-    const defaults     = GENRE_DEFAULTS[genreRef.current] ?? GENRE_DEFAULTS.jazz_swing
-    const presetChords = defaults.preset.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
-    const newCount     = defaults.presetBarCount
+    const defaults   = GENRE_DEFAULTS[genreRef.current] ?? GENRE_DEFAULTS.jazz_swing
+    let presetChords = defaults.preset.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
+    const newCount   = defaults.presetBarCount
+
+    // All presets are in C Major — transpose to selected key
+    const { root, type } = selectedKeyRef.current
+    const toPitch = NOTE_PITCHES[root] ?? 0
+    if (toPitch !== 0) {
+      presetChords = transposeChordProgression(presetChords, toPitch, root, type)
+    }
 
     setChordsState(presetChords)
     chordsRef.current  = presetChords
@@ -658,5 +720,7 @@ export function useBackingTrackEngine() {
     beatsPerBar,
     sfStatus,
     sfMsg,
+    selectedKey,
+    setKey,
   }
 }

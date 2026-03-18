@@ -785,6 +785,64 @@
   min-width: 80px;
 }
 
+/* ── Key Selector ── */
+.key-selector-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #16213e;
+  border-radius: 10px;
+  padding: 10px 16px;
+}
+.key-selector-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+  min-width: 30px;
+}
+.key-root-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+.key-root-btn {
+  padding: 5px 9px;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 36px;
+  text-align: center;
+}
+.key-root-btn:hover { border-color: #f59e0b; color: #fbbf24; }
+.key-root-btn.active { background: #92400e; border-color: #f59e0b; color: #fde68a; }
+
+.key-type-group {
+  display: flex;
+  gap: 4px;
+}
+.key-type-btn {
+  padding: 5px 12px;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.key-type-btn:hover { border-color: #a78bfa; color: #c4b5fd; }
+.key-type-btn.active { background: #3b0764; border-color: #a78bfa; color: #e9d5ff; }
+
 /* ═══════════════════════════════════════════════════════
    Mobile Responsive
    ═══════════════════════════════════════════════════════ */
@@ -801,4 +859,7 @@
   .transport-right { align-items: flex-start; }
   .bottom-row { flex-direction: column; }
   .chord-picker-modal { padding: 16px; }
+  .key-selector-row { gap: 8px; }
+  .key-root-group { gap: 3px; }
+  .key-root-btn { min-width: 30px; padding: 4px 6px; font-size: 12px; }
 }

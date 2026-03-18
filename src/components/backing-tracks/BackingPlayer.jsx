@@ -11,6 +11,34 @@ import LiveFretboard              from './LiveFretboard.jsx'
 
 const LAYOUT_OPTIONS = [3, 4, 6, 8]
 
+const ROOT_NOTES = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
+
+function KeySelector({ selectedKey, onKeyChange }) {
+  return (
+    <div className="key-selector-row">
+      <span className="key-selector-label">Key:</span>
+      <div className="key-root-group">
+        {ROOT_NOTES.map(root => (
+          <button
+            key={root}
+            className={`key-root-btn${selectedKey.root === root ? ' active' : ''}`}
+            onClick={() => onKeyChange(root, selectedKey.type)}
+          >{root}</button>
+        ))}
+      </div>
+      <div className="key-type-group">
+        {['major', 'minor'].map(type => (
+          <button
+            key={type}
+            className={`key-type-btn${selectedKey.type === type ? ' active' : ''}`}
+            onClick={() => onKeyChange(selectedKey.root, type)}
+          >{type === 'major' ? 'Major' : 'Minor'}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function BackingPlayer() {
   const {
     genre, barCount, chords, tempo, isPlaying, currentBar,
@@ -25,6 +53,8 @@ export function BackingPlayer() {
     beatsPerBar,
     sfStatus,
     sfMsg,
+    selectedKey,
+    setKey,
   } = useBackingTrackEngine()
 
   const [modalOpen,  setModalOpen]  = useState(false)
@@ -66,6 +96,9 @@ export function BackingPlayer() {
           </div>
         </div>
       </div>
+
+      {/* Key Selector */}
+      <KeySelector selectedKey={selectedKey} onKeyChange={setKey} />
 
       {/* SF2 loading status */}
       {sfStatus === 'loading' && (
