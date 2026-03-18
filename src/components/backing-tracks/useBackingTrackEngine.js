@@ -300,6 +300,7 @@ export function transposeChordProgression(chords, semitones, targetRoot, targetT
   })
 }
 
+
 // ─── Chord format conversion ──────────────────────────────────────────────────
 // Old format: { root: 'D', quality: 'minor', extensions: ['7'] }  → symbol string 'Dm7'
 // Used when sending chords to BackingTrackEngine
@@ -501,9 +502,16 @@ export function useBackingTrackEngine() {
 
   // ── Key selector ─────────────────────────────────────────────────────────────
   const setKey = useCallback((root, type) => {
-    const oldPitch = NOTE_PITCHES[selectedKeyRef.current.root] ?? 0
+    const oldKey   = selectedKeyRef.current
+    const oldPitch = NOTE_PITCHES[oldKey.root] ?? 0
     const newPitch = NOTE_PITCHES[root] ?? 0
-    const semitones = ((newPitch - oldPitch) % 12 + 12) % 12
+    // Pitch-only shift
+    let semitones = ((newPitch - oldPitch) % 12 + 12) % 12
+    // Mode shift: Major→Minor = +3 semitones (Dm-G-C → Fm-Bb-Eb)
+    //             Minor→Major = −3 semitones
+    if (oldKey.type === 'major' && type === 'minor') semitones = (semitones + 3) % 12
+    if (oldKey.type === 'minor' && type === 'major') semitones = ((semitones - 3) % 12 + 12) % 12
+
     if (semitones !== 0) {
       const transposed = transposeChordProgression(chordsRef.current, semitones, root, type)
       setChordsState(transposed)
@@ -624,9 +632,11 @@ export function useBackingTrackEngine() {
     let presetChords = defaults.preset.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
     const newCount   = defaults.presetBarCount
 
-    // All presets are in C Major — transpose to selected key
+    // All presets are in C Major. Transpose to selected key.
+    // Minor adds 3 semitones on top of the root shift (Major→Minor = +3).
     const { root, type } = selectedKeyRef.current
-    const toPitch = NOTE_PITCHES[root] ?? 0
+    let toPitch = NOTE_PITCHES[root] ?? 0
+    if (type === 'minor') toPitch = (toPitch + 3) % 12
     if (toPitch !== 0) {
       presetChords = transposeChordProgression(presetChords, toPitch, root, type)
     }
