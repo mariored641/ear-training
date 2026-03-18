@@ -20,12 +20,13 @@ function extractYouTubeId(url) {
 
 function getSupportedMimeType() {
   if (typeof MediaRecorder === 'undefined') return '';
+  // mp4 first — WhatsApp and most share targets support it; webm as fallback
   const types = [
+    'video/mp4;codecs=avc1,mp4a.40.2',
+    'video/mp4',
     'video/webm;codecs=vp9,opus',
     'video/webm;codecs=vp8,opus',
     'video/webm',
-    'video/mp4;codecs=avc1,mp4a.40.2',
-    'video/mp4',
   ];
   for (const t of types) {
     if (MediaRecorder.isTypeSupported(t)) return t;
@@ -237,7 +238,7 @@ const PrepScreen = ({ onContinue }) => {
       <button className="fb-nav-back" onClick={() => navigate('/')}>← בית</button>
       <div className="fb-prep-card">
         <div className="fb-prep-icon">📹</div>
-        <h1 className="fb-prep-title">פידבק למורה</h1>
+        <h1 className="fb-prep-title">פידבק</h1>
         <p className="fb-prep-subtitle">הקלט את עצמך מנגן על גבי באקינג טראק ושלח למורה</p>
 
         <div className="fb-field">
@@ -438,20 +439,17 @@ const PreviewScreen = ({ blob, mimeType, onRecordAgain }) => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const urlRef = useRef(null);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
 
   useEffect(() => {
     urlRef.current = URL.createObjectURL(blob);
     if (videoRef.current) videoRef.current.src = urlRef.current;
-    // Auto-save to device
-    saveToDevice(blob, mimeType)
-      .then(ok => { if (ok) setSaved(true); })
-      .catch(() => {});
     return () => { if (urlRef.current) URL.revokeObjectURL(urlRef.current); };
-  }, [blob, mimeType]);
+  }, [blob]);
 
   const handleShare = async () => {
-    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
     const file = new File([blob], `guitar-feedback.${ext}`, { type: mimeType.split(';')[0] });
     if (navigator.canShare?.({ files: [file] })) {
       try {
@@ -462,21 +460,32 @@ const PreviewScreen = ({ blob, mimeType, onRecordAgain }) => {
       }
     }
     // Fallback: download
-    await saveToDevice(blob, mimeType);
+    handleSave();
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const ok = await saveToDevice(blob, mimeType);
+    setSaving(false);
+    if (ok) setSaved(true);
   };
 
   return (
     <div className="fb-preview-screen">
       <button className="fb-nav-back" onClick={() => navigate('/')}>← בית</button>
       <div className="fb-preview-card">
-        <h2 className="fb-preview-title">
-          הצגה מקדימה
-          {saved && <span className="fb-saved-badge">נשמר לגלריה ✓</span>}
-        </h2>
+        <h2 className="fb-preview-title">הצגה מקדימה</h2>
         <video ref={videoRef} className="fb-preview-video" controls playsInline />
         <div className="fb-preview-actions">
           <button className="fb-share-btn" onClick={handleShare}>
-            📤 שלח למורה
+            📤 שלח למישר
+          </button>
+          <button
+            className={`fb-save-btn${saved ? ' fb-save-btn--done' : ''}`}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saved ? '✓ נשמר למכשיר' : saving ? 'שומר...' : '💾 שמור למכשיר'}
           </button>
           <button className="fb-again-btn" onClick={onRecordAgain}>
             🔄 הקלט שוב

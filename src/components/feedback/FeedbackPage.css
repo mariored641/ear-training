@@ -462,6 +462,32 @@
   background: #1976d2;
 }
 
+.fb-save-btn {
+  padding: 12px;
+  background: white;
+  color: var(--color-text);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+.fb-save-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.fb-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.fb-save-btn--done {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: #e8f5e9;
+}
+
 .fb-again-btn {
   padding: 12px;
   background: white;
