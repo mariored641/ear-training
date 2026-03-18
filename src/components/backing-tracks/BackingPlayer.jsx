@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useBackingTrackEngine } from './useBackingTrackEngine.js'
 import { GenreSelector }          from './GenreSelector.jsx'
 import { BarCountSelector }       from './BarCountSelector.jsx'
@@ -14,27 +14,47 @@ const LAYOUT_OPTIONS = [3, 4, 6, 8]
 const ROOT_NOTES = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
 
 function KeySelector({ selectedKey, onKeyChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handle = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [open])
+
+  const label = `${selectedKey.root} ${selectedKey.type === 'major' ? 'Maj' : 'Min'}`
+
   return (
-    <div className="key-selector-row">
-      <span className="key-selector-label">Key:</span>
-      <div className="key-root-group">
-        {ROOT_NOTES.map(root => (
-          <button
-            key={root}
-            className={`key-root-btn${selectedKey.root === root ? ' active' : ''}`}
-            onClick={() => onKeyChange(root, selectedKey.type)}
-          >{root}</button>
-        ))}
-      </div>
-      <div className="key-type-group">
-        {['major', 'minor'].map(type => (
-          <button
-            key={type}
-            className={`key-type-btn${selectedKey.type === type ? ' active' : ''}`}
-            onClick={() => onKeyChange(selectedKey.root, type)}
-          >{type === 'major' ? 'Major' : 'Minor'}</button>
-        ))}
-      </div>
+    <div className="key-selector" ref={ref}>
+      <button
+        className={`key-trigger-btn${open ? ' active' : ''}`}
+        onClick={() => setOpen(o => !o)}
+        title="Key selector"
+      >🎹 {label}</button>
+      {open && (
+        <div className="key-dropdown">
+          <div className="key-root-group">
+            {ROOT_NOTES.map(root => (
+              <button
+                key={root}
+                className={`key-root-btn${selectedKey.root === root ? ' active' : ''}`}
+                onClick={() => onKeyChange(root, selectedKey.type)}
+              >{root}</button>
+            ))}
+          </div>
+          <div className="key-type-group">
+            {['major', 'minor'].map(type => (
+              <button
+                key={type}
+                className={`key-type-btn${selectedKey.type === type ? ' active' : ''}`}
+                onClick={() => onKeyChange(selectedKey.root, type)}
+              >{type === 'major' ? 'Major' : 'Minor'}</button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -94,11 +114,9 @@ export function BackingPlayer() {
               >{n}</button>
             ))}
           </div>
+          <KeySelector selectedKey={selectedKey} onKeyChange={setKey} />
         </div>
       </div>
-
-      {/* Key Selector */}
-      <KeySelector selectedKey={selectedKey} onKeyChange={setKey} />
 
       {/* SF2 loading status */}
       {sfStatus === 'loading' && (

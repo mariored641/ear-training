@@ -785,31 +785,12 @@
   min-width: 80px;
 }
 
-/* ── Key Selector ── */
-.key-selector-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  background: #16213e;
-  border-radius: 10px;
-  padding: 10px 16px;
+/* ── Key Selector (compact dropdown) ── */
+.key-selector {
+  position: relative;
 }
-.key-selector-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #94a3b8;
-  white-space: nowrap;
-  min-width: 30px;
-}
-.key-root-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  flex: 1;
-}
-.key-root-btn {
-  padding: 5px 9px;
+.key-trigger-btn {
+  padding: 5px 10px;
   background: #0f172a;
   border: 1.5px solid #334155;
   border-radius: 6px;
@@ -818,7 +799,42 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  min-width: 36px;
+  white-space: nowrap;
+}
+.key-trigger-btn:hover { border-color: #f59e0b; color: #fbbf24; }
+.key-trigger-btn.active { border-color: #f59e0b; color: #fbbf24; background: #1c1a0e; }
+
+.key-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #16213e;
+  border: 1.5px solid #334155;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  min-width: 220px;
+}
+.key-root-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.key-root-btn {
+  padding: 5px 8px;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 34px;
   text-align: center;
 }
 .key-root-btn:hover { border-color: #f59e0b; color: #fbbf24; }
@@ -829,7 +845,8 @@
   gap: 4px;
 }
 .key-type-btn {
-  padding: 5px 12px;
+  flex: 1;
+  padding: 5px 10px;
   background: #0f172a;
   border: 1.5px solid #334155;
   border-radius: 6px;
@@ -838,7 +855,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  white-space: nowrap;
 }
 .key-type-btn:hover { border-color: #a78bfa; color: #c4b5fd; }
 .key-type-btn.active { background: #3b0764; border-color: #a78bfa; color: #e9d5ff; }
@@ -859,7 +875,4 @@
   .transport-right { align-items: flex-start; }
   .bottom-row { flex-direction: column; }
   .chord-picker-modal { padding: 16px; }
-  .key-selector-row { gap: 8px; }
-  .key-root-group { gap: 3px; }
-  .key-root-btn { min-width: 30px; padding: 4px 6px; font-size: 12px; }
 }
