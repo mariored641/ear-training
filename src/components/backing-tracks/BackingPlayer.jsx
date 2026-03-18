@@ -7,6 +7,7 @@ import { ChordPickerModal }       from './ChordPickerModal.jsx'
 import { TransportControls }      from './TransportControls.jsx'
 import { Mixer }                  from './Mixer.jsx'
 import { Visualizer }             from './Visualizer.jsx'
+import LiveFretboard              from './LiveFretboard.jsx'
 
 const LAYOUT_OPTIONS = [3, 4, 6, 8]
 
@@ -114,6 +115,13 @@ export function BackingPlayer() {
           </div>
         </div>
       )}
+
+      <LiveFretboard
+        chords={chords}
+        currentBar={currentBar}
+        currentChordSymbol={currentChordSymbol}
+        isPlaying={isPlaying}
+      />
 
       <div className="bottom-row">
         <Mixer volumes={volumes} onVolumeChange={setVolume} />
