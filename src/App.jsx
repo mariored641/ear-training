@@ -22,8 +22,16 @@ const ScalePositionsPage = React.lazy(() => import('./components/positions/Scale
 // Backing Tracks module
 const BackingTracksPage = React.lazy(() => import('./components/backing-tracks/BackingTracksPage'));
 
+// Feedback module
+const FeedbackPage = React.lazy(() => import('./components/feedback/FeedbackPage'));
+
 // Rhythm Training module (new)
 const RhythmTraining = React.lazy(() => import('./components/rhythm-training/RhythmTraining'));
+const SoundFontTest = React.lazy(() => import('./components/soundfont-test/SoundFontTest'));
+const StyleParserTest = React.lazy(() => import('./components/style-parser-test/StyleParserTest'));
+const ChordEngineTest = React.lazy(() => import('./components/chord-engine-test/ChordEngineTest'));
+const BackingEngineTest = React.lazy(() => import('./components/backing-engine-test/BackingEngineTest'));
+const TimingTestPage    = React.lazy(() => import('./components/timing-test/TimingTestPage'));
 
 function App() {
   return (
@@ -56,8 +64,26 @@ function App() {
           {/* Backing Tracks module */}
           <Route path="/backing-tracks" element={<BackingTracksPage />} />
 
+          {/* Feedback module */}
+          <Route path="/feedback" element={<FeedbackPage />} />
+
           {/* Rhythm Training module */}
           <Route path="/rhythm-training" element={<RhythmTraining />} />
+
+          {/* Dev: SoundFont test (Stage 1) */}
+          <Route path="/soundfont-test" element={<SoundFontTest />} />
+
+          {/* Dev: Style Parser test (Stage 2) */}
+          <Route path="/style-parser-test" element={<StyleParserTest />} />
+
+          {/* Dev: Chord Engine test (Stage 3) */}
+          <Route path="/chord-engine-test" element={<ChordEngineTest />} />
+
+          {/* Dev: Backing Engine test (Stage 5) */}
+          <Route path="/engine-test" element={<BackingEngineTest />} />
+
+          {/* Dev: Timing analysis test */}
+          <Route path="/timing-test" element={<TimingTestPage />} />
 
           {/* Legacy routes for backward compatibility */}
           <Route path="/exercise1" element={<Exercise1 />} />

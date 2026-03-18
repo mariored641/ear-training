@@ -124,6 +124,14 @@ const HomePage = () => {
       titleHebrew: 'חטיבת ליווי',
       description: 'Play over Jazz, Blues, Rock & Country backing tracks with custom chord progressions',
       numExercises: 'Active'
+    },
+    {
+      id: 'feedback',
+      icon: '📹',
+      title: 'Feedback',
+      titleHebrew: 'חטיבת פידבק',
+      description: 'הקלט את עצמך מנגן על גבי באקינג טראק מיוטיוב ושלח למישר',
+      numExercises: 'Active'
     }
   ];
 
@@ -138,6 +146,8 @@ const HomePage = () => {
       navigate('/positions');
     } else if (categoryId === 'backing-tracks') {
       navigate('/backing-tracks');
+    } else if (categoryId === 'feedback') {
+      navigate('/feedback');
     } else {
       // Other categories go to their category screens
       navigate(`/category/${categoryId}`);
