@@ -36,6 +36,7 @@ import {
   parseChordSymbol,
 } from './ChordEngine.js'
 import { humanizeNotes, DEFAULT_CONFIG } from './Humanizer.js'
+import { pickVariation, isFillOrBreak, getFillName } from './VariationSelector.js'
 
 // ─── AccType → SoundFontPlayer MIDI channel ───────────────────────────────────
 // AccType names come from ChordEngine (BASS, CHORD1, RHYTHM, …)
@@ -65,6 +66,11 @@ export class BackingTrackEngine {
     this._partSize       = 0
     this._beatsPerBar    = 4
     this._humanConfig    = DEFAULT_CONFIG
+
+    // Part cycling
+    this._mainPartIdx       = 0     // index into available main parts
+    this._LOOPS_PER_PART    = 2     // switch main part every N loops
+    this._pendingPartAdvance = false // true after a fill plays, triggers advance next window
 
     // Runtime
     this._clock          = null
@@ -109,6 +115,9 @@ export class BackingTrackEngine {
     const [num] = (style.timeSignature || '4/4').split('/').map(Number)
     this._beatsPerBar = num
 
+    // Reset part cycling to first available main part
+    this._mainPartIdx = 0
+    this._partName    = 'Main_A'
     const part = style.parts[this._partName]
     if (part) this._partSize = this._alignPartSize(part.sizeInBeats, num)
 
@@ -176,10 +185,13 @@ export class BackingTrackEngine {
     await SFP.resumeAudio()
 
     // Reset runtime state
-    this._noteTimers    = []
-    this._partLoopCount = 0
-    this._lastChord     = null
-    this._pendingNotes  = null
+    this._noteTimers         = []
+    this._partLoopCount      = 0
+    this._mainPartIdx        = 0
+    this._partName           = 'Main_A'
+    this._pendingPartAdvance  = false
+    this._lastChord          = null
+    this._pendingNotes       = null
 
     // Create clock
     const audioCtx = SFP.getAudioContext()
@@ -228,6 +240,16 @@ export class BackingTrackEngine {
     // At the start of each part window, pre-generate all notes for the window.
     // Notes are NOT scheduled here — only stored for per-beat dispatch below.
     if (partBeat === 0) {
+      // If a fill just played, now do the actual main-part advance
+      if (this._pendingPartAdvance) {
+        this._pendingPartAdvance = false
+        this._doAdvanceMainPart()
+      }
+      // Cycle through Main_A / Main_B / Main_C / Main_D automatically.
+      // Every LOOPS_PER_PART loops, advance to the next available main part.
+      else if (this._partLoopCount > 0 && this._partLoopCount % this._LOOPS_PER_PART === 0) {
+        this._advanceMainPart()
+      }
       this._pendingNotes = this._generateWindow(loopBeat, audioTime, beatDuration)
       this._partLoopCount++
     }
@@ -256,6 +278,48 @@ export class BackingTrackEngine {
     }
 
     this.onBeat?.({ beat, bar, chord, loopBeat })
+  }
+
+  // ── Internal — part cycling ────────────────────────────────────────────────
+
+  /** Return ordered list of Main parts actually present in the current style. */
+  _getAvailableMainParts() {
+    if (!this._style) return ['Main_A']
+    return ['Main_A', 'Main_B', 'Main_C', 'Main_D']
+      .filter(p => (this._style.parts[p]?.sizeInBeats ?? 0) > 0)
+  }
+
+  /**
+   * Advance to the next available main part (A→B→C→A…).
+   * Also inserts a fill on the last bar of the outgoing part if available.
+   */
+  _advanceMainPart() {
+    const parts = this._getAvailableMainParts()
+    if (parts.length <= 1) return
+
+    // Insert fill: use Fill_In_XX for the window we're about to generate
+    // (the last window of the current main part before cycling)
+    const fillName = getFillName(this._partName)
+    if (fillName && this._style.parts[fillName]?.sizeInBeats > 0) {
+      // We'll use the fill part for this one window, then advance
+      this._partName = fillName
+      this._partSize = this._alignPartSize(
+        this._style.parts[fillName].sizeInBeats,
+        this._beatsPerBar
+      )
+      // Schedule the actual main-part advance for the NEXT partBeat===0
+      this._pendingPartAdvance = true
+      return
+    }
+
+    // No fill available — advance directly
+    this._doAdvanceMainPart(parts)
+  }
+
+  _doAdvanceMainPart(parts) {
+    parts = parts || this._getAvailableMainParts()
+    this._mainPartIdx = (this._mainPartIdx + 1) % parts.length
+    this.setActivePart(parts[this._mainPartIdx])
   }
 
   // ── Internal — window generation (ChordEngine + Humanizer) ────────────────

@@ -27,6 +27,17 @@ export const GENRE_CATALOG = [
       { id: 'jazz_swing', label: 'Swing',   sty: '/styles-appdata/Yamaha/Jazzvocal.s264.sty',       human: 'jazz' },
       { id: 'jazz_cool',  label: 'Cool',    sty: '/styles/Swing&Jazz/LACoolSwing.STY',              human: 'jazz' },
       { id: 'jazz_waltz', label: 'Waltz',   sty: '/styles-appdata/Yamaha/JazzWaltzFast.S499.sty',  human: 'jazz' },
+      { id: 'jazz_bebop', label: 'Bebop',   sty: '/styles/Swing&Jazz/Bebop.S468.sst',              human: 'jazz' },
+    ],
+  },
+  {
+    category: 'latin',
+    label: 'Latin',
+    icon: '🌴',
+    subtypes: [
+      { id: 'latin_bossa',  label: 'Bossa Nova', sty: '/styles/Latin/CoolBossa.S460.sty',      human: 'bossa' },
+      { id: 'latin_samba',  label: 'Samba',      sty: '/styles/Latin/BrazilianSamba.sty',      human: 'latin' },
+      { id: 'latin_54',     label: '5/4',         sty: '/styles/Swing&Jazz/Five-Four.S725.prs', human: 'jazz'  },
     ],
   },
   {
@@ -134,6 +145,65 @@ export const GENRE_DEFAULTS = {
       { root: 'D', quality: 'minor', extensions: ['7'] },
       { root: 'G', quality: 'major', extensions: ['7'] },
       { root: 'C', quality: 'major', extensions: ['maj7'] },
+    ],
+  },
+
+  jazz_bebop: {
+    tempo: 220,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'D', quality: 'minor',  extensions: ['7'] },
+      { root: 'G', quality: 'major',  extensions: ['7'] },
+      { root: 'C', quality: 'major',  extensions: ['maj7'] },
+      { root: 'A', quality: 'major',  extensions: ['7'] },
+      { root: 'D', quality: 'minor',  extensions: ['7'] },
+      { root: 'G', quality: 'major',  extensions: ['7'] },
+      { root: 'C', quality: 'major',  extensions: ['maj7'] },
+      { root: 'C', quality: 'major',  extensions: ['maj7'] },
+    ],
+  },
+
+  // ── Latin ──
+  latin_bossa: {
+    tempo: 130,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+    ],
+  },
+  latin_samba: {
+    tempo: 160,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+    ],
+  },
+  latin_54: {
+    tempo: 170,
+    defaultChord: { root: 'D', quality: 'minor', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'A', quality: 'major', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
     ],
   },
 
