@@ -549,11 +549,11 @@ export function useBackingTrackEngine() {
       engine.setTempo(bpm)
       engine.setGain(volumesToGain(volumesRef.current))
 
-      // One chord per bar, each chord lasts beatsPerBar beats
+      // One chord per bar (or half-bar if beats:2), variable beat duration
       engine.setChordProgression(
         chordsRef.current.map(chord => ({
           symbol: oldChordToSymbol(chord),
-          beats:  bpb,
+          beats:  chord.beats ?? bpb,
         }))
       )
 
@@ -672,6 +672,33 @@ export function useBackingTrackEngine() {
     if (wasPlaying) setTimeout(() => play(), 100)
   }, [stop, play])
 
+  // ── Load jazz standard preset (from iReal data) ──────────────────────────────
+  const loadJazzPreset = useCallback((song) => {
+    const wasPlaying = isPlayingRef.current
+    if (wasPlaying) stop()
+
+    const chords = song.chords.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
+    setChordsState(chords)
+    chordsRef.current  = chords
+    setBarCountState(chords.length)
+    barCountRef.current = chords.length
+
+    if (song.tempo) {
+      setTempoState(song.tempo)
+      tempoRef.current = song.tempo
+      engineRef.current?.setTempo(song.tempo)
+    }
+
+    // Update selectedKey to match song key
+    if (song.key) {
+      const { root, type } = song.key
+      setSelectedKeyState({ root, type })
+      selectedKeyRef.current = { root, type }
+    }
+
+    if (wasPlaying) setTimeout(() => play(), 100)
+  }, [stop, play])
+
   // ── Set individual chord ─────────────────────────────────────────────────────
   const setChord = useCallback((barIndex, chord) => {
     setChordsState(prev => {
@@ -719,7 +746,7 @@ export function useBackingTrackEngine() {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops,
-    setGenre, setBarCount, loadPreset,
+    setGenre, setBarCount, loadPreset, loadJazzPreset,
     setChord, previewChord,
     setVolume,
     initPlayer: () => {},  // backward-compat no-op

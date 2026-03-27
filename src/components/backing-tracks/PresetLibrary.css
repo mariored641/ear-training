@@ -1,0 +1,246 @@
+/* ─── Toggle button ──────────────────────────────────────────────────────────── */
+
+.preset-lib-toggle {
+  background: #1e3a5f;
+  color: #7ecfff;
+  border: 1px solid #2a5a8a;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.preset-lib-toggle:hover { background: #2a4f7a; }
+.preset-lib-toggle.open  { background: #2a4f7a; border-color: #4a9fd5; color: #aee3ff; }
+
+/* ─── Panel ──────────────────────────────────────────────────────────────────── */
+
+.preset-library-panel {
+  background: #0e1e35;
+  border: 1px solid #2a4a6a;
+  border-radius: 10px;
+  margin-top: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  animation: lib-slide-down 0.18s ease;
+}
+
+@keyframes lib-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Library tabs ───────────────────────────────────────────────────────────── */
+
+.lib-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.lib-tab {
+  background: #1a3050;
+  color: #7ba8cc;
+  border: 1px solid #2a4a6a;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.lib-tab:hover  { background: #243d5a; }
+.lib-tab.active { background: #1e5080; color: #aee3ff; border-color: #4a9fd5; }
+
+/* ─── Search row ─────────────────────────────────────────────────────────────── */
+
+.lib-search-row {
+  display: flex;
+  gap: 6px;
+}
+
+.lib-search {
+  flex: 1;
+  background: #162840;
+  border: 1px solid #2a4a6a;
+  border-radius: 6px;
+  color: #c8e4ff;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  outline: none;
+}
+.lib-search::placeholder { color: #4a6a88; }
+.lib-search:focus { border-color: #4a9fd5; }
+
+.lib-filter-btn {
+  background: #1a3050;
+  color: #7ba8cc;
+  border: 1px solid #2a4a6a;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.lib-filter-btn:hover  { background: #243d5a; }
+.lib-filter-btn.active { background: #5a4400; color: #ffd060; border-color: #aa8800; }
+
+/* ─── Status / count ─────────────────────────────────────────────────────────── */
+
+.lib-status {
+  color: #7ba8cc;
+  font-size: 0.78rem;
+  text-align: center;
+  padding: 4px;
+}
+.lib-status--error { color: #ff6b6b; }
+
+.lib-count {
+  color: #4a7a9a;
+  font-size: 0.72rem;
+  text-align: right;
+  padding: 0 2px;
+}
+
+/* ─── Song list ──────────────────────────────────────────────────────────────── */
+
+.lib-list {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 2px;
+}
+
+.lib-list::-webkit-scrollbar { width: 5px; }
+.lib-list::-webkit-scrollbar-track { background: #0e1e35; }
+.lib-list::-webkit-scrollbar-thumb { background: #2a4a6a; border-radius: 3px; }
+
+.lib-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #12263f;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+.lib-item:hover {
+  background: #1a3558;
+  border-color: #2a5a8a;
+}
+
+.lib-fav-btn {
+  background: none;
+  border: none;
+  color: #3a5a7a;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.15s;
+}
+.lib-fav-btn:hover  { color: #ffd060; transform: scale(1.2); }
+.lib-fav-btn.starred { color: #ffd060; }
+
+.lib-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.lib-item-title {
+  color: #c8e4ff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lib-item-meta {
+  color: #5a8aaa;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lib-item-bars {
+  color: #4a7a9a;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.lib-empty {
+  color: #4a6a88;
+  text-align: center;
+  padding: 20px;
+  font-size: 0.82rem;
+}
+
+/* ─── Split bar support in ChordProgressionEditor ───────────────────────────── */
+
+.chord-bar-split {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #1a2e4a;
+  border: 1px solid #2a4a6a;
+  border-radius: 8px;
+  padding: 4px;
+  gap: 3px;
+  position: relative;
+  cursor: default;
+}
+.chord-bar-split.playing {
+  border-color: #00c8ff;
+  background: #0d2a40;
+  box-shadow: 0 0 6px rgba(0, 200, 255, 0.3);
+}
+
+.bar-number--split {
+  font-size: 0.65rem;
+  color: #4a7a9a;
+  text-align: left;
+  padding-left: 2px;
+  line-height: 1;
+}
+
+.split-chords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+
+.chord-half-btn {
+  background: #0e2238;
+  border: 1px solid #2a4a6a;
+  border-radius: 5px;
+  color: #c8e4ff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 2px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chord-half-btn:hover {
+  background: #1a3550;
+  border-color: #4a9fd5;
+}

@@ -8,6 +8,7 @@ import { TransportControls }      from './TransportControls.jsx'
 import { Mixer }                  from './Mixer.jsx'
 import { Visualizer }             from './Visualizer.jsx'
 import LiveFretboard              from './LiveFretboard.jsx'
+import { PresetLibrary }          from './PresetLibrary.jsx'
 
 const LAYOUT_OPTIONS = [3, 4, 6, 8]
 
@@ -64,7 +65,7 @@ export function BackingPlayer() {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops,
-    setGenre, setBarCount, loadPreset,
+    setGenre, setBarCount, loadPreset, loadJazzPreset,
     setChord, previewChord,
     setVolume,
     // New engine props
@@ -101,6 +102,7 @@ export function BackingPlayer() {
           <button className="preset-btn" onClick={loadPreset} title="Load genre preset">
             ↺ Preset
           </button>
+          <PresetLibrary onLoadPreset={loadJazzPreset} />
         </div>
         <div className="bars-layout-group">
           <BarCountSelector barCount={barCount} onBarCountChange={setBarCount} />
@@ -135,6 +137,7 @@ export function BackingPlayer() {
         isPlaying={isPlaying}
         onChordClick={handleChordClick}
         colsPerRow={colsPerRow}
+        beatsPerBar={beatsPerBar}
       />
 
       <TransportControls

@@ -1,7 +1,7 @@
 import React from 'react'
 
 const MIN_BARS = 1
-const MAX_BARS = 32
+const MAX_BARS = 64
 
 export function BarCountSelector({ barCount, onBarCountChange }) {
   return (
