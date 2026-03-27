@@ -217,7 +217,8 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 .genre-dropdown-item {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
   padding: 9px 14px;
   background: none;
@@ -227,10 +228,14 @@
   cursor: pointer;
   text-align: left;
   transition: all 0.1s;
+  gap: 8px;
 }
+.genre-dropdown-label { flex: 1; }
+.genre-dropdown-bpm   { font-size: 11px; opacity: 0.55; white-space: nowrap; }
 .genre-dropdown-item + .genre-dropdown-item { border-top: 1px solid #1e293b; }
 .genre-dropdown-item:hover  { background: #334155; color: #e2e8f0; }
 .genre-dropdown-item.active { background: #1d4ed8; color: #fff; font-weight: 600; }
+.genre-dropdown-item.active .genre-dropdown-bpm { opacity: 0.8; }
 
 /* ── Bar count selector ── */
 .bar-count-selector {

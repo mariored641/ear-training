@@ -68,7 +68,8 @@ export function GenreSelector({ genre, onGenreChange }) {
                       setOpenCategory(null)
                     }}
                   >
-                    {sub.label}
+                    <span className="genre-dropdown-label">{sub.label}</span>
+                    {sub.bpm && <span className="genre-dropdown-bpm">{sub.bpm}</span>}
                   </button>
                 ))}
               </div>

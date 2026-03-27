@@ -24,10 +24,15 @@ export const GENRE_CATALOG = [
     label: 'Jazz',
     icon: '🎷',
     subtypes: [
-      { id: 'jazz_swing', label: 'Swing',   sty: '/styles-appdata/Yamaha/Jazzvocal.s264.sty',       human: 'jazz' },
-      { id: 'jazz_cool',  label: 'Cool',    sty: '/styles/Swing&Jazz/LACoolSwing.STY',              human: 'jazz' },
-      { id: 'jazz_waltz', label: 'Waltz',   sty: '/styles-appdata/Yamaha/JazzWaltzFast.S499.sty',  human: 'jazz' },
-      { id: 'jazz_bebop', label: 'Bebop',   sty: '/styles/Swing&Jazz/Bebop.S468.sst',              human: 'jazz' },
+      { id: 'jazz_swing',   label: 'Swing',        bpm: 192, sty: '/styles-appdata/Yamaha/Jazzvocal.s264.sty',        human: 'jazz' },
+      { id: 'jazz_cool',    label: 'Cool',          bpm: 126, sty: '/styles/Swing&Jazz/LACoolSwing.STY',               human: 'jazz' },
+      { id: 'jazz_waltz',   label: 'Waltz',         bpm: 194, sty: '/styles-appdata/Yamaha/JazzWaltzFast.S499.sty',    human: 'jazz' },
+      { id: 'jazz_bebop',   label: 'Bebop',         bpm: 240, sty: '/styles/Swing&Jazz/Bebop.S468.sst',                human: 'jazz' },
+      { id: 'jazz_bigband', label: 'Big Band',      bpm: 180, sty: '/styles/Swing&Jazz/BigBandFast1.S198.sst',         human: 'jazz' },
+      { id: 'jazz_club',    label: 'Jazz Club',     bpm: 164, sty: '/styles/Swing&Jazz/JazzClub.S120.prs',             human: 'jazz' },
+      { id: 'jazz_gypsy',   label: 'Gypsy Swing',   bpm: 232, sty: '/styles/Swing&Jazz/GypsySwing.S173.prs',           human: 'jazz' },
+      { id: 'jazz_ballad',  label: 'Jazz Ballad',   bpm: 72,  sty: '/styles/Swing&Jazz/OrchJazzBallad.S158.prs',       human: 'jazz' },
+      { id: 'jazz_gospel',  label: 'Gospel Jazz',   bpm: 110, sty: '/styles/Swing&Jazz/GospelSwing.S046.sst',          human: 'jazz' },
     ],
   },
   {
@@ -35,9 +40,14 @@ export const GENRE_CATALOG = [
     label: 'Latin',
     icon: '🌴',
     subtypes: [
-      { id: 'latin_bossa',  label: 'Bossa Nova', sty: '/styles/Latin/CoolBossa.S460.sty',      human: 'bossa' },
-      { id: 'latin_samba',  label: 'Samba',      sty: '/styles/Latin/BrazilianSamba.sty',      human: 'latin' },
-      { id: 'latin_54',     label: '5/4',         sty: '/styles/Swing&Jazz/Five-Four.S725.prs', human: 'jazz'  },
+      { id: 'latin_bossa',     label: 'Bossa Nova',  bpm: 168, sty: '/styles/Latin/CoolBossa.S460.sty',        human: 'bossa' },
+      { id: 'latin_samba',     label: 'Samba',       bpm: 96,  sty: '/styles/Latin/BrazilianSamba.sty',        human: 'latin' },
+      { id: 'latin_54',        label: '5/4',          bpm: 168, sty: '/styles/Swing&Jazz/Five-Four.S725.prs',   human: 'jazz'  },
+      { id: 'latin_fastbossa', label: 'Fast Bossa',  bpm: 175, sty: '/styles/Latin/FastBossa.S629.prs',        human: 'bossa' },
+      { id: 'latin_mambo',     label: 'Mambo',       bpm: 104, sty: '/styles/Latin/Mambo.S635.prs',            human: 'latin' },
+      { id: 'latin_samba2',    label: 'Samba 2',     bpm: 110, sty: '/styles/Latin/Samba_3.S506.STY',          human: 'latin' },
+      { id: 'latin_salsa',     label: 'Salsa',       bpm: 92,  sty: '/styles/Latin/Salsa 1.S651.STY',          human: 'latin' },
+      { id: 'latin_chacha',    label: 'Cha-Cha',     bpm: 132, sty: '/styles/Latin/OrganChaCha.sty',           human: 'latin' },
     ],
   },
   {
@@ -45,19 +55,29 @@ export const GENRE_CATALOG = [
     label: 'Blues',
     icon: '🎸',
     subtypes: [
-      { id: 'blues_shuffle', label: 'Shuffle', sty: "/styles-appdata/Yamaha/MrMac'sBlues.T148.STY", human: 'blues' },
-      { id: 'blues_kool',    label: 'Kool',    sty: '/styles/R&B/KoolShuffle.STY',                  human: 'blues' },
-      { id: 'blues_soul',    label: 'Soul',    sty: '/styles/R&B/SoulShuffle.STY',                  human: 'blues' },
+      { id: 'blues_shuffle', label: 'Blues Shuffle', bpm: 63,  sty: "/styles-appdata/Yamaha/MrMac'sBlues.T148.STY", human: 'blues' },
+      { id: 'blues_kool',    label: 'Kool Shuffle',  bpm: 90,  sty: '/styles/R&B/KoolShuffle.STY',                  human: 'blues' },
+      { id: 'blues_soul',    label: 'Soul Shuffle',  bpm: 98,  sty: '/styles/R&B/SoulShuffle.STY',                  human: 'blues' },
+      { id: 'blues_slow',    label: 'Slow Blues',    bpm: 49,  sty: '/styles/R&B/SlowBlues.S594.sst',               human: 'blues' },
+      { id: 'blues_gospel',  label: 'Gospel',        bpm: 110, sty: '/styles/Swing&Jazz/GospelSwing.S046.sst',      human: 'blues' },
+      { id: 'blues_funk',    label: 'Jazz Funk',     bpm: 120, sty: '/styles/R&B/JazzFunk.STY',                     human: 'blues' },
+      { id: 'blues_16beat',  label: '16-Beat',       bpm: 80,  sty: '/styles/R&B/16BeatFerna.sty',                  human: 'blues' },
+      { id: 'blues_simple',  label: 'Simple Shuffle',bpm: 132, sty: '/styles/Swing&Jazz/SimpleShuffle.S643.bcs',    human: 'blues' },
     ],
   },
   {
     category: 'rock',
-    label: 'Rock',
+    label: 'Rock & Pop',
     icon: '🤘',
     subtypes: [
-      { id: 'rock_standard', label: 'Standard', sty: '/styles-appdata/Yamaha/StandardRock.STY',  human: 'rock' },
-      { id: 'rock_pop',      label: 'Pop Rock', sty: '/styles/Pop&Rock/PopRock.STY',             human: 'rock' },
-      { id: 'rock_power',    label: 'Power',    sty: '/styles/Pop&Rock/PowerRock.STY',           human: 'rock' },
+      { id: 'rock_standard', label: 'Rock',          bpm: 110, sty: '/styles-appdata/Yamaha/StandardRock.STY',   human: 'rock' },
+      { id: 'rock_pop',      label: 'Pop Rock',      bpm: 94,  sty: '/styles/Pop&Rock/PopRock.STY',              human: 'rock' },
+      { id: 'rock_power',    label: 'Power Rock',    bpm: 112, sty: '/styles/Pop&Rock/PowerRock.STY',            human: 'rock' },
+      { id: 'pop_chart',     label: 'Chart Pop',     bpm: 92,  sty: '/styles/Dance/ChartPop.S321.prs',           human: 'rock' },
+      { id: 'pop_retro',     label: 'Retro Pop',     bpm: 128, sty: '/styles/Dance/RetroPop.S502.prs',           human: 'rock' },
+      { id: 'pop_80s',       label: "80's Dance",    bpm: 120, sty: "/styles/Dance/80'sDance.S305.prs",          human: 'rock' },
+      { id: 'pop_uk',        label: 'UK Pop',        bpm: 124, sty: '/styles/Dance/UKPop.S583.prs',              human: 'rock' },
+      { id: 'pop_hiphop',    label: 'Hip-Hop Pop',   bpm: 104, sty: '/styles/Dance/HipHopPop.S585.prs',          human: 'rock' },
     ],
   },
   {
@@ -65,9 +85,14 @@ export const GENRE_CATALOG = [
     label: 'Country',
     icon: '🤠',
     subtypes: [
-      { id: 'country_train',  label: 'Train Beat',  sty: '/styles/Country/CountryTrain Bt.sty',         human: 'rock' },
-      { id: 'country_finger', label: 'Fingerpick',  sty: '/styles/Country/FingerPickin.sty',            human: 'rock' },
-      { id: 'country_modern', label: 'Modern Pick', sty: '/styles-appdata/Yamaha/ModPickin!.T151.STY',  human: 'rock' },
+      { id: 'country_train',    label: 'Train Beat',      bpm: 80,  sty: '/styles/Country/CountryTrain Bt.sty',        human: 'rock' },
+      { id: 'country_finger',   label: 'Fingerpick',      bpm: 68,  sty: '/styles/Country/FingerPickin.sty',            human: 'rock' },
+      { id: 'country_modern',   label: 'Modern Pick',     bpm: 96,  sty: '/styles-appdata/Yamaha/ModPickin!.T151.STY',  human: 'rock' },
+      { id: 'country_brothers', label: 'Country Bros',    bpm: 92,  sty: '/styles/Country/CntryBrothers.S624.prs',      human: 'rock' },
+      { id: 'country_shuffle',  label: 'Country Shuffle', bpm: 126, sty: '/styles/Country/CountryShuffle.S477.bcs',     human: 'rock' },
+      { id: 'country_modpop',   label: 'Modern Pop',      bpm: 68,  sty: '/styles/Country/ModCntryPop.S096.prs',        human: 'rock' },
+      { id: 'country_waltz',    label: 'Country Waltz',   bpm: 74,  sty: '/styles/Country/SwingWaltz.S714.prs',         human: 'rock' },
+      { id: 'country_ballad',   label: 'Country Ballad',  bpm: 77,  sty: '/styles/Country/PopBallad.S540.prs',          human: 'rock' },
     ],
   },
 ]
@@ -76,10 +101,12 @@ export const GENRE_CATALOG = [
 
 const GENRE_STYLES = {}
 const GENRE_HUMAN  = {}
+export const GENRE_BPM = {}
 for (const cat of GENRE_CATALOG) {
   for (const sub of cat.subtypes) {
     GENRE_STYLES[sub.id] = sub.sty
     GENRE_HUMAN[sub.id]  = sub.human
+    GENRE_BPM[sub.id]    = sub.bpm
   }
 }
 
@@ -149,7 +176,7 @@ export const GENRE_DEFAULTS = {
   },
 
   jazz_bebop: {
-    tempo: 220,
+    tempo: 240,
     defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
     presetBarCount: 8,
     preset: [
@@ -161,6 +188,81 @@ export const GENRE_DEFAULTS = {
       { root: 'G', quality: 'major',  extensions: ['7'] },
       { root: 'C', quality: 'major',  extensions: ['maj7'] },
       { root: 'C', quality: 'major',  extensions: ['maj7'] },
+    ],
+  },
+  jazz_bigband: {
+    tempo: 180,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+    ],
+  },
+  jazz_club: {
+    tempo: 164,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+    ],
+  },
+  jazz_gypsy: {
+    tempo: 232,
+    defaultChord: { root: 'D', quality: 'minor', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'D', quality: 'minor', extensions: [] },
+      { root: 'D', quality: 'minor', extensions: [] },
+      { root: 'A', quality: 'major', extensions: ['7'] },
+      { root: 'A', quality: 'major', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: [] },
+      { root: 'D', quality: 'minor', extensions: [] },
+      { root: 'A', quality: 'major', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: [] },
+    ],
+  },
+  jazz_ballad: {
+    tempo: 72,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'E', quality: 'minor', extensions: ['7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+    ],
+  },
+  jazz_gospel: {
+    tempo: 110,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: ['7'] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'minor', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
     ],
   },
 
@@ -196,7 +298,7 @@ export const GENRE_DEFAULTS = {
     ],
   },
   latin_54: {
-    tempo: 170,
+    tempo: 168,
     defaultChord: { root: 'D', quality: 'minor', extensions: [] },
     presetBarCount: 4,
     preset: [
@@ -204,6 +306,77 @@ export const GENRE_DEFAULTS = {
       { root: 'D', quality: 'minor', extensions: ['7'] },
       { root: 'A', quality: 'major', extensions: ['7'] },
       { root: 'D', quality: 'minor', extensions: ['7'] },
+    ],
+  },
+  latin_fastbossa: {
+    tempo: 175,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7'] },
+      { root: 'D', quality: 'minor', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+    ],
+  },
+  latin_mambo: {
+    tempo: 104,
+    defaultChord: { root: 'C', quality: 'minor', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'minor', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'minor', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+    ],
+  },
+  latin_samba2: {
+    tempo: 110,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+    ],
+  },
+  latin_salsa: {
+    tempo: 92,
+    defaultChord: { root: 'C', quality: 'minor', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'minor', extensions: [] },
+    ],
+  },
+  latin_chacha: {
+    tempo: 132,
+    defaultChord: { root: 'C', quality: 'minor', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
     ],
   },
 
@@ -221,7 +394,46 @@ export const GENRE_DEFAULTS = {
     preset: BLUES_PRESET_12,
   },
   blues_soul: {
-    tempo: 95,
+    tempo: 98,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['7'] },
+    presetBarCount: 12,
+    preset: BLUES_PRESET_12,
+  },
+  blues_slow: {
+    tempo: 49,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['7'] },
+    presetBarCount: 12,
+    preset: BLUES_PRESET_12,
+  },
+  blues_gospel: {
+    tempo: 110,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: ['7'] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'minor', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+    ],
+  },
+  blues_funk: {
+    tempo: 120,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['7'] },
+    presetBarCount: 12,
+    preset: BLUES_PRESET_12,
+  },
+  blues_16beat: {
+    tempo: 80,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['7'] },
+    presetBarCount: 12,
+    preset: BLUES_PRESET_12,
+  },
+  blues_simple: {
+    tempo: 132,
     defaultChord: { root: 'C', quality: 'major', extensions: ['7'] },
     presetBarCount: 12,
     preset: BLUES_PRESET_12,
@@ -259,7 +471,7 @@ export const GENRE_DEFAULTS = {
     ],
   },
   rock_power: {
-    tempo: 140,
+    tempo: 112,
     defaultChord: { root: 'C', quality: 'major', extensions: [] },
     presetBarCount: 8,
     preset: [
@@ -271,6 +483,61 @@ export const GENRE_DEFAULTS = {
       { root: 'Bb', quality: 'major', extensions: [] },
       { root: 'F',  quality: 'major', extensions: [] },
       { root: 'G',  quality: 'major', extensions: [] },
+    ],
+  },
+  pop_chart: {
+    tempo: 92,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+  pop_retro: {
+    tempo: 128,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+  pop_80s: {
+    tempo: 120,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+  pop_uk: {
+    tempo: 124,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+  pop_hiphop: {
+    tempo: 104,
+    defaultChord: { root: 'C', quality: 'minor', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'minor', extensions: [] },
+      { root: 'Ab', quality: 'major', extensions: [] },
+      { root: 'Eb', quality: 'major', extensions: [] },
+      { root: 'Bb', quality: 'major', extensions: [] },
     ],
   },
 
@@ -306,7 +573,7 @@ export const GENRE_DEFAULTS = {
     ],
   },
   country_modern: {
-    tempo: 115,
+    tempo: 96,
     defaultChord: { root: 'C', quality: 'major', extensions: [] },
     presetBarCount: 8,
     preset: [
@@ -314,6 +581,71 @@ export const GENRE_DEFAULTS = {
       { root: 'A', quality: 'minor', extensions: [] },
       { root: 'F', quality: 'major', extensions: [] },
       { root: 'G', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+  country_brothers: {
+    tempo: 92,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+    ],
+  },
+  country_shuffle: {
+    tempo: 126,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: [] },
+    ],
+  },
+  country_modpop: {
+    tempo: 68,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+  country_waltz: {
+    tempo: 74,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 6,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'E', quality: 'minor', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'D', quality: 'minor', extensions: [] },
+      { root: 'G', quality: 'major', extensions: ['7'] },
+      { root: 'C', quality: 'major', extensions: [] },
+    ],
+  },
+  country_ballad: {
+    tempo: 77,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
       { root: 'C', quality: 'major', extensions: [] },
       { root: 'A', quality: 'minor', extensions: [] },
       { root: 'F', quality: 'major', extensions: [] },
@@ -568,6 +900,12 @@ export function useBackingTrackEngine() {
     const bpb = parseInt(style.timeSignature) || 4
     beatsPerBarRef.current = bpb
     setBeatsPerBar(bpb)
+    // Auto-set tempo from the parsed style file
+    if (style.tempo > 0) {
+      setTempoState(style.tempo)
+      tempoRef.current = style.tempo
+      engine.setTempo(style.tempo)
+    }
   }, [])
 
   // ── Key selector ─────────────────────────────────────────────────────────────
@@ -686,9 +1024,9 @@ export function useBackingTrackEngine() {
     setGenreState(newGenre)
     genreRef.current = newGenre
 
-    const defaults = GENRE_DEFAULTS[newGenre] ?? GENRE_DEFAULTS.jazz_swing
-    setTempoState(defaults.tempo)
-    tempoRef.current = defaults.tempo
+    const bpm = GENRE_BPM[newGenre] ?? GENRE_DEFAULTS[newGenre]?.tempo ?? 120
+    setTempoState(bpm)
+    tempoRef.current = bpm
 
     if (wasPlaying) setTimeout(() => play(), 100)
   }, [stop, play])
