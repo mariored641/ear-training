@@ -68,9 +68,10 @@ export class BackingTrackEngine {
     this._humanConfig    = DEFAULT_CONFIG
 
     // Part cycling
-    this._mainPartIdx       = 0     // index into available main parts
-    this._LOOPS_PER_PART    = 2     // switch main part every N loops
+    this._mainPartIdx        = 0     // index into available main parts
+    this._LOOPS_PER_PART     = 2     // switch main part every N loops
     this._pendingPartAdvance = false // true after a fill plays, triggers advance next window
+    this._windowStartProgBeat = 0   // progBeat at which the current window started
 
     // Runtime
     this._clock          = null
@@ -185,13 +186,14 @@ export class BackingTrackEngine {
     await SFP.resumeAudio()
 
     // Reset runtime state
-    this._noteTimers         = []
-    this._partLoopCount      = 0
-    this._mainPartIdx        = 0
-    this._partName           = 'Main_A'
+    this._noteTimers          = []
+    this._partLoopCount       = 0
+    this._mainPartIdx         = 0
+    this._partName            = 'Main_A'
     this._pendingPartAdvance  = false
-    this._lastChord          = null
-    this._pendingNotes       = null
+    this._windowStartProgBeat = 0
+    this._lastChord           = null
+    this._pendingNotes        = null
 
     // Create clock
     const audioCtx = SFP.getAudioContext()
@@ -235,30 +237,33 @@ export class BackingTrackEngine {
 
     const progBeat = bar * this._beatsPerBar + beat
     const loopBeat = progBeat % this._totalProgBeats
-    const partBeat = progBeat % this._partSize
 
-    // At the start of each part window, pre-generate all notes for the window.
-    // Notes are NOT scheduled here — only stored for per-beat dispatch below.
-    if (partBeat === 0) {
-      // If a fill just played, now do the actual main-part advance
+    // partBeat: beats elapsed since the current window started.
+    // Using (progBeat - _windowStartProgBeat) instead of (progBeat % _partSize)
+    // ensures correct alignment when _partSize changes mid-cycle (e.g. fills).
+    const partBeat = progBeat - this._windowStartProgBeat
+
+    // Start a new window when the current one is complete, or on the very first beat.
+    if (this._pendingNotes === null || partBeat >= this._partSize) {
+      // If a fill just played, do the actual main-part advance now
       if (this._pendingPartAdvance) {
         this._pendingPartAdvance = false
         this._doAdvanceMainPart()
       }
       // Cycle through Main_A / Main_B / Main_C / Main_D automatically.
-      // Every LOOPS_PER_PART loops, advance to the next available main part.
+      // Every LOOPS_PER_PART windows, advance to the next available main part.
       else if (this._partLoopCount > 0 && this._partLoopCount % this._LOOPS_PER_PART === 0) {
         this._advanceMainPart()
       }
+
+      this._windowStartProgBeat = progBeat
       this._pendingNotes = this._generateWindow(loopBeat, audioTime, beatDuration)
       this._partLoopCount++
     }
 
     // Schedule only the notes whose onset falls within this beat.
-    // Max setTimeout ≈ LOOKAHEAD_SECS + beatDuration ≈ 650 ms at 120 BPM
-    // (was partSize * beatDuration ≈ 4000 ms — causing audible jitter at seams).
     if (this._pendingNotes) {
-      this._scheduleBeatNotes(partBeat)
+      this._scheduleBeatNotes(progBeat - this._windowStartProgBeat)
     }
   }
 
