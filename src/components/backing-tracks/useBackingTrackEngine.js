@@ -677,19 +677,40 @@ export function useBackingTrackEngine() {
     const wasPlaying = isPlayingRef.current
     if (wasPlaying) stop()
 
+    // ── Auto-switch genre based on time signature ──────────────────────────────
+    const ts = song.timeSignature || '4/4'
+    let targetGenre = genreRef.current
+
+    if (ts === '3/4' || ts === '6/4') {
+      // Waltz feel — use jazz_waltz regardless of current genre
+      targetGenre = 'jazz_waltz'
+    } else if (ts === '4/4' || ts === '2/4') {
+      // If we were on jazz_waltz, switch back to swing
+      if (targetGenre === 'jazz_waltz') targetGenre = 'jazz_swing'
+    }
+    // 5/4 and other odd meters: keep current genre (engine plays in 4/4)
+
+    if (targetGenre !== genreRef.current) {
+      setGenreState(targetGenre)
+      genreRef.current = targetGenre
+      // Note: ensureStyle() in play() will load the correct .sty automatically
+    }
+
+    // ── Load chords ────────────────────────────────────────────────────────────
     const chords = song.chords.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
     setChordsState(chords)
-    chordsRef.current  = chords
+    chordsRef.current   = chords
     setBarCountState(chords.length)
     barCountRef.current = chords.length
 
+    // ── Tempo from song (already resolved in JSON, never 0) ───────────────────
     if (song.tempo) {
       setTempoState(song.tempo)
       tempoRef.current = song.tempo
       engineRef.current?.setTempo(song.tempo)
     }
 
-    // Update selectedKey to match song key
+    // ── Update selectedKey to match song key ───────────────────────────────────
     if (song.key) {
       const { root, type } = song.key
       setSelectedKeyState({ root, type })

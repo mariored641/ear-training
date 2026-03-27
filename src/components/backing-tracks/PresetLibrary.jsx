@@ -95,8 +95,20 @@ export function PresetLibrary({ onLoadPreset }) {
     setIsOpen(false)
   }, [onLoadPreset])
 
-  // ─── Key display ─────────────────────────────────────────────────────────────
+  // ─── Display helpers ──────────────────────────────────────────────────────────
   const keyLabel = (song) => `${song.key.root}${song.key.type === 'minor' ? 'm' : ''}`
+
+  const tsLabel = (ts) => {
+    if (!ts || ts === '4/4') return null
+    if (ts === '3/4') return '3/4'
+    if (ts === '6/4') return '6/4'
+    return ts  // 5/4, 2/4, etc.
+  }
+
+  const tsWarning = (ts) => {
+    if (ts === '5/4' || ts === '7/4') return '⚠️ ' + ts + ' — ינוגן ב-4/4'
+    return null
+  }
 
   return (
     <>
@@ -167,9 +179,17 @@ export function PresetLibrary({ onLoadPreset }) {
                   >★</button>
                   <div className="lib-item-info">
                     <span className="lib-item-title">{song.title}</span>
-                    <span className="lib-item-meta">{song.composer} · {keyLabel(song)} · {song.style}</span>
+                    <span className="lib-item-meta">
+                      {song.composer} · {keyLabel(song)} · {song.style}
+                      {tsLabel(song.timeSignature) && (
+                        <span className="lib-item-ts"> · {tsLabel(song.timeSignature)}</span>
+                      )}
+                    </span>
+                    {tsWarning(song.timeSignature) && (
+                      <span className="lib-item-ts-warn">{tsWarning(song.timeSignature)}</span>
+                    )}
                   </div>
-                  <span className="lib-item-bars">{Math.ceil(song.barCount / 2)}–{song.barCount}b</span>
+                  <span className="lib-item-bars">{song.tempo}♩</span>
                 </div>
               )
             })}

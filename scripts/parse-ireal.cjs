@@ -13,7 +13,79 @@ const iRealReader = require('ireal-reader')
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
 const INPUT  = 'C:/Users/DELL/Documents/Jazz 1460 Standards.txt'
-const OUTPUT = path.join(__dirname, '../src/data/jazz-standards.json')
+const OUTPUT = path.join(__dirname, '../public/data/jazz-standards.json')
+
+// ─── Time signature: ireal-reader returns numbers (44, 34, 64, 54, 24…) ──────
+
+function parseTimeSignature(ts) {
+  const n = String(ts || 44)
+  switch (n) {
+    case '34': return '3/4'
+    case '44': return '4/4'
+    case '54': return '5/4'
+    case '64': return '6/4'
+    case '24': return '2/4'
+    case '68': return '6/8'
+    case '98': return '9/8'
+    default:   return '4/4'   // null / '12' (artifact) / unknown
+  }
+}
+
+// ─── Tempo fallback by style name (all songs have bpm=0 in the file) ─────────
+
+const STYLE_TEMPO = {
+  // ── Swing ──
+  'ballad':              60,
+  'slow ballad':         55,
+  'slow swing':          80,
+  'medium slow swing':   110,
+  'medium swing':        130,
+  'medium up swing':     160,
+  'up tempo swing':      200,
+  'up swing':            200,
+  'fast swing':          230,
+  'bebop':               220,
+
+  // ── Latin / Brazilian ──
+  'bossa nova':          130,
+  'samba':               160,
+  'afro':                110,
+  'afro cuban':          120,
+  'latin':               140,
+  'latin swing':         140,
+  'bolero':              90,
+  'cha cha':             130,
+  'mambo':               160,
+
+  // ── Waltz ──
+  'waltz':               160,
+  'jazz waltz':          160,
+  'medium waltz':        150,
+
+  // ── Funk / R&B / Rock ──
+  'funk':                100,
+  'r&b':                 85,
+  'rock':                130,
+  'even 8ths':           120,
+  'even 16ths':          100,
+  'groove':              100,
+
+  // ── Misc ──
+  'gospel':              80,
+  'country':             120,
+}
+
+function guessTempoByStyle(style) {
+  if (!style) return 120
+  const s = style.toLowerCase().trim()
+  // Exact match first
+  if (STYLE_TEMPO[s] !== undefined) return STYLE_TEMPO[s]
+  // Partial match
+  for (const [key, bpm] of Object.entries(STYLE_TEMPO)) {
+    if (s.includes(key)) return bpm
+  }
+  return 120
+}
 
 // ─── iReal chord string → app chord object ───────────────────────────────────
 
@@ -236,15 +308,20 @@ for (const song of playlist.songs) {
     if (chords.length === 0) { skipped++; continue }
 
     const key = normalizeKey(song.key)
+    const timeSignature = parseTimeSignature(song.music?.timeSignature)
+    const tempo = (song.bpm && parseInt(song.bpm) > 0)
+      ? parseInt(song.bpm)
+      : guessTempoByStyle(song.style)
 
     songs.push({
       title:    song.title    || 'Unknown',
       composer: song.composer || '',
       style:    song.style    || '',
       key,
-      tempo:    song.bpm   ? parseInt(song.bpm)   : 120,
+      timeSignature,
+      tempo,
       chords,
-      barCount: chords.length, // approximate (some bars may have beats:2 pairs)
+      barCount: chords.length,
     })
   } catch (err) {
     console.warn(`Skipped "${song.title}": ${err.message}`)

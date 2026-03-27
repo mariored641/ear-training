@@ -184,6 +184,18 @@
   flex-shrink: 0;
 }
 
+.lib-item-ts {
+  color: #7ecfff;
+  font-weight: 600;
+}
+
+.lib-item-ts-warn {
+  color: #f0a040;
+  font-size: 0.68rem;
+  display: block;
+  margin-top: 1px;
+}
+
 .lib-empty {
   color: #4a6a88;
   text-align: center;
