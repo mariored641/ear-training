@@ -828,6 +828,7 @@ export function useBackingTrackEngine() {
   const [maxLoops,    setMaxLoopsState] = useState(0)
   const [volumes,     setVolumesState]  = useState(DEFAULT_VOLUMES)
   const [isLoading,   setIsLoading]     = useState(false)
+  const [loopCount,   setLoopCountState] = useState(0)
 
   // New state
   const [currentChordSymbol, setCurrentChordSymbol] = useState(null)
@@ -939,6 +940,7 @@ export function useBackingTrackEngine() {
     setCurrentChordSymbol(null)
     setCurrentBeat(null)
     loopCountRef.current    = 0
+    setLoopCountState(0)
     lastLoopBeatRef.current = -1
   }, [])
 
@@ -967,6 +969,7 @@ export function useBackingTrackEngine() {
 
       // Reset loop tracking
       loopCountRef.current    = 0
+      setLoopCountState(0)
       lastLoopBeatRef.current = -1
 
       engine.onBeat = ({ beat, chord, loopBeat }) => {
@@ -978,6 +981,7 @@ export function useBackingTrackEngine() {
         // Loop counting & max loops
         if (lastLoopBeatRef.current >= 0 && loopBeat < lastLoopBeatRef.current) {
           loopCountRef.current += 1
+          setLoopCountState(loopCountRef.current)
           const ml = maxLoopsRef.current
           if (ml > 0 && loopCountRef.current >= ml) {
             // Schedule stop on next tick so current bar finishes
@@ -1188,5 +1192,6 @@ export function useBackingTrackEngine() {
     sfMsg,
     selectedKey,
     setKey,
+    loopCount,
   }
 }

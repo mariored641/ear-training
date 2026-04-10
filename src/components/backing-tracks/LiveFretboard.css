@@ -1,6 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   LiveFretboard — interactive fretboard panel in Backing Tracks
-   Dark theme, compact, collapsible
+   LiveFretboard — iReal Pro light theme
    ═══════════════════════════════════════════════════════ */
 
 /* ── Toggle button ── */
@@ -9,19 +8,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  background: #16213e;
-  border: 1px solid #2a2a4a;
+  padding: 10px 14px;
+  background: var(--bg-chart, #ffffff);
+  border: 1px solid var(--border, #c0d0e0);
   border-radius: 8px;
-  color: #ecf0f1;
+  color: var(--accent, #1565c0);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 .lf-toggle-btn:hover {
-  background: #1e2d50;
+  background: var(--bg-hover, #d5e5f2);
 }
 .lf-toggle-icon {
   font-size: 16px;
@@ -29,13 +28,14 @@
 .lf-toggle-arrow {
   margin-left: auto;
   font-size: 11px;
-  opacity: 0.6;
+  opacity: 0.5;
+  color: var(--text-muted, #8a9ab0);
 }
 
 /* ── Panel ── */
 .lf-panel {
-  background: #16213e;
-  border: 1px solid #2a2a4a;
+  background: var(--bg-chart, #ffffff);
+  border: 1px solid var(--border, #c0d0e0);
   border-radius: 8px;
   margin-top: 6px;
   overflow: hidden;
@@ -47,39 +47,39 @@
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
-  background: #0f3460;
-  border-bottom: 1px solid #2a2a4a;
+  background: var(--bg-surface, #eef4fa);
+  border-bottom: 1px solid var(--border-light, #dce8f0);
 }
 .lf-chord-now {
   font-size: 22px;
   font-weight: 700;
-  color: #4fc3f7;
+  color: var(--accent, #1565c0);
   letter-spacing: 0.5px;
   min-width: 60px;
 }
 .lf-chord-root-note {
   font-size: 13px;
-  color: #90a4ae;
-  background: #1a2a40;
+  color: var(--text-secondary, #5a7a9a);
+  background: var(--bg-active, #c5ddf0);
   padding: 2px 7px;
   border-radius: 4px;
 }
 .lf-stopped-badge {
   font-size: 11px;
-  color: #78909c;
-  background: #1a1a2e;
+  color: var(--text-muted, #8a9ab0);
+  background: var(--bg-surface, #eef4fa);
   padding: 2px 8px;
   border-radius: 10px;
-  border: 1px solid #37474f;
+  border: 1px solid var(--border, #c0d0e0);
   margin-left: auto;
 }
 .lf-scale-badge {
   font-size: 11px;
-  color: #a5d6a7;
-  background: #1b3626;
+  color: #2e7d32;
+  background: #e8f5e9;
   padding: 2px 8px;
   border-radius: 10px;
-  border: 1px solid #2e7d32;
+  border: 1px solid #a5d6a7;
   margin-left: auto;
   max-width: 200px;
   overflow: hidden;
@@ -94,8 +94,8 @@
   flex-wrap: wrap;
   gap: 10px;
   padding: 8px 14px;
-  background: #1a1a2e;
-  border-top: 1px solid #2a2a4a;
+  background: var(--bg-surface, #eef4fa);
+  border-top: 1px solid var(--border-light, #dce8f0);
 }
 
 .lf-ctrl-group {
@@ -105,7 +105,7 @@
 }
 .lf-ctrl-label {
   font-size: 11px;
-  color: #78909c;
+  color: var(--text-muted, #8a9ab0);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -117,9 +117,9 @@
   gap: 2px;
 }
 .lf-mode-btn {
-  background: #16213e;
-  border: 1px solid #2a2a4a;
-  color: #90a4ae;
+  background: var(--bg-chart, #ffffff);
+  border: 1px solid var(--border, #c0d0e0);
+  color: var(--text-secondary, #5a7a9a);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 13px;
@@ -127,14 +127,14 @@
   transition: all 0.12s;
 }
 .lf-mode-btn.active {
-  background: #4fc3f7;
-  border-color: #4fc3f7;
-  color: #1a1a2e;
+  background: var(--bg-active, #c5ddf0);
+  border-color: var(--accent, #1565c0);
+  color: var(--accent, #1565c0);
   font-weight: 700;
 }
 .lf-mode-btn:hover:not(.active) {
-  background: #1e2d50;
-  color: #ecf0f1;
+  background: var(--bg-hover, #d5e5f2);
+  color: var(--text-primary, #1a3a5c);
 }
 
 /* ── Scale select ── */
@@ -143,9 +143,9 @@
   min-width: 160px;
 }
 .lf-select {
-  background: #0f3460;
-  border: 1px solid #2a2a4a;
-  color: #ecf0f1;
+  background: var(--bg-chart, #ffffff);
+  border: 1px solid var(--border, #c0d0e0);
+  color: var(--text-primary, #1a3a5c);
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 12px;
@@ -155,7 +155,7 @@
 }
 .lf-select:focus {
   outline: none;
-  border-color: #4fc3f7;
+  border-color: var(--accent, #1565c0);
 }
 .lf-select-sm {
   font-size: 11px;
@@ -168,9 +168,9 @@
 
 /* ── Polyscale button ── */
 .lf-poly-btn {
-  background: #16213e;
-  border: 1px solid #2a2a4a;
-  color: #90a4ae;
+  background: var(--bg-chart, #ffffff);
+  border: 1px solid var(--border, #c0d0e0);
+  color: var(--text-secondary, #5a7a9a);
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 12px;
@@ -181,20 +181,20 @@
   white-space: nowrap;
 }
 .lf-poly-btn.active {
-  background: #e91e8c22;
-  border-color: #e91e8c;
-  color: #f06292;
+  background: #fce4ec;
+  border-color: #e91e63;
+  color: #c2185b;
 }
 .lf-poly-btn:hover:not(.active) {
-  background: #1e2d50;
-  color: #ecf0f1;
+  background: var(--bg-hover, #d5e5f2);
+  color: var(--text-primary, #1a3a5c);
 }
 
 /* ── Action buttons ── */
 .lf-action-btn {
   background: none;
-  border: 1px solid #37474f;
-  color: #78909c;
+  border: 1px solid var(--border, #c0d0e0);
+  color: var(--text-muted, #8a9ab0);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 11px;
@@ -202,14 +202,14 @@
   transition: all 0.12s;
 }
 .lf-action-btn:hover {
-  border-color: #78909c;
-  color: #ecf0f1;
+  border-color: var(--accent, #1565c0);
+  color: var(--text-primary, #1a3a5c);
 }
 
 /* ── Polyscale per-chord table ── */
 .lf-polyscale {
-  border-top: 1px solid #2a2a4a;
-  background: #12192e;
+  border-top: 1px solid var(--border-light, #dce8f0);
+  background: var(--bg-surface, #eef4fa);
 }
 .lf-polyscale-header {
   padding: 6px 14px 4px;
@@ -228,29 +228,29 @@
   gap: 8px;
   padding: 4px 8px;
   border-radius: 5px;
-  background: #16213e;
-  border: 1px solid #1e2d50;
+  background: var(--bg-chart, #ffffff);
+  border: 1px solid var(--border-light, #dce8f0);
   transition: border-color 0.15s;
 }
 .lf-poly-row--active {
-  border-color: #4fc3f7;
-  background: #0f3460;
+  border-color: var(--accent, #1565c0);
+  background: var(--bg-active, #c5ddf0);
 }
 .lf-poly-chord-name {
   font-size: 13px;
   font-weight: 700;
-  color: #4fc3f7;
+  color: var(--accent, #1565c0);
   min-width: 44px;
 }
 .lf-poly-row .lf-select-sm:last-child {
   flex: 1;
 }
 
-/* ── Scrollbar styling for polyscale list ── */
+/* ── Scrollbar styling ── */
 .lf-polyscale-rows::-webkit-scrollbar {
   width: 4px;
 }
 .lf-polyscale-rows::-webkit-scrollbar-thumb {
-  background: #2a2a4a;
+  background: var(--border, #c0d0e0);
   border-radius: 2px;
 }

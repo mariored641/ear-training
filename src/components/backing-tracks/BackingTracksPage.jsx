@@ -9,16 +9,9 @@ const BackingTracksPage = () => {
   return (
     <div className="backing-tracks-page">
       <header className="bt-header">
-        <div className="bt-header-left">
-          <button className="bt-back-btn" onClick={() => navigate('/')}>←</button>
-        </div>
-        <div className="bt-header-center">
-          <h1 className="bt-title">🎵 Backing Tracks</h1>
-          <p className="bt-subtitle">חטיבת ליווי</p>
-        </div>
-        <div className="bt-header-right" />
+        <button className="bt-back-btn" onClick={() => navigate('/')}>←</button>
+        <h1 className="bt-title">Backing Tracks</h1>
       </header>
-
       <main className="bt-main">
         <BackingPlayer />
       </main>
