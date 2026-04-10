@@ -19,8 +19,10 @@ const CHROMATIC = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G
 // polyscaleMap shape: { barIndex: { scaleId: string|null, root: 'auto'|noteName } }
 const defaultEntry = () => ({ scaleId: null, root: 'auto' });
 
-export default function LiveFretboard({ chords, currentBar, currentChordSymbol, isPlaying }) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function LiveFretboard({ chords, currentBar, currentChordSymbol, isPlaying, isOpen: isOpenProp, onToggle }) {
+  const [isOpenInternal, setIsOpenInternal] = useState(false);
+  const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenInternal;
+  const handleToggle = onToggle || (() => setIsOpenInternal(p => !p));
   const [displayMode, setDisplayMode] = useState('dots');
   const [globalScaleId, setGlobalScaleId] = useState(null);
   const [globalRoot, setGlobalRoot] = useState('auto'); // 'auto' or note name
@@ -108,7 +110,7 @@ export default function LiveFretboard({ chords, currentBar, currentChordSymbol, 
     <div className="lf-root">
 
       {/* Toggle button */}
-      <button className="lf-toggle-btn" onClick={() => setIsOpen(p => !p)}>
+      <button className="lf-toggle-btn" onClick={handleToggle}>
         <span className="lf-toggle-icon">🎸</span>
         Live Fretboard
         <span className="lf-toggle-arrow">{isOpen ? '▲' : '▼'}</span>

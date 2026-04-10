@@ -838,6 +838,12 @@ export function useBackingTrackEngine() {
   const [sfMsg,              setSfMsg]                = useState('')
   const [selectedKey,        setSelectedKeyState]     = useState({ root: 'C', type: 'major' })
 
+  // Practice mode config (stored in ref for sync access in audio callback)
+  const practiceRef = useRef({
+    tempoEnabled: false, tempoAmount: 5, tempoEvery: 1,
+    transposeEnabled: false, transposeSemitones: 1, transposeEvery: 1,
+  })
+
   // Refs — writable without re-renders
   const chordsRef       = useRef(chords)
   const volumesRef      = useRef(volumes)
@@ -978,13 +984,48 @@ export function useBackingTrackEngine() {
         setCurrentBeat(beat)
         if (chord) setCurrentChordSymbol(chordObjToLabel(chord))
 
-        // Loop counting & max loops
+        // Loop counting, practice mode & max loops
         if (lastLoopBeatRef.current >= 0 && loopBeat < lastLoopBeatRef.current) {
           loopCountRef.current += 1
           setLoopCountState(loopCountRef.current)
+          const lc = loopCountRef.current
+
+          // ── Practice mode: tempo increase ──
+          const pc = practiceRef.current
+          if (pc.tempoEnabled && lc % pc.tempoEvery === 0) {
+            const newTempo = Math.min(300, tempoRef.current + pc.tempoAmount)
+            tempoRef.current = newTempo
+            setTempoState(newTempo)
+            engine.setTempo(newTempo)
+          }
+
+          // ── Practice mode: transposition ──
+          if (pc.transposeEnabled && lc % pc.transposeEvery === 0) {
+            const ROOT_NOTES_INT = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
+            const key = selectedKeyRef.current
+            const curIdx = ROOT_NOTES_INT.indexOf(key.root)
+            if (curIdx >= 0) {
+              const newIdx = (curIdx + pc.transposeSemitones) % 12
+              const newRoot = ROOT_NOTES_INT[newIdx]
+              const transposed = transposeChordProgression(chordsRef.current, pc.transposeSemitones, newRoot, key.type)
+              chordsRef.current = transposed
+              setChordsState(transposed)
+              const newKey = { root: newRoot, type: key.type }
+              selectedKeyRef.current = newKey
+              setSelectedKeyState(newKey)
+              // Update engine's chord progression so audio follows
+              engine.setChordProgression(
+                transposed.map(c => ({
+                  symbol: oldChordToSymbol(c),
+                  beats: c.beats ?? beatsPerBarRef.current,
+                }))
+              )
+            }
+          }
+
+          // ── Max loops ──
           const ml = maxLoopsRef.current
           if (ml > 0 && loopCountRef.current >= ml) {
-            // Schedule stop on next tick so current bar finishes
             setTimeout(stop, 0)
           }
         }
@@ -1171,6 +1212,11 @@ export function useBackingTrackEngine() {
     })
   }, [])
 
+  // ── Practice config ──────────────────────────────────────────────────────────
+  const setPracticeConfig = useCallback((config) => {
+    practiceRef.current = { ...practiceRef.current, ...config }
+  }, [])
+
   // ── Cleanup ──────────────────────────────────────────────────────────────────
   useEffect(() => () => stop(), [stop])
 
@@ -1193,5 +1239,6 @@ export function useBackingTrackEngine() {
     selectedKey,
     setKey,
     loopCount,
+    setPracticeConfig,
   }
 }

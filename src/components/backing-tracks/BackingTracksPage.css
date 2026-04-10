@@ -602,21 +602,13 @@
   fill: var(--accent);
 }
 .bp-tab--play .bp-tab-icon { fill: var(--accent); }
-.bp-tab--play.playing .bp-tab-icon { fill: var(--text-muted); }
+.bp-tab--play.playing {
+  background: #ef5350;
+}
+.bp-tab--play.playing .bp-tab-icon { fill: white; }
 .bp-tab--play:disabled { opacity: 0.4; cursor: not-allowed; }
-.bp-tab--stop .bp-tab-icon { fill: var(--accent); }
 .bp-tab-loading {
   font-size: 20px;
-}
-
-/* ═══════════════════════════════════════════════════════
-   Mixer View
-   ═══════════════════════════════════════════════════════ */
-.bp-mixer-view {
-  padding: 16px 8px;
-}
-.bp-mixer-view .bp-popup-title {
-  margin-bottom: 16px;
 }
 
 /* Mixer component overrides for light theme */
@@ -668,13 +660,11 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   Practice Panel
+   Practice Popup
    ═══════════════════════════════════════════════════════ */
-.bp-practice {
-  padding: 16px 8px;
-}
-.bp-practice .bp-popup-title {
-  margin-bottom: 16px;
+.bp-popup--practice {
+  max-height: 45vh;
+  overflow-y: auto;
 }
 .bp-practice-section {
   background: var(--bg-chart);

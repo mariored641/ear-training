@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react'
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useBackingTrackEngine, GENRE_CATALOG } from './useBackingTrackEngine.js'
 import { BarCountSelector }       from './BarCountSelector.jsx'
 import { ChordProgressionEditor } from './ChordProgressionEditor.jsx'
@@ -8,8 +8,6 @@ import LiveFretboard              from './LiveFretboard.jsx'
 import { PresetLibrary }          from './PresetLibrary.jsx'
 
 const LAYOUT_OPTIONS = [3, 4, 6, 8]
-const ROOT_NOTES = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
-// iReal Pro transposition grid layout (4×3)
 const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
 
 /* ═══════════════════════════════════════════════════════
@@ -107,14 +105,25 @@ function GenrePopup({ genre, onGenreChange, onClose }) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Practice Panel
+   Popup: Mixer
    ═══════════════════════════════════════════════════════ */
-function PracticePanel({
-  tempoEnabled, setTempoEnabled, tempoAmount, setTempoAmount, tempoEvery, setTempoEvery,
-  transposeEnabled, setTransposeEnabled, transposeSemitones, setTransposeSemitones, transposeEvery, setTransposeEvery,
-}) {
+function MixerPopup({ volumes, onVolumeChange }) {
   return (
-    <div className="bp-practice">
+    <div className="bp-popup">
+      <div className="bp-popup-title">Mixer</div>
+      <Mixer volumes={volumes} onVolumeChange={onVolumeChange} />
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════
+   Popup: Practice
+   ═══════════════════════════════════════════════════════ */
+function PracticePopup({ config, onConfigChange }) {
+  const update = (field, value) => onConfigChange({ ...config, [field]: value })
+
+  return (
+    <div className="bp-popup bp-popup--practice">
       <div className="bp-popup-title">Practice</div>
 
       {/* Tempo practice */}
@@ -122,33 +131,33 @@ function PracticePanel({
         <div className="bp-practice-header">
           <span className="bp-practice-label">Practice Tempo</span>
           <span className="bp-practice-status">
-            {tempoEnabled ? `+${tempoAmount} bpm / ${tempoEvery} loop${tempoEvery > 1 ? 's' : ''}` : 'Off'}
+            {config.tempoEnabled ? `+${config.tempoAmount} bpm / ${config.tempoEvery} loop${config.tempoEvery > 1 ? 's' : ''}` : 'Off'}
           </span>
         </div>
         <div className="bp-practice-controls">
           <button
-            className={`bp-practice-toggle${tempoEnabled ? ' on' : ''}`}
-            onClick={() => setTempoEnabled(p => !p)}
+            className={`bp-practice-toggle${config.tempoEnabled ? ' on' : ''}`}
+            onClick={() => update('tempoEnabled', !config.tempoEnabled)}
           >
             <span className="bp-toggle-knob" />
           </button>
-          {tempoEnabled && (
+          {config.tempoEnabled && (
             <div className="bp-practice-settings">
               <div className="bp-stepper-row">
                 <span className="bp-stepper-label">Every</span>
                 <div className="bp-stepper">
-                  <button onClick={() => setTempoEvery(Math.max(1, tempoEvery - 1))}>−</button>
-                  <span>{tempoEvery}</span>
-                  <button onClick={() => setTempoEvery(tempoEvery + 1)}>+</button>
+                  <button onClick={() => update('tempoEvery', Math.max(1, config.tempoEvery - 1))}>−</button>
+                  <span>{config.tempoEvery}</span>
+                  <button onClick={() => update('tempoEvery', config.tempoEvery + 1)}>+</button>
                 </div>
                 <span className="bp-stepper-unit">loops</span>
               </div>
               <div className="bp-stepper-row">
                 <span className="bp-stepper-label">Add</span>
                 <div className="bp-stepper">
-                  <button onClick={() => setTempoAmount(Math.max(1, tempoAmount - 1))}>−</button>
-                  <span>{tempoAmount}</span>
-                  <button onClick={() => setTempoAmount(tempoAmount + 1)}>+</button>
+                  <button onClick={() => update('tempoAmount', Math.max(1, config.tempoAmount - 1))}>−</button>
+                  <span>{config.tempoAmount}</span>
+                  <button onClick={() => update('tempoAmount', config.tempoAmount + 1)}>+</button>
                 </div>
                 <span className="bp-stepper-unit">bpm</span>
               </div>
@@ -162,33 +171,33 @@ function PracticePanel({
         <div className="bp-practice-header">
           <span className="bp-practice-label">Practice Transposition</span>
           <span className="bp-practice-status">
-            {transposeEnabled ? `+${transposeSemitones} st / ${transposeEvery} loop${transposeEvery > 1 ? 's' : ''}` : 'Off'}
+            {config.transposeEnabled ? `+${config.transposeSemitones} st / ${config.transposeEvery} loop${config.transposeEvery > 1 ? 's' : ''}` : 'Off'}
           </span>
         </div>
         <div className="bp-practice-controls">
           <button
-            className={`bp-practice-toggle${transposeEnabled ? ' on' : ''}`}
-            onClick={() => setTransposeEnabled(p => !p)}
+            className={`bp-practice-toggle${config.transposeEnabled ? ' on' : ''}`}
+            onClick={() => update('transposeEnabled', !config.transposeEnabled)}
           >
             <span className="bp-toggle-knob" />
           </button>
-          {transposeEnabled && (
+          {config.transposeEnabled && (
             <div className="bp-practice-settings">
               <div className="bp-stepper-row">
                 <span className="bp-stepper-label">Every</span>
                 <div className="bp-stepper">
-                  <button onClick={() => setTransposeEvery(Math.max(1, transposeEvery - 1))}>−</button>
-                  <span>{transposeEvery}</span>
-                  <button onClick={() => setTransposeEvery(transposeEvery + 1)}>+</button>
+                  <button onClick={() => update('transposeEvery', Math.max(1, config.transposeEvery - 1))}>−</button>
+                  <span>{config.transposeEvery}</span>
+                  <button onClick={() => update('transposeEvery', config.transposeEvery + 1)}>+</button>
                 </div>
                 <span className="bp-stepper-unit">loops</span>
               </div>
               <div className="bp-stepper-row">
                 <span className="bp-stepper-label">Transpose</span>
                 <div className="bp-stepper">
-                  <button onClick={() => setTransposeSemitones(Math.max(1, transposeSemitones - 1))}>−</button>
-                  <span>{transposeSemitones}</span>
-                  <button onClick={() => setTransposeSemitones(transposeSemitones + 1)}>+</button>
+                  <button onClick={() => update('transposeSemitones', Math.max(1, config.transposeSemitones - 1))}>−</button>
+                  <span>{config.transposeSemitones}</span>
+                  <button onClick={() => update('transposeSemitones', config.transposeSemitones + 1)}>+</button>
                 </div>
                 <span className="bp-stepper-unit">semitones</span>
               </div>
@@ -215,32 +224,53 @@ export function BackingPlayer() {
     sfStatus, sfMsg,
     selectedKey, setKey,
     loopCount,
+    setPracticeConfig,
   } = useBackingTrackEngine()
 
-  // UI state
-  const [activeTab,   setActiveTab]   = useState('chart')   // 'chart' | 'mixer' | 'practice'
-  const [activePopup, setActivePopup] = useState(null)       // null | 'tempo' | 'repeats' | 'transposition' | 'genre'
-  const [modalOpen,   setModalOpen]   = useState(false)
-  const [editingBar,  setEditingBar]  = useState(0)
-  const [colsPerRow,  setColsPerRow]  = useState(4)
+  // UI state — no tabs, everything is popup-based
+  const [activePopup, setActivePopup] = useState(null)
+  // popup values: 'tempo' | 'repeats' | 'transposition' | 'genre' | 'mixer' | 'practice'
+  const [modalOpen,      setModalOpen]      = useState(false)
+  const [editingBar,     setEditingBar]     = useState(0)
+  const [colsPerRow,     setColsPerRow]     = useState(4)
+  const [showFretboard,  setShowFretboard]  = useState(false)
 
-  // Practice mode state
-  const [practiceTempoEnabled,       setPracticeTempoEnabled]       = useState(false)
-  const [practiceTempoAmount,        setPracticeTempoAmount]        = useState(5)
-  const [practiceTempoEvery,         setPracticeTempoEvery]         = useState(1)
-  const [practiceTransposeEnabled,   setPracticeTransposeEnabled]   = useState(false)
-  const [practiceTransposeSemitones, setPracticeTransposeSemitones] = useState(1)
-  const [practiceTransposeEvery,     setPracticeTransposeEvery]     = useState(1)
+  // Practice config (local state, synced to engine via ref)
+  const [practiceConfig, setPracticeConfigLocal] = useState({
+    tempoEnabled: false, tempoAmount: 5, tempoEvery: 1,
+    transposeEnabled: false, transposeSemitones: 1, transposeEvery: 1,
+  })
 
-  const chartRef       = useRef(null)
-  const prevLoopCount  = useRef(0)
+  const chartRef = useRef(null)
+
+  // Sync practice config to engine
+  const handlePracticeChange = useCallback((newConfig) => {
+    setPracticeConfigLocal(newConfig)
+    setPracticeConfig(newConfig)
+  }, [setPracticeConfig])
 
   // Toggle popup (tap same = close)
   const togglePopup = (name) => setActivePopup(prev => prev === name ? null : name)
 
   // Chord editing
-  const handleChordClick  = (barIndex) => { setEditingBar(barIndex); setModalOpen(true) }
-  const handleConfirmChord = (chord) => { setChord(editingBar, chord); setModalOpen(false) }
+  const handleChordClick   = (barIndex) => { setEditingBar(barIndex); setModalOpen(true) }
+  const handleConfirmChord = (chord)    => { setChord(editingBar, chord); setModalOpen(false) }
+
+  // Play handler — close popups (except fretboard) when playing
+  const handlePlay = useCallback(() => {
+    setActivePopup(null) // close all popups on play
+    play()
+  }, [play])
+
+  // Play/Stop toggle
+  const handlePlayStop = useCallback(() => {
+    if (isPlaying) {
+      stop()
+    } else {
+      setActivePopup(null)
+      play()
+    }
+  }, [isPlaying, play, stop])
 
   // Style display name
   const styleName = useMemo(() => {
@@ -253,33 +283,12 @@ export function BackingPlayer() {
 
   // Auto-scroll during playback
   useEffect(() => {
-    if (!isPlaying || !chartRef.current || activeTab !== 'chart') return
+    if (!isPlaying || !chartRef.current) return
     const playingEl = chartRef.current.querySelector('.chord-bar-btn.playing, .chord-bar-split.playing')
     if (playingEl) {
       playingEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-  }, [isPlaying, currentBar, activeTab])
-
-  // Practice mode: apply tempo/transposition on loop boundaries
-  useEffect(() => {
-    if (loopCount <= prevLoopCount.current || loopCount === 0) {
-      prevLoopCount.current = loopCount
-      return
-    }
-    prevLoopCount.current = loopCount
-
-    if (practiceTempoEnabled && loopCount % practiceTempoEvery === 0) {
-      setTempo(Math.min(300, tempo + practiceTempoAmount))
-    }
-    if (practiceTransposeEnabled && loopCount % practiceTransposeEvery === 0) {
-      const currentIdx = ROOT_NOTES.indexOf(selectedKey.root)
-      if (currentIdx >= 0) {
-        const newIdx = (currentIdx + practiceTransposeSemitones) % 12
-        setKey(ROOT_NOTES[newIdx], selectedKey.type)
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loopCount])
+  }, [isPlaying, currentBar])
 
   return (
     <div className="backing-player" onClick={() => activePopup && setActivePopup(null)}>
@@ -312,47 +321,27 @@ export function BackingPlayer() {
         <div className="bp-status-bar bp-status-bar--error">⚠️ {sfMsg}</div>
       )}
 
-      {/* ── Main Content Area (scrollable) ── */}
+      {/* ── Main Content Area (chart always visible) ── */}
       <div className="bp-content" ref={chartRef}>
-        {activeTab === 'chart' && (
-          <>
-            <ChordProgressionEditor
-              chords={chords}
-              currentBar={currentBar}
-              isPlaying={isPlaying}
-              onChordClick={handleChordClick}
-              colsPerRow={colsPerRow}
-              beatsPerBar={beatsPerBar}
-            />
-            <LiveFretboard
-              chords={chords}
-              currentBar={currentBar}
-              currentChordSymbol={currentChordSymbol}
-              isPlaying={isPlaying}
-            />
-          </>
-        )}
-
-        {activeTab === 'mixer' && (
-          <div className="bp-mixer-view">
-            <div className="bp-popup-title">Mixer</div>
-            <Mixer volumes={volumes} onVolumeChange={setVolume} />
-          </div>
-        )}
-
-        {activeTab === 'practice' && (
-          <PracticePanel
-            tempoEnabled={practiceTempoEnabled}     setTempoEnabled={setPracticeTempoEnabled}
-            tempoAmount={practiceTempoAmount}        setTempoAmount={setPracticeTempoAmount}
-            tempoEvery={practiceTempoEvery}           setTempoEvery={setPracticeTempoEvery}
-            transposeEnabled={practiceTransposeEnabled} setTransposeEnabled={setPracticeTransposeEnabled}
-            transposeSemitones={practiceTransposeSemitones} setTransposeSemitones={setPracticeTransposeSemitones}
-            transposeEvery={practiceTransposeEvery}   setTransposeEvery={setPracticeTransposeEvery}
-          />
-        )}
+        <ChordProgressionEditor
+          chords={chords}
+          currentBar={currentBar}
+          isPlaying={isPlaying}
+          onChordClick={handleChordClick}
+          colsPerRow={colsPerRow}
+          beatsPerBar={beatsPerBar}
+        />
+        <LiveFretboard
+          chords={chords}
+          currentBar={currentBar}
+          currentChordSymbol={currentChordSymbol}
+          isPlaying={isPlaying}
+          isOpen={showFretboard}
+          onToggle={() => setShowFretboard(p => !p)}
+        />
       </div>
 
-      {/* ── Popup Section (between content and bottom) ── */}
+      {/* ── Popup Section (overlay between content and bottom) ── */}
       {activePopup && (
         <div className="bp-popup-section" onClick={e => e.stopPropagation()}>
           {activePopup === 'tempo' && (
@@ -366,6 +355,12 @@ export function BackingPlayer() {
           )}
           {activePopup === 'genre' && (
             <GenrePopup genre={genre} onGenreChange={setGenre} onClose={() => setActivePopup(null)} />
+          )}
+          {activePopup === 'mixer' && (
+            <MixerPopup volumes={volumes} onVolumeChange={setVolume} />
+          )}
+          {activePopup === 'practice' && (
+            <PracticePopup config={practiceConfig} onConfigChange={handlePracticeChange} />
           )}
         </div>
       )}
@@ -383,7 +378,7 @@ export function BackingPlayer() {
         </div>
       )}
 
-      {/* ── Bottom Section (info strip + style + tab bar) ── */}
+      {/* ── Bottom Section ── */}
       <div className="bp-bottom" onClick={e => e.stopPropagation()}>
 
         {/* Info Strip */}
@@ -413,20 +408,20 @@ export function BackingPlayer() {
           {styleName}
         </button>
 
-        {/* Tab Bar */}
+        {/* Tab Bar — 4 items: Fretboard, Mixer, Play/Stop, Practice */}
         <div className="bp-tab-bar">
           <button
-            className={`bp-tab${activeTab === 'chart' ? ' active' : ''}`}
-            onClick={() => { setActiveTab('chart'); setActivePopup(null) }}
-            title="Chart"
+            className={`bp-tab${showFretboard ? ' active' : ''}`}
+            onClick={() => setShowFretboard(p => !p)}
+            title="Fretboard"
           >
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
               <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
             </svg>
           </button>
           <button
-            className={`bp-tab${activeTab === 'mixer' ? ' active' : ''}`}
-            onClick={() => { setActiveTab('mixer'); setActivePopup(null) }}
+            className={`bp-tab${activePopup === 'mixer' ? ' active' : ''}`}
+            onClick={() => togglePopup('mixer')}
             title="Mixer"
           >
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
@@ -435,12 +430,16 @@ export function BackingPlayer() {
           </button>
           <button
             className={`bp-tab bp-tab--play${isPlaying ? ' playing' : ''}`}
-            onClick={isPlaying ? undefined : play}
+            onClick={handlePlayStop}
             disabled={isLoading}
-            title="Play"
+            title={isPlaying ? 'Stop' : 'Play'}
           >
             {isLoading ? (
               <span className="bp-tab-loading">⏳</span>
+            ) : isPlaying ? (
+              <svg viewBox="0 0 24 24" className="bp-tab-icon">
+                <path d="M6 6h12v12H6z"/>
+              </svg>
             ) : (
               <svg viewBox="0 0 24 24" className="bp-tab-icon">
                 <path d="M8 5v14l11-7z"/>
@@ -448,17 +447,8 @@ export function BackingPlayer() {
             )}
           </button>
           <button
-            className={`bp-tab bp-tab--stop`}
-            onClick={isPlaying ? stop : undefined}
-            title="Stop"
-          >
-            <svg viewBox="0 0 24 24" className="bp-tab-icon">
-              <path d="M6 6h12v12H6z"/>
-            </svg>
-          </button>
-          <button
-            className={`bp-tab${activeTab === 'practice' ? ' active' : ''}`}
-            onClick={() => { setActiveTab('practice'); setActivePopup(null) }}
+            className={`bp-tab${activePopup === 'practice' ? ' active' : ''}`}
+            onClick={() => togglePopup('practice')}
             title="Practice"
           >
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
