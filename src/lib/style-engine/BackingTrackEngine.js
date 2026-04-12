@@ -36,7 +36,10 @@ import {
   parseChordSymbol,
 } from './ChordEngine.js'
 import { humanizeNotes, DEFAULT_CONFIG } from './Humanizer.js'
-import { pickVariation, isFillOrBreak, getFillName } from './VariationSelector.js'
+import {
+  pickVariation, isFillOrBreak, getFillName,
+  getTransitionFillName, getIntroName, getEndingName,
+} from './VariationSelector.js'
 
 // ─── AccType → SoundFontPlayer MIDI channel ───────────────────────────────────
 // AccType names come from ChordEngine (BASS, CHORD1, RHYTHM, …)
@@ -67,11 +70,21 @@ export class BackingTrackEngine {
     this._beatsPerBar    = 4
     this._humanConfig    = DEFAULT_CONFIG
 
-    // Part cycling
-    this._mainPartIdx        = 0     // index into available main parts
-    this._LOOPS_PER_PART     = 2     // switch main part every N loops
-    this._pendingPartAdvance = false // true after a fill plays, triggers advance next window
-    this._windowStartProgBeat = 0   // progBeat at which the current window started
+    // Part cycling — progression-aligned
+    this._mainPartIdx             = 0     // index into available main parts
+    this._progressionLoopsPerPart = 2     // switch main part every N full progression loops
+    this._progressionLoopCount    = 0     // how many complete prog loops on current main part
+    this._pendingPartAdvance      = false // true after a fill plays, triggers advance next window
+    this._windowStartProgBeat     = 0    // progBeat at which the current window started
+    this._prevLoopBeat            = -1   // previous loopBeat, for detecting progression wrap
+
+    // Playback phase state machine: 'stopped' | 'intro' | 'main' | 'fill' | 'ending'
+    this._playbackPhase  = 'stopped'
+    this._pendingStop    = false  // user pressed stop, waiting for ending
+
+    // Mid-progression variation for long progressions (>8 bars)
+    // Array of { startBeat, partName } segments, or null for short progressions
+    this._midProgSegments = null
 
     // Runtime
     this._clock          = null
@@ -86,6 +99,7 @@ export class BackingTrackEngine {
     // Public callbacks
     this.onBeat        = null   // ({ beat, bar, chord, loopBeat }) → void
     this.onChordChange = null   // ({ from, to, bar, beat }) → void
+    this.onPhaseChange = null   // ({ phase, partName }) → void
   }
 
   // ── Initialization ─────────────────────────────────────────────────────────
@@ -186,14 +200,34 @@ export class BackingTrackEngine {
     await SFP.resumeAudio()
 
     // Reset runtime state
-    this._noteTimers          = []
-    this._partLoopCount       = 0
-    this._mainPartIdx         = 0
-    this._partName            = 'Main_A'
-    this._pendingPartAdvance  = false
-    this._windowStartProgBeat = 0
-    this._lastChord           = null
-    this._pendingNotes        = null
+    this._noteTimers              = []
+    this._partLoopCount           = 0
+    this._mainPartIdx             = 0
+    this._pendingPartAdvance      = false
+    this._windowStartProgBeat     = 0
+    this._prevLoopBeat            = -1
+    this._lastChord               = null
+    this._pendingNotes            = null
+    this._pendingStop             = false
+    this._progressionLoopCount    = 0
+
+    // Decide starting part: Intro if available, else Main_A
+    const introName = getIntroName('Main_A', this._style.parts)
+    if (introName) {
+      this._partName = introName
+      this._partSize = this._alignPartSize(
+        this._style.parts[introName].sizeInBeats, this._beatsPerBar
+      )
+      this._playbackPhase = 'intro'
+    } else {
+      this._partName = 'Main_A'
+      const part = this._style.parts['Main_A']
+      if (part) this._partSize = this._alignPartSize(part.sizeInBeats, this._beatsPerBar)
+      this._playbackPhase = 'main'
+      this._computeMidProgSegments('Main_A')
+    }
+
+    this._emitPhaseChange()
 
     // Create clock
     const audioCtx = SFP.getAudioContext()
@@ -211,19 +245,35 @@ export class BackingTrackEngine {
     this._clock.start()
   }
 
-  stop() {
+  /**
+   * Stop playback.
+   * @param {boolean} hard  If true, stop immediately. If false (default),
+   *   wait for the current progression loop to end, play an Ending part
+   *   (if available), then stop.
+   */
+  stop(hard = false) {
+    if (hard || !this._clock) {
+      this._hardStop()
+      return
+    }
+    // Soft stop: flag it — the ending will play at the next progression boundary
+    this._pendingStop = true
+  }
+
+  _hardStop() {
     this._clock?.stop()
     this._clock = null
 
-    // Cancel all pending note timers
     this._noteTimers.forEach(clearTimeout)
-    this._noteTimers  = []
+    this._noteTimers   = []
     this._pendingNotes = null
+    this._playbackPhase = 'stopped'
+    this._pendingStop   = false
 
-    // Silence all channels
     SFP.allNotesOff()
 
     this._lastChord = null
+    this._emitPhaseChange()
   }
 
   get isPlaying() {
@@ -234,26 +284,69 @@ export class BackingTrackEngine {
 
   _onScheduleBeat(beat, bar, audioTime, beatDuration) {
     if (!this._style || this._partSize === 0 || this._totalProgBeats === 0) return
+    if (this._playbackPhase === 'stopped') return
 
     const progBeat = bar * this._beatsPerBar + beat
     const loopBeat = progBeat % this._totalProgBeats
 
+    // Detect progression-loop boundary (loopBeat wrapped back to 0)
+    const isProgBoundary = (this._prevLoopBeat > loopBeat && progBeat > 0)
+    this._prevLoopBeat = loopBeat
+
     // partBeat: beats elapsed since the current window started.
-    // Using (progBeat - _windowStartProgBeat) instead of (progBeat % _partSize)
-    // ensures correct alignment when _partSize changes mid-cycle (e.g. fills).
     const partBeat = progBeat - this._windowStartProgBeat
 
-    // Start a new window when the current one is complete, or on the very first beat.
+    // ── Handle phase transitions at progression boundaries ──────────
+    if (isProgBoundary && this._playbackPhase === 'main') {
+      this._progressionLoopCount++
+
+      // Soft stop requested → play ending
+      if (this._pendingStop) {
+        this._startEnding()
+        // Fall through to generate the ending window below
+      }
+      // Time to advance to next Main part
+      else if (this._progressionLoopCount >= this._progressionLoopsPerPart) {
+        this._advanceMainPart()
+        // If a fill was inserted, _playbackPhase is now 'fill'
+        // and _pendingNotes will be regenerated below
+      }
+    }
+
+    // ── Start a new window when the current one is complete ─────────
     if (this._pendingNotes === null || partBeat >= this._partSize) {
-      // If a fill just played, do the actual main-part advance now
-      if (this._pendingPartAdvance) {
+
+      // Intro just finished → transition to Main
+      if (this._playbackPhase === 'intro' && this._pendingNotes !== null) {
+        this._partName = 'Main_A'
+        const part = this._style.parts['Main_A']
+        if (part) this._partSize = this._alignPartSize(part.sizeInBeats, this._beatsPerBar)
+        this._playbackPhase = 'main'
+        this._progressionLoopCount = 0
+        this._computeMidProgSegments('Main_A')
+        this._emitPhaseChange()
+      }
+
+      // Fill just finished → do the actual main-part advance
+      if (this._pendingPartAdvance && this._playbackPhase === 'fill') {
         this._pendingPartAdvance = false
         this._doAdvanceMainPart()
       }
-      // Cycle through Main_A / Main_B / Main_C / Main_D automatically.
-      // Every LOOPS_PER_PART windows, advance to the next available main part.
-      else if (this._partLoopCount > 0 && this._partLoopCount % this._LOOPS_PER_PART === 0) {
-        this._advanceMainPart()
+
+      // Ending just finished → hard stop
+      if (this._playbackPhase === 'ending' && this._pendingNotes !== null) {
+        this._hardStop()
+        return
+      }
+
+      // Mid-progression variation: check if we need to switch part for this segment
+      if (this._playbackPhase === 'main' && this._midProgSegments) {
+        const segPart = this._getSegmentPartForBeat(loopBeat)
+        if (segPart && segPart !== this._partName) {
+          this._partName = segPart
+          const part = this._style.parts[segPart]
+          if (part) this._partSize = this._alignPartSize(part.sizeInBeats, this._beatsPerBar)
+        }
       }
 
       this._windowStartProgBeat = progBeat
@@ -296,35 +389,132 @@ export class BackingTrackEngine {
 
   /**
    * Advance to the next available main part (A→B→C→A…).
-   * Also inserts a fill on the last bar of the outgoing part if available.
+   * Inserts a transition fill before the advance if available.
+   * Uses cross-fills (Fill_In_AB) when transitioning between different parts.
    */
   _advanceMainPart() {
     const parts = this._getAvailableMainParts()
-    if (parts.length <= 1) return
-
-    // Insert fill: use Fill_In_XX for the window we're about to generate
-    // (the last window of the current main part before cycling)
-    const fillName = getFillName(this._partName)
-    if (fillName && this._style.parts[fillName]?.sizeInBeats > 0) {
-      // We'll use the fill part for this one window, then advance
-      this._partName = fillName
-      this._partSize = this._alignPartSize(
-        this._style.parts[fillName].sizeInBeats,
-        this._beatsPerBar
-      )
-      // Schedule the actual main-part advance for the NEXT partBeat===0
-      this._pendingPartAdvance = true
+    if (parts.length <= 1) {
+      // Single main part — still insert a fill for variety, then restart
+      const fillName = getFillName(this._partName)
+      if (fillName && this._style.parts[fillName]?.sizeInBeats > 0) {
+        this._partName = fillName
+        this._partSize = this._alignPartSize(
+          this._style.parts[fillName].sizeInBeats, this._beatsPerBar
+        )
+        this._playbackPhase = 'fill'
+        this._pendingPartAdvance = true
+        this._pendingNotes = null  // force new window
+        this._emitPhaseChange()
+      }
+      this._progressionLoopCount = 0
       return
     }
 
-    // No fill available — advance directly
-    this._doAdvanceMainPart(parts)
+    const nextIdx  = (this._mainPartIdx + 1) % parts.length
+    const nextPart = parts[nextIdx]
+
+    // Try to insert a transition fill
+    const fillName = getTransitionFillName(this._partName, nextPart, this._style.parts)
+    if (fillName) {
+      this._partName = fillName
+      this._partSize = this._alignPartSize(
+        this._style.parts[fillName].sizeInBeats, this._beatsPerBar
+      )
+      this._playbackPhase = 'fill'
+      this._pendingPartAdvance = true
+      this._pendingNotes = null
+      this._emitPhaseChange()
+    } else {
+      // No fill available — advance directly
+      this._doAdvanceMainPart(parts)
+    }
+
+    this._progressionLoopCount = 0
   }
 
   _doAdvanceMainPart(parts) {
     parts = parts || this._getAvailableMainParts()
     this._mainPartIdx = (this._mainPartIdx + 1) % parts.length
-    this.setActivePart(parts[this._mainPartIdx])
+    const newPart = parts[this._mainPartIdx]
+    this.setActivePart(newPart)
+    this._playbackPhase = 'main'
+    this._computeMidProgSegments(newPart)
+    this._emitPhaseChange()
+  }
+
+  /**
+   * Switch to Ending part for soft stop.
+   */
+  _startEnding() {
+    // Find the current main part (might be on a fill or mid-prog segment)
+    const currentMain = this._getAvailableMainParts()[this._mainPartIdx] || 'Main_A'
+    const endingName = getEndingName(currentMain, this._style.parts)
+
+    if (endingName) {
+      this._partName = endingName
+      this._partSize = this._alignPartSize(
+        this._style.parts[endingName].sizeInBeats, this._beatsPerBar
+      )
+      this._playbackPhase = 'ending'
+      this._pendingNotes = null
+      this._emitPhaseChange()
+    } else {
+      // No ending available — hard stop
+      this._hardStop()
+    }
+  }
+
+  // ── Internal — mid-progression variation ──────────────────────────────────
+
+  /**
+   * Compute segments for mid-progression variation.
+   * For progressions > 8 bars: split into 8-bar segments, cycling Main parts.
+   * For short progressions: no splitting (null).
+   *
+   * @param {string} startingPart  The main part that starts this progression loop
+   */
+  _computeMidProgSegments(startingPart) {
+    const totalBars = this._totalProgBeats / this._beatsPerBar
+    if (totalBars <= 8) {
+      this._midProgSegments = null
+      return
+    }
+
+    const parts = this._getAvailableMainParts()
+    const startIdx = parts.indexOf(startingPart)
+    const segmentBars = 8
+    const segments = []
+
+    for (let bar = 0; bar < totalBars; bar += segmentBars) {
+      const segIdx = Math.floor(bar / segmentBars)
+      const partIdx = (startIdx + segIdx) % parts.length
+      segments.push({
+        startBeat: bar * this._beatsPerBar,
+        endBeat: Math.min((bar + segmentBars) * this._beatsPerBar, this._totalProgBeats),
+        partName: parts[partIdx],
+      })
+    }
+
+    this._midProgSegments = segments
+  }
+
+  /**
+   * Return the Main part name for a given loopBeat based on mid-prog segments.
+   */
+  _getSegmentPartForBeat(loopBeat) {
+    if (!this._midProgSegments) return null
+    for (const seg of this._midProgSegments) {
+      if (loopBeat >= seg.startBeat && loopBeat < seg.endBeat) {
+        return seg.partName
+      }
+    }
+    return this._midProgSegments[0]?.partName ?? null
+  }
+
+  /** Emit phase change callback. */
+  _emitPhaseChange() {
+    this.onPhaseChange?.({ phase: this._playbackPhase, partName: this._partName })
   }
 
   // ── Internal — window generation (ChordEngine + Humanizer) ────────────────

@@ -63,6 +63,8 @@ export const GENRE_CATALOG = [
       { id: 'blues_funk',    label: 'Jazz Funk',      bpm: 120, sty: '/styles/R&B/JazzFunk.STY',                     human: 'blues' },
       { id: 'blues_16beat',  label: '16 Beat Ferna',  bpm: 80,  sty: '/styles/R&B/16BeatFerna.sty',                  human: 'blues' },
       { id: 'blues_simple',  label: 'Simple Shuffle', bpm: 132, sty: '/styles/Swing&Jazz/SimpleShuffle.S643.bcs',    human: 'blues' },
+      { id: 'blues_koolfunk',  label: 'Kool Funk',    bpm: 96,  sty: '/styles/R&B/KoolFunk.STY',                     human: 'blues' },
+      { id: 'blues_rock60s',   label: "60's Rock & Roll", bpm: 132, sty: "/styles/R&B/60'sRock&Roll.S605.prs",       human: 'blues' },
     ],
   },
   {
@@ -73,6 +75,9 @@ export const GENRE_CATALOG = [
       { id: 'rock_standard', label: 'Standard Rock',  bpm: 110, sty: '/styles-appdata/Yamaha/StandardRock.STY',   human: 'rock' },
       { id: 'rock_pop',      label: 'Pop Rock',      bpm: 94,  sty: '/styles/Pop&Rock/PopRock.STY',              human: 'rock' },
       { id: 'rock_power',    label: 'Power Rock',    bpm: 112, sty: '/styles/Pop&Rock/PowerRock.STY',            human: 'rock' },
+      { id: 'rock_brit',     label: 'Brit Rock Pop',   bpm: 108, sty: '/styles/Pop&Rock/BritRockPop7.T310.prs',    human: 'rock' },
+      { id: 'rock_funkpop',  label: 'Funk Pop Rock',   bpm: 100, sty: '/styles/Pop&Rock/FunkPopRock.STY',          human: 'rock' },
+      { id: 'rock_16beat2',  label: '16 Beat Ballad 2', bpm: 72, sty: '/styles/Pop&Rock/16BeatBallad2.S014.prs',   human: 'rock' },
       { id: 'pop_chart',     label: 'Chart Pop',     bpm: 92,  sty: '/styles/Dance/ChartPop.S321.prs',           human: 'rock' },
       { id: 'pop_retro',     label: 'Retro Pop',     bpm: 128, sty: '/styles/Dance/RetroPop.S502.prs',           human: 'rock' },
       { id: 'pop_80s',       label: "80's Dance",    bpm: 120, sty: "/styles/Dance/80'sDance.S305.prs",          human: 'rock' },
@@ -91,8 +96,10 @@ export const GENRE_CATALOG = [
       { id: 'country_brothers', label: 'Cntry Brothers',  bpm: 92,  sty: '/styles/Country/CntryBrothers.S624.prs',      human: 'rock' },
       { id: 'country_shuffle',  label: 'Country Shuffle', bpm: 126, sty: '/styles/Country/CountryShuffle.S477.bcs',     human: 'rock' },
       { id: 'country_modpop',   label: 'Mod Cntry Pop',   bpm: 68,  sty: '/styles/Country/ModCntryPop.S096.prs',        human: 'rock' },
-      { id: 'country_waltz',    label: 'Swing Waltz',     bpm: 74,  sty: '/styles/Country/SwingWaltz.S714.prs',         human: 'rock' },
-      { id: 'country_ballad',   label: 'Pop Ballad',      bpm: 77,  sty: '/styles/Country/PopBallad.S540.prs',          human: 'rock' },
+      { id: 'country_waltz',    label: 'Swing Waltz',     bpm: 74,  sty: '/styles/Country/SwingWaltz.S714.prs',           human: 'rock' },
+      { id: 'country_ballad',   label: 'Pop Ballad',      bpm: 77,  sty: '/styles/Country/PopBallad.S540.prs',            human: 'rock' },
+      { id: 'country_90sgpop',  label: "90's Guitar Pop", bpm: 96,  sty: "/styles/Country/90'sGuitarPop.S080.prs",        human: 'rock' },
+      { id: 'country_folkball', label: 'Folk Ballad',     bpm: 72,  sty: '/styles/Country/Folkball.S702.sty',             human: 'rock' },
     ],
   },
 ]
@@ -837,6 +844,8 @@ export function useBackingTrackEngine() {
   const [sfStatus,           setSfStatus]             = useState('idle')
   const [sfMsg,              setSfMsg]                = useState('')
   const [selectedKey,        setSelectedKeyState]     = useState({ root: 'C', type: 'major' })
+  const [playbackPhase,      setPlaybackPhase]        = useState('stopped')   // 'stopped'|'intro'|'main'|'fill'|'ending'
+  const [activePartName,     setActivePartName]       = useState(null)
 
   // Practice mode config (stored in ref for sync access in audio callback)
   const practiceRef = useRef({
@@ -938,16 +947,26 @@ export function useBackingTrackEngine() {
   }, [])
 
   // ── Stop ────────────────────────────────────────────────────────────────────
-  const stop = useCallback(() => {
-    engineRef.current?.stop()
-    setIsPlaying(false)
-    isPlayingRef.current = false
-    setCurrentBar(0)
-    setCurrentChordSymbol(null)
-    setCurrentBeat(null)
-    loopCountRef.current    = 0
-    setLoopCountState(0)
-    lastLoopBeatRef.current = -1
+  /**
+   * @param {boolean} hard  If true, stop immediately. Default false = soft stop
+   *   (waits for progression boundary, plays Ending if available).
+   */
+  const stop = useCallback((hard = false) => {
+    engineRef.current?.stop(hard)
+    if (hard || !isPlayingRef.current) {
+      // Immediate UI reset
+      setIsPlaying(false)
+      isPlayingRef.current = false
+      setCurrentBar(0)
+      setCurrentChordSymbol(null)
+      setCurrentBeat(null)
+      setPlaybackPhase('stopped')
+      setActivePartName(null)
+      loopCountRef.current    = 0
+      setLoopCountState(0)
+      lastLoopBeatRef.current = -1
+    }
+    // For soft stop, UI will be reset when onPhaseChange fires 'stopped'
   }, [])
 
   // ── Play ─────────────────────────────────────────────────────────────────────
@@ -1026,7 +1045,8 @@ export function useBackingTrackEngine() {
           // ── Max loops ──
           const ml = maxLoopsRef.current
           if (ml > 0 && loopCountRef.current >= ml) {
-            setTimeout(stop, 0)
+            // Soft stop — plays ending at progression boundary
+            setTimeout(() => stop(false), 0)
           }
         }
         lastLoopBeatRef.current = loopBeat
@@ -1034,6 +1054,22 @@ export function useBackingTrackEngine() {
 
       engine.onChordChange = ({ to }) => {
         if (to) setCurrentChordSymbol(chordObjToLabel(to))
+      }
+
+      engine.onPhaseChange = ({ phase, partName }) => {
+        setPlaybackPhase(phase)
+        setActivePartName(partName)
+        if (phase === 'stopped') {
+          // Engine finished (ending completed or hard stop)
+          setIsPlaying(false)
+          isPlayingRef.current = false
+          setCurrentBar(0)
+          setCurrentChordSymbol(null)
+          setCurrentBeat(null)
+          loopCountRef.current    = 0
+          setLoopCountState(0)
+          lastLoopBeatRef.current = -1
+        }
       }
 
       await engine.play()
@@ -1240,5 +1276,7 @@ export function useBackingTrackEngine() {
     setKey,
     loopCount,
     setPracticeConfig,
+    playbackPhase,
+    activePartName,
   }
 }

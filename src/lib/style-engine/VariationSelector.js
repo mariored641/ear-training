@@ -145,3 +145,48 @@ export function getFillName(partName) {
   }
   return map[partName] ?? null
 }
+
+/**
+ * Choose the best fill for a transition between two Main parts.
+ * Prefers cross-fills (Fill_In_AB for A→B) when available,
+ * falls back to same-letter fill (Fill_In_AA), then null.
+ *
+ * @param {string} fromPart  e.g. 'Main_A'
+ * @param {string} toPart    e.g. 'Main_B'
+ * @param {Object} availableParts  style.parts (keyed by part name)
+ * @returns {string|null} Fill part name or null
+ */
+export function getTransitionFillName(fromPart, toPart, availableParts) {
+  const fromLetter = fromPart.replace('Main_', '')
+  const toLetter   = toPart.replace('Main_', '')
+
+  // Try cross-fill first (e.g. Fill_In_AB for A→B)
+  const crossFill = `Fill_In_${fromLetter}${toLetter}`
+  if (availableParts[crossFill]?.sizeInBeats > 0) return crossFill
+
+  // Fall back to same-letter fill (Fill_In_AA)
+  const sameFill = `Fill_In_${fromLetter}${fromLetter}`
+  if (availableParts[sameFill]?.sizeInBeats > 0) return sameFill
+
+  return null
+}
+
+/**
+ * Map a Main part to its matching Intro.
+ * Main_A → Intro_A, etc. Returns null if not available.
+ */
+export function getIntroName(mainPart, availableParts) {
+  const letter = mainPart.replace('Main_', '')
+  const name = `Intro_${letter}`
+  return (availableParts[name]?.sizeInBeats > 0) ? name : null
+}
+
+/**
+ * Map a Main part to its matching Ending.
+ * Main_A → Ending_A, etc. Returns null if not available.
+ */
+export function getEndingName(mainPart, availableParts) {
+  const letter = mainPart.replace('Main_', '')
+  const name = `Ending_${letter}`
+  return (availableParts[name]?.sizeInBeats > 0) ? name : null
+}
