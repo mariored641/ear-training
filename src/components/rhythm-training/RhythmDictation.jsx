@@ -45,6 +45,7 @@ export default function RhythmDictation({ settings, onActiveChange }) {
 
   const genRef      = useRef(0);
   const patternRef  = useRef(null);
+  const retryRef    = useRef(0); // counts retries on current pattern (max 1)
   const detectorRef = useRef(null);
   const monitorRef  = useRef(null); // always-on VU meter in IDLE
   const levelRafRef = useRef(null);
@@ -212,8 +213,16 @@ export default function RhythmDictation({ settings, onActiveChange }) {
       return;
     }
 
-    if (evalResult.pass) patternRef.current = null;
-    runLoop(!evalResult.pass);
+    if (evalResult.pass || retryRef.current >= 1) {
+      // Success, or already retried once → move to next pattern
+      retryRef.current = 0;
+      patternRef.current = null;
+      runLoop(false);
+    } else {
+      // First failure → replay same pattern once
+      retryRef.current += 1;
+      runLoop(true);
+    }
 
   }, [bpm, numBars, level, soundChoice, bassNote, numQuestions, startMonitor, stopMonitor]);
 
@@ -338,6 +347,7 @@ export default function RhythmDictation({ settings, onActiveChange }) {
   // ── Controls ───────────────────────────────────────────────────
   const handleStart = useCallback(() => {
     patternRef.current = null;
+    retryRef.current = 0;
     setStats({ rounds: 0, correct: 0 });
     runLoop(false);
   }, [runLoop]);

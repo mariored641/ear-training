@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "ear-training",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "autoPort": true
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/vite/bin/vite.js", "--host", "--port", "5174"],
+      "port": 5174,
+      "autoPort": false
     }
   ]
 }

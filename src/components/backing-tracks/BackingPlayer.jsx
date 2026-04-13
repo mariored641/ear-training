@@ -225,6 +225,7 @@ export function BackingPlayer() {
     selectedKey, setKey,
     loopCount,
     setPracticeConfig,
+    countInEnabled, setCountIn,
   } = useBackingTrackEngine()
 
   // UI state — no tabs, everything is popup-based
@@ -265,7 +266,7 @@ export function BackingPlayer() {
   // Play/Stop toggle
   const handlePlayStop = useCallback(() => {
     if (isPlaying) {
-      stop()
+      stop(true)
     } else {
       setActivePopup(null)
       play()
@@ -427,6 +428,14 @@ export function BackingPlayer() {
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
               <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
             </svg>
+          </button>
+          <button
+            className={`bp-tab${countInEnabled ? ' active' : ''}`}
+            onClick={() => setCountIn(!countInEnabled)}
+            title={countInEnabled ? 'Count-in ON' : 'Count-in OFF'}
+            style={countInEnabled ? { color: '#00e5ff' } : undefined}
+          >
+            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '-0.5px' }}>1234</span>
           </button>
           <button
             className={`bp-tab bp-tab--play${isPlaying ? ' playing' : ''}`}

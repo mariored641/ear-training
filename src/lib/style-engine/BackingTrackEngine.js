@@ -81,6 +81,8 @@ export class BackingTrackEngine {
     // Playback phase state machine: 'stopped' | 'intro' | 'main' | 'fill' | 'ending'
     this._playbackPhase  = 'stopped'
     this._pendingStop    = false  // user pressed stop, waiting for ending
+    this._skipIntro      = false  // skip style Intro part (when count-in is disabled)
+    this._introOffsetBeats = 0   // progBeat at which the main section starts (after intro)
 
     // Mid-progression variation for long progressions (>8 bars)
     // Array of { startBeat, partName } segments, or null for short progressions
@@ -180,6 +182,11 @@ export class BackingTrackEngine {
     SFP.setGain(gain)
   }
 
+  /** Skip the style's Intro part on play() (when external count-in is used). */
+  setSkipIntro(skip) {
+    this._skipIntro = !!skip
+  }
+
   // ── Transport ──────────────────────────────────────────────────────────────
 
   async play() {
@@ -209,10 +216,11 @@ export class BackingTrackEngine {
     this._lastChord               = null
     this._pendingNotes            = null
     this._pendingStop             = false
+    this._introOffsetBeats        = 0
     this._progressionLoopCount    = 0
 
-    // Decide starting part: Intro if available, else Main_A
-    const introName = getIntroName('Main_A', this._style.parts)
+    // Decide starting part: Intro if available (and not skipped), else Main_A
+    const introName = this._skipIntro ? null : getIntroName('Main_A', this._style.parts)
     if (introName) {
       this._partName = introName
       this._partSize = this._alignPartSize(
@@ -287,10 +295,16 @@ export class BackingTrackEngine {
     if (this._playbackPhase === 'stopped') return
 
     const progBeat = bar * this._beatsPerBar + beat
-    const loopBeat = progBeat % this._totalProgBeats
+
+    // During intro, loopBeat is meaningless — use 0 as placeholder
+    // After intro, offset by intro length so the progression starts at beat 0
+    const effectiveBeat = progBeat - this._introOffsetBeats
+    const loopBeat = this._playbackPhase === 'intro'
+      ? 0
+      : (effectiveBeat % this._totalProgBeats)
 
     // Detect progression-loop boundary (loopBeat wrapped back to 0)
-    const isProgBoundary = (this._prevLoopBeat > loopBeat && progBeat > 0)
+    const isProgBoundary = (this._prevLoopBeat > loopBeat && effectiveBeat > 0 && this._playbackPhase !== 'intro')
     this._prevLoopBeat = loopBeat
 
     // partBeat: beats elapsed since the current window started.
@@ -318,6 +332,7 @@ export class BackingTrackEngine {
 
       // Intro just finished → transition to Main
       if (this._playbackPhase === 'intro' && this._pendingNotes !== null) {
+        this._introOffsetBeats = progBeat  // offset so main starts at loopBeat 0
         this._partName = 'Main_A'
         const part = this._style.parts['Main_A']
         if (part) this._partSize = this._alignPartSize(part.sizeInBeats, this._beatsPerBar)
@@ -363,8 +378,15 @@ export class BackingTrackEngine {
   _onBeat(beat, bar) {
     if (this._totalProgBeats === 0) return
 
+    // During intro, signal the hook with loopBeat = -1 (no progression data)
+    if (this._playbackPhase === 'intro') {
+      this.onBeat?.({ beat, bar, chord: null, loopBeat: -1 })
+      return
+    }
+
     const progBeat = bar * this._beatsPerBar + beat
-    const loopBeat = progBeat % this._totalProgBeats
+    const effectiveBeat = progBeat - this._introOffsetBeats
+    const loopBeat = effectiveBeat % this._totalProgBeats
     const chord    = this._getChordAtBeat(loopBeat)
 
     // Detect chord change

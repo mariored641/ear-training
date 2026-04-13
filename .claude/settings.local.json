@@ -18,7 +18,22 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git merge:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:cdn.jsdelivr.net)",
+      "WebFetch(domain:gleitz.github.io)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 40484 /F)",
+      "Bash(taskkill /PID 42336 /F)",
+      "WebSearch",
+      "WebFetch(domain:www.irealpro.com)",
+      "WebFetch(domain:technimo.helpshift.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(powershell -command \"Get-Content ''C:\\\\Users\\\\DELL\\\\Documents\\\\Jazz 1460 Standards.txt'' -TotalCount 3\")",
+      "Bash(powershell -command \"Get-ChildItem ''C:\\\\Users\\\\DELL\\\\Documents\\\\ear-training\\\\src\\\\components\\\\backing-tracks\\\\'' -Name\")",
+      "Bash(powershell -command \"Get-ChildItem ''C:\\\\Users\\\\DELL\\\\Documents\\\\ear-training\\\\src\\\\constants\\\\'' -Name\")",
+      "Bash(xargs -I{} bash -c \"jar tf \"\"$1\"\" 2>/dev/null | grep -il \"\"\\\\.sty\"\" && echo \"\"$1\"\"\" -- {})"
     ],
     "deny": [],
     "ask": []

@@ -846,6 +846,7 @@ export function useBackingTrackEngine() {
   const [selectedKey,        setSelectedKeyState]     = useState({ root: 'C', type: 'major' })
   const [playbackPhase,      setPlaybackPhase]        = useState('stopped')   // 'stopped'|'intro'|'main'|'fill'|'ending'
   const [activePartName,     setActivePartName]       = useState(null)
+  const [countInEnabled,     setCountInEnabled]       = useState(true)
 
   // Practice mode config (stored in ref for sync access in audio callback)
   const practiceRef = useRef({
@@ -868,6 +869,7 @@ export function useBackingTrackEngine() {
   const styleCache      = useRef({})   // genre → parsed style object
   const loopCountRef    = useRef(0)
   const lastLoopBeatRef = useRef(-1)
+  const countInRef      = useRef(true)
 
   useEffect(() => { chordsRef.current    = chords    }, [chords])
   useEffect(() => { volumesRef.current   = volumes   }, [volumes])
@@ -997,7 +999,15 @@ export function useBackingTrackEngine() {
       setLoopCountState(0)
       lastLoopBeatRef.current = -1
 
+      // Count-in: use the style's Intro part, or skip it entirely
+      engine.setSkipIntro(!countInRef.current)
+
       engine.onBeat = ({ beat, chord, loopBeat }) => {
+        // During intro (count-in), loopBeat is -1 — don't update bar/chord
+        if (loopBeat < 0) {
+          setCurrentBeat(beat)
+          return
+        }
         const barInProg = Math.floor(loopBeat / bpb)
         setCurrentBar(barInProg)
         setCurrentBeat(beat)
@@ -1253,6 +1263,12 @@ export function useBackingTrackEngine() {
     practiceRef.current = { ...practiceRef.current, ...config }
   }, [])
 
+  // ── Count-in toggle ──────────────────────────────────────────────────────────
+  const setCountIn = useCallback((enabled) => {
+    setCountInEnabled(enabled)
+    countInRef.current = enabled
+  }, [])
+
   // ── Cleanup ──────────────────────────────────────────────────────────────────
   useEffect(() => () => stop(), [stop])
 
@@ -1278,5 +1294,7 @@ export function useBackingTrackEngine() {
     setPracticeConfig,
     playbackPhase,
     activePartName,
+    countInEnabled,
+    setCountIn,
   }
 }
