@@ -11,7 +11,7 @@
  *   SFP.noteOff(0, 60)
  */
 
-import { Synthesizer } from 'js-synthesizer'
+import { Synthesizer, AudioWorkletNodeSynthesizer } from 'js-synthesizer'
 
 // בdev: Vite middleware מגיש מהמחשב המקומי
 // בproduction: Vercel Blob URL מתוך env variable
@@ -88,6 +88,12 @@ let _audioCtx = null
 let _audioNode = null
 let _sfontId = null
 let _initPromise = null
+let _useWorklet = false
+
+// ---- Crackling detector ----
+let _analyser = null
+let _cracklingInterval = null
+let _prevSamples = null
 
 function loadFluidSynthScript() {
   if (window.__fluidSynthLoaded) return Promise.resolve()
@@ -157,19 +163,44 @@ export async function init(onProgress) {
       // 2. AudioContext
       _audioCtx = new AudioContext()
 
-      // 3. אתחול synth
-      _synth = new Synthesizer()
-      _synth.init(_audioCtx.sampleRate)
+      // Reverb settings for both paths
+      const reverbSettings = {
+        reverbActive: true,
+        reverbRoomSize: 0.4,
+        reverbDamp: 0.4,
+        reverbWidth: 0.5,
+        reverbLevel: 0.3,
+      }
 
-      // 4. חיבור ל-AudioContext
-      _audioNode = _synth.createAudioNode(_audioCtx, 256)
-      _audioNode.connect(_audioCtx.destination)
+      // 3. Try AudioWorklet first (synthesis off main thread = no crackling)
+      try {
+        onProgress?.('טוען AudioWorklet...', 3)
+        await _audioCtx.audioWorklet.addModule(FLUIDSYNTH_SCRIPT_URL)
+        await _audioCtx.audioWorklet.addModule('/js-synthesizer.worklet.min.js')
 
-      // 5. הגדרות reverb סטנדרטיות
-      _synth.setReverb(0.4, 0.4, 0.5, 0.3)
-      _synth.setReverbOn(true)
+        _synth = new AudioWorkletNodeSynthesizer()
+        _synth.init(_audioCtx.sampleRate, reverbSettings)
+        _audioNode = _synth.createAudioNode(_audioCtx)
+        _useWorklet = true
+        console.log('[SFP] Using AudioWorklet — synthesis off main thread')
+      } catch (workletErr) {
+        // Fallback: ScriptProcessorNode with larger buffer
+        console.warn('[SFP] AudioWorklet failed, falling back to ScriptProcessor:', workletErr.message)
+        _synth = new Synthesizer()
+        _synth.init(_audioCtx.sampleRate)
+        _audioNode = _synth.createAudioNode(_audioCtx, 1024)
+        _synth.setReverb(0.4, 0.4, 0.5, 0.3)
+        _synth.setReverbOn(true)
+        _useWorklet = false
+      }
 
-      // 6. טעינת SF2 — מ-cache אם יש, אחרת הורדה ושמירה
+      // 4. Connect through AnalyserNode for crackling detection
+      _analyser = _audioCtx.createAnalyser()
+      _analyser.fftSize = 2048
+      _audioNode.connect(_analyser)
+      _analyser.connect(_audioCtx.destination)
+
+      // 5. טעינת SF2 — מ-cache אם יש, אחרת הורדה ושמירה
       onProgress?.('בודק cache...', 5)
       let sf2Buffer = await getFromCache()
 
@@ -189,7 +220,7 @@ export async function init(onProgress) {
       onProgress?.('מאתחל instruments...', 95)
       _sfontId = await _synth.loadSFont(sf2Buffer)
 
-      // 7. הגדרת channels ראשוניים
+      // 6. הגדרת channels ראשוניים
       _synth.midiSetChannelType(CHANNELS.DRUMS, true)
 
       // Piano
@@ -262,14 +293,56 @@ export function setGain(gain) {
   _synth?.setGain(gain)
 }
 
+// ---- Crackling Detection ----
+
+/** Start monitoring audio for crackling (logs to console) */
+export function startCracklingMonitor() {
+  if (!_analyser || _cracklingInterval) return
+  const bufLen = _analyser.fftSize
+  _prevSamples = new Float32Array(bufLen)
+  let totalClicks = 0
+
+  _cracklingInterval = setInterval(() => {
+    const samples = new Float32Array(bufLen)
+    _analyser.getFloatTimeDomainData(samples)
+
+    // Detect sudden amplitude jumps (clicks/pops)
+    let clicksThisFrame = 0
+    for (let i = 1; i < bufLen; i++) {
+      const delta = Math.abs(samples[i] - samples[i - 1])
+      if (delta > 0.3) clicksThisFrame++
+    }
+
+    totalClicks += clicksThisFrame
+    if (clicksThisFrame > 0) {
+      console.warn(`[SFP Crackling] ${clicksThisFrame} clicks detected (total: ${totalClicks})`)
+    }
+  }, 500)
+
+  console.log('[SFP] Crackling monitor started')
+}
+
+/** Stop monitoring */
+export function stopCracklingMonitor() {
+  if (_cracklingInterval) {
+    clearInterval(_cracklingInterval)
+    _cracklingInterval = null
+    _prevSamples = null
+    console.log('[SFP] Crackling monitor stopped')
+  }
+}
+
 /** ניקוי מלא */
 export function destroy() {
+  stopCracklingMonitor()
   if (_synth) {
     _synth.midiAllSoundsOff()
     _synth.close()
     _synth = null
   }
   _audioNode = null
+  _analyser = null
   _sfontId = null
   _initPromise = null
+  _useWorklet = false
 }

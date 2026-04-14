@@ -955,6 +955,7 @@ export function useBackingTrackEngine() {
    */
   const stop = useCallback((hard = false) => {
     engineRef.current?.stop(hard)
+    SFP.stopCracklingMonitor()
     if (hard || !isPlayingRef.current) {
       // Immediate UI reset
       setIsPlaying(false)
@@ -1083,6 +1084,7 @@ export function useBackingTrackEngine() {
       }
 
       await engine.play()
+      SFP.startCracklingMonitor()
       setIsPlaying(true)
       isPlayingRef.current = true
     } catch (err) {
