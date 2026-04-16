@@ -6,6 +6,7 @@ import { ChordPickerModal }       from './ChordPickerModal.jsx'
 import { Mixer }                  from './Mixer.jsx'
 import LiveFretboard              from './LiveFretboard.jsx'
 import { PresetLibrary }          from './PresetLibrary.jsx'
+import { MyProgressions }         from './MyProgressions.jsx'
 
 const LAYOUT_OPTIONS = [3, 4, 6, 8]
 const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
@@ -217,7 +218,7 @@ export function BackingPlayer() {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops,
-    setGenre, setBarCount, loadPreset, loadJazzPreset,
+    setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression,
     setChord, previewChord,
     setVolume,
     currentChordSymbol, currentBeat, beatsPerBar,
@@ -298,6 +299,10 @@ export function BackingPlayer() {
       <div className="bp-toolbar" onClick={e => e.stopPropagation()}>
         <div className="bp-toolbar-left">
           <PresetLibrary onLoadPreset={loadJazzPreset} />
+          <MyProgressions
+            currentState={{ chords, tempo, genre, selectedKey, barCount }}
+            onLoadProgression={loadSavedProgression}
+          />
           <button className="bp-icon-btn" onClick={loadPreset} title="Load genre preset">↺</button>
         </div>
         <div className="bp-toolbar-right">

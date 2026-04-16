@@ -1,0 +1,189 @@
+/* ═══════════════════════════════════════════════════════
+   My Progressions — saved user chord progressions
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Toggle button (mirrors .preset-lib-toggle) ── */
+.my-prog-toggle {
+  background: var(--bg-chart, #ffffff);
+  color: var(--accent, #1565c0);
+  border: 1px solid var(--border, #c0d0e0);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.my-prog-toggle:hover { background: var(--bg-hover, #d5e5f2); }
+.my-prog-toggle.open  { background: var(--bg-active, #c5ddf0); border-color: var(--accent, #1565c0); }
+
+/* ── Panel ── */
+.my-prog-panel {
+  background: var(--bg-chart, #ffffff);
+  border: 1px solid var(--border, #c0d0e0);
+  border-radius: 10px;
+  margin-top: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.08));
+  animation: my-prog-slide-down 0.18s ease;
+  position: absolute;
+  z-index: 61;
+  left: 8px;
+  right: 8px;
+  top: 100%;
+}
+
+@keyframes my-prog-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ── */
+.my-prog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.my-prog-title {
+  color: var(--text-primary, #1a3a5c);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.my-prog-save-btn {
+  background: var(--accent, #1565c0);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.my-prog-save-btn:hover { background: #1256a0; }
+
+/* ── Save dialog ── */
+.my-prog-save-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.my-prog-save-input {
+  flex: 1;
+  background: var(--bg-surface, #eef4fa);
+  border: 1px solid var(--border, #c0d0e0);
+  border-radius: 6px;
+  color: var(--text-primary, #1a3a5c);
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  outline: none;
+}
+.my-prog-save-input::placeholder { color: var(--text-muted, #8a9ab0); }
+.my-prog-save-input:focus { border-color: var(--accent, #1565c0); }
+
+.my-prog-confirm-btn {
+  background: var(--accent, #1565c0);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.my-prog-confirm-btn:hover { background: #1256a0; }
+.my-prog-confirm-btn:disabled { opacity: 0.5; cursor: default; }
+
+.my-prog-cancel-btn {
+  background: var(--bg-surface, #eef4fa);
+  color: var(--text-secondary, #5a7a9a);
+  border: 1px solid var(--border, #c0d0e0);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.my-prog-cancel-btn:hover { background: var(--bg-hover, #d5e5f2); }
+
+/* ── List ── */
+.my-prog-list {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 2px;
+}
+.my-prog-list::-webkit-scrollbar { width: 5px; }
+.my-prog-list::-webkit-scrollbar-track { background: transparent; }
+.my-prog-list::-webkit-scrollbar-thumb { background: var(--border, #c0d0e0); border-radius: 3px; }
+
+/* ── Item ── */
+.my-prog-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+.my-prog-item:hover {
+  background: var(--bg-hover, #d5e5f2);
+  border-color: var(--border, #c0d0e0);
+}
+
+.my-prog-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.my-prog-item-title {
+  color: var(--text-primary, #1a3a5c);
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.my-prog-item-meta {
+  color: var(--text-muted, #8a9ab0);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.my-prog-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #8a9ab0);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.my-prog-delete-btn:hover { color: #c62828; }
+
+.my-prog-empty {
+  color: var(--text-muted, #8a9ab0);
+  text-align: center;
+  padding: 20px;
+  font-size: 0.82rem;
+}

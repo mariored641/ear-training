@@ -1221,6 +1221,41 @@ export function useBackingTrackEngine() {
     if (wasPlaying) setTimeout(() => play(), 100)
   }, [stop, play])
 
+  // ── Load saved user progression ──────────────────────────────────────────────
+  const loadSavedProgression = useCallback((prog) => {
+    const wasPlaying = isPlayingRef.current
+    if (wasPlaying) stop()
+
+    // Set genre directly (no auto-switching)
+    if (prog.genre) {
+      setGenreState(prog.genre)
+      genreRef.current = prog.genre
+    }
+
+    // Deep-copy chords
+    const newChords = prog.chords.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
+    setChordsState(newChords)
+    chordsRef.current = newChords
+    setBarCountState(newChords.length)
+    barCountRef.current = newChords.length
+
+    // Tempo
+    if (prog.tempo) {
+      setTempoState(prog.tempo)
+      tempoRef.current = prog.tempo
+      engineRef.current?.setTempo(prog.tempo)
+    }
+
+    // Key
+    if (prog.key) {
+      const { root, type } = prog.key
+      setSelectedKeyState({ root, type })
+      selectedKeyRef.current = { root, type }
+    }
+
+    if (wasPlaying) setTimeout(() => play(), 100)
+  }, [stop, play])
+
   // ── Set individual chord ─────────────────────────────────────────────────────
   const setChord = useCallback((barIndex, chord) => {
     setChordsState(prev => {
@@ -1279,7 +1314,7 @@ export function useBackingTrackEngine() {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops,
-    setGenre, setBarCount, loadPreset, loadJazzPreset,
+    setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression,
     setChord, previewChord,
     setVolume,
     initPlayer: () => {},  // backward-compat no-op
