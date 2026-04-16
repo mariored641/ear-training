@@ -35,6 +35,7 @@ const AllScalesTab = () => {
   const [colorPickerNote, setColorPickerNote] = useState(null);
   const [fretRangeStart, setFretRangeStart] = useState(null);
   const [fretRangeEnd, setFretRangeEnd]     = useState(null);
+  const [activeStrings, setActiveStrings]   = useState(null); // Set<number> | null
   const [overlays, setOverlays]             = useState([]);      // chord overlays
 
   // ── Scale/Chord selector ────────────────────────────────────
@@ -111,6 +112,17 @@ const AllScalesTab = () => {
     setFretRangeEnd(null);
   }, []);
 
+  // ── String filter ────────────────────────────────────────────
+  const handleStringClick = useCallback((stringNum) => {
+    setActiveStrings(prev => {
+      if (!prev) return new Set([stringNum]);
+      const next = new Set(prev);
+      if (next.has(stringNum)) next.delete(stringNum);
+      else next.add(stringNum);
+      return next.size === 0 || next.size === 6 ? null : next;
+    });
+  }, []);
+
   // ── Chord overlays ───────────────────────────────────────────
   const addOverlay = useCallback(() => {
     if (overlays.length >= MAX_OVERLAYS) return;
@@ -157,9 +169,11 @@ const AllScalesTab = () => {
         fretRangeEnd={fretRangeEnd}
         chordOverlays={computedOverlays}
         displayMode={displayMode}
+        activeStrings={activeStrings}
         onNoteClick={handleNoteClick}
         onNoteLongPress={handleNoteLongPress}
         onFretClick={handleFretClick}
+        onStringClick={handleStringClick}
       />
 
       {/* Controls */}

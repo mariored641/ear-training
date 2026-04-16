@@ -30,6 +30,7 @@ export default function LiveFretboard({ chords, currentBar, currentChordSymbol, 
   const [polyscaleMap, setPolyscaleMap] = useState({}); // { barIndex: { scaleId, root } }
   const [fretRangeStart, setFretRangeStart] = useState(null);
   const [fretRangeEnd, setFretRangeEnd] = useState(null);
+  const [activeStrings, setActiveStrings] = useState(null);
 
   // Which bar/symbol to display (playing = current, stopped = bar 0)
   const displayBar = isPlaying ? currentBar : 0;
@@ -96,6 +97,16 @@ export default function LiveFretboard({ chords, currentBar, currentChordSymbol, 
     setFretRangeEnd(null);
   }, []);
 
+  const handleStringClick = useCallback((stringNum) => {
+    setActiveStrings(prev => {
+      if (!prev) return new Set([stringNum]);
+      const next = new Set(prev);
+      if (next.has(stringNum)) next.delete(stringNum);
+      else next.add(stringNum);
+      return next.size === 0 || next.size === 6 ? null : next;
+    });
+  }, []);
+
   // Update polyscale entry for a bar
   const setPolyField = useCallback((barIndex, field, value) => {
     setPolyscaleMap(prev => ({
@@ -142,9 +153,11 @@ export default function LiveFretboard({ chords, currentBar, currentChordSymbol, 
             fretRangeEnd={fretRangeEnd}
             chordOverlays={chordOverlays}
             displayMode={displayMode}
+            activeStrings={activeStrings}
             onNoteClick={() => {}}
             onNoteLongPress={() => {}}
             onFretClick={handleFretClick}
+            onStringClick={handleStringClick}
           />
 
           {/* Controls bar */}

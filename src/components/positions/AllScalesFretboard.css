@@ -114,9 +114,38 @@
   color: #5a5a7a;
   font-weight: 600;
   position: absolute;
-  left: 4px;
-  pointer-events: none;
+  left: 0;
+  width: 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   user-select: none;
+  background: none;
+  border: none;
+  padding: 0;
+  z-index: 3;
+  transition: color 0.15s ease;
+}
+
+.asf-string-label.active {
+  color: #ccd;
+}
+
+.asf-string-label:hover {
+  color: #aab;
+}
+
+/* Dimmed string rows — dim content but keep label clickable */
+.asf-string-row.string-dimmed .asf-string-line,
+.asf-string-row.string-dimmed .asf-fret-line,
+.asf-string-row.string-dimmed .asf-note {
+  opacity: 0.15;
+}
+
+.asf-string-row.string-dimmed .asf-nut-cell::after {
+  opacity: 0.15;
 }
 
 /* Fret cells */

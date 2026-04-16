@@ -27,9 +27,11 @@ const AllScalesFretboard = ({
   fretRangeEnd,        // number | null
   chordOverlays,       // [{ id, notesSet: Set, color }]
   displayMode,         // 'dots' | 'notes' | 'degrees'
+  activeStrings,       // Set<number> | null  (null = all visible)
   onNoteClick,
   onNoteLongPress,
   onFretClick,
+  onStringClick,       // (stringNum) => void
 }) => {
   const timers = useRef({});
   const longPressed = useRef({});
@@ -124,6 +126,11 @@ const AllScalesFretboard = ({
     return { boxShadow: shadows.join(', ') };
   }, [chordOverlays]);
 
+  const isStringDimmed = useCallback((stringNum) => {
+    if (!activeStrings) return false;
+    return !activeStrings.has(stringNum);
+  }, [activeStrings]);
+
   const fretNumbers = useMemo(() => Array.from({ length: frets + 1 }, (_, i) => i), []);
   const strings = [1, 2, 3, 4, 5, 6];
 
@@ -188,6 +195,8 @@ const AllScalesFretboard = ({
       ? { backgroundColor: highlightColor, color: '#1a1a2e', ...(ringStyle || {}) }
       : ringStyle || undefined;
 
+    const stringActive = !activeStrings || activeStrings.has(stringNum);
+
     return (
       <div
         className={`asf-nut-cell${dimmed ? ' dimmed' : ''}`}
@@ -197,7 +206,14 @@ const AllScalesFretboard = ({
         onPointerLeave={() => handlePL(key)}
         onContextMenu={(e) => { e.preventDefault(); if (isActive) onNoteLongPress(noteName); }}
       >
-        <div className="asf-string-label">{STRING_TUNING[stringNum - 1]}</div>
+        <button
+          className={`asf-string-label${stringActive ? ' active' : ''}`}
+          onClick={(e) => { e.stopPropagation(); onStringClick?.(stringNum); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+        >
+          {STRING_TUNING[stringNum - 1]}
+        </button>
         <div className={noteClasses} style={noteStyle}>
           {(isActive || isChordOnly) ? getLabel(noteName) : ''}
         </div>
@@ -237,7 +253,7 @@ const AllScalesFretboard = ({
 
         {/* Strings */}
         {strings.map(stringNum => (
-          <div key={stringNum} className="asf-string-row">
+          <div key={stringNum} className={`asf-string-row${isStringDimmed(stringNum) ? ' string-dimmed' : ''}`}>
             {renderNutCell(stringNum)}
             {fretNumbers.slice(1).map(fret => renderCell(stringNum, fret))}
           </div>
