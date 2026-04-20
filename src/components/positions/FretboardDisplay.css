@@ -19,13 +19,13 @@
   flex: 0 0 60px;
   text-align: center;
   font-size: 11px;
-  color: #5a5a7a;
+  color: #a0a0a0;
   padding-bottom: 4px;
   font-weight: 500;
 }
 
 .fret-number.marked {
-  color: #8a8aaa;
+  color: #757575;
   font-weight: 700;
 }
 
@@ -62,7 +62,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #3a3a5a;
+  background-color: #cccccc;
 }
 
 .marker-dot.double {
@@ -104,7 +104,7 @@
 
 .string-label {
   font-size: 11px;
-  color: #5a5a7a;
+  color: #a0a0a0;
   font-weight: 600;
   position: absolute;
   left: 4px;
@@ -183,7 +183,7 @@
 
 .fretboard-note.scale-tone {
   background-color: #95A5A6;
-  color: #1a1a2e;
+  color: #f5f5f5;
 }
 
 .fretboard-note.major-root {

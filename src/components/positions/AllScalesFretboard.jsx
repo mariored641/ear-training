@@ -5,7 +5,7 @@ import './AllScalesFretboard.css';
 
 const { frets, positionMarkers, doubleMarkers } = FRETBOARD_CONFIG;
 const LONG_PRESS_MS = 500;
-const BG = '#1a1a2e';
+const BG = '#f5f5f5';
 
 const RING_SLOTS = [
   { color: 4, bg: 0 },

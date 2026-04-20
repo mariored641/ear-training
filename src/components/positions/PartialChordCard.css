@@ -1,0 +1,114 @@
+.pcc-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 160px;
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.pcc-card:hover {
+  border-color: #cccccc;
+}
+
+.pcc-card-active {
+  border-color: #3498DB;
+  box-shadow: 0 0 12px rgba(52, 152, 219, 0.35);
+}
+
+.pcc-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #757575;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcc-remove:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #212121;
+}
+
+.pcc-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #212121;
+  letter-spacing: 0.5px;
+}
+
+.pcc-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #424242;
+  min-height: 22px;
+}
+
+.pcc-nav-label {
+  min-width: 68px;
+  text-align: center;
+}
+
+.pcc-nav-label b {
+  color: #3498DB;
+}
+
+.pcc-arrow {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #cccccc;
+  background: #eeeeee;
+  color: #212121;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcc-arrow:hover {
+  border-color: #3498DB;
+  color: #3498DB;
+}
+
+.pcc-diagram {
+  width: 130px;
+  height: auto;
+  display: block;
+}
+
+.pcc-tones {
+  font-size: 12px;
+  color: #212121;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  background: rgba(52, 152, 219, 0.12);
+  border-radius: 4px;
+  text-align: center;
+  min-width: 100px;
+}

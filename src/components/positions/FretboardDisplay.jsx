@@ -21,7 +21,7 @@ const PENTATONIC_DEGREES = {
 //
 // For multiple rings, list innermost pair first (drawn on top of outer ones).
 // RING_SLOTS[0] = first selected arpeggio = innermost ring (smallest spread).
-const BG = '#1a1a2e'; // must match the page background color
+const BG = '#f5f5f5'; // must match the page background color
 const RING_SLOTS = [
   { color: 3, bg: 0 },   // innermost: 0-3px band (no bg hole needed — note itself is the hole)
   { color: 6, bg: 3 },   // middle:    3-6px band (bg at 3px punches hole inside)
