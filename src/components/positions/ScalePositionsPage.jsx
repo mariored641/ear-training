@@ -6,6 +6,7 @@ import ArpeggioOptionsBar from './ArpeggioOptionsBar';
 import FretboardDisplay from './FretboardDisplay';
 import QuickReferencePopup from './QuickReferencePopup';
 import AllScalesTab from './AllScalesTab';
+import PartialChordsTab from './PartialChordsTab';
 import { generateFretboardNotes } from '../../utils/positionCalculations';
 import './ScalePositionsPage.css';
 
@@ -26,6 +27,10 @@ const ScalePositionsPage = () => {
   // Arpeggio tab state
   const [activeArpeggios, setActiveArpeggios] = useState([]);
   const [hideRoots, setHideRoots] = useState(false);
+
+  // Partial Chords tab state
+  const [partialChordsProgression, setPartialChordsProgression] = useState([]);
+  const [activePartialChordIdx, setActivePartialChordIdx] = useState(0);
 
   const fretboardNotes = useMemo(
     () => generateFretboardNotes(selectedRoot, selectedType, selectedPositions, showAll),
@@ -116,6 +121,12 @@ const ScalePositionsPage = () => {
         >
           All Scales
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'partialchords' ? 'active' : ''}`}
+          onClick={() => handleTabChange('partialchords')}
+        >
+          Partial Chords
+        </button>
       </div>
 
       {/* Content */}
@@ -175,6 +186,15 @@ const ScalePositionsPage = () => {
       )}
 
       {activeTab === 'allscales' && <AllScalesTab />}
+
+      {activeTab === 'partialchords' && (
+        <PartialChordsTab
+          progression={partialChordsProgression}
+          onProgressionChange={setPartialChordsProgression}
+          activeIdx={activePartialChordIdx}
+          onActiveIdxChange={setActivePartialChordIdx}
+        />
+      )}
 
       {/* Quick Reference Popup */}
       {isQuickRefOpen && (
