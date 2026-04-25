@@ -160,6 +160,33 @@ class AudioPlayer {
   }
 
   /**
+   * Play an ascending scale from a tonic.
+   * Used by M3 (scale identification).
+   * @param {string} scaleName - key into allScalesData (e.g. 'major', 'dorian')
+   * @param {string} tonic - root note (e.g. 'C')
+   * @param {number} tempo - BPM (default 140)
+   * @param {string} octave - starting octave (default '4')
+   */
+  async playScaleAscending(scaleName, tonic = 'C', tempo = 140, octave = 4) {
+    const { SCALE_INTERVALS } = await import('../constants/scaleQualities.js');
+    const intervals = SCALE_INTERVALS[scaleName];
+    if (!intervals?.length) {
+      console.warn('[AudioPlayer] Scale not found:', scaleName);
+      return;
+    }
+    const PC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const tonicPc = PC.indexOf(tonic);
+    if (tonicPc < 0) return;
+    const notes = intervals.map(iv => {
+      const pc = (tonicPc + iv) % 12;
+      const oct = octave + Math.floor((tonicPc + iv) / 12);
+      return PC[pc] + oct;
+    });
+    notes.push(PC[tonicPc] + (octave + 1));
+    return this.playSequence(notes, tempo);
+  }
+
+  /**
    * Stop all audio
    */
   stop() {

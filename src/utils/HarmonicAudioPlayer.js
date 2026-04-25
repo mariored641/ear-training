@@ -1,4 +1,15 @@
 import * as Tone from 'tone';
+import { EXTENDED_CHORDS, CHORD_DEFINITIONS, getInversion, getChordWithTensions } from '../constants/harmonicDefaults';
+import { getCadence } from '../constants/cadenceDefinitions';
+
+function resolveChordNotes(chord) {
+  if (Array.isArray(chord)) return chord;
+  if (typeof chord === 'string') {
+    if (CHORD_DEFINITIONS[chord]) return CHORD_DEFINITIONS[chord];
+    if (EXTENDED_CHORDS[chord]) return EXTENDED_CHORDS[chord].notes;
+  }
+  return null;
+}
 
 /**
  * Audio player for harmonic exercises (4A, 4B, 4C)
@@ -237,6 +248,95 @@ class HarmonicAudioPlayer {
       this.sampler.triggerAttackRelease(note, noteDuration * 0.9, currentTime);
       currentTime += noteDuration;
     });
+  }
+
+  /**
+   * Play a cadence (PAC, IAC, HC, Plagal, Deceptive) in any key/mode.
+   * @param {string} type - 'PAC' | 'IAC' | 'HC' | 'Plagal' | 'Deceptive'
+   * @param {string} tonic - 'C', 'D', etc.
+   * @param {string} instrument - 'piano' | 'guitar' (already-loaded instrument is used)
+   * @param {string} mode - 'major' | 'minor'
+   * @param {number} chordDuration - seconds per chord
+   * @returns {Promise<void>}
+   */
+  async playCadence(type = 'PAC', tonic = 'C', instrument = null, mode = 'major', chordDuration = 1.2) {
+    if (!this.initialized) await this.init();
+    if (instrument && instrument !== this.instrument) {
+      await this.setInstrument(instrument);
+    }
+    const chordNames = getCadence(type, tonic, mode);
+    let t = Tone.now();
+    chordNames.forEach((name, i) => {
+      const notes = resolveChordNotes(name);
+      if (!notes) return;
+      this.playChord(notes, chordDuration, 'strummed', t);
+      t += chordDuration + 0.05;
+    });
+    const total = chordNames.length * (chordDuration + 0.05);
+    return new Promise(res => setTimeout(res, total * 1000));
+  }
+
+  /**
+   * Play a chord in a specific inversion.
+   * @param {string} chordName - chord symbol from EXTENDED_CHORDS
+   * @param {number} inversion - 0..3
+   * @param {object} opts - { voicing, duration, instrument }
+   */
+  async playInversion(chordName, inversion = 0, { voicing = 'strummed', duration = 1.5, instrument = null } = {}) {
+    if (!this.initialized) await this.init();
+    if (instrument && instrument !== this.instrument) {
+      await this.setInstrument(instrument);
+    }
+    const notes = getInversion(chordName, inversion);
+    if (!notes) return;
+    this.playChord(notes, duration, voicing);
+  }
+
+  /**
+   * Play a progression with one voice emphasized (louder, distinct timbre).
+   * @param {Array} progression - [{ chord, bass, soprano }, ...]
+   * @param {string} voice - 'bass' | 'soprano'
+   * @param {object} opts - { chordDuration, instrument }
+   */
+  async playWithEmphasis(progression, voice = 'bass', { chordDuration = 1.4, instrument = null } = {}) {
+    if (!this.initialized) await this.init();
+    if (instrument && instrument !== this.instrument) {
+      await this.setInstrument(instrument);
+    }
+    if (!progression?.length) return;
+    let t = Tone.now();
+    progression.forEach(item => {
+      const notes = resolveChordNotes(item.chord) || resolveChordNotes(item.notes);
+      if (!notes) return;
+      // Play full chord softly via piano sampler
+      if (this.pianoSampler) {
+        notes.forEach(n => this.pianoSampler.triggerAttackRelease(n, chordDuration, t, 0.35));
+      }
+      // Emphasize bass / soprano via main sampler (louder)
+      const target = voice === 'bass' ? item.bass : item.soprano;
+      if (target && this.sampler) {
+        this.sampler.triggerAttackRelease(target, chordDuration, t, 0.95);
+      }
+      t += chordDuration + 0.05;
+    });
+    const total = progression.length * (chordDuration + 0.05);
+    return new Promise(res => setTimeout(res, total * 1000));
+  }
+
+  /**
+   * Play a chord with optional tensions stacked on top.
+   * @param {string} rootChord - chord symbol (e.g. 'C7')
+   * @param {string[]} tensions - ['9','b9','#11', ...]
+   * @param {object} opts - { duration, voicing, instrument }
+   */
+  async playWithTensions(rootChord, tensions = [], { duration = 2.0, voicing = 'strummed', instrument = null } = {}) {
+    if (!this.initialized) await this.init();
+    if (instrument && instrument !== this.instrument) {
+      await this.setInstrument(instrument);
+    }
+    const notes = getChordWithTensions(rootChord, tensions);
+    if (!notes) return;
+    this.playChord(notes, duration, voicing);
   }
 
   /**

@@ -7,6 +7,37 @@ const MelodicCategoryScreen = React.lazy(() => import('./components/category/Mel
 const HarmonicCategoryScreen = React.lazy(() => import('./components/category/HarmonicCategoryScreen'));
 const DictationCategoryScreen = React.lazy(() => import('./components/category/DictationCategoryScreen'));
 
+// Ear-Training Hub + 6 Sub-Screens (new unified navigation)
+const EarTrainingHub = React.lazy(() => import('./components/ear-training/hub/EarTrainingHub'));
+const MelodicSubScreen = React.lazy(() => import('./components/ear-training/melodic/MelodicSubScreen'));
+const HarmonicIsolatedSubScreen = React.lazy(() => import('./components/ear-training/harmonic-isolated/HarmonicIsolatedSubScreen'));
+const FunctionalSubScreen = React.lazy(() => import('./components/ear-training/functional/FunctionalSubScreen'));
+const VoiceLeadingSubScreen = React.lazy(() => import('./components/ear-training/voice-leading/VoiceLeadingSubScreen'));
+const SolfegeSubScreen = React.lazy(() => import('./components/ear-training/solfege/SolfegeSubScreen'));
+const GuitarSubScreen = React.lazy(() => import('./components/ear-training/guitar/GuitarSubScreen'));
+const ExercisePlaceholder = React.lazy(() => import('./components/ear-training/shared/ExercisePlaceholder'));
+
+// Phase 3 — upgraded exercises with new UI/levels
+const ExerciseM1 = React.lazy(() => import('./components/ear-training/melodic/ExerciseM1'));
+const ExerciseG1 = React.lazy(() => import('./components/ear-training/guitar/ExerciseG1'));
+const ExerciseH1 = React.lazy(() => import('./components/ear-training/harmonic-isolated/ExerciseH1'));
+const ExerciseH4 = React.lazy(() => import('./components/ear-training/harmonic-isolated/ExerciseH4'));
+const ExerciseF2 = React.lazy(() => import('./components/ear-training/functional/ExerciseF2'));
+
+// Phase 4 — new exercises
+const ExerciseM2 = React.lazy(() => import('./components/ear-training/melodic/ExerciseM2'));
+const ExerciseM3 = React.lazy(() => import('./components/ear-training/melodic/ExerciseM3'));
+const ExerciseH2 = React.lazy(() => import('./components/ear-training/harmonic-isolated/ExerciseH2'));
+const ExerciseH3 = React.lazy(() => import('./components/ear-training/harmonic-isolated/ExerciseH3'));
+const ExerciseF0 = React.lazy(() => import('./components/ear-training/functional/ExerciseF0'));
+const ExerciseF1 = React.lazy(() => import('./components/ear-training/functional/ExerciseF1'));
+const ExerciseF3 = React.lazy(() => import('./components/ear-training/functional/ExerciseF3'));
+const ExerciseF4 = React.lazy(() => import('./components/ear-training/functional/ExerciseF4'));
+const ExerciseV1 = React.lazy(() => import('./components/ear-training/voice-leading/ExerciseV1'));
+const ExerciseV2 = React.lazy(() => import('./components/ear-training/voice-leading/ExerciseV2'));
+const ExerciseS1 = React.lazy(() => import('./components/ear-training/solfege/ExerciseS1'));
+const ExerciseS2 = React.lazy(() => import('./components/ear-training/solfege/ExerciseS2'));
+
 // Lazy load exercises
 const Exercise1 = React.lazy(() => import('./components/exercise1/Exercise1'));
 const Exercise2 = React.lazy(() => import('./components/exercise2/Exercise2'));
@@ -40,10 +71,41 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
 
-          {/* Category Screens */}
+          {/* Category Screens (legacy — kept as fallback during ear-training refactor) */}
           <Route path="/category/melodic" element={<MelodicCategoryScreen />} />
           <Route path="/category/harmonic" element={<HarmonicCategoryScreen />} />
           <Route path="/category/dictation" element={<DictationCategoryScreen />} />
+
+          {/* Ear-Training Hub + Sub-Screens (new unified navigation) */}
+          <Route path="/category/ear-training" element={<EarTrainingHub />} />
+          <Route path="/category/ear-training/melodic" element={<MelodicSubScreen />} />
+          <Route path="/category/ear-training/harmonic-isolated" element={<HarmonicIsolatedSubScreen />} />
+          <Route path="/category/ear-training/functional" element={<FunctionalSubScreen />} />
+          <Route path="/category/ear-training/voice-leading" element={<VoiceLeadingSubScreen />} />
+          <Route path="/category/ear-training/solfege" element={<SolfegeSubScreen />} />
+          <Route path="/category/ear-training/guitar" element={<GuitarSubScreen />} />
+
+          {/* Phase-1 placeholders for the 17 ear-training exercises */}
+          {/* Phase 3: upgraded exercises with new UI */}
+          <Route path="/exercise/M1" element={<ExerciseM1 />} />
+          <Route path="/exercise/G1" element={<ExerciseG1 />} />
+          <Route path="/exercise/H1" element={<ExerciseH1 />} />
+          <Route path="/exercise/H4" element={<ExerciseH4 />} />
+          <Route path="/exercise/F2" element={<ExerciseF2 />} />
+
+          {/* Phase 4: 12 new exercises (minimal working implementations) */}
+          <Route path="/exercise/M2" element={<ExerciseM2 />} />
+          <Route path="/exercise/M3" element={<ExerciseM3 />} />
+          <Route path="/exercise/H2" element={<ExerciseH2 />} />
+          <Route path="/exercise/H3" element={<ExerciseH3 />} />
+          <Route path="/exercise/F0" element={<ExerciseF0 />} />
+          <Route path="/exercise/F1" element={<ExerciseF1 />} />
+          <Route path="/exercise/F3" element={<ExerciseF3 />} />
+          <Route path="/exercise/F4" element={<ExerciseF4 />} />
+          <Route path="/exercise/V1" element={<ExerciseV1 />} />
+          <Route path="/exercise/V2" element={<ExerciseV2 />} />
+          <Route path="/exercise/S1" element={<ExerciseS1 />} />
+          <Route path="/exercise/S2" element={<ExerciseS2 />} />
 
           {/* Melodic Exercises */}
           <Route path="/exercise/1" element={<Exercise1 />} />

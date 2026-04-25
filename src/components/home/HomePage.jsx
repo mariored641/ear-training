@@ -78,20 +78,12 @@ const HomePage = () => {
 
   const categories = [
     {
-      id: 'melodic',
-      icon: '🎵',
-      title: 'Melodic Ear Training',
-      titleHebrew: 'חטיבת שמיעה מלודית',
-      description: 'Develop relative pitch and fretboard mapping skills',
-      numExercises: 2
-    },
-    {
-      id: 'harmonic',
-      icon: '🎹',
-      title: 'Harmonic Ear Training',
-      titleHebrew: 'חטיבת שמיעה הרמונית',
-      description: 'Develop chord recognition and harmonic hearing',
-      numExercises: 3
+      id: 'ear-training',
+      icon: '👂',
+      title: 'Musical Ear Training',
+      titleHebrew: 'חטיבת שמיעה מוזיקלית',
+      description: 'מלודיה, הרמוניה, סולפז\' וגיטרה — 17 תרגילים ב-6 תת-חטיבות',
+      numExercises: 17
     },
     {
       id: 'rhythm',
@@ -136,7 +128,9 @@ const HomePage = () => {
   ];
 
   const handleEnterCategory = (categoryId) => {
-    if (categoryId === 'rhythm') {
+    if (categoryId === 'ear-training') {
+      navigate('/category/ear-training');
+    } else if (categoryId === 'rhythm') {
       // Existing Rhythm Explorer
       navigate('/exercise/4');
     } else if (categoryId === 'dictation') {
@@ -149,7 +143,7 @@ const HomePage = () => {
     } else if (categoryId === 'feedback') {
       navigate('/feedback');
     } else {
-      // Other categories go to their category screens
+      // Legacy fallback for /category/melodic and /category/harmonic
       navigate(`/category/${categoryId}`);
     }
   };
