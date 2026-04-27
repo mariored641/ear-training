@@ -182,6 +182,25 @@ export class BackingTrackEngine {
     SFP.setGain(gain)
   }
 
+  /**
+   * Per-channel volume via MIDI CC#7.
+   * @param {number} channel  output MIDI channel (0=Piano, 1=Bass, 2=Guitar, 3=Pad, 4=Melody, 9=Drums)
+   * @param {number} gain     0..1
+   */
+  setChannelVolume(channel, gain) {
+    SFP.setChannelVolume(channel, gain)
+  }
+
+  /** Currently loaded style (for UI introspection — which AccTypes are active). */
+  getStyle() {
+    return this._style
+  }
+
+  /** Currently active StylePart name (e.g. 'Main_A', 'Fill_In_AA'). */
+  getActivePartName() {
+    return this._partName
+  }
+
   /** Skip the style's Intro part on play() (when external count-in is used). */
   setSkipIntro(skip) {
     this._skipIntro = !!skip

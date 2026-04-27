@@ -804,17 +804,40 @@ function chordObjToLabel(chord) {
   return `${root}${display}`
 }
 
-// ─── Volume → gain mapping ─────────────────────────────────────────────────────
+// ─── Per-channel volume mapping ───────────────────────────────────────────────
+// Mixer slider key → output MIDI channel (matches BackingTrackEngine.ACCTYPE_TO_CHANNEL).
 
-function volumesToGain(volumes) {
-  // Average of all 4 sliders, mapped to 0–2.5 gain range
-  const avg = (volumes.piano + volumes.guitar + volumes.bass + volumes.drums) / 4
-  return avg * 2.5
+export const CHANNEL_KEY_TO_INDEX = {
+  piano:  0,
+  bass:   1,
+  guitar: 2,
+  pad:    3,
+  melody: 4,
+  drums:  9,
+}
+
+// AccTypes (from parsed style) → mixer slider key
+export const ACCTYPE_TO_CHANNEL_KEY = {
+  CHORD1:    'piano',
+  BASS:      'bass',
+  CHORD2:    'guitar',
+  PAD:       'pad',
+  PHRASE1:   'melody',
+  PHRASE2:   'melody',
+  RHYTHM:    'drums',
+  SUBRHYTHM: 'drums',
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_VOLUMES   = { piano: 0.85, guitar: 0.85, bass: 0.85, drums: 0.85 }
+const DEFAULT_VOLUMES = {
+  piano:  0.85,
+  bass:   0.85,
+  guitar: 0.85,
+  pad:    0.7,
+  melody: 0.7,
+  drums:  0.85,
+}
 const DEFAULT_GENRE     = 'jazz_swing'
 const DEFAULT_BAR_COUNT = 4
 
@@ -846,6 +869,7 @@ export function useBackingTrackEngine() {
   const [selectedKey,        setSelectedKeyState]     = useState({ root: 'C', type: 'major' })
   const [playbackPhase,      setPlaybackPhase]        = useState('stopped')   // 'stopped'|'intro'|'main'|'fill'|'ending'
   const [activePartName,     setActivePartName]       = useState(null)
+  const [activeStyle,        setActiveStyle]           = useState(null)
   const [countInEnabled,     setCountInEnabled]       = useState(true)
 
   // Practice mode config (stored in ref for sync access in audio callback)
@@ -881,7 +905,12 @@ export function useBackingTrackEngine() {
   // ── Engine singleton per mount ──────────────────────────────────────────────
   useEffect(() => {
     engineRef.current = new BackingTrackEngine()
+    // Preload the initial genre's .sty so the Mixer can render dynamically
+    // before the user hits Play.
+    ensureStyle(genreRef.current).catch(err =>
+      console.warn('[useBackingTrackEngine] initial style preload failed', err))
     return () => { engineRef.current?.stop() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── SF2 loading ─────────────────────────────────────────────────────────────
@@ -904,6 +933,7 @@ export function useBackingTrackEngine() {
       const bpb = parseInt(styleCache.current[genreName].timeSignature) || 4
       beatsPerBarRef.current = bpb
       setBeatsPerBar(bpb)
+      setActiveStyle(styleCache.current[genreName])
       return
     }
     const url = GENRE_STYLES[genreName]
@@ -918,6 +948,7 @@ export function useBackingTrackEngine() {
     const bpb = parseInt(style.timeSignature) || 4
     beatsPerBarRef.current = bpb
     setBeatsPerBar(bpb)
+    setActiveStyle(style)
     // Auto-set tempo from the parsed style file
     if (style.tempo > 0) {
       setTempoState(style.tempo)
@@ -985,7 +1016,9 @@ export function useBackingTrackEngine() {
       const bpb    = beatsPerBarRef.current
 
       engine.setTempo(bpm)
-      engine.setGain(volumesToGain(volumesRef.current))
+      // Master gain stays at a safe headroom; per-channel volumes are handled below.
+      engine.setGain(1.5)
+      applyAllVolumes(volumesRef.current)
 
       // One chord per bar (or half-bar if beats:2), variable beat duration
       engine.setChordProgression(
@@ -1121,8 +1154,12 @@ export function useBackingTrackEngine() {
     setTempoState(bpm)
     tempoRef.current = bpm
 
+    // Load the .sty in the background so the Mixer (and any other style-driven
+    // UI) reflects the new genre's instruments without waiting for Play.
+    ensureStyle(newGenre).catch(err => console.warn('[setGenre] style preload failed', err))
+
     if (wasPlaying) setTimeout(() => play(), 100)
-  }, [stop, play])
+  }, [stop, play, ensureStyle])
 
   // ── Load preset ──────────────────────────────────────────────────────────────
   const loadPreset = useCallback(() => {
@@ -1285,12 +1322,24 @@ export function useBackingTrackEngine() {
     }
   }, [ensureSF2])
 
-  // ── Volume ───────────────────────────────────────────────────────────────────
+  // ── Volume — per-channel via MIDI CC#7 ──────────────────────────────────────
+  const applyAllVolumes = useCallback((volumes) => {
+    const engine = engineRef.current
+    if (!engine) return
+    for (const [key, val] of Object.entries(volumes)) {
+      const channelIdx = CHANNEL_KEY_TO_INDEX[key]
+      if (channelIdx !== undefined) engine.setChannelVolume(channelIdx, val)
+    }
+  }, [])
+
   const setVolume = useCallback((channel, val) => {
     setVolumesState(prev => {
       const next = { ...prev, [channel]: val }
       volumesRef.current = next
-      engineRef.current?.setGain(volumesToGain(next))
+      const channelIdx = CHANNEL_KEY_TO_INDEX[channel]
+      if (channelIdx !== undefined) {
+        engineRef.current?.setChannelVolume(channelIdx, val)
+      }
       return next
     })
   }, [])
@@ -1331,6 +1380,7 @@ export function useBackingTrackEngine() {
     setPracticeConfig,
     playbackPhase,
     activePartName,
+    activeStyle,
     countInEnabled,
     setCountIn,
   }

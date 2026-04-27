@@ -108,11 +108,11 @@ function GenrePopup({ genre, onGenreChange, onClose }) {
 /* ═══════════════════════════════════════════════════════
    Popup: Mixer
    ═══════════════════════════════════════════════════════ */
-function MixerPopup({ volumes, onVolumeChange }) {
+function MixerPopup({ style, activePart, volumes, onVolumeChange }) {
   return (
     <div className="bp-popup">
       <div className="bp-popup-title">Mixer</div>
-      <Mixer volumes={volumes} onVolumeChange={onVolumeChange} />
+      <Mixer style={style} activePart={activePart} volumes={volumes} onVolumeChange={onVolumeChange} />
     </div>
   )
 }
@@ -227,6 +227,7 @@ export function BackingPlayer() {
     loopCount,
     setPracticeConfig,
     countInEnabled, setCountIn,
+    activeStyle, activePartName,
   } = useBackingTrackEngine()
 
   // UI state — no tabs, everything is popup-based
@@ -363,7 +364,12 @@ export function BackingPlayer() {
             <GenrePopup genre={genre} onGenreChange={setGenre} onClose={() => setActivePopup(null)} />
           )}
           {activePopup === 'mixer' && (
-            <MixerPopup volumes={volumes} onVolumeChange={setVolume} />
+            <MixerPopup
+              style={activeStyle}
+              activePart={activePartName}
+              volumes={volumes}
+              onVolumeChange={setVolume}
+            />
           )}
           {activePopup === 'practice' && (
             <PracticePopup config={practiceConfig} onConfigChange={handlePracticeChange} />

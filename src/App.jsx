@@ -63,6 +63,7 @@ const StyleParserTest = React.lazy(() => import('./components/style-parser-test/
 const ChordEngineTest = React.lazy(() => import('./components/chord-engine-test/ChordEngineTest'));
 const BackingEngineTest = React.lazy(() => import('./components/backing-engine-test/BackingEngineTest'));
 const TimingTestPage    = React.lazy(() => import('./components/timing-test/TimingTestPage'));
+const BackingTracksTestPage = React.lazy(() => import('./components/backing-tracks-test/BackingTracksTestPage'));
 
 function App() {
   return (
@@ -146,6 +147,9 @@ function App() {
 
           {/* Dev: Timing analysis test */}
           <Route path="/timing-test" element={<TimingTestPage />} />
+
+          {/* Dev: Backing Tracks test suite (rhythm + chord coverage + mixer) */}
+          <Route path="/test/backing-tracks" element={<BackingTracksTestPage />} />
 
           {/* Legacy routes for backward compatibility */}
           <Route path="/exercise1" element={<Exercise1 />} />

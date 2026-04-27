@@ -278,13 +278,31 @@ function clamp(v, min, max) {
 }
 
 /**
- * Apply pitch limits (noteLowLimit / noteHighLimit) to all notes.
- * If limit is 0/127 (default unbounded), skip.
+ * Fold pitches into the [noteLowLimit, noteHighLimit] range by shifting in
+ * octaves. Preserves pitch class — a transposed D stays a D, just at a
+ * different octave. A naive clamp (replacing pitch with the limit value)
+ * destroys harmonic content and produces the "bass stuck on E" bug
+ * reported for Jazz Vocal and similar styles.
+ *
+ * Drums never reach this function (BackingTrackEngine returns drum patterns
+ * raw before calling fitNotes), so octave-folding is always desired here.
  */
 function clampAll(notes, low, high) {
   if (!notes) return []
   const lo = low  ?? 0
   const hi = high ?? 127
   if (lo === 0 && hi === 127) return notes
-  return notes.map(n => ({ ...n, pitch: clamp(n.pitch, lo, hi) }))
+
+  // Range narrower than an octave can't be octave-folded safely
+  // (very rare in real .sty files) — fall back to hard clamp.
+  if (hi - lo < 11) {
+    return notes.map(n => ({ ...n, pitch: clamp(n.pitch, lo, hi) }))
+  }
+
+  return notes.map(n => {
+    let p = n.pitch
+    while (p < lo) p += 12
+    while (p > hi) p -= 12
+    return { ...n, pitch: p }
+  })
 }

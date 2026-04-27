@@ -248,6 +248,11 @@ export function getAudioContext() {
   return _audioCtx
 }
 
+/** AnalyserNode שדרכו עובר כל הפלט (לטסטים / מדידת אמפליטודה) */
+export function getAnalyser() {
+  return _analyser
+}
+
 /** האם המנגן מוכן */
 export function isReady() {
   return _synth !== null && _sfontId !== null
@@ -291,6 +296,23 @@ export function allNotesOff(channel) {
 /** עוצמה כללית (0.0 - 10.0) */
 export function setGain(gain) {
   _synth?.setGain(gain)
+}
+
+/** MIDI Control Change (CC) — לדוגמה CC#7 = ווליום ערוץ, CC#10 = פאן */
+export function midiControl(channel, cc, value) {
+  if (!_synth) return
+  _synth.midiControl(channel, cc, Math.max(0, Math.min(127, value | 0)))
+}
+
+/**
+ * עוצמה לערוץ בודד (per-channel volume) דרך MIDI CC#7.
+ * @param {number} channel  0..15 — אינדקס ערוץ MIDI
+ * @param {number} gain     0..1 — מומר ל-CC value 0..127
+ */
+export function setChannelVolume(channel, gain) {
+  if (!_synth) return
+  const cc7 = Math.max(0, Math.min(127, Math.round(gain * 127)))
+  _synth.midiControl(channel, 7, cc7)
 }
 
 // ---- Crackling Detection ----
