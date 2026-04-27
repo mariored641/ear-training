@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
+import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { VOICED_BY_DIFFICULTY, VOICED_PROGRESSIONS } from '../../../constants/voicedProgressions';
 
@@ -37,8 +38,8 @@ function classifyStepLeap(degs) {
 }
 
 const ExerciseV2 = () => {
-  const [instrument, setInstrument] = useState('piano');
-  const [advancement, setAdvancement] = useState('auto');
+  const [instrument, setInstrument] = useStoredState('ear-training:V2:instrument', 'piano');
+  const [advancement, setAdvancement] = useStoredState('ear-training:V2:advancement', 'auto');
   const questionRef = useRef(null);
 
   useEffect(() => {

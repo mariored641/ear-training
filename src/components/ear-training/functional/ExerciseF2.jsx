@@ -2,14 +2,34 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import DegreeNameToggle from '../shared/DegreeNameToggle';
+import KeySelector from '../shared/KeySelector';
+import BinaryToggle from '../shared/BinaryToggle';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
 import { loadStoredLevel } from '../shared/LevelNavigator';
+import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { CHORD_DEFINITIONS, EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
 import { chordAtDegree } from '../../../constants/cadenceDefinitions';
 import '../shared/earTrainingShared.css';
+
+// Chord name transposition helpers (for key display only — playback stays in C)
+const NOTES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const ENHARMONIC_F2 = { Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#' };
+function transposeChordF2(chordName, shift) {
+  if (!shift) return chordName;
+  let root = (chordName.length >= 2 && (chordName[1]==='#'||chordName[1]==='b'))
+    ? chordName.slice(0,2) : chordName[0];
+  const resolved = ENHARMONIC_F2[root] || root;
+  const idx = NOTES_SHARP.indexOf(resolved);
+  if (idx === -1) return chordName;
+  return NOTES_SHARP[(idx + shift + 12) % 12] + chordName.slice(root.length);
+}
+function keyShift(key) {
+  const resolved = ENHARMONIC_F2[key] || key;
+  return NOTES_SHARP.indexOf(resolved);
+}
 
 // ── Level definitions ──────────────────────────────────────────────────────
 const LEVELS = [
@@ -70,13 +90,12 @@ function getButtons(level) {
   return base;
 }
 
-function generateProgression(level) {
+function generateProgression(level, len = 4) {
   const buttons = getButtons(level);
-  const len = level <= 1 ? 2 : 4;
+  const actualLen = level <= 1 ? 2 : len;
   const seq = [];
-  for (let i = 0; i < len; i++) {
-    const btn = buttons[Math.floor(Math.random() * buttons.length)];
-    seq.push(btn);
+  for (let i = 0; i < actualLen; i++) {
+    seq.push(buttons[Math.floor(Math.random() * buttons.length)]);
   }
   return seq; // array of { degree, name, roman }
 }
@@ -91,9 +110,12 @@ function resolveChord(name) {
 const ExerciseF2 = () => {
   const navigate = useNavigate();
   const storageKey = 'ear-training:F2:level';
-  const [level, setLevel] = useState(() => loadStoredLevel(storageKey, 1));
+  const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
   const [numQuestions, setNumQuestions] = useState(8);
-  const [displayMode, setDisplayMode] = useState('degrees');
+  const [displayMode, setDisplayMode]  = useState('degrees');
+  const [key, setKey]                  = useState('C');
+  const [instrument, setInstrument]    = useStoredState('ear-training:F2:instrument', 'piano');
+  const [seqLength, setSeqLength]      = useState(4);
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [progression, setProgression] = useState(null);
@@ -107,8 +129,13 @@ const ExerciseF2 = () => {
 
   const buttons = getButtons(level);
 
+  const handleInstrumentChange = async (val) => {
+    setInstrument(val);
+    if (harmonicAudioPlayer.initialized) await harmonicAudioPlayer.setInstrument(val);
+  };
+
   const startQuestion = useCallback(async () => {
-    const prog = generateProgression(level);
+    const prog = generateProgression(level, seqLength);
     setProgression(prog);
     setPositionIndex(0);
     setSlots(Array(prog.length).fill(null));
@@ -177,9 +204,7 @@ const ExerciseF2 = () => {
         onBack={() => navigate('/category/ear-training/functional')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
-      <div style={ctrlRow}>
-        <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
-        <DegreeNameToggle mode={displayMode} onToggle={setDisplayMode} />
+      <div style={{ textAlign:'center', padding:'12px 16px 4px' }}>
         <button style={playBtn} onClick={() => progression && playProg(progression)}>▶ נגן שוב</button>
       </div>
 
@@ -196,7 +221,7 @@ const ExerciseF2 = () => {
                 ...(isCurrent ? slotActive : {}),
               }}>
                 {ans?.ok
-                  ? (displayMode === 'degrees' ? ans.roman : ans.name)
+                  ? (displayMode === 'degrees' ? ans.roman : transposeChordF2(ans.name, keyShift(key)))
                   : (i < positionIndex ? '?' : isCurrent ? '▶' : '?')}
               </div>
             );
@@ -206,17 +231,32 @@ const ExerciseF2 = () => {
 
       {/* Chord buttons */}
       <div style={btnGrid}>
-        {buttons.map(btn => (
-          <button key={btn.degree + btn.name} onClick={() => handleSelect(btn)}
-            style={chordBtn}>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>
-              {displayMode === 'degrees' ? btn.roman : btn.name}
-            </div>
-            {displayMode === 'degrees' && (
-              <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>{btn.name}</div>
-            )}
-          </button>
-        ))}
+        {buttons.map(btn => {
+          const dispName = transposeChordF2(btn.name, keyShift(key));
+          return (
+            <button key={btn.degree + btn.name} onClick={() => handleSelect(btn)}
+              style={chordBtn}>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>
+                {displayMode === 'degrees' ? btn.roman : dispName}
+              </div>
+              {displayMode === 'degrees' && (
+                <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>{dispName}</div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={settingsDivider} />
+
+      <div style={ctrlRow}>
+        <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
+        <QuestionsCounter label="אורך" value={seqLength} onChange={setSeqLength} min={2} max={6} />
+        <DegreeNameToggle mode={displayMode} onToggle={setDisplayMode} />
+        <KeySelector value={key} onChange={setKey} />
+        <BinaryToggle label="כלי"
+          options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
+          value={instrument} onChange={handleInstrumentChange} />
       </div>
 
       <FeedbackOverlay state={feedback} />
@@ -224,7 +264,8 @@ const ExerciseF2 = () => {
   );
 };
 
-const ctrlRow = { display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', padding:'16px 24px', borderBottom:'1px solid #eee', justifyContent:'center' };
+const settingsDivider = { borderTop:'1px solid #eee', margin:'8px 24px 0', opacity:0.6 };
+const ctrlRow = { display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', padding:'16px 24px', justifyContent:'center' };
 const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
 const slotRow = { display:'flex', gap:12, justifyContent:'center', padding:'24px 16px 8px', flexWrap:'wrap' };
 const slot = { width:80, height:64, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:10, border:'2px solid #ddd', fontSize:18, fontWeight:700, color:'#999', background:'#f8f8f8' };

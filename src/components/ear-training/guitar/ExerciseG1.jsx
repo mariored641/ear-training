@@ -189,32 +189,8 @@ const ExerciseG1 = () => {
         progressCurrent={sessionState.currentQuestion - 1} progressTotal={numQuestions}
         onStop={() => setDone(true)} />
 
-      {/* Controls row */}
-      <div style={ctrlRow}>
-        <QuestionsCounter value={numQuestions} onChange={v => { setNumQuestions(v); }} min={3} max={20} />
-        <BinaryToggle label="מקור"
-          options={[{ value:'random', label:'אקראי' }, { value:'library', label:'ספרייה' }]}
-          value={source} onChange={setSource} />
-        <BinaryToggle label="טווח פרטים"
-          options={[{ value:'0-5', label:'0–5' }, { value:'0-12', label:'0–12' }, { value:'full', label:'כל הצוואר' }]}
-          value={fretRange} onChange={setFretRange} />
-        <BinaryToggle label="סימון"
-          options={[{ value:'ordered', label:'בסדר' }, { value:'free', label:'חופשי' }]}
-          value={notation} onChange={setNotation} />
-      </div>
-
-      {/* String chips */}
-      <div style={{ display:'flex', justifyContent:'center', padding:'8px 16px', gap:8 }}>
-        <span style={{ fontSize:13, color:'#666', alignSelf:'center' }}>מיתרים:</span>
-        <ChipSelector
-          items={STRING_CHIPS}
-          activeIds={activeStrings}
-          onToggle={toggleString}
-          minActive={1} />
-      </div>
-
       {/* Play button */}
-      <div style={{ textAlign: 'center', padding: '8px 8px 12px' }}>
+      <div style={{ textAlign: 'center', padding: '12px 8px 8px' }}>
         <button style={audioBtn}
           onClick={() => { if (melodyRef.current) AudioPlayer.playSequence(melodyRef.current.notes.map(n => n.fullNote), 100); }}>
           🔊 נגן מנגינה
@@ -241,11 +217,38 @@ const ExerciseG1 = () => {
         </>
       )}
       <FeedbackOverlay state={feedback} />
+
+      <div style={settingsDivider} />
+
+      {/* Controls row — settings at bottom */}
+      <div style={ctrlRow}>
+        <QuestionsCounter value={numQuestions} onChange={v => { setNumQuestions(v); }} min={3} max={20} />
+        <BinaryToggle label="מקור"
+          options={[{ value:'random', label:'אקראי' }, { value:'library', label:'ספרייה' }]}
+          value={source} onChange={setSource} />
+        <BinaryToggle label="טווח פרטים"
+          options={[{ value:'0-5', label:'0–5' }, { value:'0-12', label:'0–12' }, { value:'full', label:'כל הצוואר' }]}
+          value={fretRange} onChange={setFretRange} />
+        <BinaryToggle label="סימון"
+          options={[{ value:'ordered', label:'בסדר' }, { value:'free', label:'חופשי' }]}
+          value={notation} onChange={setNotation} />
+      </div>
+
+      {/* String chips */}
+      <div style={{ display:'flex', justifyContent:'center', padding:'8px 16px 24px', gap:8 }}>
+        <span style={{ fontSize:13, color:'#666', alignSelf:'center' }}>מיתרים:</span>
+        <ChipSelector
+          items={STRING_CHIPS}
+          activeIds={activeStrings}
+          onToggle={toggleString}
+          minActive={1} />
+      </div>
     </div>
   );
 };
 
-const ctrlRow = { display:'flex', flexWrap:'wrap', gap:12, alignItems:'center', padding:'12px 20px', borderBottom:'1px solid #eee', justifyContent:'center' };
+const settingsDivider = { borderTop:'1px solid #eee', margin:'8px 24px 0', opacity:0.6 };
+const ctrlRow = { display:'flex', flexWrap:'wrap', gap:12, alignItems:'center', padding:'12px 20px', justifyContent:'center' };
 const audioBtn = { padding:'10px 24px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
 
 export default ExerciseG1;

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
+import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { EXTENDED_CHORDS, getInversion } from '../../../constants/harmonicDefaults';
 
@@ -17,6 +18,13 @@ const TRIAD_MIN = TRIADS.map(r => r + 'm');
 const SEVENTHS = ['CMaj7','Dm7','G7','Am7','FMaj7'];
 
 const ExerciseH2 = () => {
+  const [instrument, setInstrument] = useStoredState('ear-training:H2:instrument', 'piano');
+
+  const handleInstrumentChange = async (val) => {
+    setInstrument(val);
+    if (harmonicAudioPlayer.initialized) await harmonicAudioPlayer.setInstrument(val);
+  };
+
   const generateQuestion = useCallback((level) => {
     let pool, maxInv;
     if (level === 1) { pool = TRIADS; maxInv = 1; }
@@ -46,6 +54,7 @@ const ExerciseH2 = () => {
       levels={LEVELS}
       generateQuestion={generateQuestion}
       onPlay={onPlay}
+      instrument={{ value: instrument, onChange: handleInstrumentChange }}
     />
   );
 };
