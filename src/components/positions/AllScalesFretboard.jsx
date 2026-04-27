@@ -262,11 +262,10 @@ const AllScalesFretboard = ({
 
       {/* Fret range selector (below fretboard) */}
       <div className="asf-range-bar">
-        <div className="asf-range-spacer" />
         {fretNumbers.map(fret => (
           <button
             key={fret}
-            className={`asf-range-btn ${getFretRangeClass(fret)}`}
+            className={`asf-range-btn${fret === 0 ? ' nut' : ''} ${getFretRangeClass(fret)}`}
             onClick={() => onFretClick(fret)}
           >
             {fret}
