@@ -4,19 +4,28 @@ import HarmonicAudioPlayer from '../../utils/HarmonicAudioPlayer';
 import Header from '../common/Header';
 import ChordButtons from './ChordButtons';
 import Settings4APanel from './Settings4APanel';
+import LevelStrip from '../common/LevelStrip';
+import { classify, changedKeys } from '../../utils/settingsClassifier';
 import {
   DEFAULT_SETTINGS_4A,
   CHORD_DEFINITIONS
 } from '../../constants/harmonicDefaults';
 import './Exercise4A.css';
 
+const EX4A_LEVELS = [
+  { id: 'regular', label: 'רגיל' },
+  { id: 'custom',  label: 'התאמה אישית' },
+];
+
 const Exercise4A = () => {
   const navigate = useNavigate();
   const isMountedRef = useRef(true);
+  const isPlayingRef = useRef(false);
   const currentQuestionAttemptsRef = useRef(0);
 
   // Settings
   const [settings, setSettings] = useState(DEFAULT_SETTINGS_4A);
+  const [activeLevel, setActiveLevel] = useState('regular');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Session state
@@ -101,34 +110,40 @@ const Exercise4A = () => {
     }
   };
 
-  const playC = async () => {
-    const cChord = CHORD_DEFINITIONS['C'];
-    const voicing = settings.voicing === 'mixed'
+  const resolveVoicing = (preferred) => {
+    return preferred === 'mixed'
       ? (Math.random() > 0.5 ? 'strummed' : 'arpeggiated')
-      : settings.voicing;
+      : preferred;
+  };
+
+  const playC = async (voicingOverride = null) => {
+    const cChord = CHORD_DEFINITIONS['C'];
+    const voicing = resolveVoicing(voicingOverride !== null ? voicingOverride : settings.voicing);
 
     // Stop any previous sounds
     HarmonicAudioPlayer.stop();
     await delay(100);
 
+    isPlayingRef.current = true;
     HarmonicAudioPlayer.playChord(cChord, 1.5, voicing);
     await delay(1600); // Wait for chord to finish
+    isPlayingRef.current = false;
   };
 
-  const playCurrentChord = async (chord = correctChord) => {
+  const playCurrentChord = async (chord = correctChord, voicingOverride = null) => {
     if (!chord) return;
 
     const chordNotes = CHORD_DEFINITIONS[chord];
-    const voicing = settings.voicing === 'mixed'
-      ? (Math.random() > 0.5 ? 'strummed' : 'arpeggiated')
-      : settings.voicing;
+    const voicing = resolveVoicing(voicingOverride !== null ? voicingOverride : settings.voicing);
 
     // Stop any previous sounds
     HarmonicAudioPlayer.stop();
     await delay(100);
 
+    isPlayingRef.current = true;
     HarmonicAudioPlayer.playChord(chordNotes, 1.5, voicing);
     await delay(1600); // Wait for chord to finish
+    isPlayingRef.current = false;
   };
 
   const handlePlayC = () => {
@@ -195,11 +210,32 @@ const Exercise4A = () => {
   };
 
   const handleSettingsChange = async (newSettings) => {
+    const changes = changedKeys(settings, newSettings);
+    const wasPlaying = isPlayingRef.current;
+
     setSettings(newSettings);
 
-    // Update instrument if changed
-    if (newSettings.instrument !== settings.instrument) {
+    // numQuestions conflict → jump to summary
+    if (changes.includes('numQuestions') &&
+        newSettings.numQuestions < currentQuestion) {
+      HarmonicAudioPlayer.stop();
+      isPlayingRef.current = false;
+      setIsComplete(true);
+      return;
+    }
+
+    // Apply instrument change to player so next playback uses it
+    if (changes.includes('instrument')) {
       await HarmonicAudioPlayer.setInstrument(newSettings.instrument);
+    }
+
+    // Live interrupt: instrument or voicing change while a chord is playing
+    const liveChanges = changes.filter(k => classify('4a', k) === 'live');
+    if (wasPlaying && liveChanges.length > 0 && correctChord) {
+      HarmonicAudioPlayer.stop();
+      isPlayingRef.current = false;
+      // Replay current chord with new voicing
+      playCurrentChord(correctChord, newSettings.voicing);
     }
   };
 
@@ -216,6 +252,20 @@ const Exercise4A = () => {
     setTimeout(() => {
       generateNewQuestion();
     }, 0);
+  };
+
+  const handleLevelChange = (id) => {
+    if (id === activeLevel) return;
+    setActiveLevel(id);
+
+    if (id === 'regular') {
+      HarmonicAudioPlayer.stop();
+      isPlayingRef.current = false;
+      setSettings(DEFAULT_SETTINGS_4A);
+      handleReset();
+    } else if (id === 'custom') {
+      setIsSettingsOpen(true);
+    }
   };
 
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -276,6 +326,12 @@ const Exercise4A = () => {
           <div className="progress-fill" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
+
+      <LevelStrip
+        levels={EX4A_LEVELS}
+        activeId={activeLevel}
+        onChange={handleLevelChange}
+      />
 
       {/* Playback buttons */}
       <div className="playback-controls">

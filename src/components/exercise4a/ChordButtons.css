@@ -24,7 +24,7 @@
 }
 
 .chord-btn {
-  padding: 16px 8px;
+  padding: 12px 6px;
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
@@ -33,7 +33,7 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
-  min-height: 56px;
+  min-height: 52px;
 }
 
 .chord-btn:hover:not(.disabled) {
@@ -92,14 +92,14 @@
   }
 
   .chord-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
   }
 
   .chord-btn {
-    padding: 12px 6px;
+    padding: 8px 4px;
     font-size: 14px;
-    min-height: 48px;
+    min-height: 46px;
   }
 
   .section-title {
@@ -114,6 +114,19 @@
 
 @media (max-width: 480px) {
   .chord-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .chord-btn {
+    padding: 6px 4px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chord-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

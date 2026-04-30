@@ -41,14 +41,11 @@ const ChordButtons4C = ({
 
   return (
     <div className="chord-buttons-container-4c">
-      {/* Major Chords */}
+      {/* Major Chords — chromatic order, fills left-to-right then wraps */}
       <div className="chord-section-4c">
         <h3 className="section-title-4c">Major Chords:</h3>
         <div className="chord-grid-4c">
-          {MAJOR_CHORDS.slice(0, 6).map(renderChordButton)}
-        </div>
-        <div className="chord-grid-4c">
-          {MAJOR_CHORDS.slice(6, 12).map(renderChordButton)}
+          {MAJOR_CHORDS.map(renderChordButton)}
         </div>
       </div>
 
@@ -56,10 +53,7 @@ const ChordButtons4C = ({
       <div className="chord-section-4c">
         <h3 className="section-title-4c">Minor Chords:</h3>
         <div className="chord-grid-4c">
-          {MINOR_CHORDS.slice(0, 6).map(renderChordButton)}
-        </div>
-        <div className="chord-grid-4c">
-          {MINOR_CHORDS.slice(6, 12).map(renderChordButton)}
+          {MINOR_CHORDS.map(renderChordButton)}
         </div>
       </div>
     </div>

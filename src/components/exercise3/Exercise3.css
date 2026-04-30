@@ -406,8 +406,17 @@
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 520px) {
   .ex3-main { padding: 10px 10px 16px; }
-  .ex3-note-grid { grid-template-columns: repeat(4, 1fr); }
+  .ex3-note-grid { grid-template-columns: repeat(6, 1fr); }
+  .ex3-note-btn { padding: 8px 2px; font-size: 12px; min-height: 44px; }
   .ex3-beat-dot { width: 48px; height: 48px; font-size: 12px; }
   .ex3-row2, .ex3-row3 { flex-direction: column; }
   .ex3-field-tempo { flex-basis: auto !important; }
+}
+
+@media (max-width: 480px) {
+  .ex3-note-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 360px) {
+  .ex3-note-grid { grid-template-columns: repeat(3, 1fr); }
 }

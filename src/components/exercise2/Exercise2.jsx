@@ -8,17 +8,29 @@ import NoteIndicator from './NoteIndicator';
 import NoteSelector from './NoteSelector';
 import Exercise2Settings from './Exercise2Settings';
 import PresetButtons2 from './PresetButtons2';
+import LevelStrip from '../common/LevelStrip';
 import AudioPlayer from '../../utils/AudioPlayer';
 import Storage from '../../utils/Storage';
+import useAudioCleanup from '../../hooks/useAudioCleanup';
+import { classify, changedKeys } from '../../utils/settingsClassifier';
 import { getMelody } from '../../utils/melodyGeneration';
 import { checkNotePosition } from '../../utils/fretboardCalculations';
 import { DEFAULT_EXERCISE2_SETTINGS } from '../../constants/defaults';
 import './Exercise2.css';
 
+const EX2_LEVELS = [
+  { id: 'regular', label: 'רגיל' },
+  { id: 'custom',  label: 'התאמה אישית' },
+];
+
 const Exercise2 = () => {
   const [settings, setSettings] = useState(() =>
     Storage.loadSettings(2, DEFAULT_EXERCISE2_SETTINGS)
   );
+  const [activeLevel, setActiveLevel] = useState(() => {
+    const stored = Storage.loadSettings(2, DEFAULT_EXERCISE2_SETTINGS);
+    return stored.activeLevel || 'regular';
+  });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [sessionState, setSessionState] = useState({
     currentQuestion: 1,
@@ -34,6 +46,8 @@ const Exercise2 = () => {
   });
   const isPlayingRef = React.useRef(false);
   const currentMelodyRef = React.useRef(null);
+
+  useAudioCleanup(AudioPlayer);
 
   // Load new melody
   const loadNewMelody = React.useCallback((autoPlay = true, questionNumber = null) => {
@@ -222,9 +236,36 @@ const Exercise2 = () => {
     }));
   };
 
-  const handleSettingsChange = (newSettings) => {
+  const handleSettingsChange = async (newSettings) => {
+    const changes = changedKeys(settings, newSettings);
+    const wasPlaying = isPlayingRef.current;
+    const melodyToReplay = currentMelodyRef.current;
+
     setSettings(newSettings);
     Storage.saveSettings(2, newSettings);
+
+    // numQuestions conflict → jump to summary
+    if (changes.includes('numQuestions') &&
+        newSettings.numQuestions < sessionState.currentQuestion) {
+      AudioPlayer.stop();
+      setSessionState(prev => ({ ...prev, isComplete: true }));
+      return;
+    }
+
+    // Live interrupt: instrument change during playback → swap and replay melody
+    if (wasPlaying &&
+        changes.includes('instrument') &&
+        classify('2', 'instrument') === 'live') {
+      AudioPlayer.stop();
+      isPlayingRef.current = false;
+      await AudioPlayer.setInstrument(newSettings.instrument || 'guitar');
+      if (melodyToReplay) {
+        isPlayingRef.current = true;
+        playMelody(melodyToReplay).finally(() => {
+          isPlayingRef.current = false;
+        });
+      }
+    }
   };
 
   const handleReset = () => {
@@ -242,6 +283,25 @@ const Exercise2 = () => {
       noteAttempts: {}
     });
     setTimeout(() => loadNewMelody(), 100);
+  };
+
+  const handleLevelChange = (id) => {
+    if (id === activeLevel) return;
+    setActiveLevel(id);
+
+    if (id === 'regular') {
+      const next = { ...DEFAULT_EXERCISE2_SETTINGS, activeLevel: 'regular' };
+      setSettings(next);
+      Storage.saveSettings(2, next);
+      AudioPlayer.stop();
+      isPlayingRef.current = false;
+      handleReset();
+    } else if (id === 'custom') {
+      const next = { ...settings, activeLevel: 'custom' };
+      setSettings(next);
+      Storage.saveSettings(2, next);
+      setIsSettingsOpen(true);
+    }
   };
 
   const handleStop = () => {
@@ -337,6 +397,12 @@ const Exercise2 = () => {
       <ProgressBar
         current={sessionState.currentQuestion}
         total={settings.numQuestions}
+      />
+
+      <LevelStrip
+        levels={EX2_LEVELS}
+        activeId={activeLevel}
+        onChange={handleLevelChange}
       />
 
       <div className="exercise2-content">

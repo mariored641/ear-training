@@ -4,6 +4,8 @@ import HarmonicAudioPlayer from '../../utils/HarmonicAudioPlayer';
 import Header from '../common/Header';
 import ChordButtons4C from './ChordButtons4C';
 import Settings4CPanel from './Settings4CPanel';
+import LevelStrip from '../common/LevelStrip';
+import { changedKeys } from '../../utils/settingsClassifier';
 import {
   DEFAULT_SETTINGS_4C,
   CHORD_DEFINITIONS,
@@ -12,12 +14,19 @@ import {
 } from '../../constants/harmonicDefaults';
 import './Exercise4C.css';
 
+const EX4C_LEVELS = [
+  { id: 'regular', label: 'רגיל' },
+  { id: 'custom',  label: 'התאמה אישית' },
+];
+
 const Exercise4C = () => {
   const navigate = useNavigate();
   const isMountedRef = useRef(true);
 
   // Settings
   const [settings, setSettings] = useState(DEFAULT_SETTINGS_4C);
+  const settingsRef = useRef(DEFAULT_SETTINGS_4C);
+  const [activeLevel, setActiveLevel] = useState('regular');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Session state
@@ -138,12 +147,15 @@ const Exercise4C = () => {
     if (!progression) return;
 
     const chordDuration = 2.0; // 2 seconds per chord
-    const voicing = settings.voicing === 'mixed'
-      ? (Math.random() > 0.5 ? 'strummed' : 'arpeggiated')
-      : settings.voicing;
 
     for (let i = 0; i < progression.length; i++) {
       const { chordNotes, bassNote } = progression[i];
+
+      // Read voicing per-iteration so live changes apply softly from next chord onwards
+      const currentVoicingPref = settingsRef.current.voicing;
+      const voicing = currentVoicingPref === 'mixed'
+        ? (Math.random() > 0.5 ? 'strummed' : 'arpeggiated')
+        : currentVoicingPref;
 
       // Play bass and chord together
       HarmonicAudioPlayer.playNote(bassNote, chordDuration);
@@ -234,6 +246,7 @@ const Exercise4C = () => {
   };
 
   const handlePlayProgression = () => {
+    HarmonicAudioPlayer.stop();
     playProgression();
   };
 
@@ -249,16 +262,27 @@ const Exercise4C = () => {
   };
 
   const handleSettingsChange = async (newSettings) => {
-    // Save settings but don't apply them yet (only after reset)
+    const changes = changedKeys(settings, newSettings);
+
+    // Sync ref FIRST so in-flight playProgression loop picks up new voicing/instrument
+    settingsRef.current = newSettings;
     setSettings(newSettings);
+
+    // numQuestions conflict → jump to summary
+    if (changes.includes('numQuestions') &&
+        newSettings.numQuestions < currentQuestion) {
+      HarmonicAudioPlayer.stop();
+      setIsComplete(true);
+      return;
+    }
+
+    // Apply instrument change to player (soft swap — next chord uses it via settingsRef)
+    if (changes.includes('instrument')) {
+      await HarmonicAudioPlayer.setInstrument(newSettings.instrument);
+    }
   };
 
   const handleReset = async () => {
-    // Apply any instrument changes when resetting
-    if (settings.instrument !== HarmonicAudioPlayer.instrument) {
-      await HarmonicAudioPlayer.setInstrument(settings.instrument);
-    }
-
     setCurrentQuestion(1);
     setCorrectFirstTry(0);
     setTotalIdentifications(0);
@@ -271,6 +295,20 @@ const Exercise4C = () => {
         generateNewQuestion();
       }
     }, 100);
+  };
+
+  const handleLevelChange = (id) => {
+    if (id === activeLevel) return;
+    setActiveLevel(id);
+
+    if (id === 'regular') {
+      HarmonicAudioPlayer.stop();
+      settingsRef.current = DEFAULT_SETTINGS_4C;
+      setSettings(DEFAULT_SETTINGS_4C);
+      handleReset();
+    } else if (id === 'custom') {
+      setIsSettingsOpen(true);
+    }
   };
 
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -341,6 +379,12 @@ const Exercise4C = () => {
           <div className="progress-fill" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
+
+      <LevelStrip
+        levels={EX4C_LEVELS}
+        activeId={activeLevel}
+        onChange={handleLevelChange}
+      />
 
       {/* Playback buttons */}
       <div className="playback-controls">

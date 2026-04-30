@@ -29,9 +29,9 @@
 /* Chord Button */
 .chord-btn-4c {
   position: relative;
-  min-height: 60px;
-  padding: 12px 8px;
-  font-size: 18px;
+  min-height: 52px;
+  padding: 10px 6px;
+  font-size: 17px;
   font-weight: 600;
   background: white;
   border: 2px solid #e0e0e0;
@@ -114,14 +114,14 @@
   }
 
   .chord-grid-4c {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
   }
 
   .chord-btn-4c {
-    min-height: 50px;
-    padding: 8px 4px;
-    font-size: 16px;
+    min-height: 46px;
+    padding: 6px 4px;
+    font-size: 14px;
   }
 
   .section-title-4c {
@@ -137,6 +137,18 @@
 
 @media (max-width: 480px) {
   .chord-grid-4c {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .chord-btn-4c {
+    min-height: 44px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chord-grid-4c {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import * as Tone from 'tone';
 import { generatePattern } from '../../utils/rhythmPatternGenerator';
 import rhythmAudio from '../../utils/rhythmTrainingAudio';
 
@@ -29,6 +30,19 @@ export default function CallAndResponse({ settings, onActiveChange }) {
   useEffect(() => {
     return () => { activeRef.current = false; rhythmAudio.stop(); };
   }, []);
+
+  // ── Live setting changes ─────────────────────────────────────────
+  // BPM update flows through Tone.Transport during active session.
+  useEffect(() => {
+    Tone.Transport.bpm.value = bpm;
+  }, [bpm]);
+
+  // Sound choice / bass note: reload sound; engine will pick it up on next beat.
+  useEffect(() => {
+    if (appState !== S.IDLE) {
+      rhythmAudio.loadSound(soundChoice, bassNote);
+    }
+  }, [soundChoice, bassNote, appState]);
 
   // ── Schedule one round and hook up next-round callback ─────────
   const scheduleRound = useCallback((nextStartSec) => {

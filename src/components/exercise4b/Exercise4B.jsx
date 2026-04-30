@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import HarmonicAudioPlayer from '../../utils/HarmonicAudioPlayer';
 import Header from '../common/Header';
 import Settings4BPanel from './Settings4BPanel';
+import LevelStrip from '../common/LevelStrip';
+import { changedKeys } from '../../utils/settingsClassifier';
 import {
   DEFAULT_SETTINGS_4B,
   PROGRESSION_LIBRARY,
@@ -11,12 +13,19 @@ import {
 } from '../../constants/harmonicDefaults';
 import './Exercise4B.css';
 
+const EX4B_LEVELS = [
+  { id: 'regular', label: 'רגיל' },
+  { id: 'custom',  label: 'התאמה אישית' },
+];
+
 const Exercise4B = () => {
   const navigate = useNavigate();
   const isMountedRef = useRef(true);
 
   // Settings
   const [settings, setSettings] = useState(DEFAULT_SETTINGS_4B);
+  const settingsRef = useRef(DEFAULT_SETTINGS_4B);
+  const [activeLevel, setActiveLevel] = useState('regular');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Session state
@@ -113,11 +122,13 @@ const Exercise4B = () => {
     setIsPlayingMelody(true);
     const noteDuration = 0.5; // 500ms per note (120 BPM)
 
-    // Play notes in melody order
+    // Play notes in melody order — read instrument per-iteration so live changes
+    // pick up softly from the next note onwards.
     for (let i = 0; i < melody.notes.length; i++) {
       const noteData = melody.notes[i];
       let note = noteData.note;
       const chordName = noteData.chordName;
+      const currentInstrument = settingsRef.current.instrument;
 
       // Play chord together with the first note of each chord section
       if (noteData.rowInChord === 1 && CHORD_DEFINITIONS[chordName]) {
@@ -128,7 +139,7 @@ const Exercise4B = () => {
         HarmonicAudioPlayer.playChord(lowerChord, noteDuration * 2, 'strummed', undefined, true);
 
         // If using piano for melody, adjust octave to avoid overlap
-        if (settings.instrument === 'piano') {
+        if (currentInstrument === 'piano') {
           note = HarmonicAudioPlayer.adjustOctaveForSeparation(note, lowerChord);
         }
       }
@@ -139,7 +150,7 @@ const Exercise4B = () => {
     }
 
     setIsPlayingMelody(false);
-  }, [settings.instrument]);
+  }, []);
 
   const generateNewQuestion = useCallback(async () => {
     console.log('[Exercise4B] generateNewQuestion called');
@@ -328,6 +339,7 @@ const Exercise4B = () => {
 
   const handlePlayMelody = () => {
     if (currentMelody) {
+      HarmonicAudioPlayer.stop();
       playMelody(currentMelody);
     }
   };
@@ -345,22 +357,49 @@ const Exercise4B = () => {
   };
 
   const handleSettingsChange = async (newSettings) => {
-    // Save settings but don't apply them yet (only after reset)
+    const changes = changedKeys(settings, newSettings);
+
+    // Sync ref FIRST so in-flight playMelody loop picks up new instrument on next iteration
+    settingsRef.current = newSettings;
     setSettings(newSettings);
+
+    // numQuestions conflict → jump to summary
+    if (changes.includes('numQuestions') &&
+        newSettings.numQuestions < currentQuestion) {
+      HarmonicAudioPlayer.stop();
+      setIsComplete(true);
+      return;
+    }
+
+    // Apply instrument change to the player so next playback uses it.
+    // Soft swap: in-flight playMelody loop will pick it up on the next iteration
+    // via settingsRef. No interruption of currently-playing note.
+    if (changes.includes('instrument')) {
+      await HarmonicAudioPlayer.setInstrument(newSettings.instrument);
+    }
   };
 
   const handleReset = async () => {
-    // Apply any instrument changes when resetting
-    if (settings.instrument !== HarmonicAudioPlayer.instrument) {
-      await HarmonicAudioPlayer.setInstrument(settings.instrument);
-    }
-
     setCurrentQuestion(1);
     setCorrectFirstTry(0);
     setCorrectSecondTry(0);
     setTotalAttempts(0);
     setIsComplete(false);
     setIsSettingsOpen(false);
+  };
+
+  const handleLevelChange = (id) => {
+    if (id === activeLevel) return;
+    setActiveLevel(id);
+
+    if (id === 'regular') {
+      HarmonicAudioPlayer.stop();
+      settingsRef.current = DEFAULT_SETTINGS_4B;
+      setSettings(DEFAULT_SETTINGS_4B);
+      handleReset();
+    } else if (id === 'custom') {
+      setIsSettingsOpen(true);
+    }
   };
 
   // Get max notes per chord for table layout
@@ -425,6 +464,12 @@ const Exercise4B = () => {
           <div className="progress-fill" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
+
+      <LevelStrip
+        levels={EX4B_LEVELS}
+        activeId={activeLevel}
+        onChange={handleLevelChange}
+      />
 
       {/* Playback button */}
       <div className="playback-controls">

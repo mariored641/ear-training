@@ -6,17 +6,29 @@ import SummaryScreen from '../common/SummaryScreen';
 import NoteButtons from './NoteButtons';
 import Exercise1Settings from './Exercise1Settings';
 import PresetButtons from './PresetButtons';
+import LevelStrip from '../common/LevelStrip';
 import AudioPlayer from '../../utils/AudioPlayer';
 import Storage from '../../utils/Storage';
+import useAudioCleanup from '../../hooks/useAudioCleanup';
+import { classify, changedKeys } from '../../utils/settingsClassifier';
 import { generateRandomNote } from '../../utils/noteGeneration';
 import { DEFAULT_EXERCISE1_SETTINGS } from '../../constants/defaults';
 import { REFERENCE_NOTE, NOTES } from '../../constants/notes';
 import './Exercise1.css';
 
+const EX1_LEVELS = [
+  { id: 'regular', label: 'רגיל' },
+  { id: 'custom',  label: 'התאמה אישית' },
+];
+
 const Exercise1 = () => {
   const [settings, setSettings] = useState(() =>
     Storage.loadSettings(1, DEFAULT_EXERCISE1_SETTINGS)
   );
+  const [activeLevel, setActiveLevel] = useState(() => {
+    const stored = Storage.loadSettings(1, DEFAULT_EXERCISE1_SETTINGS);
+    return stored.activeLevel || 'regular';
+  });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [sessionState, setSessionState] = useState({
     currentQuestion: 1,
@@ -36,6 +48,8 @@ const Exercise1 = () => {
   const isPlayingRef = React.useRef(false);
   const currentNoteRef = React.useRef(null);
   const currentQuestionAttemptsRef = React.useRef(0); // Track attempts for current question
+
+  useAudioCleanup(AudioPlayer);
 
   // Load new question
   const loadNewQuestion = React.useCallback(() => {
@@ -223,9 +237,61 @@ const Exercise1 = () => {
     }
   };
 
-  const handleSettingsChange = (newSettings) => {
+  const handleSettingsChange = async (newSettings) => {
+    const changes = changedKeys(settings, newSettings);
+    const wasPlaying = isPlayingRef.current;
+    const noteToReplay = currentNoteRef.current?.fullNote;
+
     setSettings(newSettings);
     Storage.saveSettings(1, newSettings);
+
+    // numQuestions conflict → jump to summary
+    if (changes.includes('numQuestions') &&
+        newSettings.numQuestions < sessionState.currentQuestion) {
+      AudioPlayer.stop();
+      setSessionState(prev => ({ ...prev, isComplete: true }));
+      return;
+    }
+
+    // Live interrupt: instrument change during playback → swap and replay current note
+    if (wasPlaying &&
+        changes.includes('instrument') &&
+        classify('1', 'instrument') === 'live') {
+      AudioPlayer.stop();
+      isPlayingRef.current = false;
+      await AudioPlayer.setInstrument(newSettings.instrument || 'piano');
+      if (noteToReplay) {
+        playQuestionAudio(true, noteToReplay);
+      }
+    }
+  };
+
+  const handleLevelChange = (id) => {
+    if (id === activeLevel) return;
+    setActiveLevel(id);
+
+    if (id === 'regular') {
+      // Restore defaults; reset session
+      const next = { ...DEFAULT_EXERCISE1_SETTINGS, activeLevel: 'regular' };
+      setSettings(next);
+      Storage.saveSettings(1, next);
+      AudioPlayer.stop();
+      isPlayingRef.current = false;
+      currentQuestionAttemptsRef.current = 0;
+      setSessionState({
+        currentQuestion: 1, correctNote: null, correctNoteWithOctave: null,
+        usedNotes: [], correctFirstTry: 0, totalAttempts: 0, isComplete: false,
+        hasPlayedCAtStart: false, selectedNote: null, isCorrect: null,
+        statusMessage: '', questionResults: []
+      });
+      setTimeout(() => loadNewQuestion(), 100);
+    } else if (id === 'custom') {
+      // Mark settings as custom and open the panel
+      const next = { ...settings, activeLevel: 'custom' };
+      setSettings(next);
+      Storage.saveSettings(1, next);
+      setIsSettingsOpen(true);
+    }
   };
 
   const handleReset = () => {
@@ -328,6 +394,12 @@ const Exercise1 = () => {
       <ProgressBar
         current={sessionState.currentQuestion}
         total={settings.numQuestions}
+      />
+
+      <LevelStrip
+        levels={EX1_LEVELS}
+        activeId={activeLevel}
+        onChange={handleLevelChange}
       />
 
       <div className="exercise1-content">

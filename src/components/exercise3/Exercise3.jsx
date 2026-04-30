@@ -8,10 +8,19 @@ import {
   DEFAULT_EXERCISE3_SETTINGS, generateMelodySequence,
 } from '../../constants/exercise3Defaults';
 import Storage from '../../utils/Storage';
+import LevelStrip from '../common/LevelStrip';
 import './Exercise3.css';
 
 // ── App states ─────────────────────────────────────────────────────────────────
 const S = { IDLE: 'idle', COUNTIN: 'countin', PLAYING: 'playing', LISTENING: 'listening', RESULT: 'result' };
+
+const EX3_LEVELS = [
+  { id: '1',      label: 'רמה 1' },
+  { id: '2',      label: 'רמה 2' },
+  { id: '3',      label: 'רמה 3' },
+  { id: '4',      label: 'רמה 4' },
+  { id: 'custom', label: 'התאמה אישית' },
+];
 
 // Count-in beats before first sequence
 const COUNT_IN_BEATS = 4;
@@ -29,6 +38,12 @@ export default function Exercise3() {
   );
   const settingsRef = useRef(settings);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
+
+  // Active level: '1'..'4' map to settings.difficulty; 'custom' marks user-customized
+  const [activeLevel, setActiveLevel] = useState(() => {
+    const stored = Storage.loadSettings(3, DEFAULT_EXERCISE3_SETTINGS);
+    return stored.activeLevel || String(stored.difficulty || 1);
+  });
 
   // ── Exercise state ─────────────────────────────────────────────────────────
   const [appState, setAppState]         = useState(S.IDLE);
@@ -99,6 +114,23 @@ export default function Exercise3() {
       Storage.saveSettings(3, next);
       return next;
     });
+  };
+
+  const handleLevelChange = (id) => {
+    if (id === activeLevel) return;
+    if (appState !== S.IDLE) return; // locked during active session
+    setActiveLevel(id);
+
+    if (id === 'custom') {
+      const next = { ...settings, activeLevel: 'custom' };
+      setSettings(next);
+      Storage.saveSettings(3, next);
+    } else {
+      const difficultyNum = parseInt(id);
+      const next = { ...settings, difficulty: difficultyNum, activeLevel: id };
+      setSettings(next);
+      Storage.saveSettings(3, next);
+    }
   };
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -394,6 +426,13 @@ export default function Exercise3() {
       </header>
 
       <main className="ex3-main">
+
+        <LevelStrip
+          levels={EX3_LEVELS}
+          activeId={activeLevel}
+          onChange={handleLevelChange}
+          disabled={appState !== S.IDLE}
+        />
 
         {/* ══════════════════════════════════════════════════════════
             EXERCISE AREA — always visible

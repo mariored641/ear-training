@@ -1,0 +1,114 @@
+.level-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  margin: 8px 0 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.level-strip::-webkit-scrollbar {
+  height: 4px;
+}
+.level-strip::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.level-strip-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  min-height: 36px;
+  border: 1px solid #cfd8e3;
+  background: #fff;
+  color: #2c3e50;
+  border-radius: 18px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
+  font-family: inherit;
+}
+
+.level-strip-btn:hover:not(:disabled) {
+  background: #eef4fb;
+  border-color: #4a9eff;
+}
+
+.level-strip-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.level-strip-btn.active {
+  background: #4a9eff;
+  color: #fff;
+  border-color: #4a9eff;
+}
+
+.level-strip-btn.custom {
+  border-style: dashed;
+}
+
+.level-strip-btn.custom.active {
+  border-style: solid;
+}
+
+.level-strip-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.level-strip-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.level-strip-label {
+  line-height: 1;
+}
+
+/* Dark theme variant — Rhythm/Backing-tracks pages override these */
+.level-strip.dark {
+  background: rgba(255, 255, 255, 0.04);
+}
+.level-strip.dark .level-strip-btn {
+  background: #1f2233;
+  border-color: #3b4258;
+  color: #e6e9f0;
+}
+.level-strip.dark .level-strip-btn:hover:not(:disabled) {
+  background: #2a3046;
+  border-color: #6aa8ff;
+}
+.level-strip.dark .level-strip-btn.active {
+  background: #4a9eff;
+  border-color: #4a9eff;
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .level-strip {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .level-strip-btn {
+    padding: 6px 12px;
+    min-height: 32px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .level-strip-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}

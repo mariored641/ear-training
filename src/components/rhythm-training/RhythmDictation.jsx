@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import * as Tone from 'tone';
 import { generatePattern, computeExpectedOnsets, evaluateOnsets } from '../../utils/rhythmPatternGenerator';
 import rhythmAudio from '../../utils/rhythmTrainingAudio';
 import { RhythmOnsetDetector } from '../../utils/rhythmOnsetDetector';
@@ -58,6 +59,33 @@ export default function RhythmDictation({ settings, onActiveChange }) {
   useEffect(() => {
     onActiveChange(appState !== S.IDLE && appState !== S.DONE);
   }, [appState, onActiveChange]);
+
+  // ── Live setting changes: apply immediately during active session ────────
+  // BPM updates Tone.Transport for live tempo change.
+  useEffect(() => {
+    Tone.Transport.bpm.value = bpm;
+  }, [bpm]);
+
+  // Sound choice / bass note: reload sound; engine will pick it up on next beat.
+  useEffect(() => {
+    if (appState !== S.IDLE && appState !== S.DONE) {
+      rhythmAudio.loadSound(soundChoice, bassNote);
+    }
+  }, [soundChoice, bassNote, appState]);
+
+  // ── Question count conflict: jump to summary if numQuestions ≤ rounds ───
+  useEffect(() => {
+    if (numQuestions > 0 &&
+        stats.rounds >= numQuestions &&
+        appState !== S.DONE &&
+        appState !== S.IDLE &&
+        appState !== S.CALIBRATING) {
+      genRef.current = -1;            // cancel in-flight loop
+      rhythmAudio.stop();
+      detectorRef.current?.stop();
+      setAppState(S.DONE);
+    }
+  }, [numQuestions, stats.rounds, appState]);
 
   // ── Monitor detector: always-on for VU meter in IDLE ──────────
   const startMonitor = useCallback(async () => {

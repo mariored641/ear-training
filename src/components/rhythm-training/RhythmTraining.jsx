@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import RhythmDictation from './RhythmDictation';
 import CallAndResponse from './CallAndResponse';
 import rhythmAudio from '../../utils/rhythmTrainingAudio';
+import useAudioCleanup from '../../hooks/useAudioCleanup';
+import LevelStrip from '../common/LevelStrip';
 import {
   DEFAULT_RHYTHM_TRAINING_SETTINGS,
   CHROMATIC_NOTES_SHARP,
@@ -43,15 +45,37 @@ const LEVEL_DESCRIPTIONS = [
 
 const NUM_BARS_LABELS = { 1: 'תיבה 1', 2: '2 תיבות', 4: '4 תיבות' };
 
+const RT_LEVEL_STRIP = [
+  ...LEVEL_DESCRIPTIONS.map(({ level, label }) => ({ id: String(level), label })),
+  { id: 'custom', label: 'התאמה אישית' },
+];
+
 export default function RhythmTraining() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dictation');
   const [settings, setSettings] = useState(DEFAULT_RHYTHM_TRAINING_SETTINGS);
   const [exerciseActive, setExerciseActive] = useState(false);
+  const [activeLevel, setActiveLevel] = useState(() => String(DEFAULT_RHYTHM_TRAINING_SETTINGS.level));
+
+  useAudioCleanup(rhythmAudio);
 
   const updateSetting = useCallback((key, value) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+    // Switching the difficulty level via the detailed grid mirrors into activeLevel
+    if (key === 'level') {
+      setActiveLevel(String(value));
+    }
   }, []);
+
+  const handleLevelChange = useCallback((id) => {
+    if (id === activeLevel) return;
+    if (exerciseActive) return; // locked during active session
+    setActiveLevel(id);
+    if (id !== 'custom') {
+      const levelNum = parseInt(id);
+      setSettings(prev => ({ ...prev, level: levelNum }));
+    }
+  }, [activeLevel, exerciseActive]);
 
   const handleTabChange = (tabId) => {
     if (exerciseActive) return; // don't allow tab switch mid-exercise
@@ -96,11 +120,18 @@ export default function RhythmTraining() {
       {/* ── Content area ─────────────────────────────────────────── */}
       <div className="rt-content">
 
+        <LevelStrip
+          levels={RT_LEVEL_STRIP}
+          activeId={activeLevel}
+          onChange={handleLevelChange}
+          disabled={exerciseActive}
+        />
+
         {/* ── Shared settings panel ──────────────────────────────── */}
         <SettingsPanel
           settings={settings}
           updateSetting={updateSetting}
-          locked={exerciseActive}
+          exerciseActive={exerciseActive}
         />
 
         {/* ── Active tab ────────────────────────────────────────── */}
@@ -126,13 +157,19 @@ export default function RhythmTraining() {
 
 const NUM_QUESTIONS_OPTIONS = [5, 10, 20, 0]; // 0 = unlimited
 
-function SettingsPanel({ settings, updateSetting, locked }) {
+function SettingsPanel({ settings, updateSetting, exerciseActive }) {
   const { bpm, numBars, level, soundChoice, bassNote, numQuestions } = settings;
 
-  return (
-    <div className={`rt-settings ${locked ? 'locked' : ''}`}>
+  // Per-field disable: `numBars` and `level` have no clean mid-bar interrupt
+  // point in the rhythm engine, so they remain locked during an active session.
+  // BPM, sound, bass note, and question-count are live (changes apply now or
+  // route through the conflict-triggered summary).
+  const lockStructural = exerciseActive;
 
-      {/* Tempo */}
+  return (
+    <div className="rt-settings">
+
+      {/* Tempo — live */}
       <div className="rt-field">
         <span className="rt-label">טמפו</span>
         <div className="rt-slider-row">
@@ -149,7 +186,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
         </div>
       </div>
 
-      {/* Number of bars */}
+      {/* Number of bars — queued (locked during session) */}
       <div className="rt-field">
         <span className="rt-label">מספר תיבות</span>
         <div className="rt-btn-group">
@@ -158,6 +195,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
               key={n}
               className={`rt-opt-btn ${numBars === n ? 'active' : ''}`}
               onClick={() => updateSetting('numBars', n)}
+              disabled={lockStructural}
             >
               {NUM_BARS_LABELS[n] || n}
             </button>
@@ -165,7 +203,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
         </div>
       </div>
 
-      {/* Difficulty level */}
+      {/* Difficulty level — queued (locked during session) */}
       <div className="rt-field">
         <span className="rt-label">רמת קושי</span>
         <div className="rt-level-grid">
@@ -174,6 +212,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
               key={l}
               className={`rt-level-bar ${level === l ? 'active' : ''}`}
               onClick={() => updateSetting('level', l)}
+              disabled={lockStructural}
             >
               <span className="rt-level-bar-name">{label}</span>
               <span className="rt-level-bar-desc">{desc}</span>
@@ -182,7 +221,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
         </div>
       </div>
 
-      {/* Sound choice */}
+      {/* Sound choice — live */}
       <div className="rt-field">
         <span className="rt-label">צליל פטרן</span>
         <div className="rt-btn-group">
@@ -198,7 +237,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
         </div>
       </div>
 
-      {/* Bass note selector (only for bass sound) */}
+      {/* Bass note selector (only for bass sound) — live */}
       {soundChoice === 'bass' && (
         <div className="rt-field">
           <span className="rt-label">תו בסיס</span>
@@ -216,7 +255,7 @@ function SettingsPanel({ settings, updateSetting, locked }) {
         </div>
       )}
 
-      {/* Number of questions */}
+      {/* Number of questions — live (conflict triggers summary) */}
       <div className="rt-field">
         <span className="rt-label">מספר שאלות</span>
         <div className="rt-btn-group">
