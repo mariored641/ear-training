@@ -3,6 +3,7 @@ import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import { useStoredState } from '../shared/useStoredState';
 import KeySelector from '../shared/KeySelector';
 import BinaryToggle from '../shared/BinaryToggle';
+import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { chordAtDegree } from '../../../constants/cadenceDefinitions';
 import { EXTENDED_CHORDS, CHORD_DEFINITIONS } from '../../../constants/harmonicDefaults';
@@ -46,6 +47,7 @@ function resolveChord(name) {
 const ExerciseF0 = () => {
   const [key, setKey]             = useState('C');
   const [instrument, setInstrument] = useStoredState('ear-training:F0:instrument', 'piano');
+  const [reference, setReference]   = useStoredState('ear-training:F0:reference', 'cadence');
 
   const generateQuestion = useCallback((level) => {
     const mode = level === 5 ? 'minor' : 'major';
@@ -85,14 +87,25 @@ const ExerciseF0 = () => {
     return { id: Date.now(), chord, mode, tonic, options, correctId: String(correctDegree) };
   }, [key]);
 
-  const onPlay = useCallback(async (q) => {
+  const onPlay = useCallback(async (q, _level, ctx) => {
     if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
-    await harmonicAudioPlayer.playCadence('PAC', q.tonic, null, q.mode, 0.7);
-    setTimeout(() => {
-      const notes = resolveChord(q.chord);
-      if (notes) harmonicAudioPlayer.playChord(notes, 2.0, 'strummed');
-    }, 100);
-  }, [key, instrument]);
+    const ref = ctx?.reference ?? reference;
+    if (ref === 'cadence') {
+      await harmonicAudioPlayer.playCadence('PAC', q.tonic, null, q.mode, 0.7);
+      await new Promise(r => setTimeout(r, 200));
+    } else if (ref === 'chord') {
+      const tonicChord = q.mode === 'minor' ? q.tonic + 'm' : q.tonic;
+      const notes = resolveChord(tonicChord);
+      if (notes) harmonicAudioPlayer.playChord(notes, 0.8, 'strummed');
+      await new Promise(r => setTimeout(r, 1000));
+    } else if (ref === 'note') {
+      if (!audioPlayer.initialized) await audioPlayer.init();
+      await audioPlayer.playNote(q.tonic + '4', 1.0);
+      await new Promise(r => setTimeout(r, 1100));
+    }
+    const notes = resolveChord(q.chord);
+    if (notes) harmonicAudioPlayer.playChord(notes, 2.0, 'strummed');
+  }, [key, instrument, reference]);
 
   return (
     <MultipleChoiceShell
@@ -103,6 +116,7 @@ const ExerciseF0 = () => {
       generateQuestion={generateQuestion}
       onPlay={onPlay}
       instrument={{ value: instrument, onChange: setInstrument }}
+      reference={{ value: reference, onChange: setReference }}
       extraControls={
         <KeySelector value={key} onChange={setKey} />
       }

@@ -40,6 +40,7 @@ function classifyStepLeap(degs) {
 const ExerciseV2 = () => {
   const [instrument, setInstrument] = useStoredState('ear-training:V2:instrument', 'piano');
   const [advancement, setAdvancement] = useStoredState('ear-training:V2:advancement', 'auto');
+  const [reference, setReference] = useStoredState('ear-training:V2:reference', 'cadence');
   const questionRef = useRef(null);
 
   useEffect(() => {
@@ -106,14 +107,30 @@ const ExerciseV2 = () => {
     };
   }, []);
 
-  const onPlay = useCallback(async (q) => {
+  const onPlay = useCallback(async (q, _level, ctx) => {
     questionRef.current = q;
+    if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+    const ref = ctx?.reference ?? reference;
+    if (ref === 'cadence') {
+      await harmonicAudioPlayer.playCadence('PAC', 'C', null, 'major', 0.7);
+      await new Promise(r => setTimeout(r, 200));
+    } else if (ref === 'chord') {
+      const { CHORD_DEFINITIONS } = await import('../../../constants/harmonicDefaults');
+      const notes = CHORD_DEFINITIONS['C'];
+      if (notes) harmonicAudioPlayer.playChord(notes, 0.8, 'strummed');
+      await new Promise(r => setTimeout(r, 1000));
+    } else if (ref === 'note') {
+      const audioPlayer = (await import('../../../utils/AudioPlayer')).default;
+      if (!audioPlayer.initialized) await audioPlayer.init();
+      await audioPlayer.playNote('C4', 1.0);
+      await new Promise(r => setTimeout(r, 1100));
+    }
     await harmonicAudioPlayer.playWithEmphasis(
       q.progression.voicings,
       'soprano',
       { chordDuration: 1.4 }
     );
-  }, []);
+  }, [reference]);
 
   const handleSopranoEmphasis = useCallback(async () => {
     if (!questionRef.current?.progression?.voicings) return;
@@ -150,6 +167,7 @@ const ExerciseV2 = () => {
       onPlay={onPlay}
       instrument={{ value: instrument, onChange: setInstrument }}
       advancement={{ value: advancement, onChange: setAdvancement }}
+      reference={{ value: reference, onChange: setReference }}
       extraControls={extraControls}
     />
   );

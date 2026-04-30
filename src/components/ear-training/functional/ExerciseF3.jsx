@@ -122,12 +122,24 @@ const ExerciseF3 = () => {
   const [simpleAnswered, setSimpleAnswered] = useState(null);
 
   const stateRef = useRef({});
+  const lastQKeyRef = useRef(null);
   stateRef.current = { level, meter };
 
   const generate = useCallback(async () => {
     const { level: lv, meter: mt } = stateRef.current;
     if (lv === 6) return;
-    const q = buildQ(lv, mt);
+    let q = buildQ(lv, mt);
+    let attempts = 0;
+    const keyOf = (qq) => `${[...qq.correctSet].sort().join('|')}_${qq.isAccelerating}`;
+    while (
+      attempts < 5 &&
+      lastQKeyRef.current &&
+      keyOf(q) === lastQKeyRef.current
+    ) {
+      q = buildQ(lv, mt);
+      attempts++;
+    }
+    lastQKeyRef.current = keyOf(q);
     setQuestion(q);
     setGridResetKey(k => k + 1);
     setFeedback(null);
@@ -137,6 +149,7 @@ const ExerciseF3 = () => {
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
+    lastQKeyRef.current = null;
     const tid = setTimeout(generate, 100);
     return () => clearTimeout(tid);
   }, [level, numQuestions, meter]);

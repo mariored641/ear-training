@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import { useStoredState } from '../shared/useStoredState';
@@ -9,6 +9,7 @@ import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
 import { loadStoredLevel } from '../shared/LevelNavigator';
+import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { KNOWN_PROGRESSIONS, PROGRESSIONS_BY_DIFFICULTY } from '../../../constants/progressionLibrary';
 import { EXTENDED_CHORDS, CHORD_DEFINITIONS } from '../../../constants/harmonicDefaults';
@@ -55,10 +56,15 @@ function pickPool(level) {
   return PROGRESSIONS_BY_DIFFICULTY(level);
 }
 
-function makeQuestion(level) {
+function makeQuestion(level, prevId = null) {
   const pool = pickPool(level);
   if (!pool || pool.length === 0) return makeQuestion(5);
-  const correct = pool[Math.floor(Math.random() * pool.length)];
+  let correct = pool[Math.floor(Math.random() * pool.length)];
+  let attempts = 0;
+  while (attempts < 5 && pool.length > 1 && prevId && correct.id === prevId) {
+    correct = pool[Math.floor(Math.random() * pool.length)];
+    attempts++;
+  }
   const rest = pool.filter(p => p.id !== correct.id).sort(() => Math.random() - 0.5);
   const distractors = [correct, ...rest.slice(0, 3)].sort(() => Math.random() - 0.5);
   return { correct, distractors };
@@ -73,6 +79,7 @@ const ExerciseF4 = () => {
   const [displayMode, setDisplayMode]  = useState('degrees');
   const [key, setKey]                  = useState('C');
   const [instrument, setInstrument]    = useStoredState('ear-training:F4:instrument', 'piano');
+  const [reference, setReference]      = useStoredState('ear-training:F4:reference', 'cadence');
 
   const [question, setQuestion]        = useState(() => makeQuestion(1));
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -81,16 +88,21 @@ const ExerciseF4 = () => {
   const [firstTry, setFirstTry]        = useState(0);
   const [attempted, setAttempted]      = useState(false);
   const [done, setDone]                = useState(false);
+  const lastIdRef = useRef(null);
 
   const nextQuestion = useCallback(() => {
-    setQuestion(makeQuestion(level));
+    const q = makeQuestion(level, lastIdRef.current);
+    lastIdRef.current = q.correct.id;
+    setQuestion(q);
     setAnswered(null);
     setFeedback(null);
     setAttempted(false);
   }, [level]);
 
   useEffect(() => {
-    setQuestionIndex(0); setFirstTry(0); setDone(false); nextQuestion();
+    setQuestionIndex(0); setFirstTry(0); setDone(false);
+    lastIdRef.current = null;
+    nextQuestion();
   }, [level, numQuestions]);
 
   const keyShift = noteToSemitone(key); // shift from C
@@ -102,12 +114,27 @@ const ExerciseF4 = () => {
 
   const playProg = useCallback(async (prog) => {
     if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+    if (reference !== 'none') {
+      if (reference === 'cadence') {
+        await harmonicAudioPlayer.playCadence('PAC', key, null, 'major', 0.7);
+        await new Promise(r => setTimeout(r, 200));
+      } else if (reference === 'chord') {
+        const tonicChord = transposeChordName('C', keyShift);
+        const notes = resolveChord(tonicChord);
+        if (notes) harmonicAudioPlayer.playChord(notes, 0.8, 'strummed');
+        await new Promise(r => setTimeout(r, 1000));
+      } else if (reference === 'note') {
+        if (!audioPlayer.initialized) await audioPlayer.init();
+        await audioPlayer.playNote(key + '4', 1.0);
+        await new Promise(r => setTimeout(r, 1100));
+      }
+    }
     for (const ch of prog.chords) {
       const notes = resolveChord(ch);
       if (notes) harmonicAudioPlayer.playChord(notes, 1.0, 'strummed');
       await new Promise(r => setTimeout(r, 1100));
     }
-  }, []);
+  }, [reference, key]);
 
   const handleAnswer = (p) => {
     if (done || answered) return;
@@ -153,6 +180,14 @@ const ExerciseF4 = () => {
         <BinaryToggle label="כלי"
           options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
           value={instrument} onChange={setInstrument} />
+        <BinaryToggle label="רפרנס"
+          options={[
+            { value: 'cadence', label: 'קדנצה' },
+            { value: 'chord', label: 'אקורד' },
+            { value: 'note', label: 'תו' },
+            { value: 'none', label: 'ללא' }
+          ]}
+          value={reference} onChange={setReference} />
         <button style={playBtn} onClick={() => playProg(question.correct)}>▶ נגן שוב</button>
       </div>
 
@@ -165,20 +200,24 @@ const ExerciseF4 = () => {
       <div style={optGrid}>
         {question.distractors.map(p => {
           const chordDisplay = displayChords(p.chords);
-          const ok = answered === p.id && feedback === 'correct';
-          const bad = answered === p.id && feedback === 'wrong';
+          const isSel = answered === p.id;
+          const ok = isSel && feedback === 'correct';
+          const bad = isSel && feedback === 'wrong';
+          const onlySel = isSel && !feedback;
+          const colored = ok || bad || onlySel;
           return (
-            <button key={p.id} onClick={() => handleAnswer(p)} disabled={!!answered} style={{
+            <button key={p.id} onClick={() => handleAnswer(p)} disabled={!!answered && feedback === 'correct'} style={{
               ...optBtn,
+              ...(onlySel ? optSelected : {}),
               ...(ok ? optCorrect : {}),
               ...(bad ? optWrong : {}),
             }}>
               <div style={{ fontWeight:700, fontSize:15 }}>{p.name}</div>
-              <div style={{ fontSize:12, color: ok || bad ? '#fff' : '#888', marginTop:4 }}>
+              <div style={{ fontSize:12, color: colored ? '#fff' : '#888', marginTop:4 }}>
                 {displayMode === 'degrees' ? p.degrees.join(' ') : chordDisplay?.join(' ')}
               </div>
               {p.examples?.length > 0 && (
-                <div style={{ fontSize:11, color: ok || bad ? '#fff' : '#bbb', marginTop:3 }}>
+                <div style={{ fontSize:11, color: colored ? '#fff' : '#bbb', marginTop:3 }}>
                   {p.examples[0]}
                 </div>
               )}
@@ -196,7 +235,8 @@ const ctrlRow = { display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', 
 const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
 const optGrid = { display:'flex', flexWrap:'wrap', gap:12, justifyContent:'center', padding:'24px 16px', maxWidth:700, margin:'0 auto' };
 const optBtn = { width:165, padding:'16px 12px', borderRadius:12, border:'2px solid #ddd', background:'#fff', cursor:'pointer', textAlign:'center', transition:'all 0.15s' };
-const optCorrect = { background:'#2dbb5b', borderColor:'#2dbb5b', color:'#fff' };
-const optWrong = { background:'#e74c3c', borderColor:'#e74c3c', color:'#fff' };
+const optSelected = { background:'var(--color-primary, #4a90e2)', border:'2px solid var(--color-primary, #4a90e2)', color:'#fff' };
+const optCorrect = { background:'#2dbb5b', border:'2px solid #2dbb5b', color:'#fff' };
+const optWrong = { background:'#e74c3c', border:'2px solid #e74c3c', color:'#fff' };
 
 export default ExerciseF4;

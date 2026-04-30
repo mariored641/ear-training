@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
+import BinaryToggle from '../shared/BinaryToggle';
 import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { EXTENDED_CHORDS, getInversion } from '../../../constants/harmonicDefaults';
 
 const LEVELS = [
-  { number: 1, label: 'שלב 1 — שורש / היפוך 1 (טריאדה מז\'ור)' },
-  { number: 2, label: 'שלב 2 — שורש / היפוך 1 / היפוך 2 (טריאדה)' },
+  { number: 1, label: "שלב 1 — שורש / היפוך 1 (מז'ור)" },
+  { number: 2, label: "שלב 2 — שורש / היפוך 1 / היפוך 2 (מז'ור)" },
   { number: 3, label: 'שלב 3 — מינור גם' },
   { number: 4, label: 'שלב 4 — אקורדי שביעי, עד היפוך 2' },
   { number: 5, label: 'שלב 5 — אקורדי שביעי, כל ההיפוכים (0-3)' },
@@ -19,6 +20,7 @@ const SEVENTHS = ['CMaj7','Dm7','G7','Am7','FMaj7'];
 
 const ExerciseH2 = () => {
   const [instrument, setInstrument] = useStoredState('ear-training:H2:instrument', 'piano');
+  const [voicing, setVoicing] = useStoredState('ear-training:H2:voicing', 'arpeggiated');
 
   const handleInstrumentChange = async (val) => {
     setInstrument(val);
@@ -43,8 +45,11 @@ const ExerciseH2 = () => {
   }, []);
 
   const onPlay = useCallback(async (q) => {
-    await harmonicAudioPlayer.playInversion(q.chord, q.inversion, { voicing: 'arpeggiated', duration: 1.2 });
-  }, []);
+    const v = voicing === 'mixed'
+      ? (Math.random() > 0.5 ? 'strummed' : 'arpeggiated')
+      : voicing;
+    await harmonicAudioPlayer.playInversion(q.chord, q.inversion, { voicing: v, duration: 1.2 });
+  }, [voicing]);
 
   return (
     <MultipleChoiceShell
@@ -55,6 +60,19 @@ const ExerciseH2 = () => {
       generateQuestion={generateQuestion}
       onPlay={onPlay}
       instrument={{ value: instrument, onChange: handleInstrumentChange }}
+      questionKey={(q) => q.chord + '_' + q.inversion}
+      extraControls={
+        <BinaryToggle
+          label="נגינה"
+          options={[
+            { value: 'strummed',    label: 'סטרום' },
+            { value: 'arpeggiated', label: "ארפג'יו" },
+            { value: 'mixed',       label: 'מעורב' },
+          ]}
+          value={voicing}
+          onChange={setVoicing}
+        />
+      }
     />
   );
 };

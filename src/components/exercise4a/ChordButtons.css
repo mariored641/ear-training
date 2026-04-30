@@ -53,6 +53,12 @@
   background: var(--bg-secondary);
 }
 
+.chord-btn.selected {
+  background: var(--color-primary, #4a90e2);
+  color: white;
+  border-color: var(--color-primary, #4a90e2);
+}
+
 .chord-btn.correct {
   background: #4CAF50;
   color: white;

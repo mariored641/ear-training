@@ -87,6 +87,7 @@ const ExerciseH4 = () => {
   const [done,      setDone]      = useState(false);
 
   const stateRef = useRef({});
+  const lastQuestionRef = useRef(null);
   stateRef.current = { level, activeChips, userBaseType, instrument };
 
   // Visible tensions per level (for the checkboxes)
@@ -101,7 +102,7 @@ const ExerciseH4 = () => {
   })();
 
   const generateAndPlay = useCallback(async () => {
-    const { level: lv, activeChips: chips, userBaseType: ubt } = stateRef.current;
+    const { level: lv, activeChips: chips } = stateRef.current;
     const pool = LEVEL_POOL[lv] || LEVEL_POOL[1];
 
     // For level 6, filter pool to only use tensions that are in activeChips
@@ -113,26 +114,42 @@ const ExerciseH4 = () => {
       if (filteredPool.length === 0) filteredPool = pool;
     }
 
-    const entry   = filteredPool[Math.floor(Math.random() * filteredPool.length)];
-    const bType   = entry.baseType;
-    const roots   = getRoots(bType);
-    const root    = roots[Math.floor(Math.random() * roots.length)];
-    const chord   = chordName(root, bType);
+    const pickOne = () => {
+      const entry = filteredPool[Math.floor(Math.random() * filteredPool.length)];
+      const bType = entry.baseType;
+      const roots = getRoots(bType);
+      const root  = roots[Math.floor(Math.random() * roots.length)];
+      return { entry, bType, root, chord: chordName(root, bType) };
+    };
 
-    setCorrectTensions(entry.tensions);
-    setCurrentChord(chord);
-    setCurrentBaseType(bType);
+    let pick = pickOne();
+    let attempts = 0;
+    const keyOf = (p) => `${p.chord}_${[...p.entry.tensions].sort().join(',')}`;
+    while (
+      attempts < 5 &&
+      lastQuestionRef.current &&
+      keyOf(pick) === keyOf(lastQuestionRef.current)
+    ) {
+      pick = pickOne();
+      attempts++;
+    }
+    lastQuestionRef.current = pick;
+
+    setCorrectTensions(pick.entry.tensions);
+    setCurrentChord(pick.chord);
+    setCurrentBaseType(pick.bType);
     setChecked({});
     setSubmitted(false);
     setFeedback(null);
 
     if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
     // Play with tensions (empty tensions = base chord only)
-    await harmonicAudioPlayer.playWithTensions(chord, entry.tensions, { duration: 2.0, voicing: 'strummed' });
+    await harmonicAudioPlayer.playWithTensions(pick.chord, pick.entry.tensions, { duration: 2.0, voicing: 'strummed' });
   }, [level]);
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
+    lastQuestionRef.current = null;
     const tid = setTimeout(generateAndPlay, 100);
     return () => clearTimeout(tid);
   }, [level, numQuestions]);

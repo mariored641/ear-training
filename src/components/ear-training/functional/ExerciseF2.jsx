@@ -9,6 +9,7 @@ import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
 import { loadStoredLevel } from '../shared/LevelNavigator';
 import { useStoredState } from '../shared/useStoredState';
+import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { CHORD_DEFINITIONS, EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
 import { chordAtDegree } from '../../../constants/cadenceDefinitions';
@@ -115,6 +116,7 @@ const ExerciseF2 = () => {
   const [displayMode, setDisplayMode]  = useState('degrees');
   const [key, setKey]                  = useState('C');
   const [instrument, setInstrument]    = useStoredState('ear-training:F2:instrument', 'piano');
+  const [reference, setReference]      = useStoredState('ear-training:F2:reference', 'cadence');
   const [seqLength, setSeqLength]      = useState(4);
 
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -125,7 +127,9 @@ const ExerciseF2 = () => {
   const [firstTry, setFirstTry] = useState(0);
   const [posAttempts, setPosAttempts] = useState({});
   const [done, setDone] = useState(false);
+  const [selectedBtnId, setSelectedBtnId] = useState(null);
   const isPlayingRef = useRef(false);
+  const lastProgKeyRef = useRef(null);
 
   const buttons = getButtons(level);
 
@@ -135,22 +139,53 @@ const ExerciseF2 = () => {
   };
 
   const startQuestion = useCallback(async () => {
-    const prog = generateProgression(level, seqLength);
+    let prog = generateProgression(level, seqLength);
+    let attempts = 0;
+    const keyOf = (p) => p.map(x => x.degree).join(',');
+    while (
+      attempts < 5 &&
+      lastProgKeyRef.current &&
+      keyOf(prog) === lastProgKeyRef.current
+    ) {
+      prog = generateProgression(level, seqLength);
+      attempts++;
+    }
+    lastProgKeyRef.current = keyOf(prog);
     setProgression(prog);
     setPositionIndex(0);
     setSlots(Array(prog.length).fill(null));
     setPosAttempts({});
     setFeedback(null);
+    setSelectedBtnId(null);
     await playProg(prog);
   }, [level]);
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
+    lastProgKeyRef.current = null;
     setTimeout(startQuestion, 100);
   }, [level, numQuestions]);
 
+  const playReference = async () => {
+    if (reference === 'none') return;
+    if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+    if (reference === 'cadence') {
+      await harmonicAudioPlayer.playCadence('PAC', key, null, 'major', 0.7);
+      await new Promise(r => setTimeout(r, 200));
+    } else if (reference === 'chord') {
+      const notes = resolveChord(key);
+      if (notes) harmonicAudioPlayer.playChord(notes, 0.8, 'strummed');
+      await new Promise(r => setTimeout(r, 1000));
+    } else if (reference === 'note') {
+      if (!audioPlayer.initialized) await audioPlayer.init();
+      await audioPlayer.playNote(key + '4', 1.0);
+      await new Promise(r => setTimeout(r, 1100));
+    }
+  };
+
   const playProg = async (prog) => {
     if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+    await playReference();
     for (const item of prog) {
       const notes = resolveChord(item.name);
       if (notes) harmonicAudioPlayer.playChord(notes, 1.2, 'strummed');
@@ -164,10 +199,11 @@ const ExerciseF2 = () => {
     const isOk = btn.degree === correct.degree || btn.name === correct.name;
     const isFirst = !posAttempts[positionIndex];
 
+    setSelectedBtnId(`${btn.degree}_${btn.name}`);
     setPosAttempts(prev => ({ ...prev, [positionIndex]: (prev[positionIndex] || 0) + 1 }));
     setSlots(prev => { const n = [...prev]; n[positionIndex] = { ...btn, ok: isOk }; return n; });
     setFeedback(isOk ? 'correct' : 'wrong');
-    setTimeout(() => setFeedback(null), 600);
+    setTimeout(() => { setFeedback(null); setSelectedBtnId(null); }, 600);
 
     if (isOk) {
       if (isFirst) setFirstTry(p => p + 1);
@@ -233,14 +269,23 @@ const ExerciseF2 = () => {
       <div style={btnGrid}>
         {buttons.map(btn => {
           const dispName = transposeChordF2(btn.name, keyShift(key));
+          const btnId = `${btn.degree}_${btn.name}`;
+          const isSel = selectedBtnId === btnId;
+          const isCorrect = isSel && feedback === 'correct';
+          const isWrong = isSel && feedback === 'wrong';
           return (
-            <button key={btn.degree + btn.name} onClick={() => handleSelect(btn)}
-              style={chordBtn}>
+            <button key={btnId} onClick={() => handleSelect(btn)}
+              style={{
+                ...chordBtn,
+                ...(isSel && !feedback ? chordSelected : {}),
+                ...(isCorrect ? chordCorrect : {}),
+                ...(isWrong ? chordWrong : {}),
+              }}>
               <div style={{ fontSize: 16, fontWeight: 700 }}>
                 {displayMode === 'degrees' ? btn.roman : dispName}
               </div>
               {displayMode === 'degrees' && (
-                <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>{dispName}</div>
+                <div style={{ fontSize: 11, color: isSel ? '#fff' : '#aaa', marginTop: 2 }}>{dispName}</div>
               )}
             </button>
           );
@@ -257,6 +302,14 @@ const ExerciseF2 = () => {
         <BinaryToggle label="כלי"
           options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
           value={instrument} onChange={handleInstrumentChange} />
+        <BinaryToggle label="רפרנס"
+          options={[
+            { value: 'cadence', label: 'קדנצה' },
+            { value: 'chord', label: 'אקורד' },
+            { value: 'note', label: 'תו' },
+            { value: 'none', label: 'ללא' }
+          ]}
+          value={reference} onChange={setReference} />
       </div>
 
       <FeedbackOverlay state={feedback} />
@@ -272,6 +325,9 @@ const slot = { width:80, height:64, display:'flex', alignItems:'center', justify
 const slotCorrect = { background:'#e8f9f0', borderColor:'#2dbb5b', color:'#2dbb5b' };
 const slotActive = { background:'#eaf3ff', borderColor:'var(--color-primary,#4a90e2)', color:'var(--color-primary,#4a90e2)' };
 const btnGrid = { display:'flex', flexWrap:'wrap', gap:10, justifyContent:'center', padding:'20px 16px 32px', maxWidth:700, margin:'0 auto' };
-const chordBtn = { minWidth:80, padding:'12px 10px', borderRadius:10, border:'2px solid #ddd', background:'#fff', cursor:'pointer', textAlign:'center' };
+const chordBtn = { minWidth:80, padding:'12px 10px', borderRadius:10, border:'2px solid #ddd', background:'#fff', cursor:'pointer', textAlign:'center', transition:'all 0.15s' };
+const chordSelected = { background:'var(--color-primary, #4a90e2)', color:'#fff', border:'2px solid var(--color-primary, #4a90e2)' };
+const chordCorrect  = { background:'#2dbb5b', color:'#fff', border:'2px solid #2dbb5b' };
+const chordWrong    = { background:'#e74c3c', color:'#fff', border:'2px solid #e74c3c' };
 
 export default ExerciseF2;

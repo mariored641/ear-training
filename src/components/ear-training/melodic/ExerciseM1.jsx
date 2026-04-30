@@ -123,6 +123,7 @@ const ExerciseM1 = () => {
   const isPlayingRef = useRef(false);
   const stateRef = useRef({});
   const bagRef = useRef([]);
+  const lastIntervalRef = useRef(null);
 
   const cfg = LEVEL_CONFIG[level] || LEVEL_CONFIG[1];
   const effectiveRef = reference ?? cfg.defaultRef;
@@ -179,7 +180,18 @@ const ExerciseM1 = () => {
   const loadQuestion = useCallback(async () => {
     if (isPlayingRef.current) return;
     const { cfg: c, activeNotes: notes } = stateRef.current;
-    const note = pickNote(notes, c.tonic, bagRef.current);
+    let note = pickNote(notes, c.tonic, bagRef.current);
+    let attempts = 0;
+    while (
+      attempts < 5 &&
+      notes.length > 1 &&
+      lastIntervalRef.current !== null &&
+      note.interval === lastIntervalRef.current
+    ) {
+      note = pickNote(notes, c.tonic, bagRef.current);
+      attempts++;
+    }
+    lastIntervalRef.current = note.interval;
     setCorrectNote(note);
     setSelected(null);
     setFeedback(null);
@@ -190,6 +202,7 @@ const ExerciseM1 = () => {
 
   useEffect(() => {
     bagRef.current = []; // reset bag on level/numQuestions change
+    lastIntervalRef.current = null;
     setQuestionIndex(0);
     setFirstTry(0);
     setDone(false);
@@ -283,6 +296,7 @@ const ExerciseM1 = () => {
             <button key={iv} onClick={() => handleSelect(iv)}
               style={{
                 ...noteBtn,
+                ...(isSelected && !feedback ? noteSelected : {}),
                 ...(isSelected && feedback === 'correct' ? noteCorrect : {}),
                 ...(isSelected && feedback === 'wrong'   ? noteWrong   : {}),
               }}>
@@ -343,7 +357,8 @@ const noteBtn = {
   border:'2px solid var(--border-color,#ddd)', background:'#fff',
   color:'var(--color-text,#222)', fontSize:18, fontWeight:700, cursor:'pointer'
 };
-const noteCorrect = { background:'#2dbb5b', color:'#fff', borderColor:'#2dbb5b' };
-const noteWrong   = { background:'#e74c3c', color:'#fff', borderColor:'#e74c3c' };
+const noteSelected = { background:'var(--color-primary, #4a90e2)', color:'#fff', border:'2px solid var(--color-primary, #4a90e2)' };
+const noteCorrect  = { background:'#2dbb5b', color:'#fff', border:'2px solid #2dbb5b' };
+const noteWrong    = { background:'#e74c3c', color:'#fff', border:'2px solid #e74c3c' };
 
 export default ExerciseM1;

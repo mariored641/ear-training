@@ -172,6 +172,7 @@ const ExerciseV1 = () => {
 
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
   const [instrument, setInstrument]    = useStoredState('ear-training:V1:instrument', 'piano');
+  const [reference, setReference]      = useStoredState('ear-training:V1:reference', 'cadence');
   const [numQuestions, setNumQuestions] = useState(10);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [question, setQuestion]        = useState(null);
@@ -182,7 +183,8 @@ const ExerciseV1 = () => {
   const [done, setDone]                = useState(false);
 
   const stateRef = useRef({});
-  stateRef.current = { level, instrument };
+  const lastQKeyRef = useRef(null);
+  stateRef.current = { level, instrument, reference };
 
   const handleInstrumentChange = async (val) => {
     setInstrument(val);
@@ -191,19 +193,50 @@ const ExerciseV1 = () => {
     }
   };
 
+  const playReference = async () => {
+    const { reference: ref } = stateRef.current;
+    if (ref === 'none') return;
+    if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+    if (ref === 'cadence') {
+      await harmonicAudioPlayer.playCadence('PAC', 'C', null, 'major', 0.7);
+      await new Promise(r => setTimeout(r, 200));
+    } else if (ref === 'chord') {
+      const { CHORD_DEFINITIONS } = await import('../../../constants/harmonicDefaults');
+      const notes = CHORD_DEFINITIONS['C'];
+      if (notes) harmonicAudioPlayer.playChord(notes, 0.8, 'strummed');
+      await new Promise(r => setTimeout(r, 1000));
+    } else if (ref === 'note') {
+      harmonicAudioPlayer.playNote('C4', 1.0);
+      await new Promise(r => setTimeout(r, 1100));
+    }
+  };
+
   const generate = useCallback(async () => {
     const { level: lv } = stateRef.current;
     if (lv === 7) return;
-    const q = buildQ(lv);
+    let q = buildQ(lv);
+    let attempts = 0;
+    const keyOf = (qq) => `${qq.correctId}_${(qq.notes || []).join(',')}_${qq.bassNote || ''}`;
+    while (
+      attempts < 5 &&
+      lastQKeyRef.current &&
+      keyOf(q) === lastQKeyRef.current
+    ) {
+      q = buildQ(lv);
+      attempts++;
+    }
+    lastQKeyRef.current = keyOf(q);
     setQuestion(q);
     setAnswered(null);
     setFeedback(null);
     setAttempted(false);
+    await playReference();
     await playNormal(q);
   }, []);
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
+    lastQKeyRef.current = null;
     const tid = setTimeout(generate, 100);
     return () => clearTimeout(tid);
   }, [level, numQuestions]);
@@ -260,13 +293,20 @@ const ExerciseV1 = () => {
 
           <div style={optGrid}>
             {question?.options.map(opt => {
-              const ok = answered === opt.id && feedback === 'correct';
-              const bad = answered === opt.id && feedback === 'wrong';
+              const isSel = answered === opt.id;
+              const ok = isSel && feedback === 'correct';
+              const bad = isSel && feedback === 'wrong';
+              const onlySel = isSel && !feedback;
               return (
                 <button key={opt.id}
                   onClick={() => handleAnswer(opt.id)}
-                  disabled={!!answered}
-                  style={{ ...optBtn, ...(ok ? optCorrect : {}), ...(bad ? optWrong : {}) }}>
+                  disabled={!!answered && feedback === 'correct'}
+                  style={{
+                    ...optBtn,
+                    ...(onlySel ? optSelected : {}),
+                    ...(ok ? optCorrect : {}),
+                    ...(bad ? optWrong : {})
+                  }}>
                   {opt.label}
                 </button>
               );
@@ -282,6 +322,14 @@ const ExerciseV1 = () => {
         <BinaryToggle label="כלי"
           options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
           value={instrument} onChange={handleInstrumentChange} />
+        <BinaryToggle label="רפרנס"
+          options={[
+            { value: 'cadence', label: 'קדנצה' },
+            { value: 'chord', label: 'אקורד' },
+            { value: 'note', label: 'תו' },
+            { value: 'none', label: 'ללא' }
+          ]}
+          value={reference} onChange={setReference} />
       </div>
 
       <FeedbackOverlay state={feedback} />
@@ -294,7 +342,8 @@ const ctrlRow = { display:'flex', gap:16, alignItems:'center', padding:'16px 24p
 const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
 const optGrid = { display:'flex', flexWrap:'wrap', gap:12, justifyContent:'center', padding:'24px 16px', maxWidth:600, margin:'0 auto' };
 const optBtn = { minWidth:110, padding:'14px 18px', borderRadius:10, border:'2px solid #ddd', background:'#fff', fontSize:16, fontWeight:600, cursor:'pointer', transition:'all 0.15s' };
-const optCorrect = { background:'#2dbb5b', borderColor:'#2dbb5b', color:'#fff' };
-const optWrong = { background:'#e74c3c', borderColor:'#e74c3c', color:'#fff' };
+const optSelected = { background:'var(--color-primary, #4a90e2)', border:'2px solid var(--color-primary, #4a90e2)', color:'#fff' };
+const optCorrect = { background:'#2dbb5b', border:'2px solid #2dbb5b', color:'#fff' };
+const optWrong = { background:'#e74c3c', border:'2px solid #e74c3c', color:'#fff' };
 
 export default ExerciseV1;

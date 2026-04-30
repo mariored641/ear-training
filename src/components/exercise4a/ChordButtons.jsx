@@ -16,6 +16,9 @@ const ChordButtons = ({
     if (!isAvailable) {
       buttonClass += ' disabled';
     }
+    if (isSelected && isCorrect === null) {
+      buttonClass += ' selected';
+    }
     if (isSelected && isCorrect === true) {
       buttonClass += ' correct';
     }

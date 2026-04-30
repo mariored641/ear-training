@@ -1,7 +1,9 @@
 import React, { useCallback } from 'react';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import NotationCard from '../shared/NotationCard';
+import { useStoredState } from '../shared/useStoredState';
 import audioPlayer from '../../../utils/AudioPlayer';
+import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 
 const LEVELS = [
   { number: 1, label: 'שלב 1 — הבדל ברור (4 תווים)' },
@@ -62,6 +64,7 @@ function degreesToNotes(degrees) {
 }
 
 const ExerciseS2 = () => {
+  const [reference, setReference] = useStoredState('ear-training:S2:reference', 'note');
   const generateQuestion = useCallback((level) => {
     const correct = makeMelody(level);
     const distractors = [
@@ -82,10 +85,26 @@ const ExerciseS2 = () => {
     };
   }, []);
 
-  const onPlay = useCallback(async (q) => {
+  const onPlay = useCallback(async (q, _level, ctx) => {
+    const ref = ctx?.reference ?? reference;
+    if (!audioPlayer.initialized) await audioPlayer.init();
+    if (ref === 'cadence') {
+      if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+      await harmonicAudioPlayer.playCadence('PAC', 'C', null, 'major', 0.7);
+      await new Promise(r => setTimeout(r, 200));
+    } else if (ref === 'chord') {
+      if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+      const { CHORD_DEFINITIONS } = await import('../../../constants/harmonicDefaults');
+      const tonicNotes = CHORD_DEFINITIONS['C'];
+      if (tonicNotes) harmonicAudioPlayer.playChord(tonicNotes, 0.8, 'strummed');
+      await new Promise(r => setTimeout(r, 1000));
+    } else if (ref === 'note') {
+      await audioPlayer.playNote('C4', 1.0);
+      await new Promise(r => setTimeout(r, 1100));
+    }
     const notes = degreesToNotes(q.melody);
     await audioPlayer.playSequence(notes, 110);
-  }, []);
+  }, [reference]);
 
   return (
     <MultipleChoiceShell
@@ -95,6 +114,7 @@ const ExerciseS2 = () => {
       levels={LEVELS}
       generateQuestion={generateQuestion}
       onPlay={onPlay}
+      reference={{ value: reference, onChange: setReference }}
     />
   );
 };

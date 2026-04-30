@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import { useStoredState } from '../shared/useStoredState';
 import audioPlayer from '../../../utils/AudioPlayer';
+import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { SCALE_HEBREW_NAMES } from '../../../constants/scaleQualities';
 import { loadStoredLevel } from '../shared/LevelNavigator';
 
@@ -40,6 +41,7 @@ const TONICS = ['C', 'D', 'E', 'F', 'G', 'A'];
 const ExerciseM3 = () => {
   const [instrument, setInstrument] = useStoredState('ear-training:M3:instrument', 'piano');
   const [advancement, setAdvancement] = useStoredState('ear-training:M3:advancement', 'auto');
+  const [reference, setReference] = useStoredState('ear-training:M3:reference', 'note');
   const [currentLevel, setCurrentLevel] = useState(() => loadStoredLevel('ear-training:M3:level', 1));
   const [chipsByLevel, setChipsByLevel] = useState({});
 
@@ -63,9 +65,25 @@ const ExerciseM3 = () => {
     };
   }, []);
 
-  const onPlay = useCallback(async (q) => {
+  const onPlay = useCallback(async (q, _level, ctx) => {
+    const ref = ctx?.reference ?? reference;
+    if (!audioPlayer.initialized) await audioPlayer.init();
+    if (ref === 'cadence') {
+      if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+      await harmonicAudioPlayer.playCadence('PAC', q.tonic, null, 'major', 0.7);
+      await new Promise(r => setTimeout(r, 200));
+    } else if (ref === 'chord') {
+      if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+      const { CHORD_DEFINITIONS } = await import('../../../constants/harmonicDefaults');
+      const tonicNotes = CHORD_DEFINITIONS[q.tonic];
+      if (tonicNotes) harmonicAudioPlayer.playChord(tonicNotes, 0.8, 'strummed');
+      await new Promise(r => setTimeout(r, 1000));
+    } else if (ref === 'note') {
+      await audioPlayer.playNote(q.tonic + '4', 1.0);
+      await new Promise(r => setTimeout(r, 1100));
+    }
     await audioPlayer.playScaleAscending(q.scaleName, q.tonic, 130);
-  }, []);
+  }, [reference]);
 
   const showChips = currentLevel >= 4;
   const chipPool = POOL_BY_LEVEL[currentLevel] || [];
@@ -98,6 +116,7 @@ const ExerciseM3 = () => {
       onPlay={onPlay}
       instrument={{ value: instrument, onChange: setInstrument }}
       advancement={{ value: advancement, onChange: setAdvancement }}
+      reference={{ value: reference, onChange: setReference }}
       chips={chipsConfig}
       onLevelChange={setCurrentLevel}
     />

@@ -9,6 +9,7 @@ import { loadStoredLevel } from '../shared/LevelNavigator';
 import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
+import { getChordLabel, TERMINOLOGY_TOGGLE_OPTIONS } from '../../../constants/chordTerminology';
 import '../shared/earTrainingShared.css';
 
 // ── Levels — per spec.md lines 260-276 ────────────────────────────────────
@@ -29,9 +30,6 @@ const LEVEL_KINDS = {
   5: ['major','minor','diminished','augmented'],
   6: ['major','minor','diminished','augmented'],
 };
-const KIND_LABELS = {
-  major: "מז'ור", minor: 'מינור', diminished: 'מוקטן (dim)', augmented: 'מוגדל (aug)'
-};
 const KIND_SHORT = { major:'M', minor:'m', diminished:'dim', augmented:'aug' };
 const ROOTS = ['C','D','E','F','G','A','A#'];
 const SUFFIX = { major:'', minor:'m', diminished:'dim', augmented:'aug' };
@@ -43,7 +41,7 @@ function randomVoicing(level) {
   return 'strummed';
 }
 
-function buildQ(level) {
+function buildQ(level, termMode = 'hebrew') {
   const kinds = LEVEL_KINDS[level] || LEVEL_KINDS[1];
   const seqLen = level === 5 ? 2 + Math.floor(Math.random() * 2) : level === 6 ? 4 : 1;
   const voicing = randomVoicing(level);
@@ -67,7 +65,7 @@ function buildQ(level) {
     sequence,
     correctId,
     correctSeq,
-    options: kinds.map(k => ({ id: k, label: KIND_LABELS[k] })),
+    options: kinds.map(k => ({ id: k, label: getChordLabel(k, termMode) })),
   };
 }
 
@@ -87,12 +85,14 @@ const ExerciseH1 = () => {
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
   const [instrument, setInstrument]    = useStoredState('ear-training:H1:instrument', 'piano');
   const [voicing, setVoicing]          = useState('strummed');
+  const [termMode, setTermMode]        = useStoredState('ear-training:H1:termMode', 'hebrew');
   const [numQuestions, setNumQuestions] = useState(10);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [question, setQuestion]        = useState(null);
   const [feedback, setFeedback]        = useState(null);
   const [firstTry, setFirstTry]        = useState(0);
   const [done, setDone]                = useState(false);
+  const [selectedKind, setSelectedKind] = useState(null);
 
   // For levels 5-6: slot-filling state
   const [currentSlot, setCurrentSlot]  = useState(0);
@@ -100,30 +100,45 @@ const ExerciseH1 = () => {
   const [attempted, setAttempted]      = useState(false);
 
   const stateRef = useRef({});
-  stateRef.current = { level, voicing, instrument };
+  const lastQuestionRef = useRef(null);
+  stateRef.current = { level, voicing, instrument, termMode };
 
   const handleInstrumentChange = async (val) => {
     setInstrument(val);
     if (harmonicAudioPlayer.initialized) await harmonicAudioPlayer.setInstrument(val);
   };
 
+  const keyOf = (q) => q ? `${q.correctSeq.join(',')}` : null;
+
   const generate = useCallback(async () => {
-    const { level: lv, voicing: vc } = stateRef.current;
-    const q = buildQ(lv);
+    const { level: lv, voicing: vc, termMode: tm } = stateRef.current;
+    let q = buildQ(lv, tm);
+    let attempts = 0;
+    while (
+      attempts < 5 &&
+      lastQuestionRef.current &&
+      keyOf(q) === keyOf(lastQuestionRef.current)
+    ) {
+      q = buildQ(lv, tm);
+      attempts++;
+    }
+    lastQuestionRef.current = q;
     setQuestion(q);
     setCurrentSlot(0);
     setSlotAnswers([]);
     setFeedback(null);
     setAttempted(false);
+    setSelectedKind(null);
     const effectiveVoicing = lv <= 3 ? 'strummed' : vc;
     await playQ(q, effectiveVoicing);
   }, []);
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
+    lastQuestionRef.current = null;
     const tid = setTimeout(generate, 100);
     return () => clearTimeout(tid);
-  }, [level, numQuestions, voicing]);
+  }, [level, numQuestions, voicing, termMode]);
 
   const advance = () => {
     if (questionIndex + 1 >= numQuestions) setDone(true);
@@ -134,6 +149,7 @@ const ExerciseH1 = () => {
   const handleSimpleAnswer = (kindId) => {
     if (!question || attempted) return;
     const ok = kindId === question.correctId;
+    setSelectedKind(kindId);
     setAttempted(true);
     setFeedback(ok ? 'correct' : 'wrong');
     if (ok) setFirstTry(p => p + 1);
@@ -219,14 +235,24 @@ const ExerciseH1 = () => {
 
       {/* Answer options */}
       <div style={optGrid}>
-        {question?.options.map(opt => (
-          <button
-            key={opt.id}
-            onClick={() => isSequenceLevel ? handleSlotAnswer(opt.id) : handleSimpleAnswer(opt.id)}
-            style={optBtn}>
-            {opt.label}
-          </button>
-        ))}
+        {question?.options.map(opt => {
+          const isSel = !isSequenceLevel && selectedKind === opt.id;
+          const isCorrect = isSel && feedback === 'correct';
+          const isWrong = isSel && feedback === 'wrong';
+          return (
+            <button
+              key={opt.id}
+              onClick={() => isSequenceLevel ? handleSlotAnswer(opt.id) : handleSimpleAnswer(opt.id)}
+              style={{
+                ...optBtn,
+                ...(isSel && !feedback ? optSelected : {}),
+                ...(isCorrect ? optCorrect : {}),
+                ...(isWrong ? optWrong : {})
+              }}>
+              {opt.label}
+            </button>
+          );
+        })}
       </div>
 
       <div style={settingsDivider} />
@@ -236,6 +262,9 @@ const ExerciseH1 = () => {
         <BinaryToggle label="כלי"
           options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
           value={instrument} onChange={handleInstrumentChange} />
+        <BinaryToggle label="תצוגה"
+          options={TERMINOLOGY_TOGGLE_OPTIONS}
+          value={termMode} onChange={setTermMode} />
         {level >= 4 && (
           <BinaryToggle label="נגינה"
             options={[
@@ -261,5 +290,8 @@ const slotGreen = { background:'#e8f9f0', borderColor:'#2dbb5b', color:'#2dbb5b'
 const slotBlue = { background:'#eaf3ff', borderColor:'var(--color-primary,#4a90e2)', color:'var(--color-primary,#4a90e2)' };
 const optGrid = { display:'flex', flexWrap:'wrap', gap:12, justifyContent:'center', padding:'24px 16px', maxWidth:600, margin:'0 auto' };
 const optBtn = { minWidth:120, padding:'14px 18px', borderRadius:10, border:'2px solid #ddd', background:'#fff', fontSize:16, fontWeight:600, cursor:'pointer', transition:'all 0.15s' };
+const optSelected = { background:'var(--color-primary, #4a90e2)', color:'#fff', border:'2px solid var(--color-primary, #4a90e2)' };
+const optCorrect  = { background:'#2dbb5b', color:'#fff', border:'2px solid #2dbb5b' };
+const optWrong    = { background:'#e74c3c', color:'#fff', border:'2px solid #e74c3c' };
 
 export default ExerciseH1;

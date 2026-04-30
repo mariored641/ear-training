@@ -29,6 +29,8 @@ import './earTrainingShared.css';
  *   extraControls   — optional ReactNode rendered in the controls bar
  *   renderPrompt    — optional render function for the question prompt area
  *   replayLabel     — override "▶ נגן שוב"
+ *   questionKey(q)  — optional dedup key for anti-repeat (default: q.correctId)
+ *   getOptionLabel(opt) — optional fn to compute option label dynamically (e.g. for live terminology toggles)
  */
 const MultipleChoiceShell = ({
   id,
@@ -46,7 +48,9 @@ const MultipleChoiceShell = ({
   extraControls,
   renderPrompt,
   replayLabel = '▶ נגן שוב',
-  onLevelChange
+  onLevelChange,
+  questionKey,
+  getOptionLabel
 }) => {
   const navigate = useNavigate();
   const storageKey = `ear-training:${id}:level`;
@@ -68,6 +72,7 @@ const MultipleChoiceShell = ({
   const [done, setDone] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
   const playIdRef = useRef(0);
+  const lastQuestionRef = useRef(null);
 
   const ctx = {
     instrument: instrument?.value,
@@ -76,12 +81,27 @@ const MultipleChoiceShell = ({
     activeChips: chips?.activeIds
   };
 
+  const keyOf = (q) => {
+    if (!q) return null;
+    return questionKey ? questionKey(q) : String(q.correctId);
+  };
+
   const startQuestion = useCallback(() => {
     setAttempted(false);
     setAnswered(null);
     setFeedback(null);
     setShowNextButton(false);
-    const q = generateQuestion(level, ctx);
+    let q = generateQuestion(level, ctx);
+    let attempts = 0;
+    while (
+      attempts < 5 &&
+      q && lastQuestionRef.current &&
+      keyOf(q) === keyOf(lastQuestionRef.current)
+    ) {
+      q = generateQuestion(level, ctx);
+      attempts++;
+    }
+    lastQuestionRef.current = q;
     setQuestion(q);
     if (q && onPlay) {
       const myId = ++playIdRef.current;
@@ -94,6 +114,7 @@ const MultipleChoiceShell = ({
     setQuestionIndex(0);
     setFirstTry(0);
     setDone(false);
+    lastQuestionRef.current = null;
     startQuestion();
     return () => { playIdRef.current++; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,20 +202,27 @@ const MultipleChoiceShell = ({
       </div>
 
       <div className="et-mc-options" style={optionsStyle}>
-        {[...(question?.options ?? [])].sort((a, b) => String(a.id).localeCompare(String(b.id))).map(opt => (
-          <button
-            key={opt.id}
-            onClick={() => handleAnswer(opt.id)}
-            disabled={(answered === opt.id && feedback === 'correct') || showNextButton}
-            style={{
-              ...optionBtnStyle,
-              ...(answered === opt.id && feedback === 'correct' ? optionCorrectStyle : {}),
-              ...(answered === opt.id && feedback === 'wrong' ? optionWrongStyle : {})
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
+        {[...(question?.options ?? [])].sort((a, b) => String(a.id).localeCompare(String(b.id))).map(opt => {
+          const isSel = answered === opt.id;
+          const isCorrect = isSel && feedback === 'correct';
+          const isWrong = isSel && feedback === 'wrong';
+          const label = getOptionLabel ? getOptionLabel(opt) : opt.label;
+          return (
+            <button
+              key={opt.id}
+              onClick={() => handleAnswer(opt.id)}
+              disabled={(answered === opt.id && feedback === 'correct') || showNextButton}
+              style={{
+                ...optionBtnStyle,
+                ...(isSel && !feedback ? optionSelectedStyle : {}),
+                ...(isCorrect ? optionCorrectStyle : {}),
+                ...(isWrong ? optionWrongStyle : {})
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {showNextButton && (
@@ -312,11 +340,16 @@ const optionBtnStyle = {
   cursor: 'pointer',
   transition: 'all 0.15s'
 };
+const optionSelectedStyle = {
+  background: 'var(--color-primary, #4a90e2)',
+  color: '#fff',
+  border: '2px solid var(--color-primary, #4a90e2)'
+};
 const optionCorrectStyle = {
-  background: '#2dbb5b', color: '#fff', borderColor: '#2dbb5b'
+  background: '#2dbb5b', color: '#fff', border: '2px solid #2dbb5b'
 };
 const optionWrongStyle = {
-  background: '#e74c3c', color: '#fff', borderColor: '#e74c3c'
+  background: '#e74c3c', color: '#fff', border: '2px solid #e74c3c'
 };
 const nextBtnStyle = {
   padding: '14px 32px',
