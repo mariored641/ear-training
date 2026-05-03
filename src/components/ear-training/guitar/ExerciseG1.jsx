@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
-import ChipSelector from '../shared/ChipSelector';
 import BinaryToggle from '../shared/BinaryToggle';
 import { loadStoredLevel } from '../shared/LevelNavigator';
-import Fretboard from '../../exercise2/Fretboard';
+import AllScalesFretboard from '../../positions/AllScalesFretboard';
 import NoteIndicator from '../../exercise2/NoteIndicator';
 import AudioPlayer from '../../../utils/AudioPlayer';
 import { getMelody } from '../../../utils/melodyGeneration';
@@ -15,39 +14,40 @@ import { checkNotePosition } from '../../../utils/fretboardCalculations';
 import '../shared/earTrainingShared.css';
 
 const LEVELS = [
-  { number: 1, label: 'שלב 1 — תו בודד, מיתר E, פרטים 0-5' },
+  { number: 1, label: 'שלב 1 — תו בודד, מיתר A, פרטים 0-5' },
   { number: 2, label: 'שלב 2 — תו בודד, כל המיתרים, פרטים 0-5' },
   { number: 3, label: 'שלב 3 — 2 תווים, תנועה מדרגית' },
   { number: 4, label: 'שלב 4 — 3 תווים, מעורב' },
-  { number: 5, label: 'שלב 5 — מנגינות ספרייה' },
-  { number: 6, label: 'שלב 6 — מנגינות, מגוון' },
-  { number: 7, label: 'שלב 7 — מצב חופשי, כל הצוואר' },
+  { number: 5, label: 'שלב 5 — פוזיציה 1 (פרטים 0-3), 4 תווים' },
+  { number: 6, label: 'שלב 6 — פוזיציה 2 (פרטים 2-5), 5 תווים' },
+  { number: 7, label: 'שלב 7 — פוזיציה 5 (פרטים 5-8), 6 תווים' },
 ];
 
-const STRING_CHIPS = [
-  { id: 'E', label: 'E' },
-  { id: 'A', label: 'A' },
-  { id: 'D', label: 'D' },
-  { id: 'G', label: 'G' },
-  { id: 'B', label: 'B' },
-  { id: 'e', label: 'e' },
-];
+const ALL_STRINGS = ['E','A','D','G','B','e'];
 
 const FRET_RANGES = {
   '0-5':  { from: 0, to: 5 },
   '0-12': { from: 0, to: 12 },
+  'pos1': { from: 0, to: 3 },
+  'pos2': { from: 2, to: 5 },
+  'pos5': { from: 5, to: 8 },
   'full': { from: 0, to: 24 },
 };
 
 const LEVEL_DEFAULTS = {
-  1: { strings: ['E'],                          fretRange: '0-5',  numNotes: 1, movement: 'steps' },
-  2: { strings: ['E','A','D','G','B','e'],      fretRange: '0-5',  numNotes: 1, movement: 'steps' },
-  3: { strings: ['E','A','D','G','B','e'],      fretRange: '0-5',  numNotes: 2, movement: 'steps' },
-  4: { strings: ['E','A','D','G','B','e'],      fretRange: '0-5',  numNotes: 3, movement: 'mixed' },
-  5: { strings: ['E','A','D','G','B','e'],      fretRange: '0-12', numNotes: 4, movement: 'mixed' },
-  6: { strings: ['E','A','D','G','B','e'],      fretRange: '0-12', numNotes: 5, movement: 'mixed' },
-  7: { strings: ['E','A','D','G','B','e'],      fretRange: 'full', numNotes: 6, movement: 'mixed' },
+  1: { strings: ['A'],       fretRange: '0-5',  numNotes: 1, movement: 'steps' },
+  2: { strings: ALL_STRINGS, fretRange: '0-5',  numNotes: 1, movement: 'steps' },
+  3: { strings: ALL_STRINGS, fretRange: '0-5',  numNotes: 2, movement: 'steps' },
+  4: { strings: ALL_STRINGS, fretRange: '0-5',  numNotes: 3, movement: 'mixed' },
+  5: { strings: ALL_STRINGS, fretRange: 'pos1', numNotes: 4, movement: 'mixed' },
+  6: { strings: ALL_STRINGS, fretRange: 'pos2', numNotes: 5, movement: 'mixed' },
+  7: { strings: ALL_STRINGS, fretRange: 'pos5', numNotes: 6, movement: 'mixed' },
 };
+
+// AllScalesFretboard uses 1=high e ... 6=low E
+// checkNotePosition / melody system uses 0=low E ... 5=high e
+const STRING_NAME_TO_NUM = { e: 1, B: 2, G: 3, D: 4, A: 5, E: 6 };
+const ALL_CHROMATIC = new Set(['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']);
 
 function stringsToMap(arr) {
   return { E: arr.includes('E'), A: arr.includes('A'), D: arr.includes('D'), G: arr.includes('G'), B: arr.includes('B'), e: arr.includes('e') };
@@ -65,8 +65,6 @@ const ExerciseG1 = () => {
   const [numQuestions, setNumQuestions] = useState(10);
   const [source, setSource]             = useState('random');
   const [notation, setNotation]         = useState('ordered');
-  const [activeStrings, setActiveStrings] = useState(() => LEVEL_DEFAULTS[1].strings);
-  const [fretRange, setFretRange]       = useState('0-5');
 
   const [sessionState, setSessionState] = useState(initSession());
   const [feedback, setFeedback]         = useState(null);
@@ -75,28 +73,23 @@ const ExerciseG1 = () => {
   const isPlayingRef = useRef(false);
   const melodyRef    = useRef(null);
   const stateRef     = useRef({});
-  stateRef.current   = { level, source, activeStrings, fretRange, numQuestions };
+  stateRef.current   = { level, source, numQuestions, notation };
 
-  // When level changes, reset strings and fretRange to level defaults
-  useEffect(() => {
-    const def = LEVEL_DEFAULTS[level] || LEVEL_DEFAULTS[1];
-    setActiveStrings(def.strings);
-    setFretRange(def.fretRange);
-  }, [level]);
+  const levelDef = LEVEL_DEFAULTS[level] || LEVEL_DEFAULTS[1];
 
   const buildSettings = () => {
-    const { level: lv, activeStrings: strs, fretRange: fr } = stateRef.current;
+    const lv = stateRef.current.level;
     const def = LEVEL_DEFAULTS[lv] || LEVEL_DEFAULTS[1];
     return {
       source: stateRef.current.source,
       numNotes: def.numNotes,
       octaveRange: 2,
       movement: def.movement,
-      availableNotes: { C:true,'C#':true,D:true,'D#':true,E:true,F:true,'F#':true,G:true,'G#':true,A:true,'A#':true,B:true },
+      availableNotes: { C:true,'C#':true,D:true,'D#':true,E:true,'F':true,'F#':true,G:true,'G#':true,A:true,'A#':true,B:true },
       display: { noteNames: true, dots: true },
       marking: stateRef.current.notation || 'inOrder',
-      frets: FRET_RANGES[fr] || FRET_RANGES['0-5'],
-      strings: stringsToMap(strs.length > 0 ? strs : LEVEL_DEFAULTS[lv].strings),
+      frets: FRET_RANGES[def.fretRange] || FRET_RANGES['0-5'],
+      strings: stringsToMap(def.strings),
     };
   };
 
@@ -155,17 +148,28 @@ const ExerciseG1 = () => {
     }
   };
 
-  const toggleString = (id) => {
-    setActiveStrings(prev => {
-      if (prev.includes(id)) {
-        if (prev.length <= 1) return prev;
-        return prev.filter(s => s !== id);
-      }
-      return [...prev, id];
-    });
-  };
-
   const currentSettings = buildSettings();
+
+  const activeStringsSet = useMemo(
+    () => new Set(levelDef.strings.map(s => STRING_NAME_TO_NUM[s])),
+    [levelDef.strings]
+  );
+
+  const markedCellsMap = useMemo(() => {
+    const m = new Map();
+    sessionState.markedNotes.forEach(n => {
+      // legacy string idx (0=low E ... 5=high e) → AllScalesFretboard num (1=high e ... 6=low E)
+      const stringNum = 6 - n.string;
+      m.set(`${stringNum}-${n.fret}`, { label: n.noteIndices.join(',') });
+    });
+    return m;
+  }, [sessionState.markedNotes]);
+
+  const handleCellClick = useCallback((stringNum, fret) => {
+    const oldStringIdx = 6 - stringNum;
+    handleFretClick(oldStringIdx, fret);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionState]);
 
   if (done) {
     return (
@@ -198,24 +202,30 @@ const ExerciseG1 = () => {
       </div>
 
       {sessionState.currentMelody && (
-        <>
-          <NoteIndicator
-            totalNotes={sessionState.currentMelody.notes.length}
-            currentNoteIndex={sessionState.currentNoteIndex}
-            markedNotes={sessionState.markedNotes} />
-          <Fretboard
-            fretRange={currentSettings.frets}
-            strings={currentSettings.strings}
-            showNoteNames={currentSettings.display.noteNames}
-            showDots={currentSettings.display.dots}
-            markedNotes={sessionState.markedNotes}
-            currentNoteIndex={sessionState.currentNoteIndex}
-            onFretClick={handleFretClick}
-            highlightedNote={sessionState.highlightedNote}
-            marking={notation === 'free' ? 'free' : 'inOrder'}
-            selectedNoteIndex={0} />
-        </>
+        <NoteIndicator
+          totalNotes={sessionState.currentMelody.notes.length}
+          currentNoteIndex={sessionState.currentNoteIndex}
+          markedNotes={sessionState.markedNotes} />
       )}
+      <div style={{ direction: 'ltr' }}>
+        <AllScalesFretboard
+          activeNoteClasses={ALL_CHROMATIC}
+          selectedRoot={null}
+          highlightColors={{}}
+          fretRangeStart={currentSettings.frets.from}
+          fretRangeEnd={currentSettings.frets.to}
+          chordOverlays={[]}
+          displayMode="notes"
+          activeStrings={activeStringsSet}
+          onCellClick={handleCellClick}
+          markedCells={markedCellsMap}
+          disableInactiveStringClicks={true}
+          onNoteClick={() => {}}
+          onNoteLongPress={() => {}}
+          onFretClick={() => {}}
+          onStringClick={() => {}}
+        />
+      </div>
       <FeedbackOverlay state={feedback} />
 
       <div style={settingsDivider} />
@@ -226,22 +236,9 @@ const ExerciseG1 = () => {
         <BinaryToggle label="מקור"
           options={[{ value:'random', label:'אקראי' }, { value:'library', label:'ספרייה' }]}
           value={source} onChange={setSource} />
-        <BinaryToggle label="טווח פרטים"
-          options={[{ value:'0-5', label:'0–5' }, { value:'0-12', label:'0–12' }, { value:'full', label:'כל הצוואר' }]}
-          value={fretRange} onChange={setFretRange} />
         <BinaryToggle label="סימון"
           options={[{ value:'ordered', label:'בסדר' }, { value:'free', label:'חופשי' }]}
           value={notation} onChange={setNotation} />
-      </div>
-
-      {/* String chips */}
-      <div style={{ display:'flex', justifyContent:'center', padding:'8px 16px 24px', gap:8 }}>
-        <span style={{ fontSize:13, color:'#666', alignSelf:'center' }}>מיתרים:</span>
-        <ChipSelector
-          items={STRING_CHIPS}
-          activeIds={activeStrings}
-          onToggle={toggleString}
-          minActive={1} />
       </div>
     </div>
   );

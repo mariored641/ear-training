@@ -253,6 +253,22 @@
   opacity: 1;
 }
 
+/* Marked cell — used by ear-training exercises (G1) to mark answered notes */
+.asf-note.marked {
+  background-color: #27AE60;
+  color: white;
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 1 !important;
+}
+
+.asf-fret-cell.click-disabled,
+.asf-nut-cell.click-disabled {
+  cursor: default;
+}
+
 /* Dimmed cells (outside fret range) */
 .asf-fret-cell.dimmed,
 .asf-nut-cell.dimmed {

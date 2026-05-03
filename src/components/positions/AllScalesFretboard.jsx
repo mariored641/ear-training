@@ -32,6 +32,9 @@ const AllScalesFretboard = ({
   onNoteLongPress,
   onFretClick,
   onStringClick,       // (stringNum) => void
+  onCellClick,         // (stringNum, fret, noteName) => void  — overrides onNoteClick when present
+  markedCells,         // Map<`${stringNum}-${fret}`, { label: string, color?: string }> | null
+  disableInactiveStringClicks,  // boolean — dimmed strings not clickable
 }) => {
   const timers = useRef({});
   const longPressed = useRef({});
@@ -46,17 +49,21 @@ const AllScalesFretboard = ({
     }, LONG_PRESS_MS);
   }, [onNoteLongPress]);
 
-  const handlePU = useCallback((noteName, key) => {
+  const handlePU = useCallback((noteName, key, stringNum, fret) => {
     if (timers.current[key]) {
       clearTimeout(timers.current[key]);
       delete timers.current[key];
     }
     if (!longPressed.current[key]) {
-      onNoteClick(noteName);
+      if (onCellClick) {
+        onCellClick(stringNum, fret, noteName);
+      } else {
+        onNoteClick(noteName);
+      }
     }
     delete longPressed.current[key];
     delete pointerStart.current[key];
-  }, [onNoteClick]);
+  }, [onNoteClick, onCellClick]);
 
   const handlePM = useCallback((key, e) => {
     const start = pointerStart.current[key];
@@ -143,32 +150,41 @@ const AllScalesFretboard = ({
     const key = `${stringNum}-${fret}`;
     const ringStyle = getChordRingStyle(noteName); // check overlays regardless of isActive
     const isChordOnly = !isActive && !!ringStyle;   // in chord overlay but not in scale
+    const marked = markedCells?.get(key);
+    const stringDimmed = isStringDimmed(stringNum);
+    const clickDisabled = disableInactiveStringClicks && stringDimmed;
 
     const noteClasses = [
       'asf-note',
-      isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
-      highlightColor ? 'highlighted' : '',
-      displayMode === 'dots' ? 'dot-mode' : '',
+      marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
+      highlightColor && !marked ? 'highlighted' : '',
+      displayMode === 'dots' && !marked ? 'dot-mode' : '',
     ].filter(Boolean).join(' ');
 
-    const noteStyle = highlightColor && isActive && !isRoot
-      ? { backgroundColor: highlightColor, color: '#1a1a2e', ...(ringStyle || {}) }
-      : ringStyle || undefined;
+    const noteStyle = marked
+      ? (marked.color ? { backgroundColor: marked.color } : undefined)
+      : (highlightColor && isActive && !isRoot
+          ? { backgroundColor: highlightColor, color: '#1a1a2e', ...(ringStyle || {}) }
+          : ringStyle || undefined);
+
+    const pointerHandlers = clickDisabled ? {} : {
+      onPointerDown: (e) => handlePD(noteName, key, e),
+      onPointerUp: () => handlePU(noteName, key, stringNum, fret),
+      onPointerMove: (e) => handlePM(key, e),
+      onPointerLeave: () => handlePL(key),
+      onContextMenu: (e) => { e.preventDefault(); if (isActive) onNoteLongPress(noteName); },
+    };
 
     return (
       <div
         key={fret}
-        className={`asf-fret-cell${dimmed ? ' dimmed' : ''}`}
-        onPointerDown={(e) => handlePD(noteName, key, e)}
-        onPointerUp={() => handlePU(noteName, key)}
-        onPointerMove={(e) => handlePM(key, e)}
-        onPointerLeave={() => handlePL(key)}
-        onContextMenu={(e) => { e.preventDefault(); if (isActive) onNoteLongPress(noteName); }}
+        className={`asf-fret-cell${dimmed ? ' dimmed' : ''}${clickDisabled ? ' click-disabled' : ''}`}
+        {...pointerHandlers}
       >
         <div className="asf-string-line" />
         <div className="asf-fret-line" />
         <div className={noteClasses} style={noteStyle}>
-          {(isActive || isChordOnly) ? getLabel(noteName) : ''}
+          {marked ? marked.label : ((isActive || isChordOnly) ? getLabel(noteName) : '')}
         </div>
       </div>
     );
@@ -183,28 +199,37 @@ const AllScalesFretboard = ({
     const key = `${stringNum}-0`;
     const ringStyle = getChordRingStyle(noteName);
     const isChordOnly = !isActive && !!ringStyle;
+    const marked = markedCells?.get(key);
+    const stringDimmed = isStringDimmed(stringNum);
+    const clickDisabled = disableInactiveStringClicks && stringDimmed;
 
     const noteClasses = [
       'asf-note',
-      isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
-      highlightColor ? 'highlighted' : '',
-      displayMode === 'dots' ? 'dot-mode' : '',
+      marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
+      highlightColor && !marked ? 'highlighted' : '',
+      displayMode === 'dots' && !marked ? 'dot-mode' : '',
     ].filter(Boolean).join(' ');
 
-    const noteStyle = highlightColor && isActive && !isRoot
-      ? { backgroundColor: highlightColor, color: '#1a1a2e', ...(ringStyle || {}) }
-      : ringStyle || undefined;
+    const noteStyle = marked
+      ? (marked.color ? { backgroundColor: marked.color } : undefined)
+      : (highlightColor && isActive && !isRoot
+          ? { backgroundColor: highlightColor, color: '#1a1a2e', ...(ringStyle || {}) }
+          : ringStyle || undefined);
 
     const stringActive = !activeStrings || activeStrings.has(stringNum);
 
+    const pointerHandlers = clickDisabled ? {} : {
+      onPointerDown: (e) => handlePD(noteName, key, e),
+      onPointerUp: () => handlePU(noteName, key, stringNum, 0),
+      onPointerMove: (e) => handlePM(key, e),
+      onPointerLeave: () => handlePL(key),
+      onContextMenu: (e) => { e.preventDefault(); if (isActive) onNoteLongPress(noteName); },
+    };
+
     return (
       <div
-        className={`asf-nut-cell${dimmed ? ' dimmed' : ''}`}
-        onPointerDown={(e) => handlePD(noteName, key, e)}
-        onPointerUp={() => handlePU(noteName, key)}
-        onPointerMove={(e) => handlePM(key, e)}
-        onPointerLeave={() => handlePL(key)}
-        onContextMenu={(e) => { e.preventDefault(); if (isActive) onNoteLongPress(noteName); }}
+        className={`asf-nut-cell${dimmed ? ' dimmed' : ''}${clickDisabled ? ' click-disabled' : ''}`}
+        {...pointerHandlers}
       >
         <button
           className={`asf-string-label${stringActive ? ' active' : ''}`}
@@ -215,7 +240,7 @@ const AllScalesFretboard = ({
           {STRING_TUNING[stringNum - 1]}
         </button>
         <div className={noteClasses} style={noteStyle}>
-          {(isActive || isChordOnly) ? getLabel(noteName) : ''}
+          {marked ? marked.label : ((isActive || isChordOnly) ? getLabel(noteName) : '')}
         </div>
       </div>
     );
