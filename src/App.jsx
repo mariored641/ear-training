@@ -55,6 +55,7 @@ const BackingTracksPage = React.lazy(() => import('./components/backing-tracks/B
 
 // Feedback module
 const FeedbackPage = React.lazy(() => import('./components/feedback/FeedbackPage'));
+const FeedbackTestPage = React.lazy(() => import('./components/feedback-test/FeedbackTestPage'));
 
 // Rhythm Training module (new)
 const RhythmTraining = React.lazy(() => import('./components/rhythm-training/RhythmTraining'));
@@ -129,6 +130,7 @@ function App() {
 
           {/* Feedback module */}
           <Route path="/feedback" element={<FeedbackPage />} />
+          <Route path="/feedback-test" element={<FeedbackTestPage />} />
 
           {/* Rhythm Training module */}
           <Route path="/rhythm-training" element={<RhythmTraining />} />
