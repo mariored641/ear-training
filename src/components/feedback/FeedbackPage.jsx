@@ -4,6 +4,12 @@ import './FeedbackPage.css';
 
 // ─── Utilities ────────────────────────────────────────────────
 
+const RECORD_AUDIO_CONSTRAINTS = {
+  echoCancellation: false,
+  noiseSuppression: false,
+  autoGainControl: false,
+};
+
 function extractYouTubeId(url) {
   const patterns = [
     /[?&]v=([a-zA-Z0-9_-]{11})/,
@@ -426,7 +432,7 @@ const PrepScreen = ({ onContinue }) => {
     if (!id) { setError('נא להזין קישור YouTube תקין'); return; }
     setError(''); setLoading(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: RECORD_AUDIO_CONSTRAINTS });
       const diagramSource = diagramFile || diagramUrl.trim() || null;
       onContinue({ youtubeId: id, stream, diagramSource });
     } catch (err) {
@@ -562,7 +568,7 @@ const RecordingScreen = ({ youtubeId, stream: initStream, diagramSource, onFinis
   const switchCamera = async () => {
     const newFacing = facingMode === 'user' ? 'environment' : 'user';
     try {
-      const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: newFacing }, audio: true });
+      const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: newFacing }, audio: RECORD_AUDIO_CONSTRAINTS });
       stream.getVideoTracks().forEach(t => t.stop());
       setStream(newStream); setFacingMode(newFacing);
     } catch (e) { console.error('Camera switch:', e); }
@@ -683,7 +689,7 @@ const FeedbackPage = () => {
   const handleRecordAgain = async () => {
     setBlob(null);
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: RECORD_AUDIO_CONSTRAINTS });
       setStream(s); setStep('recording');
     } catch (e) { alert('לא ניתן לגשת למצלמה: ' + e.message); }
   };
