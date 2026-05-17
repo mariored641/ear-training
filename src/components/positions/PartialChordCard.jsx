@@ -1,10 +1,13 @@
 import React from 'react';
 import {
-  getPartialChordShape,
-  getBarreFret,
-  getNoteNameForTone,
   STRING_SETS,
   CAGED_ORDER,
+  CHORD_QUALITIES,
+  formatChordName,
+  getShapeWindow,
+  getChordTonesInShape,
+  getColorForTone,
+  getNoteNameForTone,
 } from '../../utils/partialChordShapes';
 import './PartialChordCard.css';
 
@@ -14,40 +17,49 @@ const PAD_RIGHT = 34;
 const STRING_SPACING = 16;
 const NUM_STRINGS = 6;
 const STRINGS_WIDTH = (NUM_STRINGS - 1) * STRING_SPACING;
-const WIDTH = PAD_LEFT + STRINGS_WIDTH + PAD_RIGHT; // = 12 + 80 + 34 = 126
+const WIDTH = PAD_LEFT + STRINGS_WIDTH + PAD_RIGHT; // = 126
 const NUT_Y = 22;
 const FRET_SPACING = 22;
-const NUM_FRETS = 4;
-const HEIGHT = NUT_Y + NUM_FRETS * FRET_SPACING + 6; // = 116
+const NUM_FRETS = 5; // bumped from 4 so a 9 that sits past the shape still fits
+const HEIGHT = NUT_Y + NUM_FRETS * FRET_SPACING + 6;
 const TOP_MARKER_Y = 10;
 
-const stringX = (i) => PAD_LEFT + i * STRING_SPACING;
+// shapeIndex 0 = string 6 (low E) → leftmost. shapeIndex 5 = string 1 → rightmost.
+const shapeIndexX = (i) => PAD_LEFT + i * STRING_SPACING;
+const stringNumToShapeIndex = (stringNum) => 6 - stringNum;
 const fretDotY = (offset) => NUT_Y + (offset - 0.5) * FRET_SPACING;
 
-function displayChordName(root, quality) {
-  return quality === 'minor' ? `${root}m` : root;
-}
-
-function markerLabel(entry, displayMode, root) {
-  if (!entry) return '';
+function markerLabel(displayMode, tone, root) {
   switch (displayMode) {
-    case 'dots':
-      return '';
-    case 'fingers':
-      return entry.finger === 0 ? '' : String(entry.finger);
-    case 'notes':
-      return getNoteNameForTone(root, entry.tone);
+    case 'dots':  return '';
+    case 'notes': return getNoteNameForTone(root, tone);
     case 'tones':
-    default:
-      return entry.tone;
+    default:      return tone;
   }
 }
 
-function Diagram({ shape, activeShapeIndices, displayMode, root, barreFret }) {
-  const activeSet = new Set(activeShapeIndices);
-  const stringsLeft = stringX(0);
-  const stringsRight = stringX(NUM_STRINGS - 1);
+function Diagram({ cagedLetter, root, quality, focusedShapeIndices, displayMode }) {
+  const activeSet = new Set(focusedShapeIndices);
+  const window = getShapeWindow(cagedLetter, root);
+  const tones = getChordTonesInShape(cagedLetter, root, quality);
+  const stringsLeft = shapeIndexX(0);
+  const stringsRight = shapeIndexX(NUM_STRINGS - 1);
   const fretsBottom = NUT_Y + NUM_FRETS * FRET_SPACING;
+  const isOpen = window.isOpen;
+  const barreFret = window.barreFret;
+
+  // Which strings have at least one chord tone in this window?
+  const stringHasTone = new Set();
+  tones.forEach((t) => stringHasTone.add(t.stringNum));
+
+  // Convert (stringNum, fret) → SVG (x, y).
+  // For open-position shapes (barreFret = 0): fret 0 is an open-circle above
+  // the nut; frets 1..NUM_FRETS land in fret cells 1..NUM_FRETS.
+  // For movable shapes: barreFret lands in cell 1, barreFret+k → cell 1+k.
+  const cellOffsetFor = (fret) => {
+    if (isOpen) return fret; // 0 = above nut, 1..N = cells
+    return fret - barreFret + 1;
+  };
 
   return (
     <svg
@@ -55,7 +67,7 @@ function Diagram({ shape, activeShapeIndices, displayMode, root, barreFret }) {
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Fret lines (below the nut) */}
+      {/* Fret lines */}
       {Array.from({ length: NUM_FRETS }, (_, i) => {
         const y = NUT_Y + (i + 1) * FRET_SPACING;
         return (
@@ -71,18 +83,18 @@ function Diagram({ shape, activeShapeIndices, displayMode, root, barreFret }) {
         );
       })}
 
-      {/* Nut line (thick if barreFret === 0, thin otherwise) */}
+      {/* Nut */}
       <line
         x1={stringsLeft - 1}
         y1={NUT_Y}
         x2={stringsRight + 1}
         y2={NUT_Y}
         stroke="#333333"
-        strokeWidth={barreFret === 0 ? 3 : 1.5}
+        strokeWidth={isOpen ? 3 : 1.5}
       />
 
-      {/* Fret position label — to the right of the top fret space */}
-      {barreFret > 0 && (
+      {/* Fret position label */}
+      {!isOpen && (
         <text
           x={stringsRight + 10}
           y={NUT_Y + FRET_SPACING / 2 + 3}
@@ -99,60 +111,63 @@ function Diagram({ shape, activeShapeIndices, displayMode, root, barreFret }) {
       {Array.from({ length: NUM_STRINGS }, (_, i) => (
         <line
           key={`str-${i}`}
-          x1={stringX(i)}
+          x1={shapeIndexX(i)}
           y1={NUT_Y}
-          x2={stringX(i)}
+          x2={shapeIndexX(i)}
           y2={fretsBottom}
           stroke="#c0c0c0"
           strokeWidth="1"
         />
       ))}
 
-      {/* Note markers */}
-      {shape.map((entry, i) => {
-        const x = stringX(i);
-        const isActive = activeSet.has(i);
-        const isRoot = entry !== null && entry.tone === '1';
-        const color = isRoot
-          ? (isActive ? '#e74c3c' : '#7a3535')
-          : (isActive ? '#3498DB' : '#bdbdbd');
-        const label = markerLabel(entry, displayMode, root);
+      {/* "×" marker on each string that is OUT of focus and has no chord tone
+          to show in the window — communicates "don't play this string". */}
+      {Array.from({ length: NUM_STRINGS }, (_, shapeIdx) => {
+        const stringNum = 6 - shapeIdx;
+        if (activeSet.has(shapeIdx)) return null;
+        if (stringHasTone.has(stringNum)) return null;
+        return (
+          <text
+            key={`mute-${shapeIdx}`}
+            x={shapeIndexX(shapeIdx)}
+            y={TOP_MARKER_Y + 4}
+            textAnchor="middle"
+            fontSize="11"
+            fill="#9e9e9e"
+            fontWeight="bold"
+          >
+            ×
+          </text>
+        );
+      })}
 
-        if (entry === null) {
-          return (
-            <text
-              key={`mark-${i}`}
-              x={x}
-              y={TOP_MARKER_Y + 4}
-              textAnchor="middle"
-              fontSize="11"
-              fill="#757575"
-              fontWeight="bold"
-            >
-              ×
-            </text>
-          );
-        }
+      {/* Chord-tone markers */}
+      {tones.map(({ stringNum, fret, tone }, idx) => {
+        const shapeIdx = stringNumToShapeIndex(stringNum);
+        const x = shapeIndexX(shapeIdx);
+        const isActive = activeSet.has(shapeIdx);
+        const color = getColorForTone(tone, isActive);
+        const label = markerLabel(displayMode, tone, root);
 
-        if (entry.fretOffset === 0 && barreFret === 0) {
-          // True open string (open-position chord)
+        // Open-string note (fret 0) → small circle above the nut.
+        if (fret === 0) {
           return (
-            <g key={`mark-${i}`}>
+            <g key={`tone-${idx}`}>
               <circle
                 cx={x}
                 cy={TOP_MARKER_Y}
                 r="5.5"
                 fill={isActive ? color : 'none'}
-                stroke={isActive ? color : '#9e9e9e'}
+                stroke={color}
                 strokeWidth="1.5"
               />
-              {isActive && label && (
+              {label && (
                 <text
                   x={x}
                   y={TOP_MARKER_Y + 2.5}
                   textAnchor="middle"
                   fontSize="7"
-                  fill="#ffffff"
+                  fill={isActive ? '#ffffff' : color}
                   fontWeight="bold"
                 >
                   {label}
@@ -162,16 +177,16 @@ function Diagram({ shape, activeShapeIndices, displayMode, root, barreFret }) {
           );
         }
 
-        // Fretted note.
-        // For barre chords, shift everything down by one space so that
-        // fretOffset=0 (barre position) lands in the first fret cell,
-        // not above the nut (which would visually imply an open string).
-        const spaceIdx = barreFret > 0 ? entry.fretOffset + 1 : entry.fretOffset;
-        const y = fretDotY(spaceIdx);
+        // Fretted note inside the window.
+        const cellOffset = cellOffsetFor(fret);
+        // Guard: cell must fit in the rendered window.
+        if (cellOffset < 1 || cellOffset > NUM_FRETS) return null;
+
+        const y = fretDotY(cellOffset);
         return (
-          <g key={`mark-${i}`}>
-            <circle cx={x} cy={y} r="7" fill={color} />
-            {isActive && label && (
+          <g key={`tone-${idx}`}>
+            <circle cx={x} cy={y} r="7.5" fill={color} />
+            {label && (
               <text
                 x={x}
                 y={y + 2.5}
@@ -201,14 +216,19 @@ function PartialChordCard({
 }) {
   const { root, quality, cagedIdx, setIdx } = chord;
   const cagedLetter = CAGED_ORDER[cagedIdx];
-  const shape = getPartialChordShape(cagedLetter, quality);
-  const stringSet = STRING_SETS[setIdx];
-  const barreFret = getBarreFret(cagedLetter, root);
+  const stringSet = STRING_SETS[setIdx] || STRING_SETS[3];
+  const qual = CHORD_QUALITIES[quality];
 
-  // Tone line — ordered low-to-high across the active set
-  const toneLine = stringSet.shapeIndices
-    .map((i) => (shape[i] ? shape[i].tone : '—'))
-    .join(' + ');
+  // Tone line — what intervals fall on the focused strings.
+  const tones = getChordTonesInShape(cagedLetter, root, quality);
+  const focused = new Set(stringSet.shapeIndices);
+  const tonesOnFocus = tones
+    .filter((t) => focused.has(stringNumToShapeIndex(t.stringNum)))
+    .map((t) => t.tone);
+  // De-dup while preserving order.
+  const seen = new Set();
+  const uniqueTones = tonesOnFocus.filter((t) => (seen.has(t) ? false : (seen.add(t), true)));
+  const toneLine = uniqueTones.length > 0 ? uniqueTones.join(' • ') : '—';
 
   const stopAnd = (fn) => (e) => {
     e.stopPropagation();
@@ -231,7 +251,12 @@ function PartialChordCard({
         </button>
       )}
 
-      <div className="pcc-name">{displayChordName(root, quality)}</div>
+      <div className="pcc-name">{formatChordName(root, quality)}</div>
+      {qual && (
+        <div className="pcc-quality-sub" title={qual.intervals.join(' ')}>
+          {qual.intervals.join(' · ')}
+        </div>
+      )}
 
       <div className="pcc-nav pcc-nav-caged">
         <button className="pcc-arrow" onClick={stopAnd(() => onNavCaged(-1))} aria-label="Previous CAGED shape">‹</button>
@@ -240,11 +265,11 @@ function PartialChordCard({
       </div>
 
       <Diagram
-        shape={shape}
-        activeShapeIndices={stringSet.shapeIndices}
-        displayMode={displayMode}
+        cagedLetter={cagedLetter}
         root={root}
-        barreFret={barreFret}
+        quality={quality}
+        focusedShapeIndices={stringSet.shapeIndices}
+        displayMode={displayMode}
       />
 
       <div className="pcc-nav pcc-nav-set">

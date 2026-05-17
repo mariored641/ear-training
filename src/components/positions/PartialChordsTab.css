@@ -72,6 +72,44 @@
   color: #ffffff;
 }
 
+.pct-more-btn {
+  font-weight: 600;
+  min-width: 56px;
+}
+
+.pct-more-btn.active {
+  background: #9b59b6;
+  color: #ffffff;
+}
+
+.pct-width-toggle {
+  display: flex;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pct-width-btn {
+  background: #eeeeee;
+  color: #757575;
+  border: none;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 28px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pct-width-btn + .pct-width-btn {
+  border-left: 1px solid #cccccc;
+}
+
+.pct-width-btn.active {
+  background: #3498DB;
+  color: #ffffff;
+}
+
 .pct-fret-group {
   min-width: 120px;
 }

@@ -1,12 +1,20 @@
 import React, { useState, useCallback } from 'react';
 import PartialChordCard from './PartialChordCard';
-import { CAGED_ORDER, STRING_SETS, findBestShapeForFret } from '../../utils/partialChordShapes';
+import QualityPickerModal from './QualityPickerModal';
+import {
+  CAGED_ORDER,
+  STRING_SETS,
+  STRING_SETS_BY_WIDTH,
+  DEFAULT_SET_IDX_BY_WIDTH,
+  CHORD_QUALITIES,
+  isBasicTriad,
+  formatChordName,
+  findBestShapeForFret,
+} from '../../utils/partialChordShapes';
 import './PartialChordsTab.css';
 
 const ROOT_OPTIONS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
-const DEFAULT_CAGED_IDX = 3; // E shape
-const DEFAULT_SET_IDX = 3;   // Strings 3-1
+const WIDTH_OPTIONS = [3, 4, 5, 6];
 
 const DISPLAY_MODES = [
   { id: 'dots',  label: 'Dots'  },
@@ -15,11 +23,31 @@ const DISPLAY_MODES = [
 ];
 
 function chordLabel(chord) {
-  return chord.quality === 'minor' ? `${chord.root}m` : chord.root;
+  return formatChordName(chord.root, chord.quality);
 }
 
 function wrap(n, len) {
   return ((n % len) + len) % len;
+}
+
+// Pick a set in the desired width whose lowest-string index matches the
+// current set as closely as possible. Keeps voicing visually anchored.
+function setIdxForWidth(currentSetIdx, newWidth) {
+  const list = STRING_SETS_BY_WIDTH[newWidth] || [];
+  if (list.length === 0) return DEFAULT_SET_IDX_BY_WIDTH[newWidth] ?? 3;
+  const current = STRING_SETS[currentSetIdx];
+  if (!current) return list[0];
+  const curLow = current.shapeIndices[0];
+  let best = list[0];
+  let bestDist = Infinity;
+  list.forEach((idx) => {
+    const dist = Math.abs(STRING_SETS[idx].shapeIndices[0] - curLow);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = idx;
+    }
+  });
+  return best;
 }
 
 function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiveIdxChange }) {
@@ -27,20 +55,33 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
   const [builderQuality, setBuilderQuality] = useState('minor');
   const [displayMode, setDisplayMode] = useState('tones');
   const [targetFret, setTargetFret] = useState(5);
+  const [width, setWidth] = useState(3);
+  const [isQualityModalOpen, setIsQualityModalOpen] = useState(false);
 
   const handleAdd = useCallback(() => {
-    const { cagedIdx, setIdx } = findBestShapeForFret(builderRoot, builderQuality, targetFret);
+    const { cagedIdx, setIdx } = findBestShapeForFret(builderRoot, builderQuality, targetFret, width);
     const next = [...progression, { root: builderRoot, quality: builderQuality, cagedIdx, setIdx }];
     onProgressionChange(next);
     onActiveIdxChange(next.length - 1);
-  }, [builderRoot, builderQuality, targetFret, progression, onProgressionChange, onActiveIdxChange]);
+  }, [builderRoot, builderQuality, targetFret, width, progression, onProgressionChange, onActiveIdxChange]);
 
   const handleFretChange = useCallback((fret) => {
     setTargetFret(fret);
     if (progression.length > 0) {
-      const next = progression.map(chord => ({
+      const next = progression.map((chord) => ({
         ...chord,
-        ...findBestShapeForFret(chord.root, chord.quality, fret),
+        ...findBestShapeForFret(chord.root, chord.quality, fret, width),
+      }));
+      onProgressionChange(next);
+    }
+  }, [progression, onProgressionChange, width]);
+
+  const handleWidthChange = useCallback((newWidth) => {
+    setWidth(newWidth);
+    if (progression.length > 0) {
+      const next = progression.map((chord) => ({
+        ...chord,
+        setIdx: setIdxForWidth(chord.setIdx, newWidth),
       }));
       onProgressionChange(next);
     }
@@ -71,8 +112,17 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
 
   const handleNavSet = useCallback((idx, dir) => {
     const chord = progression[idx];
-    updateChord(idx, { setIdx: wrap(chord.setIdx + dir, STRING_SETS.length) });
-  }, [progression, updateChord]);
+    const list = STRING_SETS_BY_WIDTH[width] || [];
+    if (list.length === 0) return;
+    const currentPos = list.indexOf(chord.setIdx);
+    const startPos = currentPos < 0 ? 0 : currentPos;
+    const nextPos = wrap(startPos + dir, list.length);
+    updateChord(idx, { setIdx: list[nextPos] });
+  }, [progression, width, updateChord]);
+
+  const moreBtnLabel = isBasicTriad(builderQuality)
+    ? 'More…'
+    : (CHORD_QUALITIES[builderQuality]?.label || 'More…');
 
   return (
     <div className="pct-root">
@@ -105,6 +155,13 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
             >
               Min
             </button>
+            <button
+              className={`pct-quality-btn pct-more-btn ${!isBasicTriad(builderQuality) ? 'active' : ''}`}
+              onClick={() => setIsQualityModalOpen(true)}
+              title="Choose extended quality"
+            >
+              {moreBtnLabel}
+            </button>
           </div>
         </div>
 
@@ -122,6 +179,22 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
             value={targetFret}
             onChange={(e) => handleFretChange(Number(e.target.value))}
           />
+        </div>
+
+        <div className="pct-group">
+          <label className="pct-label">Strings</label>
+          <div className="pct-width-toggle">
+            {WIDTH_OPTIONS.map((w) => (
+              <button
+                key={w}
+                className={`pct-width-btn ${width === w ? 'active' : ''}`}
+                onClick={() => handleWidthChange(w)}
+                title={`${w} strings`}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="pct-group pct-display-group">
@@ -173,6 +246,14 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
             />
           ))}
         </div>
+      )}
+
+      {isQualityModalOpen && (
+        <QualityPickerModal
+          value={builderQuality}
+          onSelect={(q) => setBuilderQuality(q)}
+          onClose={() => setIsQualityModalOpen(false)}
+        />
       )}
     </div>
   );
