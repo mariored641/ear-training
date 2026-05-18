@@ -15,6 +15,7 @@ const FunctionalSubScreen = React.lazy(() => import('./components/ear-training/f
 const VoiceLeadingSubScreen = React.lazy(() => import('./components/ear-training/voice-leading/VoiceLeadingSubScreen'));
 const SolfegeSubScreen = React.lazy(() => import('./components/ear-training/solfege/SolfegeSubScreen'));
 const GuitarSubScreen = React.lazy(() => import('./components/ear-training/guitar/GuitarSubScreen'));
+const ReactiveSubScreen = React.lazy(() => import('./components/ear-training/reactive/ReactiveSubScreen'));
 const ExercisePlaceholder = React.lazy(() => import('./components/ear-training/shared/ExercisePlaceholder'));
 
 // Phase 3 — upgraded exercises with new UI/levels
@@ -37,6 +38,10 @@ const ExerciseV1 = React.lazy(() => import('./components/ear-training/voice-lead
 const ExerciseV2 = React.lazy(() => import('./components/ear-training/voice-leading/ExerciseV2'));
 const ExerciseS1 = React.lazy(() => import('./components/ear-training/solfege/ExerciseS1'));
 const ExerciseS2 = React.lazy(() => import('./components/ear-training/solfege/ExerciseS2'));
+
+// Reactive Ear Training
+const ExerciseR1 = React.lazy(() => import('./components/ear-training/reactive/ExerciseR1'));
+const ExerciseR2 = React.lazy(() => import('./components/ear-training/reactive/ExerciseR2'));
 
 // Lazy load exercises
 const Exercise1 = React.lazy(() => import('./components/exercise1/Exercise1'));
@@ -65,6 +70,7 @@ const ChordEngineTest = React.lazy(() => import('./components/chord-engine-test/
 const BackingEngineTest = React.lazy(() => import('./components/backing-engine-test/BackingEngineTest'));
 const TimingTestPage    = React.lazy(() => import('./components/timing-test/TimingTestPage'));
 const BackingTracksTestPage = React.lazy(() => import('./components/backing-tracks-test/BackingTracksTestPage'));
+const Sf2LabPage            = React.lazy(() => import('./components/sf2-lab/Sf2LabPage'));
 
 function App() {
   return (
@@ -86,6 +92,7 @@ function App() {
           <Route path="/category/ear-training/voice-leading" element={<VoiceLeadingSubScreen />} />
           <Route path="/category/ear-training/solfege" element={<SolfegeSubScreen />} />
           <Route path="/category/ear-training/guitar" element={<GuitarSubScreen />} />
+          <Route path="/category/ear-training/reactive" element={<ReactiveSubScreen />} />
 
           {/* Phase-1 placeholders for the 17 ear-training exercises */}
           {/* Phase 3: upgraded exercises with new UI */}
@@ -108,6 +115,10 @@ function App() {
           <Route path="/exercise/V2" element={<ExerciseV2 />} />
           <Route path="/exercise/S1" element={<ExerciseS1 />} />
           <Route path="/exercise/S2" element={<ExerciseS2 />} />
+
+          {/* Reactive Ear Training (R) */}
+          <Route path="/exercise/R1" element={<ExerciseR1 />} />
+          <Route path="/exercise/R2" element={<ExerciseR2 />} />
 
           {/* Melodic Exercises */}
           <Route path="/exercise/1" element={<Exercise1 />} />
@@ -152,6 +163,9 @@ function App() {
 
           {/* Dev: Backing Tracks test suite (rhythm + chord coverage + mixer) */}
           <Route path="/test/backing-tracks" element={<BackingTracksTestPage />} />
+
+          {/* Dev: SF2 Library A/B Lab — hidden, not linked from HomePage */}
+          <Route path="/test/sf2-lab" element={<Sf2LabPage />} />
 
           {/* Legacy routes for backward compatibility */}
           <Route path="/exercise1" element={<Exercise1 />} />

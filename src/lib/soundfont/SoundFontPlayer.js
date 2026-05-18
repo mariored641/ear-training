@@ -9,19 +9,19 @@
  *   SFP.programChange(0, 0)        // Piano
  *   SFP.noteOn(0, 60, 100)         // middle C
  *   SFP.noteOff(0, 60)
+ *
+ * החלפת ספרייה (A/B testing) — דרך getDefaultLibrary() / getLibraryById():
+ *   await SFP.swapSoundFont(libraryConfig, onProgress)
  */
 
 import { Synthesizer, AudioWorkletNodeSynthesizer } from 'js-synthesizer'
+import { getDefaultLibrary } from './SoundFontRegistry'
 
-// בdev: Vite middleware מגיש מהמחשב המקומי
-// בproduction: Vercel Blob URL מתוך env variable
-const SF2_URL = import.meta.env.VITE_SF2_URL || '/soundfonts/JJazzLab-SoundFont.sf2'
 const FLUIDSYNTH_SCRIPT_URL = '/libfluidsynth-2.4.6.js'
 
 // ---- IndexedDB Cache ----
 const IDB_DB = 'ear-training'
 const IDB_STORE = 'sf2-cache'
-const CACHE_KEY = 'jjazzlab-sf2-v1'
 
 function openIDB() {
   return new Promise((resolve, reject) => {
@@ -32,11 +32,11 @@ function openIDB() {
   })
 }
 
-async function getFromCache() {
+async function getFromCache(cacheKey) {
   try {
     const db = await openIDB()
     return new Promise((resolve) => {
-      const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(CACHE_KEY)
+      const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(cacheKey)
       req.onsuccess = (e) => resolve(e.target.result || null)
       req.onerror = () => resolve(null)
     })
@@ -45,12 +45,12 @@ async function getFromCache() {
   }
 }
 
-async function saveToCache(buffer) {
+async function saveToCache(cacheKey, buffer) {
   try {
     const db = await openIDB()
     return new Promise((resolve) => {
       const tx = db.transaction(IDB_STORE, 'readwrite')
-      tx.objectStore(IDB_STORE).put(buffer, CACHE_KEY)
+      tx.objectStore(IDB_STORE).put(buffer, cacheKey)
       tx.oncomplete = () => resolve()
       tx.onerror = () => resolve()  // fail silently
     })
@@ -89,6 +89,8 @@ let _audioNode = null
 let _sfontId = null
 let _initPromise = null
 let _useWorklet = false
+let _currentLibrary = null
+let _swapPromise = null
 
 // ---- Crackling detector ----
 let _analyser = null
@@ -146,12 +148,47 @@ async function fetchWithProgress(url, onProgress) {
   return buffer.buffer
 }
 
+// ---- שולף את ה-SF2 buffer (cache → fetch → cache) ----
+async function fetchSoundFontBuffer(libraryConfig, onProgress) {
+  if (!libraryConfig?.url) {
+    throw new Error(`SoundFont library "${libraryConfig?.id || '?'}" has no URL configured`)
+  }
+  onProgress?.('בודק cache...', 5)
+  let buffer = await getFromCache(libraryConfig.cacheKey)
+  if (buffer) {
+    onProgress?.('טוען SoundFont מ-cache...', 80)
+    return buffer
+  }
+  onProgress?.('מוריד SoundFont...', 5)
+  buffer = await fetchWithProgress(libraryConfig.url, (pct, loaded, total) => {
+    const mb = Math.round(loaded / 1024 / 1024)
+    const totalMb = Math.round(total / 1024 / 1024)
+    onProgress?.(`מוריד SoundFont... ${mb}/${totalMb} MB`, 5 + Math.round(pct * 0.88))
+  })
+  // שמירה ב-cache ברקע — לא מחכים לה
+  saveToCache(libraryConfig.cacheKey, buffer)
+  return buffer
+}
+
+// ---- מבצע program changes לערוצי ברירת המחדל ----
+function applyDefaultPrograms() {
+  if (!_synth || _sfontId === null) return
+  _synth.midiSetChannelType(CHANNELS.DRUMS, true)
+  _synth.midiProgramSelect(CHANNELS.PIANO,  _sfontId, 0, GM.ACOUSTIC_GRAND_PIANO)
+  _synth.midiProgramSelect(CHANNELS.BASS,   _sfontId, 0, GM.ELECTRIC_BASS_FINGER)
+  _synth.midiProgramSelect(CHANNELS.GUITAR, _sfontId, 0, GM.ELECTRIC_GUITAR_JAZZ)
+  _synth.midiProgramSelect(CHANNELS.PAD,    _sfontId, 0, GM.STRINGS)
+}
+
 /**
  * אתחול המנגן. קורא פעם אחת, חוזר מהר בקריאות חוזרות.
- * @param {function} onProgress (message: string, percent: number) => void
+ * @param {function} onProgress   (message: string, percent: number) => void
+ * @param {object}   libraryConfig (אופציונלי) ספרייה לטעון בפעם הראשונה. ברירת המחדל — JJazzLab.
  */
-export async function init(onProgress) {
+export async function init(onProgress, libraryConfig) {
   if (_initPromise) return _initPromise
+
+  const library = libraryConfig || getDefaultLibrary()
 
   _initPromise = (async () => {
     try {
@@ -201,39 +238,17 @@ export async function init(onProgress) {
       _analyser.connect(_audioCtx.destination)
 
       // 5. טעינת SF2 — מ-cache אם יש, אחרת הורדה ושמירה
-      onProgress?.('בודק cache...', 5)
-      let sf2Buffer = await getFromCache()
-
-      if (sf2Buffer) {
-        onProgress?.('טוען SoundFont מ-cache...', 80)
-      } else {
-        onProgress?.('מוריד SoundFont...', 5)
-        sf2Buffer = await fetchWithProgress(SF2_URL, (pct, loaded, total) => {
-          const mb = Math.round(loaded / 1024 / 1024)
-          const totalMb = Math.round(total / 1024 / 1024)
-          onProgress?.(`מוריד SoundFont... ${mb}/${totalMb} MB`, 5 + Math.round(pct * 0.88))
-        })
-        // שמירה ב-cache ברקע — לא מחכים לה
-        saveToCache(sf2Buffer)
-      }
+      const sf2Buffer = await fetchSoundFontBuffer(library, onProgress)
 
       onProgress?.('מאתחל instruments...', 95)
       _sfontId = await _synth.loadSFont(sf2Buffer)
+      _currentLibrary = library
 
       // 6. הגדרת channels ראשוניים
-      _synth.midiSetChannelType(CHANNELS.DRUMS, true)
-
-      // Piano
-      _synth.midiProgramSelect(CHANNELS.PIANO, _sfontId, 0, GM.ACOUSTIC_GRAND_PIANO)
-      // Bass
-      _synth.midiProgramSelect(CHANNELS.BASS, _sfontId, 0, GM.ELECTRIC_BASS_FINGER)
-      // Guitar
-      _synth.midiProgramSelect(CHANNELS.GUITAR, _sfontId, 0, GM.ELECTRIC_GUITAR_JAZZ)
-      // Pad
-      _synth.midiProgramSelect(CHANNELS.PAD, _sfontId, 0, GM.STRINGS)
+      applyDefaultPrograms()
 
       onProgress?.('מוכן!', 100)
-      return { sfontId: _sfontId }
+      return { sfontId: _sfontId, library }
     } catch (err) {
       _initPromise = null
       throw err
@@ -241,6 +256,76 @@ export async function init(onProgress) {
   })()
 
   return _initPromise
+}
+
+/**
+ * החלפת ספריית SF2 הטעונה כרגע. אם ה-synth עוד לא אותחל — מאתחל אותו עם הספרייה החדשה.
+ * אם הספרייה המבוקשת כבר טעונה — no-op.
+ *
+ * @param {object}   libraryConfig — מ-SoundFontRegistry.SOUNDFONT_LIBRARIES
+ * @param {function} onProgress    — (message, percent) => void
+ * @returns {Promise<{ library: object }>}
+ */
+export async function swapSoundFont(libraryConfig, onProgress) {
+  if (!libraryConfig) throw new Error('swapSoundFont: libraryConfig is required')
+  if (!libraryConfig.url) throw new Error(`Library "${libraryConfig.id}" has no URL configured (set VITE_SF2_URL_${libraryConfig.id.toUpperCase()})`)
+
+  // הימנעות מ-race בין קריאות swap מקבילות
+  if (_swapPromise) await _swapPromise.catch(() => {})
+
+  _swapPromise = (async () => {
+    // אם המנוע עדיין לא אותחל — init יבצע את הטעינה הראשונית עם הספרייה הזו
+    if (!_initPromise) {
+      await init(onProgress, libraryConfig)
+      return { library: _currentLibrary }
+    }
+
+    // אחרת — נחכה שה-init הקיים יסיים ואז נחליף
+    await _initPromise
+
+    if (_currentLibrary?.id === libraryConfig.id) {
+      onProgress?.('כבר טעון', 100)
+      return { library: _currentLibrary }
+    }
+
+    if (!_synth) throw new Error('Synthesizer not initialized')
+
+    // עוצרים את כל הצלילים לפני tear-down
+    allNotesOff()
+
+    // פריקת ה-SF הקיים (FluidSynth תומך)
+    if (_sfontId !== null) {
+      try {
+        await _synth.unloadSFont(_sfontId)
+      } catch (err) {
+        console.warn('[SFP] unloadSFont failed (continuing):', err?.message)
+      }
+      _sfontId = null
+    }
+
+    // טעינת ה-buffer החדש
+    const buffer = await fetchSoundFontBuffer(libraryConfig, onProgress)
+
+    onProgress?.('מאתחל instruments...', 95)
+    _sfontId = await _synth.loadSFont(buffer)
+    _currentLibrary = libraryConfig
+
+    applyDefaultPrograms()
+
+    onProgress?.('מוכן!', 100)
+    return { library: _currentLibrary }
+  })()
+
+  try {
+    return await _swapPromise
+  } finally {
+    _swapPromise = null
+  }
+}
+
+/** הספרייה שטעונה כרגע (או null אם עוד לא אותחל) */
+export function getCurrentLibrary() {
+  return _currentLibrary
 }
 
 /** AudioContext הנוכחי (לשימוש ה-scheduler) */
@@ -367,4 +452,6 @@ export function destroy() {
   _sfontId = null
   _initPromise = null
   _useWorklet = false
+  _currentLibrary = null
+  _swapPromise = null
 }

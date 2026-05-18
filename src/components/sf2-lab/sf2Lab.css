@@ -1,0 +1,349 @@
+/* sf2Lab.css — dark theme matching /positions and /backing-tracks */
+
+.sf2lab-page {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  max-width: 1100px;
+  margin: 0 auto;
+  direction: rtl;
+}
+
+/* Header */
+.sf2lab-header {
+  margin-bottom: 24px;
+  position: relative;
+}
+.sf2lab-back {
+  color: #8888aa;
+  text-decoration: none;
+  font-size: 14px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.sf2lab-back:hover { color: #ccc; }
+.sf2lab-header h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+  color: #fff;
+}
+.sf2lab-subtitle {
+  color: #888;
+  font-size: 14px;
+}
+
+/* Section blocks */
+.sf2lab-section {
+  background: #16213e;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  border: 1px solid #2a3a55;
+}
+.sf2lab-section h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: #fff;
+}
+
+/* Library grid */
+.sf2lab-lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.sf2lab-lib-card {
+  background: #0f1828;
+  border: 2px solid #2a3a55;
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  text-align: right;
+  color: #e0e0e0;
+  font-family: inherit;
+  transition: all 0.15s;
+  position: relative;
+}
+.sf2lab-lib-card:hover:not(:disabled) {
+  border-color: #4a6a9a;
+  background: #142036;
+}
+.sf2lab-lib-card.current {
+  border-color: #4caf50;
+  background: #14281e;
+}
+.sf2lab-lib-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sf2lab-lib-card:disabled { cursor: not-allowed; }
+.sf2lab-lib-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.sf2lab-lib-meta {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 6px;
+}
+.sf2lab-lib-notes {
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.4;
+}
+.sf2lab-lib-warn {
+  font-size: 11px;
+  color: #ff9a4a;
+  margin-top: 6px;
+}
+.sf2lab-lib-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #4caf50;
+  color: #000;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Progress bar */
+.sf2lab-progress {
+  margin-top: 14px;
+}
+.sf2lab-progress-bar {
+  height: 6px;
+  background: #2a3a55;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.sf2lab-progress-bar > div {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.2s;
+}
+.sf2lab-progress-msg {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 6px;
+}
+.sf2lab-error {
+  color: #ff6a6a;
+  font-size: 13px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #2a1a1a;
+  border-radius: 6px;
+}
+.sf2lab-error-inline {
+  color: #ff6a6a;
+  font-size: 13px;
+}
+
+/* Preset row */
+.sf2lab-preset-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.sf2lab-select {
+  background: #0f1828;
+  color: #e0e0e0;
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+}
+.sf2lab-select:disabled { opacity: 0.5; }
+.sf2lab-muted { color: #888; font-size: 13px; }
+
+/* Transport */
+.sf2lab-transport {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.sf2lab-play, .sf2lab-stop {
+  font-family: inherit;
+  font-size: 18px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.sf2lab-play {
+  background: #4caf50;
+  color: #fff;
+}
+.sf2lab-play:disabled {
+  background: #2a3a3a;
+  color: #666;
+  cursor: not-allowed;
+}
+.sf2lab-stop {
+  background: #f44336;
+  color: #fff;
+}
+.sf2lab-chord-preview {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sf2lab-chord-pill {
+  background: #0f1828;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-family: monospace;
+  color: #ccc;
+  border: 1px solid #2a3a55;
+}
+
+/* Solo strip */
+.sf2lab-solo-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sf2lab-solo-btn {
+  background: #0f1828;
+  color: #e0e0e0;
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  min-width: 80px;
+  transition: all 0.15s;
+}
+.sf2lab-solo-btn:hover:not(:disabled) {
+  border-color: #4a6a9a;
+  background: #142036;
+}
+.sf2lab-solo-btn.active {
+  background: #4caf50;
+  color: #000;
+  border-color: #4caf50;
+  font-weight: 600;
+}
+.sf2lab-solo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Ratings */
+.sf2lab-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sf2lab-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sf2lab-rating-label {
+  width: 80px;
+  font-size: 14px;
+  color: #ccc;
+}
+.sf2lab-stars {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.sf2lab-star {
+  background: none;
+  border: none;
+  color: #444;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.1s;
+}
+.sf2lab-star:hover { color: #ffd54f; }
+.sf2lab-star.filled { color: #ffc107; }
+.sf2lab-clear {
+  background: none;
+  border: 1px solid #444;
+  color: #888;
+  font-size: 14px;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  margin-right: 8px;
+  line-height: 1;
+}
+.sf2lab-clear:hover { background: #2a1a1a; color: #ff6a6a; border-color: #ff6a6a; }
+.sf2lab-notes-row {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sf2lab-notes-row label {
+  font-size: 13px;
+  color: #aaa;
+}
+.sf2lab-notes-row textarea {
+  background: #0f1828;
+  color: #e0e0e0;
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  direction: rtl;
+}
+
+/* Comparison matrix */
+.sf2lab-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.sf2lab-matrix th,
+.sf2lab-matrix td {
+  padding: 10px 12px;
+  text-align: center;
+  border-bottom: 1px solid #2a3a55;
+}
+.sf2lab-matrix th {
+  background: #0f1828;
+  color: #aaa;
+  font-weight: 600;
+  font-size: 13px;
+}
+.sf2lab-matrix-name {
+  text-align: right;
+  color: #fff;
+  font-weight: 500;
+}
+.sf2lab-matrix-notes {
+  color: #888;
+  font-size: 12px;
+  text-align: right;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sf2lab-winner {
+  background: #14281e;
+  color: #6dd175;
+  font-weight: 600;
+}
+.sf2lab-tip {
+  margin-top: 12px;
+  font-size: 12px;
+}
