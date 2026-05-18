@@ -149,7 +149,64 @@ export function parseSty(buffer) {
   // ── 5. Clean up internal state ───────────────────────────────────────────────
   delete style._ctabs
 
+  // ── 6. Tame overly bright comping voices (post-pass) ─────────────────────────
+  tameHighChordNotes(style)
+  applyStyleSpecificFixes(style)
+
   return style
+}
+
+/**
+ * Per-style hand-tuned fixes for known problem patterns.
+ * Use sparingly — prefer the generic tameHighChordNotes() pass.
+ */
+function applyStyleSpecificFixes(style) {
+  const name = (style.name || '').toLowerCase()
+
+  // PowerRock: the high-octave comping notes feel disconnected from the rest
+  // of the pattern even after octave folding — strip them entirely from the
+  // chord channels instead of folding them down.
+  if (name.includes('powerrock')) {
+    const STRIP_ACCS = new Set(['CHORD1', 'CHORD2'])
+    const STRIP_ABOVE = 79 // anything above G5 is removed (was already the fold ceiling)
+    for (const part of Object.values(style.parts || {})) {
+      if (!part.channels) continue
+      for (const ch of Object.values(part.channels)) {
+        if (!STRIP_ACCS.has(ch.ctab?.accType)) continue
+        if (!ch.notes || ch.notes.length === 0) continue
+        ch.notes = ch.notes.filter(n => n.pitch <= STRIP_ABOVE)
+      }
+    }
+  }
+}
+
+/**
+ * Some Yamaha styles (e.g. PowerRock) leave the source chord pattern with
+ * comping notes shooting up to octave 7 (C7..D#7). On a piano-style SF2 voice
+ * those notes are piercing. We tighten the ctab's noteHighLimit on chord/pad
+ * channels so the existing `clampAll` octave-folder in Transposer pulls them
+ * into a musically sensible register. Pure data tweak — no playback logic
+ * changes. Bass/drums/phrase channels are left untouched.
+ */
+function tameHighChordNotes(style) {
+  const TAME_ACCS = new Set(['CHORD1', 'CHORD2', 'PAD'])
+  const CEILING = 79 // G5 — top of a typical comping voicing
+
+  for (const part of Object.values(style.parts || {})) {
+    if (!part.channels) continue
+    for (const ch of Object.values(part.channels)) {
+      if (!TAME_ACCS.has(ch.ctab?.accType)) continue
+      if (!ch.ctab.ctb2Main) continue
+      if (!ch.notes || ch.notes.length === 0) continue
+
+      let maxPitch = 0
+      for (const n of ch.notes) if (n.pitch > maxPitch) maxPitch = n.pitch
+      if (maxPitch <= CEILING) continue
+
+      const current = ch.ctab.ctb2Main.noteHighLimit ?? 127
+      if (current > CEILING) ch.ctab.ctb2Main.noteHighLimit = CEILING
+    }
+  }
 }
 
 // ─── CASM Parser ─────────────────────────────────────────────────────────────
