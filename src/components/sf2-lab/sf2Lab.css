@@ -48,6 +48,21 @@
   color: #fff;
 }
 
+/* Backing-Player wrapper — let the player use its own layout */
+.sf2lab-player-section {
+  padding: 14px;
+}
+.sf2lab-player-wrapper {
+  background: #0f1828;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 480px;
+}
+.sf2lab-player-wrapper .backing-player {
+  width: 100%;
+  /* Inherit BackingTracksPage.css styling but normalize sizing */
+}
+
 /* Library grid */
 .sf2lab-lib-grid {
   display: grid;

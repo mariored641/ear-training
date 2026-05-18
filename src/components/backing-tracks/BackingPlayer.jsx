@@ -213,7 +213,7 @@ function PracticePopup({ config, onConfigChange }) {
 /* ═══════════════════════════════════════════════════════
    BackingPlayer — main component
    ═══════════════════════════════════════════════════════ */
-export function BackingPlayer() {
+export function BackingPlayer({ hideFretboard = false } = {}) {
   const {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
@@ -338,14 +338,16 @@ export function BackingPlayer() {
           colsPerRow={colsPerRow}
           beatsPerBar={beatsPerBar}
         />
-        <LiveFretboard
-          chords={chords}
-          currentBar={currentBar}
-          currentChordSymbol={currentChordSymbol}
-          isPlaying={isPlaying}
-          isOpen={showFretboard}
-          onToggle={() => setShowFretboard(p => !p)}
-        />
+        {!hideFretboard && (
+          <LiveFretboard
+            chords={chords}
+            currentBar={currentBar}
+            currentChordSymbol={currentChordSymbol}
+            isPlaying={isPlaying}
+            isOpen={showFretboard}
+            onToggle={() => setShowFretboard(p => !p)}
+          />
+        )}
       </div>
 
       {/* ── Popup Section (overlay between content and bottom) ── */}
@@ -422,15 +424,17 @@ export function BackingPlayer() {
 
         {/* Tab Bar — 4 items: Fretboard, Mixer, Play/Stop, Practice */}
         <div className="bp-tab-bar">
-          <button
-            className={`bp-tab${showFretboard ? ' active' : ''}`}
-            onClick={() => setShowFretboard(p => !p)}
-            title="Fretboard"
-          >
-            <svg viewBox="0 0 24 24" className="bp-tab-icon">
-              <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
-            </svg>
-          </button>
+          {!hideFretboard && (
+            <button
+              className={`bp-tab${showFretboard ? ' active' : ''}`}
+              onClick={() => setShowFretboard(p => !p)}
+              title="Fretboard"
+            >
+              <svg viewBox="0 0 24 24" className="bp-tab-icon">
+                <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
+              </svg>
+            </button>
+          )}
           <button
             className={`bp-tab${activePopup === 'mixer' ? ' active' : ''}`}
             onClick={() => togglePopup('mixer')}
