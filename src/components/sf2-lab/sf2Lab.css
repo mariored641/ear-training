@@ -1,8 +1,8 @@
-/* sf2Lab.css — dark theme matching /positions and /backing-tracks */
+/* sf2Lab.css — light theme */
 
 .sf2lab-page {
-  background: #1a1a2e;
-  color: #e0e0e0;
+  background: #f5f7fa;
+  color: #1f2937;
   min-height: 100vh;
   padding: 24px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -14,54 +14,52 @@
 /* Header */
 .sf2lab-header {
   margin-bottom: 24px;
-  position: relative;
 }
 .sf2lab-back {
-  color: #8888aa;
+  color: #6b7280;
   text-decoration: none;
   font-size: 14px;
   display: inline-block;
   margin-bottom: 8px;
 }
-.sf2lab-back:hover { color: #ccc; }
+.sf2lab-back:hover { color: #1f2937; }
 .sf2lab-header h1 {
   margin: 0 0 4px;
   font-size: 28px;
-  color: #fff;
+  color: #0f172a;
 }
 .sf2lab-subtitle {
-  color: #888;
+  color: #6b7280;
   font-size: 14px;
 }
 
 /* Section blocks */
 .sf2lab-section {
-  background: #16213e;
-  border-radius: 10px;
-  padding: 18px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 22px;
   margin-bottom: 18px;
-  border: 1px solid #2a3a55;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .sf2lab-section h2 {
   margin: 0 0 14px;
-  font-size: 18px;
-  color: #fff;
+  font-size: 17px;
+  color: #0f172a;
+  font-weight: 600;
 }
 
-/* Backing-Player wrapper — let the player use its own layout */
+/* Backing-Player wrapper — embed cleanly */
 .sf2lab-player-section {
   padding: 14px;
 }
 .sf2lab-player-wrapper {
-  background: #0f1828;
+  background: #1a1a2e; /* BackingPlayer is dark-themed; keep its native look */
   border-radius: 8px;
   overflow: hidden;
   min-height: 480px;
 }
-.sf2lab-player-wrapper .backing-player {
-  width: 100%;
-  /* Inherit BackingTracksPage.css styling but normalize sizing */
-}
+.sf2lab-player-wrapper .backing-player { width: 100%; }
 
 /* Library grid */
 .sf2lab-lib-grid {
@@ -70,57 +68,59 @@
   gap: 12px;
 }
 .sf2lab-lib-card {
-  background: #0f1828;
-  border: 2px solid #2a3a55;
-  border-radius: 8px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
   padding: 14px;
   cursor: pointer;
   text-align: right;
-  color: #e0e0e0;
+  color: #1f2937;
   font-family: inherit;
   transition: all 0.15s;
   position: relative;
 }
 .sf2lab-lib-card:hover:not(:disabled) {
-  border-color: #4a6a9a;
-  background: #142036;
+  border-color: #60a5fa;
+  background: #eff6ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.12);
 }
 .sf2lab-lib-card.current {
-  border-color: #4caf50;
-  background: #14281e;
+  border-color: #22c55e;
+  background: #f0fdf4;
 }
 .sf2lab-lib-card.disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 .sf2lab-lib-card:disabled { cursor: not-allowed; }
 .sf2lab-lib-name {
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 .sf2lab-lib-meta {
   font-size: 12px;
-  color: #888;
+  color: #6b7280;
   margin-bottom: 6px;
 }
 .sf2lab-lib-notes {
   font-size: 12px;
-  color: #aaa;
+  color: #4b5563;
   line-height: 1.4;
 }
 .sf2lab-lib-warn {
   font-size: 11px;
-  color: #ff9a4a;
+  color: #d97706;
   margin-top: 6px;
 }
 .sf2lab-lib-badge {
   position: absolute;
   top: 8px;
   left: 8px;
-  background: #4caf50;
-  color: #000;
+  background: #22c55e;
+  color: #fff;
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 10px;
@@ -133,125 +133,31 @@
 }
 .sf2lab-progress-bar {
   height: 6px;
-  background: #2a3a55;
+  background: #e5e7eb;
   border-radius: 3px;
   overflow: hidden;
 }
 .sf2lab-progress-bar > div {
   height: 100%;
-  background: #4caf50;
+  background: #22c55e;
   transition: width 0.2s;
 }
 .sf2lab-progress-msg {
   font-size: 12px;
-  color: #aaa;
+  color: #6b7280;
   margin-top: 6px;
 }
 .sf2lab-error {
-  color: #ff6a6a;
+  color: #b91c1c;
   font-size: 13px;
   margin-top: 12px;
   padding: 8px 12px;
-  background: #2a1a1a;
+  background: #fef2f2;
   border-radius: 6px;
-}
-.sf2lab-error-inline {
-  color: #ff6a6a;
-  font-size: 13px;
+  border: 1px solid #fecaca;
 }
 
-/* Preset row */
-.sf2lab-preset-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.sf2lab-select {
-  background: #0f1828;
-  color: #e0e0e0;
-  border: 1px solid #2a3a55;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-family: inherit;
-}
-.sf2lab-select:disabled { opacity: 0.5; }
-.sf2lab-muted { color: #888; font-size: 13px; }
-
-/* Transport */
-.sf2lab-transport {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.sf2lab-play, .sf2lab-stop {
-  font-family: inherit;
-  font-size: 18px;
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-.sf2lab-play {
-  background: #4caf50;
-  color: #fff;
-}
-.sf2lab-play:disabled {
-  background: #2a3a3a;
-  color: #666;
-  cursor: not-allowed;
-}
-.sf2lab-stop {
-  background: #f44336;
-  color: #fff;
-}
-.sf2lab-chord-preview {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.sf2lab-chord-pill {
-  background: #0f1828;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-family: monospace;
-  color: #ccc;
-  border: 1px solid #2a3a55;
-}
-
-/* Solo strip */
-.sf2lab-solo-strip {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.sf2lab-solo-btn {
-  background: #0f1828;
-  color: #e0e0e0;
-  border: 1px solid #2a3a55;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 13px;
-  cursor: pointer;
-  font-family: inherit;
-  min-width: 80px;
-  transition: all 0.15s;
-}
-.sf2lab-solo-btn:hover:not(:disabled) {
-  border-color: #4a6a9a;
-  background: #142036;
-}
-.sf2lab-solo-btn.active {
-  background: #4caf50;
-  color: #000;
-  border-color: #4caf50;
-  font-weight: 600;
-}
-.sf2lab-solo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.sf2lab-muted { color: #6b7280; font-size: 13px; }
 
 /* Ratings */
 .sf2lab-ratings {
@@ -267,7 +173,7 @@
 .sf2lab-rating-label {
   width: 80px;
   font-size: 14px;
-  color: #ccc;
+  color: #374151;
 }
 .sf2lab-stars {
   display: flex;
@@ -277,19 +183,19 @@
 .sf2lab-star {
   background: none;
   border: none;
-  color: #444;
+  color: #d1d5db;
   font-size: 22px;
   cursor: pointer;
   padding: 0 2px;
   line-height: 1;
   transition: color 0.1s;
 }
-.sf2lab-star:hover { color: #ffd54f; }
-.sf2lab-star.filled { color: #ffc107; }
+.sf2lab-star:hover { color: #fbbf24; }
+.sf2lab-star.filled { color: #f59e0b; }
 .sf2lab-clear {
   background: none;
-  border: 1px solid #444;
-  color: #888;
+  border: 1px solid #d1d5db;
+  color: #9ca3af;
   font-size: 14px;
   border-radius: 50%;
   width: 22px;
@@ -298,7 +204,7 @@
   margin-right: 8px;
   line-height: 1;
 }
-.sf2lab-clear:hover { background: #2a1a1a; color: #ff6a6a; border-color: #ff6a6a; }
+.sf2lab-clear:hover { background: #fef2f2; color: #ef4444; border-color: #fca5a5; }
 .sf2lab-notes-row {
   margin-top: 10px;
   display: flex;
@@ -307,18 +213,23 @@
 }
 .sf2lab-notes-row label {
   font-size: 13px;
-  color: #aaa;
+  color: #6b7280;
 }
 .sf2lab-notes-row textarea {
-  background: #0f1828;
-  color: #e0e0e0;
-  border: 1px solid #2a3a55;
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   padding: 8px 10px;
   font-family: inherit;
   font-size: 13px;
   resize: vertical;
   direction: rtl;
+}
+.sf2lab-notes-row textarea:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
 }
 
 /* Comparison matrix */
@@ -331,21 +242,21 @@
 .sf2lab-matrix td {
   padding: 10px 12px;
   text-align: center;
-  border-bottom: 1px solid #2a3a55;
+  border-bottom: 1px solid #e5e7eb;
 }
 .sf2lab-matrix th {
-  background: #0f1828;
-  color: #aaa;
+  background: #f9fafb;
+  color: #6b7280;
   font-weight: 600;
   font-size: 13px;
 }
 .sf2lab-matrix-name {
   text-align: right;
-  color: #fff;
+  color: #0f172a;
   font-weight: 500;
 }
 .sf2lab-matrix-notes {
-  color: #888;
+  color: #6b7280;
   font-size: 12px;
   text-align: right;
   max-width: 240px;
@@ -354,8 +265,8 @@
   white-space: nowrap;
 }
 .sf2lab-winner {
-  background: #14281e;
-  color: #6dd175;
+  background: #f0fdf4;
+  color: #15803d;
   font-weight: 600;
 }
 .sf2lab-tip {

@@ -24,11 +24,11 @@ export const SOUNDFONT_LIBRARIES = [
   },
   {
     id: 'fluidr3',
-    name: 'FluidR3 Mono',
-    size: '~24MB',
+    name: 'FluidR3 GM',
+    size: '~141MB',
     url: import.meta.env.VITE_SF2_URL_FLUIDR3 || '',
-    cacheKey: 'sf2-fluidr3-v1',
-    notes: 'גרסת Mono של FluidR3 הקלאסי (SF3 דחוס). 24MB, נשמע טוב כברירת מחדל.',
+    cacheKey: 'sf2-fluidr3-full-v2',
+    notes: 'הסטנדרט החינמי של עולם ה-MIDI. GM מלא, מאוזן.',
   },
   {
     id: 'generaluser',
@@ -40,11 +40,11 @@ export const SOUNDFONT_LIBRARIES = [
   },
   {
     id: 'arachno',
-    name: 'LibreArachno',
-    size: '~9MB',
+    name: 'Antares GM',
+    size: '~46MB',
     url: import.meta.env.VITE_SF2_URL_ARACHNO || '',
-    cacheKey: 'sf2-arachno-v1',
-    notes: 'גרסה libre של Arachno המקורי (CC0). קטן וייחודי.',
+    cacheKey: 'sf2-antares-v2',
+    notes: 'GM כללי באיכות גבוהה, פסנתרים ומיתרים בולטים.',
   },
 ]
 
