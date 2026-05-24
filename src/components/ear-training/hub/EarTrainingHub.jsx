@@ -60,6 +60,15 @@ const EarTrainingHub = () => {
       description: 'מיפוי צוואר ושמיעה צבעונית',
       numExercises: 1,
       route: '/category/ear-training/guitar'
+    },
+    {
+      id: 'reactive',
+      icon: '⚡',
+      title: 'Reactive',
+      titleHebrew: 'שמיעה ריאקטיבית',
+      description: 'בלי לחשוב, בלי לתייג — רק להגיב לאקורד',
+      numExercises: 2,
+      route: '/category/ear-training/reactive'
     }
   ];
 
@@ -88,7 +97,7 @@ const EarTrainingHub = () => {
               ← Back to Home
             </button>
             <h1 className="home-title">שמיעה מוזיקלית</h1>
-            <p className="home-subtitle">Musical Ear Training — 17 Exercises Across 6 Sub-Categories</p>
+            <p className="home-subtitle">Musical Ear Training — 19 Exercises Across 7 Sub-Categories</p>
           </div>
         </div>
       </header>
