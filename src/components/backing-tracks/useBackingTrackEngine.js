@@ -102,6 +102,15 @@ export const GENRE_CATALOG = [
       { id: 'country_folkball', label: 'Folk Ballad',     bpm: 72,  sty: '/styles/Country/Folkball.S702.sty',             human: 'rock' },
     ],
   },
+  {
+    category: 'biab',
+    label: 'BIAB Custom',
+    icon: '🎼',
+    subtypes: [
+      { id: 'biab_texas_blues',  label: 'Texas Blues (BIAB)',   bpm: 55,  sty: '/styles/Custom/biab-texas-blues.json',  human: 'blues' },
+      { id: 'biab_classic_rock', label: 'Classic Rock (BIAB)',  bpm: 150, sty: '/styles/Custom/biab-classic-rock.json', human: 'rock'  },
+    ],
+  },
 ]
 
 // ─── Flat maps built from catalog ─────────────────────────────────────────────
@@ -659,6 +668,29 @@ export const GENRE_DEFAULTS = {
       { root: 'G', quality: 'major', extensions: [] },
     ],
   },
+
+  // ── BIAB Custom ──
+  biab_texas_blues: {
+    tempo: 55,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['7'] },
+    presetBarCount: 12,
+    preset: BLUES_PRESET_12,
+  },
+  biab_classic_rock: {
+    tempo: 150,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 8,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
 }
 
 // ─── chordDisplayName (replaces lib/backing-tracks/chords.js dependency) ─────
@@ -940,8 +972,19 @@ export function useBackingTrackEngine() {
     if (!url) throw new Error(`Unknown genre: ${genreName}`)
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status} — ${url}`)
-    const buf   = await res.arrayBuffer()
-    const style = parseSty(buf)
+    let style
+    if (url.toLowerCase().endsWith('.json')) {
+      // Pre-parsed style (e.g. BIAB → JSON converter output) — schema matches parseSty()
+      style = await res.json()
+      if (style.channelPrograms) {
+        for (const [chStr, program] of Object.entries(style.channelPrograms)) {
+          if (program != null) SFP.programChange(parseInt(chStr), program)
+        }
+      }
+    } else {
+      const buf = await res.arrayBuffer()
+      style = parseSty(buf)
+    }
     styleCache.current[genreName] = style
     engine.setStyle(style)
     engine.setHumanizerConfig(HUMAN_PRESETS[GENRE_HUMAN[genreName]] ?? HUMAN_PRESETS.jazz)

@@ -400,6 +400,7 @@ export function setChannelVolume(channel, gain) {
   _synth.midiControl(channel, 7, cc7)
 }
 
+
 // ---- Crackling Detection ----
 
 /** Start monitoring audio for crackling (logs to console) */
