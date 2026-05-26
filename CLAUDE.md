@@ -36,6 +36,11 @@ Stack: React + Vite + Tone.js → deployed on Vercel via GitHub (main branch).
 Local dev: `npm run dev` → `localhost:5173`
 Production: https://ear-training-rose.vercel.app
 
+**עיצוב עמוד הבית:** Constellation — hub (לוגו "מישר לנזמן") במרכז + 6 satellites רדיאליים, רקע aurora כהה.
+הרקע חל *רק* על עמוד הבית (class `body.home-page-active` מוסר בניווט החוצה).
+קובץ עיצוב מקורי: `design-mockup/redesign-v2.html` (mockup HTML מלא, לא נכנס ל-build).
+**השלב הבא בעיצוב:** מיגרציה של עיצוב חטיבת הבאקינג טראקים מ-`design-mockup/v2-sections/backing-tracks.html`.
+
 ---
 
 ## מבנה החטיבות — שמות רשמיים
@@ -181,7 +186,7 @@ Production: https://ear-training-rose.vercel.app
 src/
   App.jsx                          ← Routes הראשיות (17 תרגילים + 6 sub-screens + legacy)
   components/
-    home/HomePage.jsx              ← עמוד בית, כרטיסי חטיבות
+    home/HomePage.jsx              ← עמוד בית — עיצוב Constellation (hub + 6 satellites, aurora bg)
     category/
       MelodicCategoryScreen.jsx    ← legacy fallback (לא בשימוש מ-HomePage)
       HarmonicCategoryScreen.jsx   ← legacy fallback (לא בשימוש מ-HomePage)
