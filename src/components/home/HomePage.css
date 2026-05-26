@@ -1,114 +1,283 @@
-.home-page {
-  min-height: 100vh;
-  background-color: var(--color-bg-secondary);
-}
+/* ============================================================
+   HomePage — Constellation Design
+   Port of design-mockup/redesign-v2.html (canon-base styles).
+   All selectors scoped under .home-page-constellation
+   so they don't leak to the rest of the app.
+   ============================================================ */
 
-.home-header {
-  background-color: var(--color-primary);
-  color: white;
-  text-align: center;
-  padding: var(--spacing-xl) var(--spacing-lg);
-}
+.home-page-constellation {
+  --bg-deep:    #050d2a;
+  --bg-mid:     #0a1f5c;
+  --bg-light:   #2a5aff;
+  --accent:     #6ea8ff;
+  --accent-2:   #b8d4ff;
+  --text:       #eaf2ff;
+  --text-dim:   #9fb4d6;
+  --orb-bg:     rgba(255, 255, 255, 0.06);
+  --orb-border: rgba(180, 210, 255, 0.25);
+  --orb-glow:   rgba(110, 168, 255, 0.35);
+  --glass-bg:   rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(180, 210, 255, 0.22);
 
-.header-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
   position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--text);
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.header-text {
-  text-align: center;
+/* Body-level styling while home page is mounted */
+body.home-page-active {
+  overflow: hidden;
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+}
+body.home-page-active #root {
+  height: 100vh;
+  overflow: hidden;
 }
 
-.install-button {
+/* ===== Aurora background ===== */
+.home-page-constellation .aurora {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+.home-page-constellation .blob {
   position: absolute;
-  right: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  white-space: nowrap;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.home-page-constellation .blob-1 {
+  width: 50vmax; height: 50vmax;
+  background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+  top: -10%; left: -10%;
+  animation: hp-drift1 22s ease-in-out infinite alternate;
+}
+.home-page-constellation .blob-2 {
+  width: 45vmax; height: 45vmax;
+  background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+  bottom: -15%; right: -10%;
+  animation: hp-drift2 28s ease-in-out infinite alternate;
+}
+.home-page-constellation .blob-3 {
+  width: 35vmax; height: 35vmax;
+  background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+  top: 30%; right: 20%;
+  opacity: 0.35;
+  animation: hp-drift3 18s ease-in-out infinite alternate;
+}
+@keyframes hp-drift1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(20vw, 10vh) scale(1.15); }
+  100% { transform: translate(10vw, 25vh) scale(0.95); }
+}
+@keyframes hp-drift2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-15vw, -10vh) scale(1.1); }
+  100% { transform: translate(-25vw, 5vh) scale(0.9); }
+}
+@keyframes hp-drift3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-20vw, 15vh) scale(1.2); }
+  100% { transform: translate(15vw, -10vh) scale(0.85); }
+}
+
+.home-page-constellation .stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+}
+
+/* ===== Stage / Constellation ===== */
+.home-page-constellation .stage {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+}
+.home-page-constellation .constellation {
+  position: relative;
+  width: min(90vmin, 760px);
+  height: min(90vmin, 760px);
 }
 
-.install-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.install-button:active {
-  transform: translateY(0);
-}
-
-.header-logo-wrap {
-  display: block;
-  height: 90px;
-  width: 260px;
-  background-color: white;
-  border-radius: 12px;
-  margin: 0 auto var(--spacing-md) auto;
+/* ===== Center hub ===== */
+.home-page-constellation .center-hub {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+    linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(180, 210, 255, 0.3);
+  box-shadow:
+    0 0 60px rgba(110, 168, 255, 0.45),
+    inset 0 0 40px rgba(255, 255, 255, 0.05);
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  z-index: 5;
+  animation: hp-hubPulse 5s ease-in-out infinite alternate;
+}
+@keyframes hp-hubPulse {
+  from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+  to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
 }
 
-.header-logo {
-  width: 130%;
-  height: 130%;
+.home-page-constellation .center-hub .center-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  border-radius: 50%;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.25);
+}
+.home-page-constellation .center-hub .center-logo img {
+  display: block;
   object-fit: contain;
+  width: 92%;
+  height: 92%;
 }
 
-.home-title {
-  margin: 0 0 var(--spacing-sm) 0;
-  font-size: 2.5rem;
+/* ===== Satellites ===== */
+.home-page-constellation .satellite {
+  position: absolute;
+  top: 50%; left: 50%;
+  --angle: 0deg;
+  --radius: 34vmin;
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--angle))
+    translateY(calc(var(--radius) * -1))
+    rotate(calc(var(--angle) * -1));
+  width: 22vmin;
+  height: 22vmin;
+  pointer-events: none;
+  animation: hp-floatY 6s ease-in-out infinite alternate;
+}
+.home-page-constellation .satellite.s-2 { animation-delay: -1s; }
+.home-page-constellation .satellite.s-3 { animation-delay: -2s; }
+.home-page-constellation .satellite.s-4 { animation-delay: -3s; }
+.home-page-constellation .satellite.s-5 { animation-delay: -4s; }
+.home-page-constellation .satellite.s-6 { animation-delay: -5s; }
+.home-page-constellation .satellite.s-7 { animation-delay: -1.5s; }
+
+@keyframes hp-floatY {
+  from { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius)*-1))         rotate(calc(var(--angle)*-1)); }
+  to   { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc((var(--radius)*-1) - 6px)) rotate(calc(var(--angle)*-1)); }
+}
+
+.home-page-constellation .satellite .label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(78% + 10px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: clamp(11px, 1.7vmin, 15px);
   font-weight: 600;
+  color: var(--text);
+  text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+  pointer-events: none;
+  animation: hp-labelFloat 4s ease-in-out infinite alternate;
+}
+@keyframes hp-labelFloat {
+  from { transform: translateX(-50%) translateY(0); }
+  to   { transform: translateX(-50%) translateY(-4px); }
+}
+.home-page-constellation .satellite.s-2 .label { animation-delay: -0.6s; }
+.home-page-constellation .satellite.s-3 .label { animation-delay: -1.2s; }
+.home-page-constellation .satellite.s-4 .label { animation-delay: -1.8s; }
+.home-page-constellation .satellite.s-5 .label { animation-delay: -2.4s; }
+.home-page-constellation .satellite.s-6 .label { animation-delay: -3.0s; }
+.home-page-constellation .satellite.s-7 .label { animation-delay: -3.6s; }
+
+.home-page-constellation .satellite .sub-label {
+  position: absolute;
+  left: 50%;
+  top: calc(78% - 4px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: clamp(9px, 1.3vmin, 11px);
+  font-weight: 500;
+  color: var(--accent-2);
+  opacity: 0.85;
+  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  pointer-events: none;
 }
 
-.home-subtitle {
-  margin: 0;
-  font-size: var(--font-size-lg);
-  opacity: 0.9;
+.home-page-constellation .satellite .orb {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 78%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+    var(--orb-bg);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid var(--orb-border);
+  box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(28px, 5.5vmin, 52px);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.home-page-constellation .satellite .orb:hover {
+  transform: translateX(-50%) scale(1.12);
+  box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
+  border-color: rgba(220, 235, 255, 0.7);
 }
 
-.home-content {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-xl);
+/* Glow color per satellite slot */
+.home-page-constellation .satellite.s-1 .orb { box-shadow: 0 0 30px rgba(255, 180, 100, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+.home-page-constellation .satellite.s-2 .orb { box-shadow: 0 0 30px rgba(255, 120, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+.home-page-constellation .satellite.s-3 .orb { box-shadow: 0 0 30px rgba(150, 220, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+.home-page-constellation .satellite.s-4 .orb { box-shadow: 0 0 30px rgba(120, 255, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+.home-page-constellation .satellite.s-5 .orb { box-shadow: 0 0 30px rgba(200, 180, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+.home-page-constellation .satellite.s-6 .orb { box-shadow: 0 0 30px rgba(255, 220, 120, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+.home-page-constellation .satellite.s-7 .orb { box-shadow: 0 0 30px rgba(180, 255, 220, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+
+.home-page-constellation .lines {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
-
-@media (max-width: 768px) {
-  .home-title {
-    font-size: 2rem;
-  }
-
-  .home-content {
-    padding: var(--spacing-lg) var(--spacing-md);
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-  }
-
-  .header-content {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .install-button {
-    width: 100%;
-    justify-content: center;
-  }
+.home-page-constellation .lines line {
+  stroke: rgba(180, 210, 255, 0.12);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
 }

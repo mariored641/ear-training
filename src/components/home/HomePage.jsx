@@ -1,189 +1,106 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CategoryCard from '../common/CategoryCard';
 import './HomePage.css';
+
+const SATELLITES = [
+  { icon: '👂', label: 'שמיעה מוזיקלית', route: '/category/ear-training' },
+  { icon: '🥁', label: 'קצב',           route: '/exercise/4' },
+  { icon: '🎼', label: 'הכתבה',         route: '/category/dictation' },
+  { icon: '🎸', label: 'פוזיציות',      route: '/positions' },
+  { icon: '🎵', label: 'באקינג טראקס',  route: '/backing-tracks' },
+  { icon: '📹', label: 'פידבק',         route: '/feedback' },
+];
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(true);
+  const constellationRef = useRef(null);
+  const svgRef = useRef(null);
 
   useEffect(() => {
-    // Check if app is already installed (running in standalone mode)
-    const standalone = window.matchMedia('(display-mode: standalone)').matches ||
-                      window.navigator.standalone;
-
-    if (standalone) {
-      setShowInstallButton(false);
-      return;
-    }
-
-    // Check if we already caught the event globally (in main.jsx)
-    if (window.__pwaInstallPrompt) {
-      setDeferredPrompt(window.__pwaInstallPrompt);
-      console.log('✅ Found global install prompt');
-    }
-
-    // Also listen for future events
-    const handler = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      window.__pwaInstallPrompt = e;
-      console.log('✅ Install prompt captured');
+    const drawLines = () => {
+      const container = constellationRef.current;
+      const svg = svgRef.current;
+      if (!container || !svg) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      svg.innerHTML = '';
+      const cRect = container.getBoundingClientRect();
+      const cx = w / 2;
+      const cy = h / 2;
+      container.querySelectorAll('.satellite .orb').forEach((orb) => {
+        const r = orb.getBoundingClientRect();
+        const x = r.left + r.width / 2 - cRect.left;
+        const y = r.top + r.height / 2 - cRect.top;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', cx);
+        line.setAttribute('y1', cy);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', y);
+        svg.appendChild(line);
+      });
     };
-
-    window.addEventListener('beforeinstallprompt', handler);
-
-    // Listen for successful installation
-    const installHandler = () => {
-      setShowInstallButton(false);
-      setDeferredPrompt(null);
-      window.__pwaInstallPrompt = null;
-      console.log('✅ App installed successfully');
-    };
-
-    window.addEventListener('appinstalled', installHandler);
-
+    const raf = requestAnimationFrame(drawLines);
+    const timer = setTimeout(drawLines, 80);
+    window.addEventListener('resize', drawLines);
+    let ro;
+    if (constellationRef.current && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(drawLines);
+      ro.observe(constellationRef.current);
+    }
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-      window.removeEventListener('appinstalled', installHandler);
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+      window.removeEventListener('resize', drawLines);
+      if (ro) ro.disconnect();
     };
   }, []);
 
-  const handleInstallClick = () => {
-    const prompt = deferredPrompt || window.__pwaInstallPrompt;
+  useEffect(() => {
+    document.body.classList.add('home-page-active');
+    return () => {
+      document.body.classList.remove('home-page-active');
+    };
+  }, []);
 
-    if (prompt) {
-      prompt.prompt();
-      prompt.userChoice.then(({ outcome }) => {
-        console.log(`User choice: ${outcome}`);
-        if (outcome === 'accepted') {
-          setShowInstallButton(false);
-        }
-        setDeferredPrompt(null);
-        window.__pwaInstallPrompt = null;
-      });
-    } else {
-      // Better fallback
-      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
-      const isEdge = /Edg/.test(navigator.userAgent);
-
-      if (isChrome || isEdge) {
-        alert('חפש את אייקון ההתקנה ⊕ בצד ימין של שורת הכתובת בדפדפן');
-      } else {
-        alert('להתקנה: פתח את תפריט הדפדפן ובחר "הוסף למסך הבית"');
-      }
-    }
-  };
-
-  const categories = [
-    {
-      id: 'ear-training',
-      icon: '👂',
-      title: 'Musical Ear Training',
-      titleHebrew: 'חטיבת שמיעה מוזיקלית',
-      description: 'מלודיה, הרמוניה, סולפז\' וגיטרה — 17 תרגילים ב-6 תת-חטיבות',
-      numExercises: 17
-    },
-    {
-      id: 'rhythm',
-      icon: '🥁',
-      title: 'Rhythm Training',
-      titleHebrew: 'חטיבת קצב',
-      description: 'Develop rhythmic reading and recognition skills',
-      numExercises: 'Active'
-    },
-    {
-      id: 'dictation',
-      icon: '🎼',
-      title: 'Dictation',
-      titleHebrew: 'חטיבת הכתבה',
-      description: 'Rhythmic Dictation & Melodic Dictation',
-      numExercises: 2
-    },
-    {
-      id: 'positions',
-      icon: '🎸',
-      title: 'Scale Positions',
-      titleHebrew: 'חטיבת פוזיציות',
-      description: 'CAGED system positions for any scale on the fretboard',
-      numExercises: 'Active'
-    },
-    {
-      id: 'backing-tracks',
-      icon: '🎵',
-      title: 'Backing Tracks',
-      titleHebrew: 'חטיבת ליווי',
-      description: 'Play over Jazz, Blues, Rock & Country backing tracks with custom chord progressions',
-      numExercises: 'Active'
-    },
-    {
-      id: 'feedback',
-      icon: '📹',
-      title: 'Feedback',
-      titleHebrew: 'חטיבת פידבק',
-      description: 'הקלט את עצמך מנגן על גבי באקינג טראק מיוטיוב ושלח למישר',
-      numExercises: 'Active'
-    }
-  ];
-
-  const handleEnterCategory = (categoryId) => {
-    if (categoryId === 'ear-training') {
-      navigate('/category/ear-training');
-    } else if (categoryId === 'rhythm') {
-      // Existing Rhythm Explorer
-      navigate('/exercise/4');
-    } else if (categoryId === 'dictation') {
-      navigate('/category/dictation');
-    } else if (categoryId === 'positions') {
-      // Positions goes directly to the positions page
-      navigate('/positions');
-    } else if (categoryId === 'backing-tracks') {
-      navigate('/backing-tracks');
-    } else if (categoryId === 'feedback') {
-      navigate('/feedback');
-    } else {
-      // Legacy fallback for /category/melodic and /category/harmonic
-      navigate(`/category/${categoryId}`);
-    }
-  };
+  const n = SATELLITES.length;
 
   return (
-    <div className="home-page">
-      <header className="home-header">
-        <div className="header-content">
-          <div className="header-text">
-            <div className="header-logo-wrap">
-              <img src="/logo.png" alt="אלתור בהישג יד" className="header-logo" />
-            </div>
-            <h1 className="home-title">אלתור בהישג יד - האפליקציה</h1>
-            <p className="home-subtitle">Ear Training Application</p>
-          </div>
-          {showInstallButton && (
-            <button
-              className="install-button"
-              onClick={handleInstallClick}
-              title="התקן את האפליקציה לשימוש אופליין"
-            >
-              💾 Download
-            </button>
-          )}
-        </div>
-      </header>
+    <div className="home-page-constellation" dir="rtl">
+      <div className="aurora">
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+        <div className="blob blob-3"></div>
+      </div>
+      <div className="stars"></div>
 
-      <div className="home-content">
-        {categories.map(category => (
-          <CategoryCard
-            key={category.id}
-            categoryId={category.id}
-            icon={category.icon}
-            title={category.title}
-            titleHebrew={category.titleHebrew}
-            description={category.description}
-            numExercises={category.numExercises}
-            onEnter={() => handleEnterCategory(category.id)}
-          />
-        ))}
+      <div className="stage">
+        <div className="constellation" ref={constellationRef}>
+          <svg className="lines" ref={svgRef}></svg>
+          <div className="center-hub">
+            <div className="center-logo">
+              <img src="/logo.png" alt="אלתור בהישג יד" />
+            </div>
+          </div>
+          {SATELLITES.map((sat, i) => {
+            const angle = ((i * 360) / n).toFixed(2);
+            const slot = (i % 7) + 1;
+            return (
+              <div
+                key={sat.label}
+                className={`satellite s-${slot}`}
+                style={{ '--angle': `${angle}deg` }}
+              >
+                <div className="label">{sat.label}</div>
+                <div className="orb" onClick={() => navigate(sat.route)}>
+                  {sat.icon}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
