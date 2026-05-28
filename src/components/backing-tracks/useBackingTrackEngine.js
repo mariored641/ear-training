@@ -14,6 +14,7 @@ import { PRESETS as HUMAN_PRESETS } from '../../lib/style-engine/Humanizer'
 import { parseChordSymbol, PITCH_NAMES, NOTE_PITCHES } from '../../lib/style-engine/YamChordMap'
 import { getChordData }        from '../../lib/style-engine/YamChordMap'
 import * as SFP                from '../../lib/soundfont/SoundFontPlayer'
+import { getInstrumentMap }    from '../../constants/genreInstrumentMap'
 
 // ─── Genre Catalog ─────────────────────────────────────────────────────────────
 // 4 categories × 3 sub-styles each
@@ -870,7 +871,6 @@ export function useBackingTrackEngine() {
   const [playbackPhase,      setPlaybackPhase]        = useState('stopped')   // 'stopped'|'intro'|'main'|'fill'|'ending'
   const [activePartName,     setActivePartName]       = useState(null)
   const [activeStyle,        setActiveStyle]           = useState(null)
-  const [countInEnabled,     setCountInEnabled]       = useState(true)
 
   // Practice mode config (stored in ref for sync access in audio callback)
   const practiceRef = useRef({
@@ -893,7 +893,6 @@ export function useBackingTrackEngine() {
   const styleCache      = useRef({})   // genre → parsed style object
   const loopCountRef    = useRef(0)
   const lastLoopBeatRef = useRef(-1)
-  const countInRef      = useRef(true)
 
   useEffect(() => { chordsRef.current    = chords    }, [chords])
   useEffect(() => { volumesRef.current   = volumes   }, [volumes])
@@ -924,6 +923,28 @@ export function useBackingTrackEngine() {
     setSfMsg('')
   }, [])
 
+  // ── Instrument overrides per genre ──────────────────────────────────────────
+  // Applies the GM program numbers from genreInstrumentMap so e.g. rock styles
+  // route the guitar channel to Overdriven instead of whatever the .sty had.
+  // Safe no-op until SF2 is loaded — play() re-applies once SF2 is ready.
+  const applyInstrumentOverrides = useCallback((genreId) => {
+    if (!SFP.isReady()) return
+    const map = getInstrumentMap(genreId)
+    if (!map) return  // biab styles keep their own .json channelPrograms
+    // drums (channel 9) intentionally excluded — drum kits in the JJazzLab SF2
+    // sit at GM bank 128, not bank 0. Sending programChange(9, x, bank=0) would
+    // load a melodic instrument (e.g. Acoustic Bass) onto the drum channel.
+    // The .sty files already set the correct drum program via MIDI events.
+    const CHANNEL_FOR = { bass: 1, piano: 0, guitar: 2 }
+    for (const [name, channel] of Object.entries(CHANNEL_FOR)) {
+      const entry = map[name]
+      if (!entry || entry.program == null || entry.program < 0) continue
+      SFP.programChange(channel, entry.program)
+    }
+    // eslint-disable-next-line no-console
+    console.info('[engine] applied genre instrument overrides for', genreId)
+  }, [])
+
   // ── Style loading ────────────────────────────────────────────────────────────
   const ensureStyle = useCallback(async (genreName) => {
     const engine = engineRef.current
@@ -934,6 +955,7 @@ export function useBackingTrackEngine() {
       beatsPerBarRef.current = bpb
       setBeatsPerBar(bpb)
       setActiveStyle(styleCache.current[genreName])
+      applyInstrumentOverrides(genreName)
       return
     }
     const url = GENRE_STYLES[genreName]
@@ -955,7 +977,8 @@ export function useBackingTrackEngine() {
       tempoRef.current = style.tempo
       engine.setTempo(style.tempo)
     }
-  }, [])
+    applyInstrumentOverrides(genreName)
+  }, [applyInstrumentOverrides])
 
   // ── Key selector ─────────────────────────────────────────────────────────────
   const setKey = useCallback((root, type) => {
@@ -1010,6 +1033,9 @@ export function useBackingTrackEngine() {
     try {
       await ensureSF2()
       await ensureStyle(genreRef.current)
+      // SF2 might have just finished loading — re-apply program overrides now
+      // that programChange() will actually take effect.
+      applyInstrumentOverrides(genreRef.current)
 
       const engine = engineRef.current
       const bpm    = tempoRef.current
@@ -1033,8 +1059,8 @@ export function useBackingTrackEngine() {
       setLoopCountState(0)
       lastLoopBeatRef.current = -1
 
-      // Count-in: use the style's Intro part, or skip it entirely
-      engine.setSkipIntro(!countInRef.current)
+      // Count-in is always on — play the style's Intro before the main loop
+      engine.setSkipIntro(false)
 
       engine.onBeat = ({ beat, chord, loopBeat }) => {
         // During intro (count-in), loopBeat is -1 — don't update bar/chord
@@ -1349,12 +1375,6 @@ export function useBackingTrackEngine() {
     practiceRef.current = { ...practiceRef.current, ...config }
   }, [])
 
-  // ── Count-in toggle ──────────────────────────────────────────────────────────
-  const setCountIn = useCallback((enabled) => {
-    setCountInEnabled(enabled)
-    countInRef.current = enabled
-  }, [])
-
   // ── Cleanup ──────────────────────────────────────────────────────────────────
   useEffect(() => () => stop(), [stop])
 
@@ -1381,7 +1401,5 @@ export function useBackingTrackEngine() {
     playbackPhase,
     activePartName,
     activeStyle,
-    countInEnabled,
-    setCountIn,
   }
 }
