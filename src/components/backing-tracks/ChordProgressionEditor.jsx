@@ -56,6 +56,11 @@ function useLongPress(onLongPress) {
     if (firedRef.current) e.preventDefault()
   }, [])
 
+  // Short click: fire callback only if long-press didn't already fire
+  const onClick = useCallback(() => {
+    if (!firedRef.current) onLongPress()
+  }, [onLongPress])
+
   return {
     isPressing,
     handlers: {
@@ -64,6 +69,7 @@ function useLongPress(onLongPress) {
       onPointerUp,
       onPointerCancel,
       onContextMenu,
+      onClick,
     },
   }
 }
