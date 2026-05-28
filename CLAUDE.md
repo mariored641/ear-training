@@ -40,6 +40,7 @@ Production: https://ear-training-rose.vercel.app
 הרקע חל *רק* על עמוד הבית (class `body.home-page-active` מוסר בניווט החוצה).
 קובץ עיצוב מקורי: `design-mockup/redesign-v2.html` (mockup HTML מלא, לא נכנס ל-build).
 **השלב הבא בעיצוב:** מיגרציה של עיצוב חטיבת הבאקינג טראקים מ-`design-mockup/v2-sections/backing-tracks.html`.
+**השלב הבא ב-Backing Tracks:** Strum Filter (שלב 2 בתוכנית) — פילטור נוטות גיטרה על פי כיוון strum; נוגע ב-noteOn callbacks, לא לבצע בלי חקירה מקדימה.
 
 ---
 
@@ -112,10 +113,22 @@ Production: https://ear-training-rose.vercel.app
 **6. באקינג טראקס / Backing Tracks**
 - Route: `/backing-tracks`
 - Component: `backing-tracks/BackingTracksPage.jsx`
-- ז'אנרים: Jazz, Bossa, Samba, Jazz Waltz (מקובצי .sty של Yamaha/JJazzLab)
+- ז'אנרים: 5 קטגוריות — Jazz (9), Latin (8), Blues (10), Rock & Pop (11), Country (8) — ~46 סגנונות
 - Audio engine: BackingTrackEngine (FluidSynth WASM + JJazzLab SF2 + Yamaha .sty parser)
 - Hook מרכזי: `backing-tracks/useBackingTrackEngine.js`
 - מנוע: `lib/style-engine/` (BackingTrackEngine, StyleParser, ChordEngine, Humanizer)
+- **Count-in**: תמיד פועל — הכפתור הוסר, `skipIntro` תמיד `false`
+- **Genre Instrument Map**: `src/constants/genreInstrumentMap.js` — מפת GM programs לכל ז'אנר
+  - jazz → Acoustic Bass (32), Jazz Guitar (26), Acoustic Grand (0), Jazz Drums (32)
+  - rock → Electric Bass Pick (34), Overdriven Guitar (29), Electric Grand (2), Power Drums (16)
+  - latin/blues/country — overrides דומים לפי קטגוריה + per-id overrides
+  - biab ז'אנרים → מחזירים `null` (שומרים programs של ה-.sty המקורי)
+  - ⚠️ drums (channel 9) לא נוגעים — drum kits ב-GM bank 128, לא bank 0
+  - `applyInstrumentOverrides(genreId)` נקרא ב-`play()` אחרי טעינת SF2
+- **Guitar register fix** (`lib/style-engine/Transposer.js`):
+  - BYPASS+ROOT_TRANSPOSITION על ערוצי CHORD1/CHORD2: מוריד את noteHighLimit ב-3st לפני clampAll
+  - מבטיח שכל טונות האקורד (root/3rd/5th/7th, span ≤10st) מתקפלות לאותו octave register
+  - ה-G chord שנשמע טוב נשמר בדיוק — C ו-F מתיישרים לאותו register
 - **Preset Library**: `backing-tracks/PresetLibrary.jsx` — פאנל נשלף עם 1460 Jazz Standards
   - נתונים: `public/data/jazz-standards.json` (נוצר מ-`scripts/parse-ireal.cjs`)
   - חיפוש לפי שם / מלחין, מועדפים ב-localStorage
