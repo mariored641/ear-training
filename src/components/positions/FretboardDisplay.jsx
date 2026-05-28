@@ -2,7 +2,25 @@ import React, { useMemo } from 'react';
 import { FRETBOARD_CONFIG, STRING_TUNING } from '../../constants/positionData';
 import { getArpeggioNoteSet } from '../../utils/positionCalculations';
 import { ARPEGGIOS } from './ArpeggioOptionsBar';
+import { drawRosewoodBackground, drawWoodGrain } from '../../utils/woodGrain';
 import './FretboardDisplay.css';
+
+// One-time procedural wood-grain texture for the fretboard surface.
+// Deterministic seed → identical pattern every reload, no perf cost after mount.
+let __woodTextureUrl = null;
+function getWoodTextureUrl() {
+  if (__woodTextureUrl) return __woodTextureUrl;
+  if (typeof document === 'undefined') return '';
+  const W = 1400, H = 280;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  if (!ctx) return '';
+  drawRosewoodBackground(ctx, 0, 0, W, H);
+  drawWoodGrain(ctx, 0, 0, W, H, 1337, 220);
+  __woodTextureUrl = c.toDataURL('image/jpeg', 0.85);
+  return __woodTextureUrl;
+}
 
 // Pentatonic scale degrees (1-indexed)
 const PENTATONIC_DEGREES = {
@@ -21,7 +39,10 @@ const PENTATONIC_DEGREES = {
 //
 // For multiple rings, list innermost pair first (drawn on top of outer ones).
 // RING_SLOTS[0] = first selected arpeggio = innermost ring (smallest spread).
-const BG = '#f5f5f5'; // must match the page background color
+// Workshop theme: rings on a wood background should not punch a cream-colored hole.
+// Using 'transparent' lets inner colored rings stack visually on top of outer ones
+// without obscuring the wood underneath when no inner ring exists.
+const BG = 'transparent';
 const RING_SLOTS = [
   { color: 3, bg: 0 },   // innermost: 0-3px band (no bg hole needed — note itself is the hole)
   { color: 6, bg: 3 },   // middle:    3-6px band (bg at 3px punches hole inside)
@@ -62,6 +83,7 @@ const FretboardDisplay = ({
 
   const fretNumbers = Array.from({ length: frets + 1 }, (_, i) => i);
   const strings = [1, 2, 3, 4, 5, 6]; // high E to low E
+  const woodBg = useMemo(() => getWoodTextureUrl(), []);
 
   const getNoteLabel = (note) => {
     if (displayMode === 'dots') return '';
@@ -127,7 +149,10 @@ const FretboardDisplay = ({
       </div>
 
       {/* Fretboard */}
-      <div className="fretboard">
+      <div
+        className="fretboard"
+        style={woodBg ? { backgroundImage: `url(${woodBg})` } : undefined}
+      >
         {/* Position markers (dots on fretboard) */}
         <div className="position-markers">
           {fretNumbers.slice(1).map(fret => (

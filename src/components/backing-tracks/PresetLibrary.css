@@ -1,35 +1,39 @@
 /* ═══════════════════════════════════════════════════════
-   Preset Library — iReal Pro light theme
+   Preset Library — Workshop theme (Real Book paper)
    ═══════════════════════════════════════════════════════ */
 
-/* ── Toggle button ── */
 .preset-lib-toggle {
-  background: var(--bg-chart, #ffffff);
-  color: var(--accent, #1565c0);
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--brass-bright);
+  border: 1px solid var(--brass-dark);
+  border-radius: 6px;
   padding: 5px 10px;
   font-size: 0.82rem;
   font-weight: 600;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   white-space: nowrap;
 }
-.preset-lib-toggle:hover { background: var(--bg-hover, #d5e5f2); }
-.preset-lib-toggle.open  { background: var(--bg-active, #c5ddf0); border-color: var(--accent, #1565c0); }
+.preset-lib-toggle:hover { background: rgba(184, 146, 61, 0.18); }
+.preset-lib-toggle.open  { background: rgba(184, 146, 61, 0.28); border-color: var(--brass); color: var(--brass-glow); }
 
-/* ── Panel ── */
 .preset-library-panel {
-  background: var(--bg-chart, #ffffff);
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 10px;
+  background: var(--paper-aged);
+  background-image:
+    radial-gradient(ellipse at 25% 15%, rgba(120, 70, 30, 0.10), transparent 60%),
+    radial-gradient(ellipse at 78% 82%, rgba(80, 40, 15, 0.12), transparent 55%);
+  border: 1px solid rgba(120, 70, 30, 0.4);
+  border-radius: 6px 14px 8px 12px;
   margin-top: 6px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   max-height: 420px;
-  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.08));
+  color: var(--ink-sepia);
+  font-family: var(--font-display);
+  box-shadow: var(--shadow-paper);
   animation: lib-slide-down 0.18s ease;
   position: absolute;
   z-index: 60;
@@ -43,74 +47,87 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Library tabs ── */
+/* Tabs */
 .lib-tabs {
   display: flex;
   gap: 6px;
 }
 .lib-tab {
-  background: var(--bg-surface, #eef4fa);
-  color: var(--text-secondary, #5a7a9a);
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 6px;
+  background: rgba(255, 240, 200, 0.45);
+  color: var(--ink-faded);
+  border: 1px solid rgba(120, 70, 30, 0.35);
+  border-radius: 4px;
   padding: 4px 10px;
   font-size: 0.78rem;
   font-weight: 600;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: background 0.15s;
 }
-.lib-tab:hover  { background: var(--bg-hover, #d5e5f2); }
-.lib-tab.active { background: var(--bg-active, #c5ddf0); color: var(--accent, #1565c0); border-color: var(--accent, #1565c0); }
+.lib-tab:hover  { background: rgba(255, 240, 200, 0.75); }
+.lib-tab.active {
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  border-color: var(--brass-dark);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
+}
 
-/* ── Search row ── */
+/* Search row */
 .lib-search-row {
   display: flex;
   gap: 6px;
 }
 .lib-search {
   flex: 1;
-  background: var(--bg-surface, #eef4fa);
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 6px;
-  color: var(--text-primary, #1a3a5c);
+  background: rgba(255, 240, 200, 0.5);
+  border: 1px solid rgba(120, 70, 30, 0.35);
+  border-radius: 4px;
+  color: var(--ink-sepia);
   padding: 5px 10px;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   outline: none;
+  font-family: var(--font-hand);
 }
-.lib-search::placeholder { color: var(--text-muted, #8a9ab0); }
-.lib-search:focus { border-color: var(--accent, #1565c0); }
+.lib-search::placeholder { color: var(--ink-faded); }
+.lib-search:focus { border-color: var(--brass); }
 
 .lib-filter-btn {
-  background: var(--bg-surface, #eef4fa);
-  color: var(--text-secondary, #5a7a9a);
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 6px;
+  background: rgba(255, 240, 200, 0.45);
+  color: var(--ink-faded);
+  border: 1px solid rgba(120, 70, 30, 0.35);
+  border-radius: 4px;
   padding: 5px 10px;
   font-size: 0.8rem;
+  font-family: var(--font-display);
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
 }
-.lib-filter-btn:hover  { background: var(--bg-hover, #d5e5f2); }
-.lib-filter-btn.active { background: #fff3e0; color: #e65100; border-color: #ff9800; }
+.lib-filter-btn:hover  { background: rgba(255, 240, 200, 0.75); }
+.lib-filter-btn.active {
+  background: rgba(255, 152, 0, 0.18);
+  color: #8a3a00;
+  border-color: #c47a00;
+}
 
-/* ── Status / count ── */
 .lib-status {
-  color: var(--text-secondary, #5a7a9a);
-  font-size: 0.78rem;
+  color: var(--ink-faded);
+  font-size: 0.82rem;
   text-align: center;
   padding: 4px;
+  font-family: var(--font-hand);
 }
-.lib-status--error { color: #c62828; }
+.lib-status--error { color: var(--leather-oxblood); }
 
 .lib-count {
-  color: var(--text-muted, #8a9ab0);
+  color: var(--ink-faded);
   font-size: 0.72rem;
   text-align: right;
   padding: 0 2px;
+  font-family: var(--font-display);
 }
 
-/* ── Song list ── */
+/* Song list */
 .lib-list {
   overflow-y: auto;
   flex: 1;
@@ -122,37 +139,38 @@
 }
 .lib-list::-webkit-scrollbar { width: 5px; }
 .lib-list::-webkit-scrollbar-track { background: transparent; }
-.lib-list::-webkit-scrollbar-thumb { background: var(--border, #c0d0e0); border-radius: 3px; }
+.lib-list::-webkit-scrollbar-thumb { background: rgba(120, 70, 30, 0.3); border-radius: 3px; }
 
 .lib-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 7px 8px;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background 0.12s, border-color 0.12s, transform 0.12s;
 }
 .lib-item:hover {
-  background: var(--bg-hover, #d5e5f2);
-  border-color: var(--border, #c0d0e0);
+  background: rgba(255, 240, 200, 0.55);
+  border-color: rgba(120, 70, 30, 0.3);
+  transform: translateX(2px);
 }
 
 .lib-fav-btn {
   background: none;
   border: none;
-  color: var(--border, #c0d0e0);
-  font-size: 0.9rem;
+  color: rgba(120, 70, 30, 0.35);
+  font-size: 0.95rem;
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
   line-height: 1;
   transition: color 0.15s, transform 0.15s;
 }
-.lib-fav-btn:hover  { color: #ff9800; transform: scale(1.2); }
-.lib-fav-btn.starred { color: #ff9800; }
+.lib-fav-btn:hover  { color: #c47a00; transform: scale(1.2); }
+.lib-fav-btn.starred { color: #c47a00; }
 
 .lib-item-info {
   flex: 1;
@@ -162,79 +180,55 @@
   gap: 1px;
 }
 .lib-item-title {
-  color: var(--text-primary, #1a3a5c);
-  font-size: 0.84rem;
+  color: var(--ink-sepia);
+  font-size: 0.86rem;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--font-hand);
 }
 .lib-item-meta {
-  color: var(--text-muted, #8a9ab0);
+  color: var(--ink-faded);
   font-size: 0.7rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--font-display);
 }
 .lib-item-bars {
-  color: var(--text-muted, #8a9ab0);
+  color: var(--ink-faded);
   font-size: 0.7rem;
   flex-shrink: 0;
+  font-family: var(--font-display);
 }
 .lib-item-ts {
-  color: var(--accent, #1565c0);
+  color: var(--leather-oxblood);
   font-weight: 600;
+  font-family: var(--font-chord);
 }
 .lib-item-ts-warn {
-  color: #e65100;
+  color: #8a3a00;
   font-size: 0.68rem;
   display: block;
   margin-top: 1px;
 }
 .lib-empty {
-  color: var(--text-muted, #8a9ab0);
+  color: var(--ink-faded);
   text-align: center;
   padding: 20px;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
+  font-family: var(--font-hand);
 }
 
-/* ── Split bar support ── */
-.chord-bar-split {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+/* Standalone (non-embedded) split bar — paper card */
+.preset-library-panel ~ .chord-bar-split,
+.preset-library-panel .chord-bar-split {
   background: transparent;
-  border-left: 2px solid var(--text-primary, #1a3a5c);
+  border-left: 2px solid var(--leather-oxblood);
   padding: 3px;
   gap: 2px;
-  position: relative;
 }
-.chord-bar-split.playing {
-  background: var(--bg-active, #c5ddf0);
-}
-.bar-number--split {
-  font-size: 8px;
-  color: var(--text-muted, #8a9ab0);
-  padding-left: 2px;
-  line-height: 1;
-}
-.split-chords {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-}
-.chord-half-btn {
-  background: transparent;
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 4px;
-  color: var(--text-primary, #1a3a5c);
-  font-size: 14px;
-  font-weight: 700;
-  padding: 4px 2px;
-  cursor: pointer;
-  text-align: center;
-  transition: background 0.12s;
-}
-.chord-half-btn:hover {
-  background: var(--bg-hover, #d5e5f2);
+.preset-library-panel .chord-bar-split.playing {
+  background: rgba(184, 146, 61, 0.2);
 }

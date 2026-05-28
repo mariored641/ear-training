@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './components/home/HomePage';
+import GrainOverlay from './components/common/GrainOverlay';
 
 // Lazy load category screens
 const MelodicCategoryScreen = React.lazy(() => import('./components/category/MelodicCategoryScreen'));
@@ -75,6 +76,7 @@ const Sf2LabPage            = React.lazy(() => import('./components/sf2-lab/Sf2L
 function App() {
   return (
     <Router>
+      <GrainOverlay />
       <React.Suspense fallback={<div className="container">Loading...</div>}>
         <Routes>
           <Route path="/" element={<HomePage />} />

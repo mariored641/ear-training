@@ -1,6 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   ChordPreviewStrip — horizontal upcoming-chords ribbon
-   shown at the top of the Fretboard popup-overlay
+   ChordPreviewStrip — Workshop theme upcoming-chords ribbon
    ═══════════════════════════════════════════════════════ */
 
 .cps-root {
@@ -8,15 +7,15 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.25);
-  border-bottom: 1px solid var(--glass-border, rgba(180, 210, 255, 0.22));
+  background: rgba(0, 0, 0, 0.28);
+  border-bottom: 1px solid rgba(184, 146, 61, 0.25);
   scrollbar-width: thin;
-  scrollbar-color: rgba(180, 210, 255, 0.4) transparent;
+  scrollbar-color: rgba(184, 146, 61, 0.4) transparent;
 }
 .cps-root::-webkit-scrollbar { height: 5px; }
 .cps-root::-webkit-scrollbar-track { background: transparent; }
 .cps-root::-webkit-scrollbar-thumb {
-  background: rgba(180, 210, 255, 0.4);
+  background: rgba(184, 146, 61, 0.4);
   border-radius: 3px;
 }
 
@@ -35,31 +34,41 @@
   justify-content: center;
   min-width: 72px;
   padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--glass-border, rgba(180, 210, 255, 0.22));
-  border-radius: 10px;
+  background-color: var(--paper-aged);
+  background-image:
+    radial-gradient(ellipse at 25% 15%, rgba(120, 70, 30, 0.10), transparent 60%);
+  border: 1px solid rgba(120, 70, 30, 0.4);
+  border-radius: 4px 10px 4px 10px;
   transition: all 0.2s ease;
+  color: var(--ink-sepia);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 .cps-cell.current {
-  background: rgba(110, 168, 255, 0.32);
-  border-color: var(--accent, #6ea8ff);
-  box-shadow: 0 0 16px rgba(110, 168, 255, 0.5);
+  background-color: #f5e6c8;
+  border-color: var(--brass);
+  box-shadow:
+    0 0 0 2px var(--brass),
+    0 0 18px rgba(224, 182, 108, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.4);
   transform: scale(1.05);
 }
 .cps-cell-bar {
   font-size: 9px;
   font-weight: 600;
-  color: var(--text-dim, #9fb4d6);
+  color: var(--ink-faded);
   letter-spacing: 0.4px;
   text-transform: uppercase;
+  font-family: var(--font-display);
 }
 .cps-cell-chord {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--text, #eaf2ff);
+  color: var(--ink-sepia);
   letter-spacing: 0.5px;
   margin-top: 2px;
+  font-family: var(--font-chord);
 }
 .cps-cell.current .cps-cell-chord {
-  color: #fff;
+  color: var(--ink-sepia);
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.4);
 }

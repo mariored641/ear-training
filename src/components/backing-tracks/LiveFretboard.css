@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   LiveFretboard — iReal Pro light theme
+   LiveFretboard — Workshop theme
    ═══════════════════════════════════════════════════════ */
 
 /* ── Toggle button ── */
@@ -9,18 +9,21 @@
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: var(--bg-chart, #ffffff);
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 8px;
-  color: var(--accent, #1565c0);
+  background: var(--glass-bg);
+  border: 1px solid var(--brass-dark);
+  border-radius: 6px;
+  color: var(--brass-bright);
   font-size: 14px;
   font-weight: 600;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: background 0.15s;
   margin-top: 8px;
+  box-shadow: var(--shadow-inset);
 }
 .lf-toggle-btn:hover {
-  background: var(--bg-hover, #d5e5f2);
+  background: rgba(184, 146, 61, 0.18);
+  color: var(--brass-glow);
 }
 .lf-toggle-icon {
   font-size: 16px;
@@ -28,17 +31,19 @@
 .lf-toggle-arrow {
   margin-left: auto;
   font-size: 11px;
-  opacity: 0.5;
-  color: var(--text-muted, #8a9ab0);
+  opacity: 0.65;
+  color: var(--paper-aged);
 }
 
 /* ── Panel ── */
 .lf-panel {
-  background: var(--bg-chart, #ffffff);
-  border: 1px solid var(--border, #c0d0e0);
-  border-radius: 8px;
+  background: var(--glass-bg);
+  border: 1px solid var(--brass-dark);
+  border-radius: 6px;
   margin-top: 6px;
   overflow: hidden;
+  color: var(--paper-cream);
+  box-shadow: var(--shadow-inset);
 }
 
 /* ── Chord header ── */
@@ -47,44 +52,50 @@
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
-  background: var(--bg-surface, #eef4fa);
-  border-bottom: 1px solid var(--border-light, #dce8f0);
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(184, 146, 61, 0.2);
 }
 .lf-chord-now {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
-  color: var(--accent, #1565c0);
+  color: var(--brass-glow);
   letter-spacing: 0.5px;
   min-width: 60px;
+  font-family: var(--font-chord);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 .lf-chord-root-note {
   font-size: 13px;
-  color: var(--text-secondary, #5a7a9a);
-  background: var(--bg-active, #c5ddf0);
+  color: var(--paper-cream);
+  background: rgba(184, 146, 61, 0.25);
+  border: 1px solid var(--brass-dark);
   padding: 2px 7px;
   border-radius: 4px;
+  font-family: var(--font-display);
 }
 .lf-stopped-badge {
   font-size: 11px;
-  color: var(--text-muted, #8a9ab0);
-  background: var(--bg-surface, #eef4fa);
+  color: var(--paper-aged);
+  background: rgba(0, 0, 0, 0.3);
   padding: 2px 8px;
   border-radius: 10px;
-  border: 1px solid var(--border, #c0d0e0);
+  border: 1px solid var(--brass-dark);
   margin-left: auto;
+  font-family: var(--font-display);
 }
 .lf-scale-badge {
   font-size: 11px;
-  color: #2e7d32;
-  background: #e8f5e9;
+  color: #b8e0c0;
+  background: rgba(46, 125, 50, 0.25);
   padding: 2px 8px;
   border-radius: 10px;
-  border: 1px solid #a5d6a7;
+  border: 1px solid rgba(165, 214, 167, 0.3);
   margin-left: auto;
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--font-display);
 }
 
 /* ── Controls bar ── */
@@ -94,8 +105,8 @@
   flex-wrap: wrap;
   gap: 10px;
   padding: 8px 14px;
-  background: var(--bg-surface, #eef4fa);
-  border-top: 1px solid var(--border-light, #dce8f0);
+  background: rgba(0, 0, 0, 0.18);
+  border-top: 1px solid rgba(184, 146, 61, 0.18);
 }
 
 .lf-ctrl-group {
@@ -105,10 +116,11 @@
 }
 .lf-ctrl-label {
   font-size: 11px;
-  color: var(--text-muted, #8a9ab0);
+  color: var(--paper-aged);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   white-space: nowrap;
+  font-family: var(--font-display);
 }
 
 /* ── Display mode buttons ── */
@@ -117,24 +129,26 @@
   gap: 2px;
 }
 .lf-mode-btn {
-  background: var(--bg-chart, #ffffff);
-  border: 1px solid var(--border, #c0d0e0);
-  color: var(--text-secondary, #5a7a9a);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--brass-dark);
+  color: var(--paper-aged);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 13px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.12s;
 }
 .lf-mode-btn.active {
-  background: var(--bg-active, #c5ddf0);
-  border-color: var(--accent, #1565c0);
-  color: var(--accent, #1565c0);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  border-color: var(--brass-bright);
+  color: var(--wood-darkest);
   font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 .lf-mode-btn:hover:not(.active) {
-  background: var(--bg-hover, #d5e5f2);
-  color: var(--text-primary, #1a3a5c);
+  background: rgba(184, 146, 61, 0.18);
+  color: var(--paper-cream);
 }
 
 /* ── Scale select ── */
@@ -143,19 +157,21 @@
   min-width: 160px;
 }
 .lf-select {
-  background: var(--bg-chart, #ffffff);
-  border: 1px solid var(--border, #c0d0e0);
-  color: var(--text-primary, #1a3a5c);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--brass-dark);
+  color: var(--paper-cream);
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 12px;
+  font-family: var(--font-display);
   cursor: pointer;
   flex: 1;
   min-width: 0;
+  box-shadow: var(--shadow-inset);
 }
 .lf-select:focus {
   outline: none;
-  border-color: var(--accent, #1565c0);
+  border-color: var(--brass);
 }
 .lf-select-sm {
   font-size: 11px;
@@ -168,48 +184,51 @@
 
 /* ── Polyscale button ── */
 .lf-poly-btn {
-  background: var(--bg-chart, #ffffff);
-  border: 1px solid var(--border, #c0d0e0);
-  color: var(--text-secondary, #5a7a9a);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--brass-dark);
+  color: var(--paper-aged);
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
+  font-family: var(--font-display);
   cursor: pointer;
   letter-spacing: 0.3px;
   transition: all 0.12s;
   white-space: nowrap;
 }
 .lf-poly-btn.active {
-  background: #fce4ec;
-  border-color: #e91e63;
-  color: #c2185b;
+  background: rgba(107, 44, 26, 0.35);
+  border-color: #e8a394;
+  color: #f7c4b6;
 }
 .lf-poly-btn:hover:not(.active) {
-  background: var(--bg-hover, #d5e5f2);
-  color: var(--text-primary, #1a3a5c);
+  background: rgba(184, 146, 61, 0.18);
+  color: var(--paper-cream);
 }
 
 /* ── Action buttons ── */
 .lf-action-btn {
-  background: none;
-  border: 1px solid var(--border, #c0d0e0);
-  color: var(--text-muted, #8a9ab0);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--brass-dark);
+  color: var(--paper-aged);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 11px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.12s;
 }
 .lf-action-btn:hover {
-  border-color: var(--accent, #1565c0);
-  color: var(--text-primary, #1a3a5c);
+  border-color: var(--brass);
+  color: var(--paper-cream);
+  background: rgba(184, 146, 61, 0.15);
 }
 
 /* ── Polyscale per-chord table ── */
 .lf-polyscale {
-  border-top: 1px solid var(--border-light, #dce8f0);
-  background: var(--bg-surface, #eef4fa);
+  border-top: 1px solid rgba(184, 146, 61, 0.2);
+  background: rgba(0, 0, 0, 0.2);
 }
 .lf-polyscale-header {
   padding: 6px 14px 4px;
@@ -228,29 +247,30 @@
   gap: 8px;
   padding: 4px 8px;
   border-radius: 5px;
-  background: var(--bg-chart, #ffffff);
-  border: 1px solid var(--border-light, #dce8f0);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--brass-dark);
   transition: border-color 0.15s;
 }
 .lf-poly-row--active {
-  border-color: var(--accent, #1565c0);
-  background: var(--bg-active, #c5ddf0);
+  border-color: var(--brass-bright);
+  background: rgba(184, 146, 61, 0.18);
+  box-shadow: 0 0 8px rgba(224, 182, 108, 0.4);
 }
 .lf-poly-chord-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--accent, #1565c0);
+  color: var(--brass-glow);
   min-width: 44px;
+  font-family: var(--font-chord);
 }
 .lf-poly-row .lf-select-sm:last-child {
   flex: 1;
 }
 
-/* ── Scrollbar styling ── */
 .lf-polyscale-rows::-webkit-scrollbar {
   width: 4px;
 }
 .lf-polyscale-rows::-webkit-scrollbar-thumb {
-  background: var(--border, #c0d0e0);
+  background: var(--brass-dark);
   border-radius: 2px;
 }

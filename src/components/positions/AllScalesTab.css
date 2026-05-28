@@ -1,20 +1,29 @@
+/* Workshop theme — All Scales tab controls */
+
 .ast-root {
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background-color: #f5f5f5;
+  background-color: transparent;
+  color: var(--paper-cream);
+  font-family: var(--font-body);
 }
 
 /* Controls panel */
 .ast-controls {
-  background-color: #ffffff;
-  border-top: 1px solid #e0e0e0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.35)),
+    linear-gradient(180deg, var(--wood-board), var(--wood-deep));
+  border-top: 1px solid rgba(0, 0, 0, 0.5);
   padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 
 /* Row layouts */
@@ -37,8 +46,10 @@
 .ast-label {
   display: block;
   font-size: 11px;
-  color: #9e9e9e;
-  font-weight: 500;
+  color: var(--paper-aged);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
   margin-bottom: 3px;
   white-space: nowrap;
 }
@@ -54,22 +65,24 @@
   min-width: 160px;
 }
 
-/* Selects */
+/* Selects — dark wood with brass border */
 .ast-select {
-  background-color: #eeeeee;
-  color: #ddd;
-  border: 1px solid #cccccc;
-  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--paper-cream);
+  border: 1px solid var(--brass-dark);
+  border-radius: 4px;
   padding: 5px 8px;
   font-size: 13px;
+  font-family: var(--font-display);
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s ease;
+  box-shadow: var(--shadow-inset);
 }
 
 .ast-select:focus,
 .ast-select:hover {
-  border-color: #3498DB;
+  border-color: var(--brass);
 }
 
 .ast-select-root {
@@ -103,53 +116,60 @@
 .ast-mode-btn {
   width: 32px;
   height: 30px;
-  background: none;
-  border: 1px solid #cccccc;
-  color: #9e9e9e;
-  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--brass-dark);
+  color: var(--paper-aged);
+  border-radius: 4px;
   font-size: 14px;
   font-weight: 700;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.12s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--shadow-inset);
 }
 
 .ast-mode-btn:hover {
-  border-color: #757575;
-  color: #ccc;
+  border-color: var(--brass);
+  color: var(--paper-cream);
 }
 
 .ast-mode-btn.active {
-  border-color: #3498DB;
-  color: #3498DB;
-  background-color: rgba(52, 152, 219, 0.12);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  border-color: var(--brass-bright);
+  color: var(--wood-darkest);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 
 /* Action buttons */
 .ast-action-btn {
-  background: none;
-  border: 1px solid #cccccc;
-  color: #757575;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--brass-dark);
+  color: var(--paper-aged);
   border-radius: 4px;
   padding: 3px 10px;
   font-size: 12px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.12s ease;
   white-space: nowrap;
 }
 
 .ast-action-btn:hover {
-  border-color: #e74c3c;
-  color: #e74c3c;
+  border-color: var(--leather-oxblood);
+  color: #e8a394;
+  background-color: rgba(107, 44, 26, 0.2);
 }
 
 .ast-hint {
   font-size: 11px;
-  color: #bdbdbd;
+  color: var(--paper-aged);
+  font-family: var(--font-hand);
   margin-left: auto;
   white-space: nowrap;
+  opacity: 0.8;
 }
 
 /* Color picker */
@@ -159,14 +179,16 @@
   gap: 6px;
   flex-wrap: wrap;
   padding: 8px 10px;
-  background-color: #eeeeee;
-  border-radius: 8px;
-  border: 1px solid #cccccc;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid var(--brass-dark);
+  box-shadow: var(--shadow-inset);
 }
 
 .ast-color-label {
   font-size: 12px;
-  color: #aaa;
+  color: var(--paper-aged);
+  font-family: var(--font-display);
   white-space: nowrap;
 }
 
@@ -178,6 +200,7 @@
   cursor: pointer;
   transition: transform 0.1s ease, border-color 0.1s ease;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 .ast-color-swatch:hover {
@@ -185,39 +208,42 @@
 }
 
 .ast-color-swatch.selected {
-  border-color: #fff;
+  border-color: var(--brass-glow);
   transform: scale(1.15);
+  box-shadow: 0 0 10px var(--brass-glow);
 }
 
 .ast-color-off {
-  background-color: #e0e0e0;
-  color: #aaa;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: var(--paper-aged);
   font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-color: var(--brass-dark);
 }
 
 .ast-color-close {
   margin-left: auto;
-  background: none;
-  border: 1px solid #bdbdbd;
-  color: #757575;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--brass-dark);
+  color: var(--paper-aged);
   border-radius: 4px;
   padding: 2px 10px;
   font-size: 12px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.12s ease;
 }
 
 .ast-color-close:hover {
-  border-color: #3498DB;
-  color: #3498DB;
+  border-color: var(--brass);
+  color: var(--brass-bright);
 }
 
 /* Chord Overlays section */
 .ast-overlays-section {
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px dashed rgba(184, 146, 61, 0.25);
   padding-top: 8px;
   display: flex;
   flex-direction: column;
@@ -235,19 +261,21 @@
 }
 
 .ast-add-overlay-btn {
-  background: none;
-  border: 1px dashed #bdbdbd;
-  color: #3498DB;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px dashed var(--brass);
+  color: var(--brass-bright);
   border-radius: 4px;
   padding: 2px 10px;
   font-size: 12px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.12s ease;
 }
 
 .ast-add-overlay-btn:hover {
-  border-color: #3498DB;
-  background-color: rgba(52, 152, 219, 0.08);
+  border-color: var(--brass-glow);
+  background-color: rgba(184, 146, 61, 0.15);
+  color: var(--brass-glow);
 }
 
 .ast-overlay-row {
@@ -268,7 +296,7 @@
 .ast-remove-overlay {
   background: none;
   border: none;
-  color: #a0a0a0;
+  color: var(--paper-aged);
   font-size: 13px;
   cursor: pointer;
   padding: 2px 4px;
@@ -278,14 +306,16 @@
 }
 
 .ast-remove-overlay:hover {
-  color: #e74c3c;
+  color: #e8a394;
 }
 
 .ast-overlay-hint {
   font-size: 11px;
-  color: #bdbdbd;
+  color: var(--paper-aged);
+  font-family: var(--font-hand);
   margin: 0;
   padding: 2px 0;
+  opacity: 0.8;
 }
 
 /* Mobile tweaks */

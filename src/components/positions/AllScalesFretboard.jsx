@@ -1,11 +1,29 @@
 import React, { useRef, useCallback, useMemo } from 'react';
 import { CHROMATIC_SCALE, STRING_TUNING, FRETBOARD_CONFIG } from '../../constants/positionData';
 import { INTERVAL_NAMES } from '../../constants/allScalesData';
+import { drawRosewoodBackground, drawWoodGrain } from '../../utils/woodGrain';
 import './AllScalesFretboard.css';
 
 const { frets, positionMarkers, doubleMarkers } = FRETBOARD_CONFIG;
 const LONG_PRESS_MS = 500;
-const BG = '#f5f5f5';
+// Workshop theme: transparent BG lets the wood show through under chord ring overlays.
+const BG = 'transparent';
+
+// One-time procedural wood texture (shared with FretboardDisplay seed for visual consistency).
+let __asfWoodUrl = null;
+function getWoodTextureUrl() {
+  if (__asfWoodUrl) return __asfWoodUrl;
+  if (typeof document === 'undefined') return '';
+  const W = 1400, H = 280;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  if (!ctx) return '';
+  drawRosewoodBackground(ctx, 0, 0, W, H);
+  drawWoodGrain(ctx, 0, 0, W, H, 1337, 220);
+  __asfWoodUrl = c.toDataURL('image/jpeg', 0.85);
+  return __asfWoodUrl;
+}
 
 const RING_SLOTS = [
   { color: 4, bg: 0 },
@@ -140,6 +158,7 @@ const AllScalesFretboard = ({
 
   const fretNumbers = useMemo(() => Array.from({ length: frets + 1 }, (_, i) => i), []);
   const strings = [1, 2, 3, 4, 5, 6];
+  const woodBg = useMemo(() => getWoodTextureUrl(), []);
 
   const renderCell = (stringNum, fret) => {
     const noteName = getNoteAt(stringNum, fret);
@@ -262,7 +281,10 @@ const AllScalesFretboard = ({
       </div>
 
       {/* Fretboard */}
-      <div className="asf-fretboard">
+      <div
+        className="asf-fretboard"
+        style={woodBg ? { backgroundImage: `url(${woodBg})` } : undefined}
+      >
         {/* Position marker dots */}
         <div className="asf-markers">
           {fretNumbers.slice(1).map(fret => (

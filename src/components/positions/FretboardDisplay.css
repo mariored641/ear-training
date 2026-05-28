@@ -13,33 +13,45 @@
   display: flex;
   padding-left: 0;
   min-width: fit-content;
+  font-family: var(--font-display);
 }
 
 .fret-number {
   flex: 0 0 60px;
   text-align: center;
   font-size: 11px;
-  color: #a0a0a0;
+  color: var(--paper-cream);
   padding-bottom: 4px;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
 }
 
 .fret-number.marked {
-  color: #757575;
+  color: var(--brass-bright);
   font-weight: 700;
+  opacity: 1;
 }
 
 .nut-label {
   flex: 0 0 40px !important;
 }
 
-/* Fretboard */
+/* Fretboard — wood surface */
 .fretboard {
   position: relative;
   min-width: fit-content;
+  background-color: var(--wood-deep);
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.08),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+    0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
-/* Position markers (dots between strings) */
+/* Position markers — mother-of-pearl inlays */
 .position-markers {
   display: flex;
   position: absolute;
@@ -59,10 +71,15 @@
 }
 
 .marker-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background-color: #cccccc;
+  background:
+    radial-gradient(circle at 30% 30%, #ffffff 0%, #e8e8f0 40%, #c8c8d0 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .marker-dot.double {
@@ -92,22 +109,26 @@
   overflow: visible;
 }
 
-/* Nut cell (open string) */
+/* Nut cell — bone/ivory nut with brass border */
 .nut-cell {
   flex: 0 0 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  border-right: 3px solid #888;
+  border-right: 4px solid;
+  border-image: linear-gradient(180deg, #d4a574 0%, #b8923d 50%, #6b4f1d 100%) 1;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent);
 }
 
 .string-label {
   font-size: 11px;
-  color: #a0a0a0;
-  font-weight: 600;
+  color: var(--paper-aged);
+  font-family: var(--font-display);
+  font-weight: 400;
   position: absolute;
   left: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 /* Fret cells */
@@ -119,15 +140,16 @@
   position: relative;
 }
 
-/* String line (horizontal) */
+/* String line (horizontal) — metallic */
 .string-line {
   position: absolute;
   top: 50%;
   left: 0;
   right: 0;
   height: 1px;
-  background-color: #555;
+  background: linear-gradient(180deg, #d4d4d4 0%, #f0f0f0 50%, #888 100%);
   transform: translateY(-0.5px);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
 }
 
 /* Make bass strings thicker */
@@ -152,21 +174,23 @@
   left: 20px;
   right: 0;
   height: 1px;
-  background-color: #555;
+  background: linear-gradient(180deg, #d4d4d4 0%, #f0f0f0 50%, #888 100%);
   transform: translateY(-0.5px);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
 }
 
-/* Fret line (vertical) */
+/* Fret line (vertical) — brass fretwire */
 .fret-line {
   position: absolute;
   top: 0;
   bottom: 0;
   right: 0;
-  width: 1px;
-  background-color: #444;
+  width: 2px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, #d4a574 25%, #f0c98a 50%, #b8923d 75%, rgba(0, 0, 0, 0.4) 100%);
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Note dots */
+/* Note dots — workshop palette */
 .fretboard-note {
   width: 24px;
   height: 24px;
@@ -179,59 +203,82 @@
   z-index: 2;
   position: relative;
   line-height: 1;
+  font-family: var(--font-display);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
 }
 
 .fretboard-note.scale-tone {
-  background-color: #95A5A6;
-  color: #f5f5f5;
+  background: radial-gradient(circle at 30% 25%, #f5e6c8 0%, var(--paper-aged) 60%, var(--paper-cream) 100%);
+  color: var(--ink-sepia);
+  box-shadow:
+    inset 0 -2px 3px rgba(120, 70, 30, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 .fretboard-note.major-root {
-  background-color: #E74C3C;
-  color: white;
+  background: radial-gradient(circle at 30% 25%, #f0c98a 0%, var(--brass-bright) 50%, var(--brass) 100%);
+  color: var(--wood-darkest);
   width: 28px;
   height: 28px;
   font-size: 11px;
-  box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
+    0 0 12px rgba(224, 182, 108, 0.7),
+    0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .fretboard-note.minor-root {
-  background-color: #3498DB;
-  color: white;
+  background: radial-gradient(circle at 30% 25%, #c44a3a 0%, var(--leather-oxblood) 60%, #4a1a0a 100%);
+  color: var(--paper-cream);
   width: 28px;
   height: 28px;
   font-size: 11px;
-  box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5),
+    0 0 12px rgba(107, 44, 26, 0.7),
+    0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .fretboard-note.dot-only {
   font-size: 0;
 }
 
-/* Pentatonic highlight - yellow ring */
+/* Pentatonic highlight — brass ring */
 .fretboard-note.pentatonic {
-  box-shadow: 0 0 0 3px #F1C40F, 0 0 10px rgba(241, 196, 15, 0.6);
+  box-shadow:
+    inset 0 -2px 3px rgba(120, 70, 30, 0.4),
+    0 0 0 3px var(--brass-glow),
+    0 0 10px rgba(224, 182, 108, 0.6);
 }
 
-.fretboard-note.pentatonic.major-root {
-  box-shadow: 0 0 0 3px #F1C40F, 0 0 10px rgba(241, 196, 15, 0.6);
-}
-
+.fretboard-note.pentatonic.major-root,
 .fretboard-note.pentatonic.minor-root {
-  box-shadow: 0 0 0 3px #F1C40F, 0 0 10px rgba(241, 196, 15, 0.6);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.45),
+    0 0 0 3px var(--brass-glow),
+    0 0 12px rgba(224, 182, 108, 0.7);
 }
 
 /* Highlighted notes (when showAll is on and specific positions are selected) */
 .fretboard-note.highlighted {
-  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(52, 152, 219, 0.6);
+  box-shadow:
+    inset 0 -2px 3px rgba(120, 70, 30, 0.4),
+    0 0 0 2px var(--paper-cream),
+    0 0 12px rgba(240, 230, 200, 0.5);
 }
 
 .fretboard-note.highlighted.major-root {
-  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(231, 76, 60, 0.7);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.45),
+    0 0 0 2px var(--paper-cream),
+    0 0 14px rgba(224, 182, 108, 0.8);
 }
 
 .fretboard-note.highlighted.minor-root {
-  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(52, 152, 219, 0.7);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5),
+    0 0 0 2px var(--paper-cream),
+    0 0 14px rgba(196, 74, 58, 0.7);
 }
 
 /* Desktop */

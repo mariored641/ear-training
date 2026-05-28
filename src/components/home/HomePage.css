@@ -1,44 +1,34 @@
 /* ============================================================
-   HomePage — Constellation Design
-   Port of design-mockup/redesign-v2.html (canon-base styles).
+   HomePage — Workshop Constellation Design
+   Wood-desk background + brass hub + wood-board satellites.
    All selectors scoped under .home-page-constellation
    so they don't leak to the rest of the app.
    ============================================================ */
 
 .home-page-constellation {
-  --bg-deep:    #050d2a;
-  --bg-mid:     #0a1f5c;
-  --bg-light:   #2a5aff;
-  --accent:     #6ea8ff;
-  --accent-2:   #b8d4ff;
-  --text:       #eaf2ff;
-  --text-dim:   #9fb4d6;
-  --orb-bg:     rgba(255, 255, 255, 0.06);
-  --orb-border: rgba(180, 210, 255, 0.25);
-  --orb-glow:   rgba(110, 168, 255, 0.35);
-  --glass-bg:   rgba(255, 255, 255, 0.06);
-  --glass-border: rgba(180, 210, 255, 0.22);
-
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  color: var(--text);
-  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--paper-cream);
+  font-family: var(--font-body);
+  direction: rtl;
 }
 
-/* Body-level styling while home page is mounted */
+/* Body-level styling while home page is mounted.
+   The wood desk background is set by body.workshop-active in workshop-theme.css —
+   here we only lock scroll and root height. */
 body.home-page-active {
   overflow: hidden;
   margin: 0;
-  background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
 }
 body.home-page-active #root {
   height: 100vh;
   overflow: hidden;
 }
 
-/* ===== Aurora background ===== */
+/* ===== Warm light pools (replaces aurora blobs) =====
+   Soft amber/brass glows, like candles or a hanging brass lamp. */
 .home-page-constellation .aurora {
   position: fixed;
   inset: 0;
@@ -49,57 +39,60 @@ body.home-page-active #root {
 .home-page-constellation .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.55;
+  filter: blur(120px);
+  opacity: 0.4;
   will-change: transform;
+  mix-blend-mode: screen;
 }
 .home-page-constellation .blob-1 {
   width: 50vmax; height: 50vmax;
-  background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(224, 182, 108, 0.55) 0%, transparent 70%);
   top: -10%; left: -10%;
-  animation: hp-drift1 22s ease-in-out infinite alternate;
+  animation: hp-drift1 28s ease-in-out infinite alternate;
 }
 .home-page-constellation .blob-2 {
   width: 45vmax; height: 45vmax;
-  background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(184, 146, 61, 0.4) 0%, transparent 70%);
   bottom: -15%; right: -10%;
-  animation: hp-drift2 28s ease-in-out infinite alternate;
+  animation: hp-drift2 34s ease-in-out infinite alternate;
 }
 .home-page-constellation .blob-3 {
   width: 35vmax; height: 35vmax;
-  background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(205, 149, 117, 0.35) 0%, transparent 70%);
   top: 30%; right: 20%;
-  opacity: 0.35;
-  animation: hp-drift3 18s ease-in-out infinite alternate;
+  opacity: 0.25;
+  animation: hp-drift3 22s ease-in-out infinite alternate;
 }
 @keyframes hp-drift1 {
   0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(20vw, 10vh) scale(1.15); }
-  100% { transform: translate(10vw, 25vh) scale(0.95); }
+  50%  { transform: translate(15vw, 8vh) scale(1.1); }
+  100% { transform: translate(8vw, 18vh) scale(0.95); }
 }
 @keyframes hp-drift2 {
   0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(-15vw, -10vh) scale(1.1); }
-  100% { transform: translate(-25vw, 5vh) scale(0.9); }
+  50%  { transform: translate(-12vw, -8vh) scale(1.08); }
+  100% { transform: translate(-20vw, 4vh) scale(0.92); }
 }
 @keyframes hp-drift3 {
   0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(-20vw, 15vh) scale(1.2); }
-  100% { transform: translate(15vw, -10vh) scale(0.85); }
+  50%  { transform: translate(-15vw, 10vh) scale(1.15); }
+  100% { transform: translate(12vw, -8vh) scale(0.9); }
 }
 
+/* Stars — disabled; tiny brass dust speckles instead, very subtle */
 .home-page-constellation .stars {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
-    radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+    radial-gradient(1px 1px at 12% 28%, rgba(224, 182, 108, 0.35), transparent),
+    radial-gradient(1px 1px at 78% 64%, rgba(184, 146, 61, 0.3), transparent),
+    radial-gradient(1px 1px at 35% 75%, rgba(205, 149, 117, 0.3), transparent),
+    radial-gradient(1px 1px at 88% 18%, rgba(224, 182, 108, 0.3), transparent),
+    radial-gradient(1px 1px at 55% 42%, rgba(184, 146, 61, 0.25), transparent),
+    radial-gradient(1px 1px at 22% 88%, rgba(224, 182, 108, 0.35), transparent);
+  opacity: 0.7;
 }
 
 /* ===== Stage / Constellation ===== */
@@ -118,7 +111,7 @@ body.home-page-active #root {
   height: min(90vmin, 760px);
 }
 
-/* ===== Center hub ===== */
+/* ===== Center hub — brass-rimmed leather medallion ===== */
 .home-page-constellation .center-hub {
   position: absolute;
   top: 50%; left: 50%;
@@ -127,13 +120,14 @@ body.home-page-active #root {
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
-    linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
-  backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(180, 210, 255, 0.3);
+    radial-gradient(circle at 35% 30%, rgba(255, 220, 160, 0.18), rgba(0, 0, 0, 0) 60%),
+    radial-gradient(circle at 50% 50%, var(--leather-oxblood) 0%, var(--leather-dark) 80%);
+  border: 3px solid var(--brass);
   box-shadow:
-    0 0 60px rgba(110, 168, 255, 0.45),
-    inset 0 0 40px rgba(255, 255, 255, 0.05);
+    0 0 0 1px var(--brass-dark),
+    0 0 60px rgba(224, 182, 108, 0.55),
+    inset 0 0 40px rgba(0, 0, 0, 0.55),
+    inset 0 2px 0 rgba(255, 220, 160, 0.18);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -144,30 +138,42 @@ body.home-page-active #root {
   animation: hp-hubPulse 5s ease-in-out infinite alternate;
 }
 @keyframes hp-hubPulse {
-  from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
-  to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  from { box-shadow:
+    0 0 0 1px var(--brass-dark),
+    0 0 50px rgba(224, 182, 108, 0.4),
+    inset 0 0 40px rgba(0, 0, 0, 0.55),
+    inset 0 2px 0 rgba(255, 220, 160, 0.18); }
+  to   { box-shadow:
+    0 0 0 1px var(--brass-dark),
+    0 0 90px rgba(224, 182, 108, 0.75),
+    inset 0 0 50px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 220, 160, 0.22); }
 }
 
 .home-page-constellation .center-hub .center-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 84%;
+  width: 80%;
   aspect-ratio: 1 / 1;
   height: auto;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--paper-cream);
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.25);
+  box-shadow:
+    0 0 0 2px var(--brass-dark),
+    inset 0 -3px 8px rgba(120, 70, 30, 0.3),
+    0 4px 14px rgba(0, 0, 0, 0.5);
 }
 .home-page-constellation .center-hub .center-logo img {
   display: block;
   object-fit: contain;
   width: 92%;
   height: 92%;
+  filter: sepia(0.15) saturate(1.05);
 }
 
-/* ===== Satellites ===== */
+/* ===== Satellites — wood discs with brass rims ===== */
 .home-page-constellation .satellite {
   position: absolute;
   top: 50%; left: 50%;
@@ -201,11 +207,16 @@ body.home-page-active #root {
   bottom: calc(78% + 10px);
   transform: translateX(-50%);
   white-space: nowrap;
-  font-size: clamp(11px, 1.7vmin, 15px);
-  font-weight: 600;
-  color: var(--text);
-  text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+  font-size: clamp(13px, 2vmin, 17px);
+  font-family: var(--font-hand);
+  font-weight: 400;
+  color: var(--paper-cream);
+  text-shadow:
+    0 0 14px rgba(0, 0, 0, 0.85),
+    0 2px 8px rgba(0, 0, 0, 0.6),
+    0 0 2px rgba(224, 182, 108, 0.4);
   pointer-events: none;
+  letter-spacing: 0.02em;
   animation: hp-labelFloat 4s ease-in-out infinite alternate;
 }
 @keyframes hp-labelFloat {
@@ -226,10 +237,11 @@ body.home-page-active #root {
   transform: translateX(-50%);
   white-space: nowrap;
   font-size: clamp(9px, 1.3vmin, 11px);
-  font-weight: 500;
-  color: var(--accent-2);
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--brass-bright);
   opacity: 0.85;
-  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
   pointer-events: none;
 }
 
@@ -242,11 +254,15 @@ body.home-page-active #root {
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
-    var(--orb-bg);
-  backdrop-filter: blur(8px);
-  border: 1.5px solid var(--orb-border);
-  box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+    radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.18), rgba(0, 0, 0, 0) 60%),
+    radial-gradient(circle at 50% 50%, var(--wood-mid) 0%, var(--wood-deep) 85%);
+  border: 2px solid var(--brass);
+  box-shadow:
+    0 0 0 1px var(--brass-dark),
+    0 0 30px rgba(224, 182, 108, 0.35),
+    inset 0 0 20px rgba(0, 0, 0, 0.45),
+    inset 0 2px 0 rgba(255, 220, 160, 0.15),
+    0 8px 22px rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -254,22 +270,46 @@ body.home-page-active #root {
   cursor: pointer;
   pointer-events: auto;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.4));
 }
 .home-page-constellation .satellite .orb:hover {
-  transform: translateX(-50%) scale(1.12);
-  box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
-  border-color: rgba(220, 235, 255, 0.7);
+  transform: translateX(-50%) translateY(-4px) scale(1.08);
+  box-shadow:
+    0 0 0 1px var(--brass-dark),
+    0 0 50px rgba(224, 182, 108, 0.7),
+    inset 0 0 25px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 220, 160, 0.25),
+    0 14px 30px rgba(0, 0, 0, 0.6);
+  border-color: var(--brass-bright);
 }
 
-/* Glow color per satellite slot */
-.home-page-constellation .satellite.s-1 .orb { box-shadow: 0 0 30px rgba(255, 180, 100, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
-.home-page-constellation .satellite.s-2 .orb { box-shadow: 0 0 30px rgba(255, 120, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
-.home-page-constellation .satellite.s-3 .orb { box-shadow: 0 0 30px rgba(150, 220, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
-.home-page-constellation .satellite.s-4 .orb { box-shadow: 0 0 30px rgba(120, 255, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
-.home-page-constellation .satellite.s-5 .orb { box-shadow: 0 0 30px rgba(200, 180, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
-.home-page-constellation .satellite.s-6 .orb { box-shadow: 0 0 30px rgba(255, 220, 120, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
-.home-page-constellation .satellite.s-7 .orb { box-shadow: 0 0 30px rgba(180, 255, 220, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+/* Subtle per-slot tint differences — variation without breaking the palette */
+.home-page-constellation .satellite.s-1 .orb {
+  background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.20), transparent 60%),
+              radial-gradient(circle at 50% 50%, #6b4226 0%, var(--wood-deep) 85%);
+}
+.home-page-constellation .satellite.s-2 .orb {
+  background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.18), transparent 60%),
+              radial-gradient(circle at 50% 50%, #5a3522 0%, var(--wood-darkest) 85%);
+}
+.home-page-constellation .satellite.s-3 .orb {
+  background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.20), transparent 60%),
+              radial-gradient(circle at 50% 50%, #6e4628 0%, var(--wood-deep) 85%);
+}
+.home-page-constellation .satellite.s-4 .orb {
+  background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.16), transparent 60%),
+              radial-gradient(circle at 50% 50%, #553420 0%, var(--wood-darkest) 85%);
+}
+.home-page-constellation .satellite.s-5 .orb {
+  background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.18), transparent 60%),
+              radial-gradient(circle at 50% 50%, #663d24 0%, var(--wood-deep) 85%);
+}
+.home-page-constellation .satellite.s-6 .orb {
+  background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.20), transparent 60%),
+              radial-gradient(circle at 50% 50%, #724a2a 0%, var(--wood-deep) 85%);
+}
 
+/* ===== Constellation lines — brass dashes ===== */
 .home-page-constellation .lines {
   position: absolute;
   inset: 0;
@@ -277,7 +317,7 @@ body.home-page-active #root {
   pointer-events: none;
 }
 .home-page-constellation .lines line {
-  stroke: rgba(180, 210, 255, 0.12);
+  stroke: rgba(184, 146, 61, 0.4);
   stroke-width: 1;
-  stroke-dasharray: 3 5;
+  stroke-dasharray: 4 6;
 }

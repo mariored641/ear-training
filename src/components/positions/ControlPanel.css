@@ -1,7 +1,15 @@
+/* Workshop theme — wood-board panel with brass controls */
+
 .control-panel {
-  background-color: #ffffff;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.35) 100%),
+    linear-gradient(180deg, var(--wood-board), var(--wood-deep));
   padding: 12px 16px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.06),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+  color: var(--paper-cream);
 }
 
 .control-row {
@@ -23,80 +31,94 @@
 
 .control-label {
   font-size: 14px;
-  color: #757575;
+  color: var(--paper-aged);
   white-space: nowrap;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
 }
 
-/* Root Select */
+/* Root Select — brass nameplate */
 .root-select {
-  background-color: #e0e0e0;
-  color: #212121;
-  border: 1px solid #cccccc;
-  border-radius: 6px;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  border: 1px solid var(--brass-dark);
+  border-radius: 4px;
   padding: 6px 12px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-display);
   cursor: pointer;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: filter 0.15s ease;
+  box-shadow: var(--shadow-inset), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.root-select:hover {
+  filter: brightness(1.1);
 }
 
 .root-select:focus {
-  border-color: #3498DB;
+  box-shadow: var(--shadow-inset), 0 0 0 2px var(--brass-glow);
 }
 
-/* Scale Type Buttons */
+/* Scale Type Buttons — segmented brass */
 .scale-type-buttons {
   display: flex;
   gap: 0;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
-  border: 1px solid #cccccc;
+  border: 1px solid var(--brass-dark);
+  box-shadow: var(--shadow-inset), 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
 .type-btn {
   padding: 6px 14px;
-  background-color: #e0e0e0;
-  color: #757575;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-aged);
   border: none;
   font-size: 14px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .type-btn:first-child {
-  border-right: 1px solid #cccccc;
+  border-right: 1px solid var(--brass-dark);
 }
 
 .type-btn.active {
-  background-color: #3498DB;
-  color: white;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 
 .type-btn:hover:not(.active) {
-  background-color: #cccccc;
+  background: rgba(184, 146, 61, 0.18);
+  color: var(--paper-cream);
 }
 
 /* Quick Reference Button */
 .quick-ref-btn {
   margin-left: auto;
-  background: none;
-  border: 1px solid #cccccc;
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--brass-dark);
+  border-radius: 4px;
   padding: 6px 10px;
   cursor: pointer;
   font-size: 18px;
   transition: all 0.15s ease;
-  color: #212121;
+  color: var(--brass-bright);
 }
 
 .quick-ref-btn:hover {
-  background-color: #e0e0e0;
-  border-color: #3498DB;
+  background: rgba(184, 146, 61, 0.18);
+  border-color: var(--brass);
+  color: var(--brass-glow);
 }
 
-/* Position Buttons */
+/* Position Buttons — brass rings */
 .position-buttons {
   display: flex;
   gap: 8px;
@@ -106,27 +128,32 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #cccccc;
-  background-color: transparent;
-  color: #757575;
+  border: 2px solid var(--brass-dark);
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--paper-aged);
   font-size: 15px;
   font-weight: 700;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--shadow-inset);
 }
 
 .position-btn:hover:not(.active) {
-  border-color: #a0a0a0;
-  color: #bbb;
+  border-color: var(--brass);
+  color: var(--paper-cream);
+  background-color: rgba(184, 146, 61, 0.18);
 }
 
 .position-btn.active {
-  border-color: #3498DB;
-  background-color: #3498DB;
-  color: white;
+  border-color: var(--brass-bright);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
+  box-shadow: var(--shadow-inset), 0 0 12px rgba(224, 182, 108, 0.5);
 }
 
 /* Show All Toggle */
@@ -141,13 +168,14 @@
 .show-all-toggle input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #3498DB;
+  accent-color: var(--brass);
   cursor: pointer;
 }
 
 .toggle-label {
   font-size: 14px;
-  color: #bbb;
+  color: var(--paper-aged);
+  font-family: var(--font-display);
 }
 
 /* Mobile adjustments */

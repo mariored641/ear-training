@@ -1,9 +1,13 @@
+/* Workshop theme — Partial Chords tab */
+
 .pct-root {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 12px;
   overflow-x: hidden;
+  font-family: var(--font-body);
+  color: var(--paper-cream);
 }
 
 .pct-builder {
@@ -11,10 +15,15 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 10px;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.35)),
+    linear-gradient(180deg, var(--wood-board), var(--wood-deep));
+  border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 6px;
   padding: 10px 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 
 .pct-group {
@@ -25,51 +34,57 @@
 
 .pct-label {
   font-size: 11px;
-  color: #9e9e9e;
-  letter-spacing: 0.5px;
+  color: var(--paper-aged);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  font-family: var(--font-display);
 }
 
 .pct-select {
-  background: #eeeeee;
-  color: #212121;
-  border: 1px solid #cccccc;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-cream);
+  border: 1px solid var(--brass-dark);
   border-radius: 4px;
   padding: 5px 8px;
   font-size: 14px;
+  font-family: var(--font-display);
   min-width: 64px;
+  box-shadow: var(--shadow-inset);
 }
 
 .pct-select:focus {
   outline: none;
-  border-color: #3498DB;
+  border-color: var(--brass);
 }
 
 .pct-quality-toggle {
   display: flex;
   gap: 0;
-  border: 1px solid #cccccc;
+  border: 1px solid var(--brass-dark);
   border-radius: 4px;
   overflow: hidden;
+  box-shadow: var(--shadow-inset);
 }
 
 .pct-quality-btn {
-  background: #eeeeee;
-  color: #757575;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-aged);
   border: none;
   padding: 6px 12px;
   font-size: 13px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .pct-quality-btn + .pct-quality-btn {
-  border-left: 1px solid #cccccc;
+  border-left: 1px solid var(--brass-dark);
 }
 
 .pct-quality-btn.active {
-  background: #3498DB;
-  color: #ffffff;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 
 .pct-more-btn {
@@ -78,36 +93,40 @@
 }
 
 .pct-more-btn.active {
-  background: #9b59b6;
-  color: #ffffff;
+  background: linear-gradient(180deg, #c4a4d0 0%, #9b59b6 60%, #6b3d80 100%);
+  color: var(--paper-cream);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
 .pct-width-toggle {
   display: flex;
-  border: 1px solid #cccccc;
+  border: 1px solid var(--brass-dark);
   border-radius: 4px;
   overflow: hidden;
+  box-shadow: var(--shadow-inset);
 }
 
 .pct-width-btn {
-  background: #eeeeee;
-  color: #757575;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-aged);
   border: none;
   padding: 6px 10px;
   font-size: 13px;
   font-weight: 600;
+  font-family: var(--font-display);
   cursor: pointer;
   min-width: 28px;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .pct-width-btn + .pct-width-btn {
-  border-left: 1px solid #cccccc;
+  border-left: 1px solid var(--brass-dark);
 }
 
 .pct-width-btn.active {
-  background: #3498DB;
-  color: #ffffff;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 
 .pct-fret-group {
@@ -116,13 +135,14 @@
 
 .pct-fret-slider {
   width: 110px;
-  accent-color: #3498DB;
+  accent-color: var(--brass);
   cursor: pointer;
   height: 6px;
 }
 
 .pct-fret-val {
-  color: #3498DB;
+  color: var(--brass-bright);
+  font-family: var(--font-display);
 }
 
 .pct-display-group {
@@ -131,28 +151,31 @@
 
 .pct-display-toggle {
   display: flex;
-  border: 1px solid #cccccc;
+  border: 1px solid var(--brass-dark);
   border-radius: 4px;
   overflow: hidden;
+  box-shadow: var(--shadow-inset);
 }
 
 .pct-display-btn {
-  background: #eeeeee;
-  color: #757575;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-aged);
   border: none;
   padding: 6px 10px;
   font-size: 12px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .pct-display-btn + .pct-display-btn {
-  border-left: 1px solid #cccccc;
+  border-left: 1px solid var(--brass-dark);
 }
 
 .pct-display-btn.active {
-  background: #3498DB;
-  color: #ffffff;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 
 .pct-add-btn,
@@ -160,30 +183,35 @@
   padding: 7px 14px;
   border-radius: 4px;
   font-size: 13px;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .pct-add-btn {
-  background: #3498DB;
-  color: #ffffff;
-  border: none;
-  font-weight: 600;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  border: 1px solid var(--brass-dark);
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
+  box-shadow: var(--shadow-inset), 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .pct-add-btn:hover {
-  background: #2980b9;
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .pct-clear-btn {
-  background: transparent;
-  color: #757575;
-  border: 1px solid #cccccc;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-aged);
+  border: 1px solid var(--brass-dark);
 }
 
 .pct-clear-btn:hover:not(:disabled) {
-  border-color: #e74c3c;
-  color: #e74c3c;
+  border-color: var(--leather-oxblood);
+  color: #e8a394;
+  background-color: rgba(107, 44, 26, 0.2);
 }
 
 .pct-clear-btn:disabled {
@@ -199,40 +227,44 @@
 }
 
 .pct-pill {
-  background: #ffffff;
-  color: #424242;
-  border: 1px solid #cccccc;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-cream);
+  border: 1px solid var(--brass-dark);
   border-radius: 16px;
   padding: 4px 12px;
   font-size: 13px;
   font-weight: 600;
+  font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-inset);
 }
 
 .pct-pill:hover {
-  border-color: #3498DB;
-  color: #212121;
+  border-color: var(--brass);
+  color: var(--brass-bright);
 }
 
 .pct-pill.active {
-  background: #3498DB;
-  color: #ffffff;
-  border-color: #3498DB;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  color: var(--wood-darkest);
+  border-color: var(--brass-bright);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 
 .pct-empty {
-  color: #9e9e9e;
+  color: var(--paper-aged);
+  font-family: var(--font-hand);
   font-size: 14px;
   text-align: center;
   padding: 40px 12px;
-  background: #ffffff;
-  border: 1px dashed #e0e0e0;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed var(--brass-dark);
   border-radius: 6px;
 }
 
 .pct-empty b {
-  color: #3498DB;
+  color: var(--brass-bright);
 }
 
 .pct-cards {
@@ -247,11 +279,11 @@
 }
 
 .pct-cards::-webkit-scrollbar-track {
-  background: #eeeeee;
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
 }
 
 .pct-cards::-webkit-scrollbar-thumb {
-  background: #cccccc;
+  background: var(--brass-dark);
   border-radius: 4px;
 }

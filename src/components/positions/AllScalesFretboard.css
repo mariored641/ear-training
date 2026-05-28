@@ -1,3 +1,5 @@
+/* Workshop theme — AllScalesFretboard (used in Positions + LiveFretboard in Backing) */
+
 .asf-container {
   overflow-x: auto;
   overflow-y: visible;
@@ -6,6 +8,7 @@
   flex-direction: column;
   padding-bottom: 4px;
   touch-action: pan-x;
+  font-family: var(--font-display);
 }
 
 /* Fret numbers row (top) */
@@ -19,28 +22,39 @@
   flex: 0 0 60px;
   text-align: center;
   font-size: 11px;
-  color: #a0a0a0;
+  color: var(--paper-cream);
   padding-bottom: 4px;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.05em;
   user-select: none;
+  opacity: 0.75;
 }
 
 .asf-fret-num.marked {
-  color: #757575;
+  color: var(--brass-bright);
   font-weight: 700;
+  opacity: 1;
 }
 
 .asf-fret-num.nut-spacer {
   flex: 0 0 40px !important;
 }
 
-/* Fretboard */
+/* Fretboard — wood surface */
 .asf-fretboard {
   position: relative;
   min-width: fit-content;
+  background-color: var(--wood-deep);
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.08),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+    0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
-/* Position marker dots */
+/* Mother-of-pearl position markers */
 .asf-markers {
   display: flex;
   position: absolute;
@@ -60,10 +74,14 @@
 }
 
 .asf-marker-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background-color: #cccccc;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #e8e8f0 40%, #c8c8d0 100%);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .asf-marker-dot.double {
@@ -85,16 +103,18 @@
   touch-action: none;
 }
 
-/* Nut cell */
+/* Bone nut */
 .asf-nut-cell {
   flex: 0 0 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  border-right: 3px solid #888;
+  border-right: 4px solid;
+  border-image: linear-gradient(180deg, #d4a574 0%, #b8923d 50%, #6b4f1d 100%) 1;
   cursor: pointer;
   overflow: visible;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent);
 }
 
 .asf-nut-cell::after {
@@ -104,15 +124,17 @@
   left: 20px;
   right: 0;
   height: 1px;
-  background-color: #555;
+  background: linear-gradient(180deg, #d4d4d4 0%, #f0f0f0 50%, #888 100%);
   transform: translateY(-0.5px);
   pointer-events: none;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
 }
 
 .asf-string-label {
   font-size: 11px;
-  color: #a0a0a0;
-  font-weight: 600;
+  color: var(--paper-aged);
+  font-family: var(--font-display);
+  font-weight: 400;
   position: absolute;
   left: 0;
   width: 20px;
@@ -127,17 +149,18 @@
   padding: 0;
   z-index: 3;
   transition: color 0.15s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .asf-string-label.active {
-  color: #ccd;
+  color: var(--brass-bright);
 }
 
 .asf-string-label:hover {
-  color: #aab;
+  color: var(--brass-glow);
 }
 
-/* Dimmed string rows — dim content but keep label clickable */
+/* Dimmed string rows */
 .asf-string-row.string-dimmed .asf-string-line,
 .asf-string-row.string-dimmed .asf-fret-line,
 .asf-string-row.string-dimmed .asf-note {
@@ -160,24 +183,28 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Metallic string */
 .asf-string-line {
   position: absolute;
   top: 50%;
   left: 0;
   right: 0;
   height: 1px;
-  background-color: #555;
+  background: linear-gradient(180deg, #d4d4d4 0%, #f0f0f0 50%, #888 100%);
   transform: translateY(-0.5px);
   pointer-events: none;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
 }
 
+/* Brass fretwire */
 .asf-fret-line {
   position: absolute;
   top: 0;
   bottom: 0;
   right: 0;
-  width: 1px;
-  background-color: #444;
+  width: 2px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, #d4a574 25%, #f0c98a 50%, #b8923d 75%, rgba(0, 0, 0, 0.4) 100%);
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.4);
   pointer-events: none;
 }
 
@@ -203,6 +230,8 @@
   pointer-events: none;
   user-select: none;
   transition: opacity 0.1s ease;
+  font-family: var(--font-display);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
 }
 
 .asf-note.inactive {
@@ -217,22 +246,30 @@
   width: 18px;
   height: 18px;
   opacity: 1;
-  background-color: rgba(149, 165, 166, 0.2);
-  border: 1px dashed rgba(149, 165, 166, 0.4);
+  background-color: rgba(240, 224, 192, 0.12);
+  border: 1px dashed rgba(240, 224, 192, 0.3);
 }
 
 .asf-note.active {
-  background-color: #95A5A6;
-  color: #f5f5f5;
+  background: radial-gradient(circle at 30% 25%, #f5e6c8 0%, var(--paper-aged) 60%, var(--paper-cream) 100%);
+  color: var(--ink-sepia);
+  box-shadow:
+    inset 0 -2px 3px rgba(120, 70, 30, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.45);
+  text-shadow: none;
 }
 
 .asf-note.root {
-  background-color: #E74C3C;
-  color: white;
+  background: radial-gradient(circle at 30% 25%, #f0c98a 0%, var(--brass-bright) 50%, var(--brass) 100%);
+  color: var(--wood-darkest);
   width: 28px;
   height: 28px;
   font-size: 11px;
-  box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
+    0 0 12px rgba(224, 182, 108, 0.7),
+    0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .asf-note.highlighted {
@@ -245,7 +282,7 @@
   font-size: 0 !important;
 }
 
-/* Chord-overlay note not in the active scale — transparent with just the ring */
+/* Chord-overlay note not in the active scale */
 .asf-note.chord-only {
   background-color: transparent;
   width: 20px;
@@ -253,15 +290,19 @@
   opacity: 1;
 }
 
-/* Marked cell — used by ear-training exercises (G1) to mark answered notes */
+/* Marked cell — used by ear-training exercises (G1) */
 .asf-note.marked {
-  background-color: #27AE60;
-  color: white;
+  background: radial-gradient(circle at 30% 25%, #6fcb91 0%, #2d8a4a 60%, #1a5530 100%);
+  color: var(--paper-cream);
   width: 26px;
   height: 26px;
   font-size: 11px;
   font-weight: 700;
   opacity: 1 !important;
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(45, 138, 74, 0.6),
+    0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 .asf-fret-cell.click-disabled,
@@ -280,13 +321,15 @@
   opacity: 0.4;
 }
 
-/* Fret range selector */
+/* Fret range selector — slim brass band below fretboard */
 .asf-range-bar {
   display: flex;
   min-width: fit-content;
   padding-top: 3px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.5);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.4)),
+    linear-gradient(180deg, var(--wood-board), var(--wood-deep));
   gap: 0;
 }
 
@@ -299,14 +342,16 @@
   height: 22px;
   background: none;
   border: none;
-  border-right: 1px solid #e0e0e0;
-  color: #a0a0a0;
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
+  color: var(--paper-aged);
   font-size: 10px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.12s ease;
   padding: 0;
   user-select: none;
+  opacity: 0.7;
 }
 
 .asf-range-btn.nut {
@@ -314,25 +359,30 @@
 }
 
 .asf-range-btn:hover {
-  color: #aaa;
-  background-color: rgba(255,255,255,0.05);
+  color: var(--brass-bright);
+  background-color: rgba(184, 146, 61, 0.15);
+  opacity: 1;
 }
 
 .asf-range-btn.range-pending {
-  color: #3498DB;
-  background-color: rgba(52, 152, 219, 0.15);
+  color: var(--brass-glow);
+  background-color: rgba(224, 182, 108, 0.18);
   font-weight: 700;
+  opacity: 1;
 }
 
 .asf-range-btn.range-edge {
-  color: #3498DB;
-  background-color: rgba(52, 152, 219, 0.25);
+  color: var(--wood-darkest);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 100%);
   font-weight: 700;
+  opacity: 1;
+  text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
 }
 
 .asf-range-btn.range-inner {
-  color: #8ab4d0;
-  background-color: rgba(52, 152, 219, 0.1);
+  color: var(--brass-bright);
+  background-color: rgba(184, 146, 61, 0.18);
+  opacity: 1;
 }
 
 /* Desktop */
