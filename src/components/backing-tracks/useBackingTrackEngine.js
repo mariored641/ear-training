@@ -103,6 +103,17 @@ export const GENRE_CATALOG = [
       { id: 'country_folkball', label: 'Folk Ballad',     bpm: 72,  sty: '/styles/Country/Folkball.S702.sty',             human: 'rock' },
     ],
   },
+  {
+    category: 'ambient',
+    label: 'Ambient',
+    icon: '🌙',
+    subtypes: [
+      { id: 'ambient_strings',  label: 'Strings',       bpm: 75 },
+      { id: 'ambient_pad',      label: 'Warm Pad',       bpm: 70 },
+      { id: 'ambient_choir',    label: 'Choir',          bpm: 65 },
+      { id: 'ambient_synthstr', label: 'Synth Strings',  bpm: 72 },
+    ],
+  },
 ]
 
 // ─── Flat maps built from catalog ─────────────────────────────────────────────
@@ -116,6 +127,21 @@ for (const cat of GENRE_CATALOG) {
     GENRE_HUMAN[sub.id]  = sub.human
     GENRE_BPM[sub.id]    = sub.bpm
   }
+}
+
+// ─── Ambient mode — GM patch map ──────────────────────────────────────────────
+// Maps ambient genre id → { gm: GM program, channel: MIDI channel }
+// Channels match those used by the reactive exercise to avoid conflicts.
+
+const AMBIENT_GENRE_MAP = {
+  ambient_strings:  { gm: 48, channel: 3 },  // Strings
+  ambient_pad:      { gm: 89, channel: 7 },  // Warm Pad
+  ambient_choir:    { gm: 52, channel: 5 },  // Choir Aahs
+  ambient_synthstr: { gm: 50, channel: 6 },  // Synth Strings 1
+}
+
+export function isAmbientGenre(id) {
+  return id != null && id in AMBIENT_GENRE_MAP
 }
 
 // ─── 12-bar blues preset (shared across blues sub-styles) ─────────────────────
@@ -660,6 +686,52 @@ export const GENRE_DEFAULTS = {
       { root: 'G', quality: 'major', extensions: [] },
     ],
   },
+
+  // ── Ambient ──
+  ambient_strings: {
+    tempo: 75,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7']    },
+      { root: 'F', quality: 'major', extensions: ['maj7'] },
+      { root: 'G', quality: 'major', extensions: ['7']    },
+    ],
+  },
+  ambient_pad: {
+    tempo: 70,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7']    },
+      { root: 'F', quality: 'major', extensions: ['maj7'] },
+      { root: 'G', quality: 'major', extensions: ['7']    },
+    ],
+  },
+  ambient_choir: {
+    tempo: 65,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7']    },
+      { root: 'F', quality: 'major', extensions: ['maj7'] },
+      { root: 'G', quality: 'major', extensions: ['7']    },
+    ],
+  },
+  ambient_synthstr: {
+    tempo: 72,
+    defaultChord: { root: 'C', quality: 'major', extensions: ['maj7'] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: ['maj7'] },
+      { root: 'A', quality: 'minor', extensions: ['7']    },
+      { root: 'F', quality: 'major', extensions: ['maj7'] },
+      { root: 'G', quality: 'major', extensions: ['7']    },
+    ],
+  },
 }
 
 // ─── chordDisplayName (replaces lib/backing-tracks/chords.js dependency) ─────
@@ -847,6 +919,26 @@ function makeEmptyBars(genre, count) {
   return Array.from({ length: count }, () => ({ ...d, extensions: [...(d.extensions || [])] }))
 }
 
+// ─── Ambient chord → MIDI notes ───────────────────────────────────────────────
+// Converts a backing-track chord object to an ascending MIDI voicing.
+// Root at octave 4 (MIDI 60+rootPitch); extensions shifted up an octave if needed.
+
+function ambientChordToMidi(chord) {
+  const symbol = oldChordToSymbol(chord)
+  const { rootPitch, typeName } = parseChordSymbol(symbol)
+  const { intervals } = getChordData(typeName)
+  const baseMidi = 60 + rootPitch
+  const result = [baseMidi]
+  let cursor = baseMidi
+  for (let i = 1; i < intervals.length; i++) {
+    let note = baseMidi + intervals[i]
+    while (note <= cursor) note += 12
+    result.push(note)
+    cursor = note
+  }
+  return result
+}
+
 // ─── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useBackingTrackEngine() {
@@ -893,6 +985,12 @@ export function useBackingTrackEngine() {
   const styleCache      = useRef({})   // genre → parsed style object
   const loopCountRef    = useRef(0)
   const lastLoopBeatRef = useRef(-1)
+
+  // Ambient pad engine refs
+  const ambientBarTimerRef  = useRef(null)
+  const ambientBarIdxRef    = useRef(0)
+  const ambientNotesRef     = useRef([])
+  const ambientChannelRef   = useRef(3)
 
   useEffect(() => { chordsRef.current    = chords    }, [chords])
   useEffect(() => { volumesRef.current   = volumes   }, [volumes])
@@ -1008,10 +1106,17 @@ export function useBackingTrackEngine() {
    *   (waits for progression boundary, plays Ending if available).
    */
   const stop = useCallback((hard = false) => {
+    // Clean up ambient timers first (safe no-op for non-ambient genres)
+    if (ambientBarTimerRef.current) { clearTimeout(ambientBarTimerRef.current); ambientBarTimerRef.current = null }
+    if (ambientNotesRef.current.length > 0) {
+      for (const note of ambientNotesRef.current) SFP.noteOff(ambientChannelRef.current, note)
+      ambientNotesRef.current = []
+    }
+
     engineRef.current?.stop(hard)
     SFP.stopCracklingMonitor()
-    if (hard || !isPlayingRef.current) {
-      // Immediate UI reset
+    if (hard || !isPlayingRef.current || isAmbientGenre(genreRef.current)) {
+      // Immediate UI reset (ambient has no onPhaseChange, so always reset immediately)
       setIsPlaying(false)
       isPlayingRef.current = false
       setCurrentBar(0)
@@ -1023,7 +1128,7 @@ export function useBackingTrackEngine() {
       setLoopCountState(0)
       lastLoopBeatRef.current = -1
     }
-    // For soft stop, UI will be reset when onPhaseChange fires 'stopped'
+    // For soft stop (non-ambient), UI will be reset when onPhaseChange fires 'stopped'
   }, [])
 
   // ── Play ─────────────────────────────────────────────────────────────────────
@@ -1032,6 +1137,62 @@ export function useBackingTrackEngine() {
     setIsLoading(true)
     try {
       await ensureSF2()
+
+      // ── Ambient pad mode — bypass .sty engine, play chords via SoundFont directly ──
+      if (isAmbientGenre(genreRef.current)) {
+        const { gm, channel } = AMBIENT_GENRE_MAP[genreRef.current]
+        ambientChannelRef.current = channel
+        SFP.programChange(channel, gm)
+        setBeatsPerBar(4)
+        beatsPerBarRef.current = 4
+        setPlaybackPhase('main')
+        setActivePartName(null)
+        loopCountRef.current    = 0
+        setLoopCountState(0)
+        lastLoopBeatRef.current = -1
+
+        const scheduleAmbientChord = (barIdx) => {
+          const chordsArr = chordsRef.current
+          if (!chordsArr.length) return
+          const idx   = barIdx % chordsArr.length
+          const chord = chordsArr[idx]
+          const bpm   = tempoRef.current
+          const beats = chord.beats ?? 4
+          const barMs = beats * (60000 / bpm)
+
+          // Note off previous chord
+          for (const note of ambientNotesRef.current) SFP.noteOff(ambientChannelRef.current, note)
+
+          // Note on new chord
+          const notes = ambientChordToMidi(chord)
+          for (const note of notes) SFP.noteOn(ambientChannelRef.current, note, 80)
+          ambientNotesRef.current = notes
+          ambientBarIdxRef.current = idx
+
+          setCurrentBar(idx)
+          setCurrentChordSymbol(oldChordToSymbol(chord))
+
+          // Loop tracking — triggered when progression wraps around
+          if (barIdx > 0 && idx === 0) {
+            loopCountRef.current += 1
+            setLoopCountState(loopCountRef.current)
+            const ml = maxLoopsRef.current
+            if (ml > 0 && loopCountRef.current >= ml) {
+              // Finish after current chord duration
+              ambientBarTimerRef.current = setTimeout(() => stop(true), barMs)
+              return
+            }
+          }
+
+          ambientBarTimerRef.current = setTimeout(() => scheduleAmbientChord(barIdx + 1), barMs)
+        }
+
+        scheduleAmbientChord(0)
+        setIsPlaying(true)
+        isPlayingRef.current = true
+        return
+      }
+
       await ensureStyle(genreRef.current)
       // SF2 might have just finished loading — re-apply program overrides now
       // that programChange() will actually take effect.
@@ -1180,9 +1341,14 @@ export function useBackingTrackEngine() {
     setTempoState(bpm)
     tempoRef.current = bpm
 
-    // Load the .sty in the background so the Mixer (and any other style-driven
-    // UI) reflects the new genre's instruments without waiting for Play.
-    ensureStyle(newGenre).catch(err => console.warn('[setGenre] style preload failed', err))
+    // Ambient genres have no .sty file — skip style preload and clear active style
+    if (isAmbientGenre(newGenre)) {
+      setActiveStyle(null)
+    } else {
+      // Load the .sty in the background so the Mixer (and any other style-driven
+      // UI) reflects the new genre's instruments without waiting for Play.
+      ensureStyle(newGenre).catch(err => console.warn('[setGenre] style preload failed', err))
+    }
 
     if (wasPlaying) setTimeout(() => play(), 100)
   }, [stop, play, ensureStyle])
