@@ -26,8 +26,8 @@ for (const cat of GENRE_CATALOG) {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function MyProgressions({ currentState, onLoadProgression }) {
-  const [isOpen,       setIsOpen]       = useState(false)
+export function MyProgressions({ currentState, onLoadProgression, embedded = false }) {
+  const [isOpen,       setIsOpen]       = useState(embedded)
   const [isSaving,     setIsSaving]     = useState(false)
   const [saveName,     setSaveName]     = useState('')
   const [progressions, setProgressions] = useState(loadProgressions)
@@ -74,8 +74,8 @@ export function MyProgressions({ currentState, onLoadProgression }) {
   // ── Load ────────────────────────────────────────────────────────────────────
   const handleSelect = useCallback((prog) => {
     onLoadProgression(prog)
-    setIsOpen(false)
-  }, [onLoadProgression])
+    if (!embedded) setIsOpen(false)
+  }, [onLoadProgression, embedded])
 
   // ── Open save dialog ────────────────────────────────────────────────────────
   const openSaveDialog = useCallback(() => {
@@ -89,18 +89,20 @@ export function MyProgressions({ currentState, onLoadProgression }) {
 
   return (
     <>
-      {/* Toggle button */}
-      <button
-        className={`my-prog-toggle ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(o => !o)}
-        title="המהלכים שלי"
-      >
-        💾 שלי {isOpen ? '▲' : '▼'}
-      </button>
+      {/* Toggle button — only when not embedded */}
+      {!embedded && (
+        <button
+          className={`my-prog-toggle ${isOpen ? 'open' : ''}`}
+          onClick={() => setIsOpen(o => !o)}
+          title="המהלכים שלי"
+        >
+          💾 שלי {isOpen ? '▲' : '▼'}
+        </button>
+      )}
 
       {/* Panel */}
       {isOpen && (
-        <div className="my-prog-panel">
+        <div className={`my-prog-panel${embedded ? ' embedded' : ''}`}>
 
           {/* Header */}
           <div className="my-prog-header">

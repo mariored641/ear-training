@@ -23,8 +23,8 @@ const LIBRARIES = [
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function PresetLibrary({ onLoadPreset }) {
-  const [isOpen,        setIsOpen]       = useState(false)
+export function PresetLibrary({ onLoadPreset, embedded = false }) {
+  const [isOpen,        setIsOpen]       = useState(embedded)
   const [activeLib,     setActiveLib]    = useState(LIBRARIES[0].id)
   const [songs,         setSongs]        = useState([])
   const [isLoading,     setIsLoading]    = useState(false)
@@ -92,8 +92,8 @@ export function PresetLibrary({ onLoadPreset }) {
   // ── Load song into player ────────────────────────────────────────────────────
   const handleSelect = useCallback((song) => {
     onLoadPreset(song)
-    setIsOpen(false)
-  }, [onLoadPreset])
+    if (!embedded) setIsOpen(false)
+  }, [onLoadPreset, embedded])
 
   // ─── Display helpers ──────────────────────────────────────────────────────────
   const keyLabel = (song) => `${song.key.root}${song.key.type === 'minor' ? 'm' : ''}`
@@ -112,18 +112,20 @@ export function PresetLibrary({ onLoadPreset }) {
 
   return (
     <>
-      {/* Toggle button */}
-      <button
-        className={`preset-lib-toggle ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(o => !o)}
-        title="ספריית פריסטים"
-      >
-        📚 Standards {isOpen ? '▲' : '▼'}
-      </button>
+      {/* Toggle button — only when not embedded */}
+      {!embedded && (
+        <button
+          className={`preset-lib-toggle ${isOpen ? 'open' : ''}`}
+          onClick={() => setIsOpen(o => !o)}
+          title="ספריית פריסטים"
+        >
+          📚 Standards {isOpen ? '▲' : '▼'}
+        </button>
+      )}
 
       {/* Panel */}
       {isOpen && (
-        <div className="preset-library-panel">
+        <div className={`preset-library-panel${embedded ? ' embedded' : ''}`}>
 
           {/* Library tabs */}
           <div className="lib-tabs">

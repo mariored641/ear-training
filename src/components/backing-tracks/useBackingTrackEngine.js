@@ -1491,6 +1491,14 @@ export function useBackingTrackEngine() {
     })
   }, [])
 
+  // Replace the entire chords array (used for split-bar insertions / removals)
+  const replaceChords = useCallback((newChords) => {
+    setChordsState(newChords)
+    chordsRef.current  = newChords
+    setBarCountState(newChords.length)
+    barCountRef.current = newChords.length
+  }, [])
+
   // ── Preview chord (plays on SoundFont piano channel) ─────────────────────────
   const previewChord = useCallback(async (chord) => {
     try {
@@ -1546,7 +1554,7 @@ export function useBackingTrackEngine() {
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops,
     setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression,
-    setChord, previewChord,
+    setChord, replaceChords, previewChord,
     setVolume,
     initPlayer: () => {},  // backward-compat no-op
 

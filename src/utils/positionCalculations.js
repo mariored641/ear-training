@@ -94,7 +94,7 @@ export function getAllScaleNotesOnFretboard(root, scaleType) {
  * All positions are derived from C major / A minor base ranges,
  * shifted by the number of semitones between C and the major root.
  */
-function getSemitoneOffsetFromC(selectedRoot, selectedType) {
+export function getSemitoneOffsetFromC(selectedRoot, selectedType) {
   const majorRoot = selectedType === 'major'
     ? selectedRoot
     : getRelativeKey(selectedRoot, 'minor');

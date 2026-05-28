@@ -64,8 +64,9 @@ Production: https://ear-training-rose.vercel.app
 | 🎶 תנועת קול (V) | `/category/ear-training/voice-leading` → `VoiceLeadingSubScreen` | V1 קו בס, V2 קו סופרן | `voice-leading/ExerciseV1-2.jsx` |
 | 🎤 סולפז' (S) | `/category/ear-training/solfege` → `SolfegeSubScreen` | S1 שירה מתווים, S2 זיהוי תיווי | `solfege/ExerciseS1-2.jsx` |
 | 🎸 גיטרה (G) | `/category/ear-training/guitar` → `GuitarSubScreen` | G1 מיפוי צוואר (7 שלבים) | `guitar/ExerciseG1.jsx` |
+| ⚡ ריאקטיבי (R) | `/category/ear-training/reactive` → `ReactiveSubScreen` | R1, R2 — שמיעה ריאקטיבית בזמן אמת | `reactive/ExerciseR1.jsx`, `reactive/ExerciseR2.jsx` |
 
-**Routes תרגילים:** `/exercise/M1`, `/exercise/M2`, ... `/exercise/S2` (17 סה"כ)
+**Routes תרגילים:** `/exercise/M1`, `/exercise/M2`, ... `/exercise/S2`, `/exercise/R1`, `/exercise/R2` (19 סה"כ)
 
 **Shared components** (`ear-training/shared/`):
 - `EarTrainingHeader` — כותרת עם LevelNavigator drawer, progress bar, כפתור חזרה
@@ -228,6 +229,8 @@ src/
         SolfegeSubScreen.jsx, ExerciseS1.jsx, ExerciseS2.jsx
       guitar/
         GuitarSubScreen.jsx, ExerciseG1.jsx
+      reactive/
+        ReactiveSubScreen.jsx, ExerciseR1.jsx, ExerciseR2.jsx
     exercise1/Exercise1.jsx        ← Tonal Code (legacy)
     exercise2/Exercise2.jsx        ← Fretboard Mapping (legacy)
     exercise3/Exercise3.jsx        ← Melodic Dictation

@@ -19,15 +19,45 @@ const CHROMATIC = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G
 // polyscaleMap shape: { barIndex: { scaleId: string|null, root: 'auto'|noteName } }
 const defaultEntry = () => ({ scaleId: null, root: 'auto' });
 
-export default function LiveFretboard({ chords, currentBar, currentChordSymbol, isPlaying, isOpen: isOpenProp, onToggle }) {
+export default function LiveFretboard({
+  chords,
+  currentBar,
+  currentChordSymbol,
+  isPlaying,
+  isOpen: isOpenProp,
+  onToggle,
+  embedded = false,
+  polyscaleEnabled: polyscaleEnabledProp,
+  polyscaleMap: polyscaleMapProp,
+  onPolyscaleChange,
+  onOpenPolyscale,
+}) {
   const [isOpenInternal, setIsOpenInternal] = useState(false);
-  const isOpen = isOpenProp !== undefined ? isOpenProp : isOpenInternal;
+  const isOpen = embedded ? true : (isOpenProp !== undefined ? isOpenProp : isOpenInternal);
   const handleToggle = onToggle || (() => setIsOpenInternal(p => !p));
   const [displayMode, setDisplayMode] = useState('dots');
   const [globalScaleId, setGlobalScaleId] = useState(null);
   const [globalRoot, setGlobalRoot] = useState('auto'); // 'auto' or note name
-  const [polyscaleEnabled, setPolyscaleEnabled] = useState(false);
-  const [polyscaleMap, setPolyscaleMap] = useState({}); // { barIndex: { scaleId, root } }
+  const [polyscaleEnabledInternal, setPolyscaleEnabledInternal] = useState(false);
+  const [polyscaleMapInternal, setPolyscaleMapInternal] = useState({}); // { barIndex: { scaleId, root } }
+  // When embedded, accept polyscale state from parent so a separate popup can edit it.
+  const polyscaleEnabled = polyscaleEnabledProp !== undefined ? polyscaleEnabledProp : polyscaleEnabledInternal;
+  const polyscaleMap = polyscaleMapProp !== undefined ? polyscaleMapProp : polyscaleMapInternal;
+  const setPolyscaleEnabled = (v) => {
+    if (polyscaleEnabledProp !== undefined && onPolyscaleChange) {
+      onPolyscaleChange({ enabled: typeof v === 'function' ? v(polyscaleEnabled) : v, map: polyscaleMap });
+    } else {
+      setPolyscaleEnabledInternal(v);
+    }
+  };
+  const setPolyscaleMap = (updater) => {
+    const newMap = typeof updater === 'function' ? updater(polyscaleMap) : updater;
+    if (polyscaleMapProp !== undefined && onPolyscaleChange) {
+      onPolyscaleChange({ enabled: polyscaleEnabled, map: newMap });
+    } else {
+      setPolyscaleMapInternal(newMap);
+    }
+  };
   const [fretRangeStart, setFretRangeStart] = useState(null);
   const [fretRangeEnd, setFretRangeEnd] = useState(null);
   const [activeStrings, setActiveStrings] = useState(null);
@@ -118,14 +148,16 @@ export default function LiveFretboard({ chords, currentBar, currentChordSymbol, 
   const hasRange = fretRangeStart !== null && fretRangeEnd !== null;
 
   return (
-    <div className="lf-root">
+    <div className={`lf-root${embedded ? ' embedded' : ''}`}>
 
-      {/* Toggle button */}
-      <button className="lf-toggle-btn" onClick={handleToggle}>
-        <span className="lf-toggle-icon">🎸</span>
-        Live Fretboard
-        <span className="lf-toggle-arrow">{isOpen ? '▲' : '▼'}</span>
-      </button>
+      {/* Toggle button — only when not embedded */}
+      {!embedded && (
+        <button className="lf-toggle-btn" onClick={handleToggle}>
+          <span className="lf-toggle-icon">🎸</span>
+          Live Fretboard
+          <span className="lf-toggle-arrow">{isOpen ? '▲' : '▼'}</span>
+        </button>
+      )}
 
       {isOpen && (
         <div className="lf-panel">
@@ -212,13 +244,19 @@ export default function LiveFretboard({ chords, currentBar, currentChordSymbol, 
               </>
             )}
 
-            {/* Polyscale toggle */}
+            {/* Polyscale toggle — in embedded mode, opens a separate popup-on-popup */}
             <button
               className={`lf-poly-btn${polyscaleEnabled ? ' active' : ''}`}
-              onClick={() => setPolyscaleEnabled(p => !p)}
+              onClick={() => {
+                if (embedded && onOpenPolyscale) {
+                  onOpenPolyscale();
+                } else {
+                  setPolyscaleEnabled(p => !p);
+                }
+              }}
               title="Assign a different scale/root to each chord"
             >
-              Polyscale
+              Polyscale {polyscaleEnabled ? '●' : ''}
             </button>
 
             {/* Clear fret range */}
@@ -230,8 +268,8 @@ export default function LiveFretboard({ chords, currentBar, currentChordSymbol, 
 
           </div>
 
-          {/* Polyscale per-chord settings */}
-          {polyscaleEnabled && (
+          {/* Polyscale per-chord settings — hidden in embedded mode (lives in its own popup) */}
+          {polyscaleEnabled && !embedded && (
             <div className="lf-polyscale">
               <div className="lf-polyscale-header">
                 <span className="lf-ctrl-label">Scale per chord</span>

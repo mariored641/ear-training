@@ -33,7 +33,8 @@
       "Bash(powershell -command \"Get-Content ''C:\\\\Users\\\\DELL\\\\Documents\\\\Jazz 1460 Standards.txt'' -TotalCount 3\")",
       "Bash(powershell -command \"Get-ChildItem ''C:\\\\Users\\\\DELL\\\\Documents\\\\ear-training\\\\src\\\\components\\\\backing-tracks\\\\'' -Name\")",
       "Bash(powershell -command \"Get-ChildItem ''C:\\\\Users\\\\DELL\\\\Documents\\\\ear-training\\\\src\\\\constants\\\\'' -Name\")",
-      "Bash(xargs -I{} bash -c \"jar tf \"\"$1\"\" 2>/dev/null | grep -il \"\"\\\\.sty\"\" && echo \"\"$1\"\"\" -- {})"
+      "Bash(xargs -I{} bash -c \"jar tf \"\"$1\"\" 2>/dev/null | grep -il \"\"\\\\.sty\"\" && echo \"\"$1\"\"\" -- {})",
+      "Bash(git check-ignore *)"
     ],
     "deny": [],
     "ask": []

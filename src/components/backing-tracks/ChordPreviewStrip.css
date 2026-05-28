@@ -1,0 +1,65 @@
+/* ═══════════════════════════════════════════════════════
+   ChordPreviewStrip — horizontal upcoming-chords ribbon
+   shown at the top of the Fretboard popup-overlay
+   ═══════════════════════════════════════════════════════ */
+
+.cps-root {
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--glass-border, rgba(180, 210, 255, 0.22));
+  scrollbar-width: thin;
+  scrollbar-color: rgba(180, 210, 255, 0.4) transparent;
+}
+.cps-root::-webkit-scrollbar { height: 5px; }
+.cps-root::-webkit-scrollbar-track { background: transparent; }
+.cps-root::-webkit-scrollbar-thumb {
+  background: rgba(180, 210, 255, 0.4);
+  border-radius: 3px;
+}
+
+.cps-track {
+  display: flex;
+  gap: 6px;
+  min-width: max-content;
+  padding: 2px;
+}
+
+.cps-cell {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border, rgba(180, 210, 255, 0.22));
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+.cps-cell.current {
+  background: rgba(110, 168, 255, 0.32);
+  border-color: var(--accent, #6ea8ff);
+  box-shadow: 0 0 16px rgba(110, 168, 255, 0.5);
+  transform: scale(1.05);
+}
+.cps-cell-bar {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-dim, #9fb4d6);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.cps-cell-chord {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text, #eaf2ff);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+.cps-cell.current .cps-cell-chord {
+  color: #fff;
+}

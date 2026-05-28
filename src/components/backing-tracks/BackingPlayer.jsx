@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useBackingTrackEngine, GENRE_CATALOG } from './useBackingTrackEngine.js'
-import { BarCountSelector }       from './BarCountSelector.jsx'
 import { ChordProgressionEditor } from './ChordProgressionEditor.jsx'
 import { ChordPickerModal }       from './ChordPickerModal.jsx'
 import { Mixer }                  from './Mixer.jsx'
 import LiveFretboard              from './LiveFretboard.jsx'
 import { PresetLibrary }          from './PresetLibrary.jsx'
 import { MyProgressions }         from './MyProgressions.jsx'
+import { ChordPreviewStrip }      from './ChordPreviewStrip.jsx'
+import { PolyscalePopup }         from './PolyscalePopup.jsx'
 
-const LAYOUT_OPTIONS = [3, 4, 6, 8]
 const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
 
 /* ═══════════════════════════════════════════════════════
@@ -118,6 +118,39 @@ function MixerPopup({ style, activePart, volumes, onVolumeChange }) {
 }
 
 /* ═══════════════════════════════════════════════════════
+   Popup: Templates (PresetLibrary + MyProgressions with 2 tabs)
+   ═══════════════════════════════════════════════════════ */
+function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression }) {
+  const [tab, setTab] = useState('standards')
+  return (
+    <div className="bp-popup bp-templates">
+      <div className="bp-templates-tabs">
+        <button
+          className={`bp-templates-tab${tab === 'standards' ? ' active' : ''}`}
+          onClick={() => setTab('standards')}
+        >📚 Jazz Standards</button>
+        <button
+          className={`bp-templates-tab${tab === 'mine' ? ' active' : ''}`}
+          onClick={() => setTab('mine')}
+        >💾 My Progressions</button>
+      </div>
+      <div className="bp-templates-body">
+        {tab === 'standards' && (
+          <PresetLibrary embedded onLoadPreset={onLoadPreset} />
+        )}
+        {tab === 'mine' && (
+          <MyProgressions
+            embedded
+            currentState={currentState}
+            onLoadProgression={onLoadProgression}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════
    Popup: Practice
    ═══════════════════════════════════════════════════════ */
 function PracticePopup({ config, onConfigChange }) {
@@ -219,7 +252,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops,
     setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression,
-    setChord, previewChord,
+    setChord, replaceChords, previewChord,
     setVolume,
     currentChordSymbol, currentBeat, beatsPerBar,
     sfStatus, sfMsg,
@@ -229,21 +262,38 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     activeStyle, activePartName,
   } = useBackingTrackEngine()
 
-  // UI state — no tabs, everything is popup-based
-  const [activePopup, setActivePopup] = useState(null)
-  // popup values: 'tempo' | 'repeats' | 'transposition' | 'genre' | 'mixer' | 'practice'
+  // UI state — single activePopup controls all overlay panels
+  // values: 'tempo' | 'repeats' | 'transposition' | 'genre' | 'mixer' | 'practice' | 'templates' | 'fretboard'
+  const [activePopup,    setActivePopup]    = useState(null)
   const [modalOpen,      setModalOpen]      = useState(false)
-  const [editingBar,     setEditingBar]     = useState(0)
-  const [colsPerRow,     setColsPerRow]     = useState(4)
-  const [showFretboard,  setShowFretboard]  = useState(false)
+  const [editingBarInfo, setEditingBarInfo] = useState(null) // { barIdx, firstChordIndex, barChords }
+  const [showPolyscale, setShowPolyscale] = useState(false)
 
-  // Practice config (local state, synced to engine via ref)
+  // Polyscale state lives in BackingPlayer so the popup-on-popup can edit it
+  // while LiveFretboard reads & applies it.
+  const [polyscaleState, setPolyscaleState] = useState({ enabled: false, map: {} })
+
+  // Practice config (local state, synced to engine)
   const [practiceConfig, setPracticeConfigLocal] = useState({
     tempoEnabled: false, tempoAmount: 5, tempoEvery: 1,
     transposeEnabled: false, transposeSemitones: 1, transposeEvery: 1,
   })
 
-  const chartRef = useRef(null)
+  const chordLayerRef = useRef(null)
+  const dockRef = useRef(null)
+
+  // ── Sync dock height into a CSS var so popup-overlay sits flush above it
+  useEffect(() => {
+    if (!dockRef.current) return
+    const updateDockHeight = () => {
+      const h = dockRef.current?.offsetHeight ?? 152
+      document.documentElement.style.setProperty('--bp-dock-height', `${h}px`)
+    }
+    updateDockHeight()
+    const ro = new ResizeObserver(updateDockHeight)
+    ro.observe(dockRef.current)
+    return () => ro.disconnect()
+  }, [])
 
   // Sync practice config to engine
   const handlePracticeChange = useCallback((newConfig) => {
@@ -251,28 +301,69 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     setPracticeConfig(newConfig)
   }, [setPracticeConfig])
 
+  // Close all overlays
+  const closeAll = useCallback(() => {
+    setActivePopup(null)
+    setShowPolyscale(false)
+  }, [])
+
   // Toggle popup (tap same = close)
   const togglePopup = (name) => setActivePopup(prev => prev === name ? null : name)
 
-  // Chord editing
-  const handleChordClick   = (barIndex) => { setEditingBar(barIndex); setModalOpen(true) }
-  const handleConfirmChord = (chord)    => { setChord(editingBar, chord); setModalOpen(false) }
+  // Chord editing — receives full bar context from ChordProgressionEditor
+  const handleChordClick = useCallback((barInfo) => {
+    setEditingBarInfo(barInfo)
+    setModalOpen(true)
+  }, [])
 
-  // Play handler — close popups (except fretboard) when playing
-  const handlePlay = useCallback(() => {
-    setActivePopup(null) // close all popups on play
-    play()
-  }, [play])
+  // Confirm: result is { type:'whole', chord } | { type:'split', chord1, chord2 }
+  const handleConfirmChord = useCallback((result) => {
+    if (!editingBarInfo) return
+    const { firstChordIndex, barChords } = editingBarInfo
+    const isCurrentlySplit = barChords.length === 2
+    const newChords = [...chords]
 
-  // Play/Stop toggle
+    if (result.type === 'whole') {
+      if (isCurrentlySplit) {
+        // Collapse two chords into one (remove the second)
+        newChords.splice(firstChordIndex, 2, { ...result.chord })
+      } else {
+        newChords[firstChordIndex] = { ...result.chord }
+      }
+    } else {
+      // split
+      if (isCurrentlySplit) {
+        newChords[firstChordIndex]     = { ...result.chord1, beats: 2 }
+        newChords[firstChordIndex + 1] = { ...result.chord2, beats: 2 }
+      } else {
+        // Insert a second chord after the first
+        newChords.splice(firstChordIndex, 1,
+          { ...result.chord1, beats: 2 },
+          { ...result.chord2, beats: 2 }
+        )
+      }
+    }
+    replaceChords(newChords)
+    setModalOpen(false)
+  }, [editingBarInfo, chords, replaceChords])
+
+  // Add a new bar
+  const handleAddBar = useCallback(() => {
+    const newFirstChordIndex = chords.length
+    setBarCount(newFirstChordIndex + 1)
+    setEditingBarInfo({ barIdx: newFirstChordIndex, firstChordIndex: newFirstChordIndex, barChords: [] })
+    setModalOpen(true)
+  }, [chords.length, setBarCount])
+
+  // Play/Stop toggle — closes all popups except Fretboard (which is useful while playing)
   const handlePlayStop = useCallback(() => {
     if (isPlaying) {
       stop(true)
     } else {
-      setActivePopup(null)
+      if (activePopup !== 'fretboard') { setActivePopup(null); setShowPolyscale(false) }
       play()
     }
-  }, [isPlaying, play, stop])
+  }, [isPlaying, play, stop, activePopup])
 
   // Style display name
   const styleName = useMemo(() => {
@@ -283,43 +374,26 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     return 'Select Style'
   }, [genre])
 
-  // Auto-scroll during playback
+  // Auto-scroll active chord-bar into view while playing
   useEffect(() => {
-    if (!isPlaying || !chartRef.current) return
-    const playingEl = chartRef.current.querySelector('.chord-bar-btn.playing, .chord-bar-split.playing')
+    if (!isPlaying || !chordLayerRef.current) return
+    const playingEl = chordLayerRef.current.querySelector('.chord-bar-btn.playing, .chord-bar-split.playing')
     if (playingEl) {
-      playingEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      playingEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [isPlaying, currentBar])
 
+  // Polyscale handler — passed both to fretboard panel and to the popup
+  const handlePolyscaleChange = useCallback((next) => {
+    setPolyscaleState(next)
+  }, [])
+
+  const practiceActive = practiceConfig.tempoEnabled || practiceConfig.transposeEnabled
+
   return (
-    <div className="backing-player" onClick={() => activePopup && setActivePopup(null)}>
+    <div className="backing-player" onClick={closeAll}>
 
-      {/* ── Toolbar ── */}
-      <div className="bp-toolbar" onClick={e => e.stopPropagation()}>
-        <div className="bp-toolbar-left">
-          <PresetLibrary onLoadPreset={loadJazzPreset} />
-          <MyProgressions
-            currentState={{ chords, tempo, genre, selectedKey, barCount }}
-            onLoadProgression={loadSavedProgression}
-          />
-          <button className="bp-icon-btn" onClick={loadPreset} title="Load genre preset">↺</button>
-        </div>
-        <div className="bp-toolbar-right">
-          <BarCountSelector barCount={barCount} onBarCountChange={setBarCount} />
-          <div className="bp-layout-selector">
-            {LAYOUT_OPTIONS.map(n => (
-              <button
-                key={n}
-                className={`bp-layout-btn${colsPerRow === n ? ' active' : ''}`}
-                onClick={() => setColsPerRow(n)}
-              >{n}</button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── SF2 Status ── */}
+      {/* ── SF2 Status (floating overlay at top of chord layer) ── */}
       {sfStatus === 'loading' && (
         <div className="bp-status-bar">⏳ {sfMsg || 'Loading SoundFont…'}</div>
       )}
@@ -327,31 +401,39 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
         <div className="bp-status-bar bp-status-bar--error">⚠️ {sfMsg}</div>
       )}
 
-      {/* ── Main Content Area (chart always visible) ── */}
-      <div className="bp-content" ref={chartRef}>
+      {/* ── Chord layer (scrollable) ── */}
+      <div className="bp-chord-layer" ref={chordLayerRef}>
+        {isPlaying && (
+          <div className="bp-current-strip">
+            <div className="bp-beat-dots">
+              {Array.from({ length: beatsPerBar }).map((_, i) => (
+                <div key={i} className={`bp-beat-dot${currentBeat === i ? ' active' : ''}`} />
+              ))}
+            </div>
+            <div className="bp-current-chord">{currentChordSymbol ?? '…'}</div>
+            <div className="bp-bar-count">
+              Bar {currentBar + 1}/{barCount}
+              {maxLoops > 0 && <> · Loop {loopCount}/{maxLoops}</>}
+            </div>
+          </div>
+        )}
+
         <ChordProgressionEditor
           chords={chords}
           currentBar={currentBar}
           isPlaying={isPlaying}
           onChordClick={handleChordClick}
-          colsPerRow={colsPerRow}
+          onAddBar={handleAddBar}
           beatsPerBar={beatsPerBar}
         />
-        {!hideFretboard && (
-          <LiveFretboard
-            chords={chords}
-            currentBar={currentBar}
-            currentChordSymbol={currentChordSymbol}
-            isPlaying={isPlaying}
-            isOpen={showFretboard}
-            onToggle={() => setShowFretboard(p => !p)}
-          />
-        )}
       </div>
 
-      {/* ── Popup Section (overlay between content and bottom) ── */}
+      {/* ── Popup overlay (slides up between chord layer and dock) ── */}
       {activePopup && (
-        <div className="bp-popup-section" onClick={e => e.stopPropagation()}>
+        <div
+          className={`bp-popup-overlay${activePopup === 'fretboard' ? ' bp-popup-overlay--fretboard' : ''}`}
+          onClick={e => e.stopPropagation()}
+        >
           {activePopup === 'tempo' && (
             <TempoPopup tempo={tempo} onTempoChange={setTempo} />
           )}
@@ -375,24 +457,53 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           {activePopup === 'practice' && (
             <PracticePopup config={practiceConfig} onConfigChange={handlePracticeChange} />
           )}
+          {activePopup === 'templates' && (
+            <TemplatesPopup
+              currentState={{ chords, tempo, genre, selectedKey, barCount }}
+              onLoadPreset={(song) => { loadJazzPreset(song); setActivePopup(null) }}
+              onLoadProgression={(prog) => { loadSavedProgression(prog); setActivePopup(null) }}
+            />
+          )}
+          {activePopup === 'fretboard' && !hideFretboard && (
+            <>
+              <ChordPreviewStrip
+                chords={chords}
+                currentBar={currentBar}
+                isPlaying={isPlaying}
+              />
+              <LiveFretboard
+                chords={chords}
+                currentBar={currentBar}
+                currentChordSymbol={currentChordSymbol}
+                isPlaying={isPlaying}
+                embedded
+                polyscaleEnabled={polyscaleState.enabled}
+                polyscaleMap={polyscaleState.map}
+                onPolyscaleChange={handlePolyscaleChange}
+                onOpenPolyscale={() => setShowPolyscale(true)}
+              />
+            </>
+          )}
         </div>
       )}
 
-      {/* ── Playback Display (visible while playing) ── */}
-      {isPlaying && (
-        <div className="bp-playback" onClick={e => e.stopPropagation()}>
-          <div className="bp-beat-dots">
-            {Array.from({ length: beatsPerBar }).map((_, i) => (
-              <div key={i} className={`bp-beat-dot${currentBeat === i ? ' active' : ''}`} />
-            ))}
-          </div>
-          <div className="bp-current-chord">{currentChordSymbol ?? '…'}</div>
-          <div className="bp-bar-count">Bar {currentBar + 1}/{barCount}</div>
+      {/* ── Polyscale popup-on-popup (z-30) ── */}
+      {showPolyscale && (
+        <div className="bp-popup-overlay bp-popup-overlay--polyscale" onClick={e => e.stopPropagation()}>
+          <PolyscalePopup
+            chords={chords}
+            currentBar={currentBar}
+            isPlaying={isPlaying}
+            polyscaleEnabled={polyscaleState.enabled}
+            polyscaleMap={polyscaleState.map}
+            onPolyscaleChange={handlePolyscaleChange}
+            onClose={() => setShowPolyscale(false)}
+          />
         </div>
       )}
 
-      {/* ── Bottom Section ── */}
-      <div className="bp-bottom" onClick={e => e.stopPropagation()}>
+      {/* ── Bottom dock ── */}
+      <div className="bp-bottom-dock" ref={dockRef} onClick={e => e.stopPropagation()}>
 
         {/* Info Strip */}
         <div className="bp-info-strip">
@@ -417,23 +528,24 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
         </div>
 
         {/* Style Name */}
-        <button className="bp-style-name" onClick={() => togglePopup('genre')}>
-          {styleName}
+        <button
+          className={`bp-style-name${activePopup === 'genre' ? ' active' : ''}`}
+          onClick={() => togglePopup('genre')}
+        >
+          <span>{styleName}</span>
         </button>
 
-        {/* Tab Bar — 4 items: Fretboard, Mixer, Play/Stop, Practice */}
+        {/* Tab Bar — מימין לשמאל: Templates | Fretboard | Play | Mixer | Practice */}
         <div className="bp-tab-bar">
-          {!hideFretboard && (
-            <button
-              className={`bp-tab${showFretboard ? ' active' : ''}`}
-              onClick={() => setShowFretboard(p => !p)}
-              title="Fretboard"
-            >
-              <svg viewBox="0 0 24 24" className="bp-tab-icon">
-                <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
-              </svg>
-            </button>
-          )}
+          <button
+            className={`bp-tab${activePopup === 'practice' ? ' active' : ''}${practiceActive ? ' has-indicator' : ''}`}
+            onClick={() => togglePopup('practice')}
+            title="Practice"
+          >
+            <svg viewBox="0 0 24 24" className="bp-tab-icon">
+              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+            </svg>
+          </button>
           <button
             className={`bp-tab${activePopup === 'mixer' ? ' active' : ''}`}
             onClick={() => togglePopup('mixer')}
@@ -443,6 +555,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
               <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
             </svg>
           </button>
+          {/* Play/Stop — center */}
           <button
             className={`bp-tab bp-tab--play${isPlaying ? ' playing' : ''}`}
             onClick={handlePlayStop}
@@ -461,13 +574,27 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
               </svg>
             )}
           </button>
+          {!hideFretboard && (
+            <button
+              className={`bp-tab${activePopup === 'fretboard' ? ' active' : ''}`}
+              onClick={() => togglePopup('fretboard')}
+              title="צוואר"
+            >
+              <svg viewBox="0 0 24 24" className="bp-tab-icon">
+                <path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>
+                <circle cx="7"  cy="7"  r="1.3"/>
+                <circle cx="12" cy="12" r="1.3"/>
+                <circle cx="17" cy="17" r="1.3"/>
+              </svg>
+            </button>
+          )}
           <button
-            className={`bp-tab${activePopup === 'practice' ? ' active' : ''}`}
-            onClick={() => togglePopup('practice')}
-            title="Practice"
+            className={`bp-tab${activePopup === 'templates' ? ' active' : ''}`}
+            onClick={() => togglePopup('templates')}
+            title="רצפי אקורדים"
           >
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
-              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+              <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h7v5h5v11z"/>
             </svg>
           </button>
         </div>
@@ -476,11 +603,18 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
       {/* ── Chord Picker Modal ── */}
       <ChordPickerModal
         isOpen={modalOpen}
-        barIndex={editingBar}
-        current={chords[editingBar]}
+        barInfo={editingBarInfo}
         onConfirm={handleConfirmChord}
         onClose={() => setModalOpen(false)}
         onPreview={previewChord}
+        onDeleteBar={editingBarInfo && editingBarInfo.barChords.length > 0 ? () => {
+          const { firstChordIndex, barChords } = editingBarInfo
+          const newChords = [...chords]
+          newChords.splice(firstChordIndex, barChords.length)
+          if (newChords.length === 0) newChords.push({ root: 'C', quality: 'major', extensions: [] })
+          replaceChords(newChords)
+          setModalOpen(false)
+        } : null}
       />
     </div>
   )

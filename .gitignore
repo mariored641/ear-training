@@ -59,12 +59,3 @@ Thumbs.db
 
 .vercel
 .env*.local
-
-# Yamaha .sty originals — local-only IP, do not ship
-# Migrated to public/styles-native/<category>/*.json (committed)
-/public/styles/
-*.sty
-*.STY
-*.prs
-*.sst
-*.bcs
