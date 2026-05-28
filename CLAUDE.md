@@ -114,9 +114,12 @@ Production: https://ear-training-rose.vercel.app
 - Route: `/backing-tracks`
 - Component: `backing-tracks/BackingTracksPage.jsx`
 - ז'אנרים: 5 קטגוריות — Jazz (9), Latin (8), Blues (10), Rock & Pop (11), Country (8) — ~46 סגנונות
-- Audio engine: BackingTrackEngine (FluidSynth WASM + JJazzLab SF2 + Yamaha .sty parser)
+- Audio engine: BackingTrackEngine (FluidSynth WASM + JJazzLab SF2 + native JSON style format)
+- ⚠️ **Yamaha .sty migration (commit 59d144a)**: production no longer parses .sty at runtime. ה-engine קורא `/styles-native/<category>/<id>.json` דרך `src/lib/style-engine/StyleLoader.js`. הקבצים הילידיים נוצרו ב-`scripts/sty-to-native.mjs` (parity verified by `scripts/verify-native-parity.mjs` — 48/48). קבצי .sty המקוריים נשארים מקומית בלבד (לא בגיט; `.gitignore` חוסם `*.sty/STY/prs/sst/bcs`). `StyleParser.js` נשאר בקוד עבור file-upload tests בלבד.
+- **Skills קשורים** (ב-`~/.claude/skills/`): `sty-clone` (שכפול .sty חיצוני → JSON), `genre-style-builder` (יצירת סטייל מאפס + הנחיה לאבלטון).
+- **Level 2 deferred features**: `docs/jjazzlab-engine/LEVEL2_DEFERRED.md` — מה הפרסר קולט אבל ה-engine לא משתמש (ctb2Low/High, NTT scale variants וכו'). יש script רענון: `node scripts/analyze-level2.mjs`.
 - Hook מרכזי: `backing-tracks/useBackingTrackEngine.js`
-- מנוע: `lib/style-engine/` (BackingTrackEngine, StyleParser, ChordEngine, Humanizer)
+- מנוע: `lib/style-engine/` (BackingTrackEngine, StyleLoader, ChordEngine, Humanizer, StyleParser ← legacy file-upload only)
 - **Count-in**: תמיד פועל — הכפתור הוסר, `skipIntro` תמיד `false`
 - **Genre Instrument Map**: `src/constants/genreInstrumentMap.js` — מפת GM programs לכל ז'אנר
   - jazz → Acoustic Bass (32), Jazz Guitar (26), Acoustic Grand (0), Jazz Drums (32)
