@@ -18,7 +18,7 @@
 
 import React, { useState, useRef, useCallback } from 'react'
 import { BackingTrackEngine } from '../../lib/style-engine/BackingTrackEngine'
-import { parseSty }           from '../../lib/style-engine/StyleParser'
+import { loadStyleById }      from '../../lib/style-engine/StyleLoader'
 import * as SFP               from '../../lib/soundfont/SoundFontPlayer'
 
 // ─── Mirror of BackingTrackEngine channel map ────────────────────────────────
@@ -281,9 +281,7 @@ export default function TimingTestPage() {
       const styOption = STYLE_OPTIONS.find(o => o.id === selectedSty) ?? STYLE_OPTIONS[0]
 
       setStatus(`טוען ${styOption.label}...`)
-      const res = await fetch(styOption.sty)
-      if (!res.ok) throw new Error(`HTTP ${res.status} — ${styOption.sty}`)
-      const style = parseSty(await res.arrayBuffer())
+      const style = await loadStyleById(styOption.id)
 
       const eng = new TimingTestEngine(onSchedEntry, onBeatEntry)
       engineRef.current = eng

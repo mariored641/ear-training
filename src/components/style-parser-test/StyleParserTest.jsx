@@ -2,7 +2,13 @@ import { useState } from 'react'
 import { parseSty } from '../../lib/style-engine/StyleParser'
 import { validateStyle, logStyleSummary } from '../../lib/style-engine/StyleValidator'
 
-// Known .sty files available from Vite middleware
+// Known .sty files available from Vite middleware.
+//
+// NOTE: This page is the dev test for parseSty() itself — it deliberately
+// keeps the raw .sty → parseSty path so we can validate the parser. Preset
+// URLs only resolve in dev (`vite.config.js` middleware); in production
+// builds without .sty files, the file-upload input below still works to
+// test arbitrary .sty/.STY/.prs/.sst/.bcs files from the user's disk.
 const PRESET_FILES = [
   { label: 'Jazz Waltz Fast',   url: '/styles-appdata/Yamaha/JazzWaltzFast.S499.sty' },
   { label: 'Jazz Vocal',        url: '/styles-appdata/Yamaha/Jazzvocal.s264.sty' },

@@ -15,16 +15,19 @@
 import React, { useState, useCallback, useRef } from 'react'
 import * as SFP from '../../lib/soundfont/SoundFontPlayer'
 import { parseSty } from '../../lib/style-engine/StyleParser'
+import { loadStyleById } from '../../lib/style-engine/StyleLoader'
 import { generatePhrasesForChord, parseChordSymbol, getAvailableParts } from '../../lib/style-engine/ChordEngine'
 import { PITCH_NAMES } from '../../lib/style-engine/YamChordMap'
 
 // ─── Preset style files ──────────────────────────────────────────────────────
 
+// Presets with `id` use the native JSON loader; URL-only entries fall back to
+// parseSty for testing styles outside the production catalog.
 const PRESET_FILES = [
-  { label: 'Jazz Waltz Fast',  url: '/styles-appdata/Yamaha/JazzWaltzFast.S499.sty' },
-  { label: 'Cool Bossa',       url: '/styles/Latin/CoolBossa.S460.sty' },
+  { label: 'Jazz Waltz Fast',  id: 'jazz_waltz' },
+  { label: 'Cool Bossa',       id: 'latin_bossa' },
   { label: 'Guitar Bossa 6',   url: '/styles/Latin/GuitarBossa6.S081.sty' },
-  { label: 'Jazz Vocal',       url: '/styles-appdata/Yamaha/Jazzvocal.s264.sty' },
+  { label: 'Jazz Vocal',       id: 'jazz_swing' },
   { label: 'Jazz Rock Cz2k',  url: '/styles-appdata/YamJJazz/JazzRock_Cz2k.S563.sty' },
   { label: 'Samba City',       url: '/styles-appdata/YamJJazz/SambaCity213.s460.sty' },
 ]
@@ -87,13 +90,17 @@ export default function ChordEngineTest() {
 
   // ── Load .sty file ─────────────────────────────────────────────────────────
 
-  async function loadStyleFromUrl(url, label) {
-    setStyleLoading(true); setStyleError(null); setStyle(null); setStyleFile(label); setPhrases(null)
+  async function loadPreset(preset) {
+    setStyleLoading(true); setStyleError(null); setStyle(null); setStyleFile(preset.label); setPhrases(null)
     try {
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`)
-      const buf = await res.arrayBuffer()
-      const s = parseSty(buf)
+      let s
+      if (preset.id) {
+        s = await loadStyleById(preset.id)
+      } else {
+        const res = await fetch(preset.url)
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${preset.url}`)
+        s = parseSty(await res.arrayBuffer())
+      }
       setStyle(s)
       // auto-select first available Main part
       const parts = getAvailableParts(s)
@@ -258,8 +265,8 @@ export default function ChordEngineTest() {
         <h3 style={{ color: PURP, margin: '0 0 10px' }}>2. Style File (.sty)</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
           {PRESET_FILES.map(f => (
-            <button key={f.url}
-              onClick={() => loadStyleFromUrl(f.url, f.label)}
+            <button key={f.id || f.url}
+              onClick={() => loadPreset(f)}
               style={{ ...btn('#2d2d50'), background: styleFile === f.label ? PURP : '#2d2d50', fontSize: 12 }}
             >{f.label}</button>
           ))}

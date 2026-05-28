@@ -9,7 +9,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { BackingTrackEngine }  from '../../lib/style-engine/BackingTrackEngine'
-import { parseSty }            from '../../lib/style-engine/StyleParser'
+import { loadStyleById }       from '../../lib/style-engine/StyleLoader'
 import { PRESETS as HUMAN_PRESETS } from '../../lib/style-engine/Humanizer'
 import { parseChordSymbol, PITCH_NAMES, NOTE_PITCHES } from '../../lib/style-engine/YamChordMap'
 import { getChordData }        from '../../lib/style-engine/YamChordMap'
@@ -1056,12 +1056,8 @@ export function useBackingTrackEngine() {
       applyInstrumentOverrides(genreName)
       return
     }
-    const url = GENRE_STYLES[genreName]
-    if (!url) throw new Error(`Unknown genre: ${genreName}`)
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`HTTP ${res.status} — ${url}`)
-    const buf   = await res.arrayBuffer()
-    const style = parseSty(buf)
+    if (!(genreName in GENRE_STYLES)) throw new Error(`Unknown genre: ${genreName}`)
+    const style = await loadStyleById(genreName)
     styleCache.current[genreName] = style
     engine.setStyle(style)
     engine.setHumanizerConfig(HUMAN_PRESETS[GENRE_HUMAN[genreName]] ?? HUMAN_PRESETS.jazz)

@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react'
-import { parseSty } from '../../lib/style-engine/StyleParser.js'
+import { loadStyleById } from '../../lib/style-engine/StyleLoader.js'
 import * as SFP from '../../lib/soundfont/SoundFontPlayer.js'
 import { CHANNEL_LABELS } from './shared/InstrumentedEngine.js'
 
@@ -75,8 +75,7 @@ export default function MixerIntegrityTab() {
     const results = []
     for (const opt of STYLE_OPTIONS) {
       try {
-        const buf   = await fetch(opt.sty).then(r => r.arrayBuffer())
-        const style = parseSty(buf)
+        const style = await loadStyleById(opt.id)
         const main  = style.parts.Main_A || Object.values(style.parts).find(p => p.sizeInBeats > 0)
         if (!main) {
           results.push({ ...opt, error: 'no Main_A' })

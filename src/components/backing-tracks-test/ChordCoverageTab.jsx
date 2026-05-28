@@ -18,7 +18,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { parseSty } from '../../lib/style-engine/StyleParser.js'
+import { loadStyleById } from '../../lib/style-engine/StyleLoader.js'
 import * as SFP from '../../lib/soundfont/SoundFontPlayer.js'
 import { InstrumentedEngine } from './shared/InstrumentedEngine.js'
 import {
@@ -83,8 +83,7 @@ export default function ChordCoverageTab() {
       await SFP.resumeAudio()
 
       setPhase('loading style')
-      const buf = await fetch(styleConfig.sty).then(r => r.arrayBuffer())
-      const style = parseSty(buf)
+      const style = await loadStyleById(styleConfig.id)
       style.tempo = bpm
 
       let progression

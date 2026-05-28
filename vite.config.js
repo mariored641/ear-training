@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
+import path from 'path'
 
 const JJAZZLAB_SF2 = 'C:/Program Files/JJazzLab/jjazzlab/modules/soundfont/JJazzLab-SoundFont.sf2'
 const JJAZZLAB_STYLES_DIR = 'C:/Users/DELL/JJazzLab/Rhythms'
@@ -38,6 +39,32 @@ function styleServPlugin() {
         }
       })
     }
+  }
+}
+
+// Strip the Yamaha .sty source files from the production build. Vite copies
+// everything under `public/` into `dist/` during build; we keep `public/styles/`
+// locally for the dev test pages (uploaded via `StyleParserTest`) but the .sty
+// files are Yamaha IP and must NOT ship in the production bundle / APK.
+// Native JSON (`public/styles-native/`) is what production reads.
+function stripStyDistPlugin() {
+  return {
+    name: 'strip-sty-dist',
+    apply: 'build',
+    closeBundle() {
+      const dirs = ['dist/styles', 'dist/styles-appdata']
+      for (const rel of dirs) {
+        const dir = path.resolve(rel)
+        try {
+          if (fs.existsSync(dir)) {
+            fs.rmSync(dir, { recursive: true, force: true })
+            console.log(`  ✓ stripped ${rel}/ (Yamaha .sty files excluded from build)`)
+          }
+        } catch (err) {
+          console.warn(`  ⚠ could not strip ${rel}/:`, err.message)
+        }
+      }
+    },
   }
 }
 
@@ -81,6 +108,7 @@ export default defineConfig({
     react(),
     soundfontServPlugin(),
     styleServPlugin(),
+    stripStyDistPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['*.png', '*.jpg', '*.svg'],

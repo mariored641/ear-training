@@ -16,15 +16,20 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { BackingTrackEngine } from '../../lib/style-engine/BackingTrackEngine'
 import { parseSty } from '../../lib/style-engine/StyleParser'
+import { loadStyleById } from '../../lib/style-engine/StyleLoader'
 import { PRESETS as HUMAN_PRESETS } from '../../lib/style-engine/Humanizer'
 
 // ─── Presets ──────────────────────────────────────────────────────────────────
 
+// Presets with `id` use the native JSON loader. Entries with only `url` fall
+// back to parseSty(.sty) — useful for testing styles not in the production
+// catalog. After we ship without .sty in the APK, the URL-only entries will
+// 404 in production builds (they exist only in dev).
 const STYLE_PRESETS = [
-  { label: 'Jazz Waltz Fast',  url: '/styles-appdata/Yamaha/JazzWaltzFast.S499.sty',    human: 'jazz'  },
-  { label: 'Cool Bossa',       url: '/styles/Latin/CoolBossa.S460.sty',                 human: 'bossa' },
+  { label: 'Jazz Waltz Fast',  id: 'jazz_waltz',                                         human: 'jazz'  },
+  { label: 'Cool Bossa',       id: 'latin_bossa',                                        human: 'bossa' },
   { label: 'Guitar Bossa 6',   url: '/styles/Latin/GuitarBossa6.S081.sty',              human: 'bossa' },
-  { label: 'Jazz Vocal',       url: '/styles-appdata/Yamaha/Jazzvocal.s264.sty',        human: 'jazz'  },
+  { label: 'Jazz Vocal',       id: 'jazz_swing',                                         human: 'jazz'  },
   { label: 'Jazz Rock Cz2k',   url: '/styles-appdata/YamJJazz/JazzRock_Cz2k.S563.sty', human: 'jazz'  },
   { label: 'Samba City',       url: '/styles-appdata/YamJJazz/SambaCity213.s460.sty',  human: 'latin' },
 ]
@@ -92,10 +97,14 @@ export default function BackingEngineTest() {
     setStyleStatus('loading')
     setStyleInfo(null)
     try {
-      const res = await fetch(preset.url)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const buf   = await res.arrayBuffer()
-      const style = parseSty(buf)
+      let style
+      if (preset.id) {
+        style = await loadStyleById(preset.id)
+      } else {
+        const res = await fetch(preset.url)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        style = parseSty(await res.arrayBuffer())
+      }
 
       engineRef.current.setStyle(style)
       engineRef.current.setHumanizerConfig(HUMAN_PRESETS[preset.human] ?? HUMAN_PRESETS.jazz)
