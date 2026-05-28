@@ -48,17 +48,16 @@ export function fitNotes(notes, ctab, destRootPitch, destTypeName) {
   // ── BYPASS + ROOT_TRANSPOSITION → chromatic shift ───────────────────────
   if (ntt === 'BYPASS') {
     const delta = normalizeRootDelta(destRootPitch, srcRootPitch)
-    // Chord comping channels (CHORD1/CHORD2) fold the shifted pitch to the
-    // octave nearest the center of the note range, so all chords land in a
-    // consistent register regardless of root delta magnitude.
-    // Other channels (phrase, intro) keep the nearest-to-shifted octave.
-    const isChordChannel = ctab.accType === 'CHORD1' || ctab.accType === 'CHORD2'
+    const shifted = notes.map(n => ({ ...n, pitch: n.pitch + delta }))
     const lo = noteLowLimit ?? 0
-    const hi = noteHighLimit ?? 127
-    result = notes.map(n => {
-      const shifted = n.pitch + delta
-      return { ...n, pitch: isChordChannel ? foldToCenter(shifted, lo, hi) : shifted }
-    })
+    let hi = noteHighLimit ?? 127
+    // Chord comping channels: shave 3 semitones off the ceiling so all chord
+    // tones (root, 3rd, 5th, 7th — spanning ≤10st) fold into the same octave
+    // register. Without this, notes just below the ceiling stay one octave above
+    // notes that barely cross it, causing register jumps between chords.
+    const isChordChannel = ctab.accType === 'CHORD1' || ctab.accType === 'CHORD2'
+    if (isChordChannel && hi - lo >= 11) hi = Math.max(lo + 11, hi - 3)
+    return clampAll(shifted, lo, hi)
 
   // ── ROOT_FIXED → chord-oriented fitting (piano/guitar comping) ──────────
   } else if (ntr === 'ROOT_FIXED' || ntr === 'GUITAR') {
@@ -207,31 +206,6 @@ function fitChordPhrase(notes, srcRoot, srcType, destRoot, destType) {
 }
 
 // ─── Pitch utility functions ────────────────────────────────────────────────
-
-/**
- * Fold `pitch` into [lo, hi] by choosing the octave whose pitch class matches
- * `pitch` and is closest to the CENTER of [lo, hi].
- *
- * This avoids the "register jump" that naive fold-from-shifted-value causes
- * when chord root deltas of different magnitudes push notes past the ceiling
- * by varying amounts. All chords land in a consistent register.
- */
-function foldToCenter(pitch, lo, hi) {
-  if (lo === 0 && hi === 127) return pitch
-  if (hi - lo < 11) return clamp(pitch, lo, hi)
-  const pc = posmod(pitch, 12)
-  const center = (lo + hi) / 2
-  let candidate = pc
-  while (candidate < lo) candidate += 12
-  if (candidate > hi) return clamp(pitch, lo, hi)
-  let best = candidate
-  let bestDist = Math.abs(candidate - center)
-  for (let c = candidate + 12; c <= hi; c += 12) {
-    const d = Math.abs(c - center)
-    if (d < bestDist) { bestDist = d; best = c }
-  }
-  return best
-}
 
 /**
  * Find the closest MIDI pitch that has the given relative pitch (0-11).
