@@ -67,8 +67,8 @@
 
 /* Selects — dark wood with brass border */
 .ast-select {
-  background-color: rgba(0, 0, 0, 0.3);
-  color: var(--paper-cream);
+  background-color: #2a1810;
+  color: #d9c8a4;
   border: 1px solid var(--brass-dark);
   border-radius: 4px;
   padding: 5px 8px;
@@ -83,6 +83,23 @@
 .ast-select:focus,
 .ast-select:hover {
   border-color: var(--brass);
+}
+
+/* Open dropdown options — override OS gray */
+.ast-select option {
+  background-color: #2a1810;
+  color: #d9c8a4;
+}
+
+.ast-select optgroup {
+  background-color: #1a130a;
+  color: #b8923d;
+  font-weight: 600;
+}
+
+.ast-select option:checked {
+  background-color: #3a2418;
+  color: #e0cba4;
 }
 
 .ast-select-root {
