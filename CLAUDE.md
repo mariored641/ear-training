@@ -36,10 +36,22 @@ Stack: React + Vite + Tone.js → deployed on Vercel via GitHub (main branch).
 Local dev: `npm run dev` → `localhost:5173`
 Production: https://ear-training-rose.vercel.app
 
-**עיצוב עמוד הבית:** Constellation — hub (לוגו "מישר לנזמן") במרכז + 6 satellites רדיאליים, רקע aurora כהה.
-הרקע חל *רק* על עמוד הבית (class `body.home-page-active` מוסר בניווט החוצה).
-קובץ עיצוב מקורי: `design-mockup/redesign-v2.html` (mockup HTML מלא, לא נכנס ל-build).
-**השלב הבא בעיצוב:** מיגרציה של עיצוב חטיבת הבאקינג טראקים מ-`design-mockup/v2-sections/backing-tracks.html`.
+**עיצוב פעיל (2026-05):** Workshop / Wood Vintage — שולחן עץ אגוז כהה + פליז + נייר Real Book.
+- 3 חטיבות עברו מיגרציה: HomePage, Positions, Backing Tracks.
+- שאר החטיבות (Ear Training, Dictation, Rhythm, Feedback) — נשארות זמנית ב-Aurora הכחול.
+- **עמוד הבית בלבד** מציג רקע פוטוגרפי `public/textures/desk-walnut.png` + SVG grain overlay. שאר ה-2 — רקע צבע אחיד כהה (radial-gradient של `--wood-darkest`).
+- ניהול ניתוב: `src/components/common/GrainOverlay.jsx` — מוסיף `body.workshop-active` ב-3 הנתיבים (לפלטה), ו-`body.home-wood-bg` רק ב-`/` (לתמונה+grain).
+- ה-tokens: `src/styles/workshop-theme.css` — wood/brass/paper/leather/glass + פונטים (RealBook + Special Elite + Patrick Hand).
+- צוואר הגיטרה: wood-grain פרוצדורלי על Canvas, יובא מ-`fretboard-realtime/src/fretboard/woodGrain.ts` → `src/utils/woodGrain.js`.
+
+**עיצוב קודם:** Aurora — כחול עמוק עם blobs ניאוניים. עדיין פעיל בשאר החטיבות.
+קבצי mockup מקוריים: `design-mockup/redesign-v2.html`, `design-mockup/v2-sections/backing-tracks.html` (לא בבילד).
+
+**אופציה עתידית — Theme Toggle (Modern/Classic):**
+הארכיטקטורה מוכנה לתמיכה ב-2 ערכות עיצוב מתחלפות (Aurora=Modern, Workshop=Classic).
+שני העיצובים משתמשים באותם selectors (`.center-hub`, `.chord-bar-btn`, `.fretboard`...) — מה שמשתנה זה רק CSS variables + רקע body + מעט overrides.
+**כדי לממש**: לרכז את שני ערכות הטוקנים תחת `[data-theme="modern"]` / `[data-theme="classic"]` ב-CSS, להעביר את ה-toggle ל-`useLocation` ל-`useTheme` hook עם localStorage, ולהוסיף UI לבחירה בעמוד הבית או בהגדרות. הזמן המוערך: יום עבודה.
+
 **השלב הבא ב-Backing Tracks:** Strum Filter (שלב 2 בתוכנית) — פילטור נוטות גיטרה על פי כיוון strum; נוגע ב-noteOn callbacks, לא לבצע בלי חקירה מקדימה.
 
 ---

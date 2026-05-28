@@ -1,6 +1,6 @@
 import React from 'react'
 import { SCALE_CATEGORIES } from '../../constants/allScalesData'
-import { chordDisplayName } from './useBackingTrackEngine.js'
+import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
 
 const CHROMATIC = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
 const defaultEntry = () => ({ scaleId: null, root: 'auto' })
@@ -48,7 +48,7 @@ export function PolyscalePopup({
           return (
             <div key={i} className={`bp-poly-row${isCurrent ? ' current' : ''}`}>
               <span className="bp-poly-bar">{i + 1}</span>
-              <span className="bp-poly-chord">{chordDisplayName(chord)}</span>
+              <span className="bp-poly-chord">{prettifyChord(chordDisplayName(chord))}</span>
 
               <select
                 className="bp-poly-select"

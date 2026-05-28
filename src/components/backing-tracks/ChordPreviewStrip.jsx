@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { chordDisplayName } from './useBackingTrackEngine.js'
+import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
 import './ChordPreviewStrip.css'
 
 /**
@@ -34,7 +34,7 @@ export function ChordPreviewStrip({ chords, currentBar, isPlaying }) {
               className={`cps-cell${isCurrent ? ' current' : ''}`}
             >
               <span className="cps-cell-bar">{i + 1}</span>
-              <span className="cps-cell-chord">{chordDisplayName(chord)}</span>
+              <span className="cps-cell-chord">{prettifyChord(chordDisplayName(chord))}</span>
             </div>
           )
         })}

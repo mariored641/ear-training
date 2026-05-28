@@ -6,7 +6,8 @@ import {
   computeNotes,
 } from '../../constants/allScalesData';
 import { parseChordSymbol, PITCH_NAMES, getChordData } from '../../lib/style-engine/YamChordMap';
-import { chordDisplayName } from './useBackingTrackEngine';
+import { chordDisplayName, prettifyChord } from './useBackingTrackEngine';
+import { ChordPreviewStrip } from './ChordPreviewStrip';
 import './LiveFretboard.css';
 
 // PITCH_NAMES uses flats (Eb, Ab, Bb); CHROMATIC_SCALE uses sharps — normalize
@@ -165,9 +166,8 @@ export default function LiveFretboard({
           {/* Current chord + scale info */}
           <div className="lf-chord-header">
             <span className="lf-chord-now">
-              {isPlaying ? (currentChordSymbol ?? '…') : (displaySymbol ?? '—')}
+              {prettifyChord(isPlaying ? (currentChordSymbol ?? '…') : (displaySymbol ?? '—'))}
             </span>
-            <span className="lf-chord-root-note" title="Chord root">{chordRoot}</span>
             {!isPlaying && <span className="lf-stopped-badge">stopped</span>}
             {scaleId && (
               <span className="lf-scale-badge">
@@ -175,6 +175,13 @@ export default function LiveFretboard({
               </span>
             )}
           </div>
+
+          {/* Upcoming chords ribbon */}
+          <ChordPreviewStrip
+            chords={chords}
+            currentBar={currentBar}
+            isPlaying={isPlaying}
+          />
 
           {/* Fretboard */}
           <AllScalesFretboard
@@ -282,7 +289,7 @@ export default function LiveFretboard({
                       key={i}
                       className={`lf-poly-row${isPlaying && currentBar === i ? ' lf-poly-row--active' : ''}`}
                     >
-                      <span className="lf-poly-chord-name">{chordDisplayName(chord)}</span>
+                      <span className="lf-poly-chord-name">{prettifyChord(chordDisplayName(chord))}</span>
 
                       {/* Root per chord */}
                       <select

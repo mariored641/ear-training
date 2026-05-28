@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react'
-import { chordDisplayName } from './useBackingTrackEngine.js'
+import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
 
 const LONG_PRESS_MS = 450
 const MOVE_TOLERANCE_PX = 8
@@ -102,7 +102,7 @@ function ChordBar({ barIdx, chord, chordIndex, isActive, onEdit }) {
       {...handlers}
     >
       <span className="bar-number">{barIdx + 1}</span>
-      <span className="chord-name">{chordDisplayName(chord)}</span>
+      <span className="chord-name">{prettifyChord(chordDisplayName(chord))}</span>
     </button>
   )
 }
@@ -122,7 +122,7 @@ function ChordSplitBar({ barIdx, barSlots, isActive, onEdit }) {
       <div className="split-chords">
         {barSlots.map(({ chord, chordIndex }) => (
           <span key={chordIndex} className="chord-half-btn">
-            {chordDisplayName(chord)}
+            {prettifyChord(chordDisplayName(chord))}
           </span>
         ))}
       </div>

@@ -744,6 +744,21 @@ export function chordDisplayName(chord) {
   return chord.bassNote ? `${name}/${chord.bassNote}` : name
 }
 
+/**
+ * Convert an ASCII chord symbol to its prettified Unicode form for DISPLAY ONLY.
+ * Do not pass the result back through parseChordSymbol() — it expects ASCII.
+ *
+ *   "Bb"   → "B♭"
+ *   "F#m7" → "F♯m7"
+ *   "C7b9" → "C7♭9"
+ */
+export function prettifyChord(name) {
+  if (!name) return name
+  return String(name)
+    .replace(/b/g, '♭')   // U+266D MUSIC FLAT SIGN
+    .replace(/#/g, '♯')   // U+266F MUSIC SHARP SIGN
+}
+
 // ─── Key Transpose Utilities ──────────────────────────────────────────────────
 
 const SHARP_NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']

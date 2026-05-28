@@ -8,7 +8,7 @@
   flex-direction: column;
   padding-bottom: 4px;
   touch-action: pan-x;
-  font-family: var(--font-display);
+  font-family: 'Heebo', system-ui, sans-serif;
 }
 
 /* Fret numbers row (top) */
@@ -21,18 +21,18 @@
 .asf-fret-num {
   flex: 0 0 60px;
   text-align: center;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--paper-cream);
   padding-bottom: 4px;
-  font-weight: 400;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   user-select: none;
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .asf-fret-num.marked {
-  color: var(--brass-bright);
-  font-weight: 700;
+  color: var(--brass-glow);
+  font-weight: 800;
   opacity: 1;
 }
 
@@ -131,10 +131,10 @@
 }
 
 .asf-string-label {
-  font-size: 11px;
-  color: var(--paper-aged);
-  font-family: var(--font-display);
-  font-weight: 400;
+  font-size: 13px;
+  color: var(--paper-cream);
+  font-family: 'Heebo', system-ui, sans-serif;
+  font-weight: 700;
   position: absolute;
   left: 0;
   width: 20px;
@@ -149,7 +149,8 @@
   padding: 0;
   z-index: 3;
   transition: color 0.15s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .asf-string-label.active {
@@ -216,21 +217,22 @@
 
 /* Note dots */
 .asf-note {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   z-index: 2;
   position: relative;
   line-height: 1;
   pointer-events: none;
   user-select: none;
   transition: opacity 0.1s ease;
-  font-family: var(--font-display);
+  font-family: 'Heebo', system-ui, sans-serif;
+  letter-spacing: 0.01em;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
 }
 
@@ -262,9 +264,10 @@
 .asf-note.root {
   background: radial-gradient(circle at 30% 25%, #f0c98a 0%, var(--brass-bright) 50%, var(--brass) 100%);
   color: var(--wood-darkest);
-  width: 28px;
-  height: 28px;
-  font-size: 11px;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  font-weight: 800;
   text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
   box-shadow:
     inset 0 -2px 3px rgba(0, 0, 0, 0.4),
@@ -392,16 +395,16 @@
   .asf-marker-slot { flex: 0 0 70px; }
   .asf-range-btn  { flex: 0 0 70px; }
   .asf-string-row { height: 36px; }
-  .asf-note.root  { width: 30px; height: 30px; }
+  .asf-note.root  { width: 34px; height: 34px; }
 }
 
 /* Mobile */
 @media (max-width: 768px) {
   .asf-fret-cell  { flex: 0 0 52px; }
-  .asf-fret-num   { flex: 0 0 52px; font-size: 10px; }
+  .asf-fret-num   { flex: 0 0 52px; font-size: 11px; }
   .asf-marker-slot { flex: 0 0 52px; }
-  .asf-range-btn  { flex: 0 0 52px; font-size: 9px; }
+  .asf-range-btn  { flex: 0 0 52px; font-size: 10px; }
   .asf-string-row { height: 30px; }
-  .asf-note       { width: 22px; height: 22px; font-size: 9px; }
-  .asf-note.root  { width: 26px; height: 26px; font-size: 10px; }
+  .asf-note       { width: 23px; height: 23px; font-size: 11px; }
+  .asf-note.root  { width: 28px; height: 28px; font-size: 12px; }
 }

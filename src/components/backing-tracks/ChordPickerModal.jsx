@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { chordDisplayName } from './useBackingTrackEngine.js'
+import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
 
 const NOTE_ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -131,7 +131,7 @@ function ChordEditor({ label, state, onPreview }) {
 
       {/* Preview */}
       <div className="chord-preview">
-        <span className="chord-preview-name">♪ {chordDisplayName(build())}</span>
+        <span className="chord-preview-name">♪ {prettifyChord(chordDisplayName(build()))}</span>
         <button className="preview-btn" onClick={() => onPreview(build())}>🔊 שמע</button>
       </div>
     </div>
