@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../../common/CategoryCard';
-import '../../home/HomePage.css';
+import './EarTrainingHub.css';
 
 const EarTrainingHub = () => {
   const navigate = useNavigate();
@@ -75,34 +75,18 @@ const EarTrainingHub = () => {
   const handleBackToHome = () => navigate('/');
 
   return (
-    <div className="home-page">
-      <header className="home-header">
-        <div className="header-content">
-          <div className="header-text">
-            <button
-              onClick={handleBackToHome}
-              style={{
-                alignSelf: 'flex-start',
-                padding: '10px 20px',
-                fontSize: 16,
-                fontWeight: 600,
-                color: 'var(--color-primary)',
-                background: 'white',
-                border: '2px solid var(--color-primary)',
-                borderRadius: 10,
-                cursor: 'pointer',
-                marginBottom: 16
-              }}
-            >
-              ← Back to Home
-            </button>
-            <h1 className="home-title">שמיעה מוזיקלית</h1>
-            <p className="home-subtitle">Musical Ear Training — 19 Exercises Across 7 Sub-Categories</p>
-          </div>
+    <div className="et-hub-page">
+      <header className="et-hub-header">
+        <button onClick={handleBackToHome} className="et-hub-back-btn">
+          ← Back to Home
+        </button>
+        <div className="et-hub-title-block">
+          <h1 className="et-hub-title">שמיעה מוזיקלית</h1>
+          <p className="et-hub-subtitle">Musical Ear Training — 19 Exercises Across 7 Sub-Categories</p>
         </div>
       </header>
 
-      <div className="home-content">
+      <div className="et-hub-grid">
         {subCategories.map(cat => (
           <CategoryCard
             key={cat.id}

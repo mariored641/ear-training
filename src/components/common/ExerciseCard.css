@@ -1,122 +1,137 @@
+/* Workshop theme — Exercise detail card (used in Ear Training sub-screens) */
+
 .exercise-card {
-  background: white;
-  border: 2px solid var(--border-color);
-  border-radius: 16px;
-  padding: 28px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  background-color: var(--paper-aged);
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(120, 70, 30, 0.12), transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(80, 40, 15, 0.15), transparent 55%);
+  color: var(--ink-sepia);
+  border: 1px solid var(--brass-dark);
+  border-radius: 6px 14px 8px 12px;
+  padding: 26px;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow-paper);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .exercise-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
-  border-color: var(--color-primary);
+  box-shadow: var(--shadow-paper), 0 6px 18px rgba(224, 182, 108, 0.2);
+  border-color: var(--brass);
 }
 
 .exercise-card-header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  border-bottom: 2px solid var(--bg-secondary);
-  padding-bottom: 16px;
+  gap: 6px;
+  border-bottom: 1px solid var(--brass-dark);
+  padding-bottom: 14px;
 }
 
 .exercise-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  color: var(--color-text);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  color: var(--ink-sepia);
   margin: 0;
 }
 
 .exercise-title-hebrew {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
+  font-size: 18px;
+  font-weight: 400;
+  font-family: var(--font-hand);
+  color: var(--ink-faded);
   margin: 0;
   direction: rtl;
 }
 
 .exercise-description {
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-sepia);
   margin: 0;
 }
 
 .exercise-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .exercise-section-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--color-primary);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  color: var(--leather-oxblood);
   margin: 0;
 }
 
 .exercise-list {
   margin: 0;
-  padding-left: 24px;
+  padding-inline-start: 22px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .exercise-list li {
   font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
+  line-height: 1.55;
+  color: var(--ink-faded);
 }
 
 .exercise-start-btn {
   margin-top: 8px;
-  padding: 12px 28px;
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
-  background: var(--color-primary);
-  border: none;
-  border-radius: 10px;
+  padding: 11px 26px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  color: var(--wood-darkest);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  border: 1px solid var(--brass-dark);
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: var(--shadow-inset), 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: filter 0.15s, transform 0.15s;
   align-self: center;
 }
 
 .exercise-start-btn:hover {
-  background: var(--color-primary-dark);
-  transform: scale(1.05);
+  filter: brightness(1.12);
+  transform: translateY(-1px);
 }
 
 .exercise-start-btn:active {
-  transform: scale(0.98);
+  filter: brightness(0.92);
+  transform: translateY(0);
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .exercise-card {
-    padding: 20px;
-    margin-bottom: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
   }
 
   .exercise-title {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .exercise-title-hebrew {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .exercise-description {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .exercise-section-title {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .exercise-list li {
@@ -126,6 +141,6 @@
   .exercise-start-btn {
     width: 100%;
     padding: 12px 24px;
-    font-size: 15px;
+    font-size: 14px;
   }
 }

@@ -1,25 +1,31 @@
+/* Workshop theme — Exercise card tile (used in Category + Ear Training sub-screens) */
+
 .exercise-card {
-  background-color: var(--color-bg);
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-xl);
+  background-color: var(--paper-aged);
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(120, 70, 30, 0.12), transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(80, 40, 15, 0.15), transparent 55%);
+  color: var(--ink-sepia);
+  border: 1px solid var(--brass-dark);
+  border-radius: 6px 14px 8px 12px;
+  padding: 24px 16px;
   aspect-ratio: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-md);
+  gap: 12px;
   cursor: pointer;
-  transition: all var(--transition-normal);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  font-family: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  box-shadow: var(--shadow-paper);
+  font-family: var(--font-body);
   text-align: center;
 }
 
 .exercise-card:hover:not(.disabled) {
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(33, 150, 243, 0.2);
-  border-color: var(--color-primary);
+  box-shadow: var(--shadow-paper), 0 8px 22px rgba(224, 182, 108, 0.25);
+  border-color: var(--brass);
 }
 
 .exercise-card:active:not(.disabled) {
@@ -27,16 +33,17 @@
 }
 
 .exercise-card.disabled {
-  background-color: var(--color-bg-secondary);
+  background-color: var(--paper-dark);
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.55;
+  filter: grayscale(0.4);
 }
 
 .exercise-card-icon {
-  font-size: 5rem;
-  margin-bottom: var(--spacing-sm);
+  font-size: 4.5rem;
+  margin-bottom: 4px;
   filter: grayscale(0%);
-  transition: filter var(--transition-normal);
+  transition: filter 0.18s ease;
 }
 
 .exercise-card.disabled .exercise-card-icon {
@@ -46,35 +53,40 @@
 
 .exercise-card-title {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+  color: var(--ink-sepia);
 }
 
 .exercise-card.disabled .exercise-card-title {
-  color: var(--color-text-secondary);
+  color: var(--ink-faded);
 }
 
 .exercise-card-badge {
-  background-color: var(--color-warning);
-  color: var(--color-text);
-  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: var(--leather-oxblood);
+  color: var(--paper-cream);
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   font-weight: 600;
-  margin-top: var(--spacing-sm);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+  border: 1px solid var(--brass-dark);
 }
 
 @media (max-width: 768px) {
   .exercise-card {
-    padding: var(--spacing-lg);
+    padding: 18px 12px;
   }
 
   .exercise-card-icon {
-    font-size: 4rem;
+    font-size: 3.5rem;
   }
 
   .exercise-card-title {
-    font-size: var(--font-size-lg);
+    font-size: 16px;
   }
 }

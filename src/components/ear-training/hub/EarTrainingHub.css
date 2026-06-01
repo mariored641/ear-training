@@ -1,24 +1,25 @@
-/* Workshop theme — Category screen (Dictation, legacy Melodic/Harmonic) */
+/* Ear Training Hub — Workshop theme */
 
-.category-screen {
+.et-hub-page {
   min-height: 100vh;
-  background-color: transparent;
+  background: transparent;
   color: var(--paper-cream);
   font-family: var(--font-body);
   position: relative;
   z-index: 2;
-  padding: 24px;
+  padding: 24px 20px 40px;
+  direction: rtl;
 }
 
-.category-screen-header {
-  max-width: 900px;
+.et-hub-header {
+  max-width: 1100px;
   margin: 0 auto 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
-.back-button {
+.et-hub-back-btn {
   align-self: flex-start;
   padding: 8px 18px;
   font-size: 15px;
@@ -31,20 +32,11 @@
   border-radius: 4px;
   cursor: pointer;
   box-shadow: var(--shadow-inset), 0 2px 4px rgba(0, 0, 0, 0.4);
-  transition: filter 0.15s ease, transform 0.15s ease;
+  transition: filter 0.15s, transform 0.15s;
 }
+.et-hub-back-btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
 
-.back-button:hover {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
-}
-
-.back-button:active {
-  filter: brightness(0.92);
-  transform: translateY(0);
-}
-
-.category-screen-title-container {
+.et-hub-title-block {
   text-align: center;
   padding: 20px 24px;
   background:
@@ -55,55 +47,34 @@
   box-shadow: var(--shadow-inset), 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-.category-screen-title {
-  font-size: 34px;
+.et-hub-title {
+  margin: 0 0 6px;
+  font-size: 32px;
   font-weight: 400;
   font-family: var(--font-display);
   letter-spacing: 0.06em;
   color: var(--paper-cream);
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6), 0 0 12px rgba(224, 182, 108, 0.25);
-  margin: 0 0 8px 0;
 }
 
-.category-screen-title-hebrew {
-  font-size: 22px;
-  font-weight: 400;
+.et-hub-subtitle {
+  margin: 0;
+  font-size: 14px;
   font-family: var(--font-hand);
   color: var(--brass-bright);
-  margin: 0;
-  direction: rtl;
   opacity: 0.85;
 }
 
-.category-screen-content {
-  max-width: 900px;
+.et-hub-grid {
+  max-width: 1100px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 24px;
-  padding: 0 24px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
-  .category-screen {
-    padding: 16px;
-  }
-
-  .category-screen-header {
-    margin-bottom: 24px;
-  }
-
-  .back-button {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-
-  .category-screen-title {
-    font-size: 26px;
-  }
-
-  .category-screen-title-hebrew {
-    font-size: 18px;
-  }
+  .et-hub-page { padding: 16px 14px 32px; }
+  .et-hub-title { font-size: 26px; }
+  .et-hub-subtitle { font-size: 13px; }
 }

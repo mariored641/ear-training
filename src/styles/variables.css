@@ -1,14 +1,22 @@
 :root {
-  /* Colors */
-  --color-primary: #2196F3;
-  --color-success: #4CAF50;
-  --color-error: #F44336;
-  --color-warning: #FFC107;
-  --color-hint: #FFD54F;
-  --color-bg: #FFFFFF;
-  --color-bg-secondary: #F5F5F5;
-  --color-text: #212121;
-  --color-text-secondary: #757575;
+  /* Legacy color tokens — remapped to Workshop theme palette so older
+     stylesheets (Exercise4, FeedbackPage form details, etc.) inherit the
+     new look automatically without per-file rewrites. Workshop tokens
+     themselves are defined in workshop-theme.css. */
+  --color-primary:          var(--brass);
+  --color-primary-dark:     var(--brass-dark);
+  --color-secondary:        var(--brass-bright);
+  --color-success:          #6ed988;
+  --color-error:            #ff7d6c;
+  --color-warning:          var(--brass-glow);
+  --color-hint:             var(--brass-glow);
+  --color-bg:               var(--wood-deep);
+  --color-bg-secondary:     var(--wood-darkest);
+  --color-text:             var(--paper-cream);
+  --color-text-secondary:   var(--paper-aged);
+  --bg-primary:             var(--wood-darkest);
+  --bg-secondary:           var(--wood-deep);
+  --bg-tertiary:            var(--wood-board);
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -17,8 +25,8 @@
   --spacing-lg: 24px;
   --spacing-xl: 32px;
 
-  /* Typography */
-  --font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Typography — defer to workshop fonts if available, else legacy stack */
+  --font-family: 'Special Elite', 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-size-sm: 14px;
   --font-size-md: 16px;
   --font-size-lg: 20px;
@@ -30,6 +38,6 @@
   --transition-slow: 0.5s ease;
 
   /* Borders */
-  --border-radius: 8px;
-  --border-color: #E0E0E0;
+  --border-radius: 4px;
+  --border-color: var(--brass-dark);
 }

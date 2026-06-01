@@ -1,44 +1,15 @@
-/* Reactive Ear Training — main exercise screen
-   Uses EarTrainingHeader (light) from shared/ — body matches with subtle dark gradient.
-   Override the CSS vars on the screen wrapper so header blends with body.
-*/
+/* Reactive Ear Training — main exercise screen — Workshop theme */
 
 .reactive-screen {
-  --bg-primary: #1a1a2e;
-  --bg-secondary: #232946;
-  --bg-tertiary: #2a3046;
-  --border-color: #3b4258;
-  --color-text: #e6e9f0;
-  --color-primary: #6aa8ff;
   min-height: 100vh;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-  color: #e6e9f0;
+  background: transparent;
+  color: var(--paper-cream);
+  font-family: var(--font-body);
   direction: rtl;
   display: flex;
   flex-direction: column;
-}
-
-/* Style overrides for the shared header inside our dark screen */
-.reactive-screen .et-header {
-  background: rgba(0,0,0,0.25);
-  border-bottom-color: rgba(255,255,255,0.08);
-}
-.reactive-screen .et-header-back,
-.reactive-screen .et-header-stop {
-  color: #6aa8ff;
-}
-.reactive-screen .et-header-back:hover,
-.reactive-screen .et-header-stop:hover {
-  background: rgba(106,168,255,0.12);
-}
-.reactive-screen .et-header-level-trigger {
-  background: #1f2233;
-  border-color: #3b4258;
-  color: #e6e9f0;
-}
-.reactive-screen .et-header-level-trigger:hover {
-  background: #2a3046;
-  border-color: #6aa8ff;
+  position: relative;
+  z-index: 2;
 }
 
 /* ---- Body ---- */
@@ -64,23 +35,28 @@
 }
 .reactive-session-timer {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #ffd479;
-  background: rgba(255,212,121,0.1);
+  font-family: var(--font-display);
+  color: var(--brass-glow);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--brass-dark);
   padding: 8px 14px;
-  border-radius: 10px;
+  border-radius: 4px;
   min-width: 80px;
   text-align: center;
+  letter-spacing: 0.06em;
 }
 .reactive-key-active {
-  color: #ffd479;
+  color: var(--brass-glow);
   font-size: 14px;
+  font-family: var(--font-hand);
 }
 .reactive-key-active strong {
   font-size: 18px;
-  color: #fff;
+  color: var(--paper-cream);
   margin-right: 4px;
+  font-family: var(--font-display);
 }
 
 /* ---- Diatonic key row (R1 only) ---- */
@@ -89,18 +65,27 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #cfd6e6;
+  color: var(--paper-aged);
 }
-.reactive-key-row label { font-weight: 600; }
+.reactive-key-row label { font-weight: 700; font-family: var(--font-display); letter-spacing: 0.03em; }
 .reactive-key-row select {
-  background: #1f2233;
-  color: #e6e9f0;
-  border: 1px solid #3b4258;
-  border-radius: 8px;
+  background: var(--wood-deep);
+  color: var(--paper-aged);
+  border: 1px solid var(--brass-dark);
+  border-radius: 4px;
   padding: 6px 10px;
-  font-family: inherit;
+  font-family: var(--font-body);
   font-size: 14px;
   cursor: pointer;
+}
+.reactive-key-row select:focus {
+  outline: none;
+  border-color: var(--brass-glow);
+  box-shadow: 0 0 0 2px rgba(224, 182, 108, 0.25);
+}
+.reactive-key-row select option {
+  background: var(--wood-deep);
+  color: var(--paper-aged);
 }
 .reactive-key-row select:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -117,31 +102,36 @@
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  border: 4px solid #4a9eff;
-  background: radial-gradient(circle at 30% 30%, #2a4a7f 0%, #1a2a4a 70%, #0f1730 100%);
-  color: #fff;
-  font-family: inherit;
+  border: 4px solid var(--brass);
+  background: radial-gradient(circle at 30% 30%, var(--wood-mid) 0%, var(--wood-board) 70%, var(--wood-deep) 100%);
+  color: var(--paper-cream);
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
   cursor: pointer;
-  box-shadow: 0 8px 32px rgba(74,158,255,0.4),
-              inset 0 -8px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 32px rgba(224, 182, 108, 0.35),
+              inset 0 -8px 16px rgba(0, 0, 0, 0.45),
+              inset 0 2px 0 rgba(255, 220, 160, 0.12);
   transition: transform 0.1s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6), 0 0 12px rgba(224, 182, 108, 0.35);
 }
 .reactive-play-btn:hover:not(:disabled) {
   transform: scale(1.03);
-  box-shadow: 0 12px 40px rgba(74,158,255,0.6),
-              inset 0 -8px 16px rgba(0,0,0,0.3);
+  border-color: var(--brass-glow);
+  box-shadow: 0 12px 40px rgba(224, 182, 108, 0.55),
+              inset 0 -8px 16px rgba(0, 0, 0, 0.45),
+              inset 0 2px 0 rgba(255, 220, 160, 0.18);
 }
 .reactive-play-btn:active:not(:disabled) { transform: scale(0.98); }
-.reactive-play-btn:disabled { opacity: 0.6; cursor: wait; }
+.reactive-play-btn:disabled { opacity: 0.55; cursor: wait; }
 
 .reactive-play-btn.playing {
-  border-color: #ff6b6b;
-  background: radial-gradient(circle at 30% 30%, #7f2a3a 0%, #4a1a25 70%, #301017 100%);
-  box-shadow: 0 8px 32px rgba(255,107,107,0.4),
-              inset 0 -8px 16px rgba(0,0,0,0.3);
+  border-color: var(--leather-oxblood);
+  background: radial-gradient(circle at 30% 30%, #7f3a2a 0%, #4a1a25 70%, #301017 100%);
+  box-shadow: 0 8px 32px rgba(225, 90, 60, 0.45),
+              inset 0 -8px 16px rgba(0, 0, 0, 0.45);
 }
 
 .reactive-play-label {
@@ -157,17 +147,34 @@
   font-size: 14px;
   text-align: center;
   margin: 0;
+  font-family: var(--font-hand);
 }
 
 .reactive-session-end {
-  background: rgba(255,212,121,0.1);
-  border: 1px solid rgba(255,212,121,0.4);
-  border-radius: 12px;
+  background-color: var(--paper-aged);
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(120, 70, 30, 0.12), transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(80, 40, 15, 0.15), transparent 55%);
+  color: var(--ink-sepia);
+  border: 1px solid var(--brass-dark);
+  border-radius: 6px 14px 8px 12px;
   padding: 16px 24px;
   text-align: center;
+  box-shadow: var(--shadow-paper);
 }
-.reactive-session-end h2 { margin: 0 0 4px; font-size: 18px; color: #ffd479; }
-.reactive-session-end p { margin: 0; font-size: 14px; color: #cfd6e6; }
+.reactive-session-end h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  color: var(--leather-oxblood);
+}
+.reactive-session-end p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-faded);
+  font-family: var(--font-hand);
+}
 
 /* ---- Reveal row ---- */
 .reactive-reveal-row {
@@ -182,19 +189,21 @@
   min-width: 160px;
   min-height: 48px;
   padding: 12px 28px;
-  border-radius: 12px;
-  border: 2px solid #6aa8ff;
-  background: rgba(106,168,255,0.08);
-  color: #cfd6e6;
-  font-family: inherit;
+  border-radius: 4px;
+  border: 1px solid var(--brass-dark);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper-aged);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
 }
 .reactive-reveal-btn:hover:not(:disabled) {
-  background: rgba(106,168,255,0.18);
-  border-color: #4a9eff;
+  background: rgba(184, 146, 61, 0.2);
+  border-color: var(--brass);
+  color: var(--paper-cream);
 }
 .reactive-reveal-btn:disabled {
   opacity: 0.35;
@@ -202,23 +211,25 @@
 }
 .reactive-reveal-btn.blink {
   animation: reactive-pulse 0.9s ease-in-out infinite;
-  border-color: #ffd479;
-  color: #ffd479;
+  border-color: var(--brass-glow);
+  color: var(--brass-glow);
 }
 .reactive-reveal-btn.shown {
-  background: rgba(74,158,255,0.25);
-  border-color: #4a9eff;
-  color: #fff;
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  border-color: var(--brass-dark);
+  color: var(--wood-darkest);
+  box-shadow: var(--shadow-inset);
 }
 .reactive-reveal-symbol {
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  font-family: var(--font-chord);
 }
 
 @keyframes reactive-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,212,121,0.5); }
-  50%      { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(255,212,121,0); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(224, 182, 108, 0.55); }
+  50%      { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(224, 182, 108, 0); }
 }
 
 .reactive-auto-toggle {
@@ -226,11 +237,12 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #a8b1c5;
+  color: var(--paper-aged);
   cursor: pointer;
   user-select: none;
+  font-family: var(--font-hand);
 }
-.reactive-auto-toggle input { cursor: pointer; }
+.reactive-auto-toggle input { cursor: pointer; accent-color: var(--brass); }
 
 /* ---- Bottom controls ---- */
 .reactive-controls-row {
@@ -238,47 +250,41 @@
   flex-wrap: wrap;
   gap: 14px;
   justify-content: center;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 12px;
+  border-top: 1px solid var(--brass-dark);
 }
 .reactive-control {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #cfd6e6;
+  color: var(--paper-aged);
 }
-.reactive-control label { font-weight: 600; }
+.reactive-control label {
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
 .reactive-control select {
-  background: #1f2233;
-  color: #e6e9f0;
-  border: 1px solid #3b4258;
-  border-radius: 8px;
+  background: var(--wood-deep);
+  color: var(--paper-aged);
+  border: 1px solid var(--brass-dark);
+  border-radius: 4px;
   padding: 6px 10px;
-  font-family: inherit;
+  font-family: var(--font-body);
   font-size: 14px;
   cursor: pointer;
 }
+.reactive-control select:focus {
+  outline: none;
+  border-color: var(--brass-glow);
+  box-shadow: 0 0 0 2px rgba(224, 182, 108, 0.25);
+}
+.reactive-control select option {
+  background: var(--wood-deep);
+  color: var(--paper-aged);
+}
 .reactive-control select:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ---- LevelNavigator drawer overrides (dark theme) ---- */
-.reactive-screen ~ .et-level-overlay .et-level-drawer,
-body:has(.reactive-screen) .et-level-drawer {
-  background: #1a1a2e;
-  color: #e6e9f0;
-}
-body:has(.reactive-screen) .et-level-drawer-title { color: #fff; }
-body:has(.reactive-screen) .et-level-drawer-close { color: #cfd6e6; }
-body:has(.reactive-screen) .et-level-drawer-item {
-  color: #cfd6e6;
-}
-body:has(.reactive-screen) .et-level-drawer-item:hover {
-  background: rgba(255,255,255,0.06);
-}
-body:has(.reactive-screen) .et-level-drawer-item.active {
-  background: rgba(74,158,255,0.2);
-  color: #fff;
-}
 
 /* ---- Mobile ---- */
 @media (max-width: 600px) {

@@ -290,9 +290,9 @@ const MultipleChoiceShell = ({
 };
 
 const settingsDivider = {
-  borderTop: '1px solid var(--border-color, #eee)',
+  borderTop: '1px solid var(--brass-dark)',
   margin: '8px 24px 0',
-  opacity: 0.6,
+  opacity: 0.55,
 };
 const controlsStyle = {
   display: 'flex',
@@ -300,24 +300,29 @@ const controlsStyle = {
   alignItems: 'center',
   flexWrap: 'wrap',
   padding: '16px 24px',
-  borderBottom: '1px solid var(--border-color, #eee)',
+  borderBottom: '1px solid var(--brass-dark)',
   justifyContent: 'center'
 };
 const promptStyle = {
   textAlign: 'center',
   fontSize: 18,
   margin: '24px 16px 8px',
-  color: 'var(--color-text, #222)'
+  color: 'var(--paper-cream)',
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.03em'
 };
 const replayBtnStyle = {
-  padding: '12px 28px',
-  borderRadius: 12,
-  border: '2px solid var(--color-primary, #4a90e2)',
-  background: 'var(--color-primary, #4a90e2)',
-  color: '#fff',
-  fontSize: 16,
+  padding: '11px 26px',
+  borderRadius: 4,
+  border: '1px solid var(--brass-dark)',
+  background: 'linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%)',
+  color: 'var(--wood-darkest)',
+  fontSize: 15,
   fontWeight: 700,
-  cursor: 'pointer'
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.04em',
+  cursor: 'pointer',
+  boxShadow: 'var(--shadow-inset), 0 2px 6px rgba(0,0,0,0.4)'
 };
 const optionsStyle = {
   display: 'flex',
@@ -331,35 +336,50 @@ const optionsStyle = {
 const optionBtnStyle = {
   minWidth: 120,
   padding: '14px 18px',
-  borderRadius: 10,
-  border: '2px solid var(--border-color, #ddd)',
-  background: '#fff',
-  color: 'var(--color-text, #222)',
+  borderRadius: '6px 14px 8px 12px',
+  border: '1px solid var(--brass-dark)',
+  background: 'var(--paper-aged)',
+  backgroundImage:
+    'radial-gradient(ellipse at 30% 20%, rgba(120, 70, 30, 0.10), transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(80, 40, 15, 0.12), transparent 55%)',
+  color: 'var(--ink-sepia)',
   fontSize: 16,
-  fontWeight: 600,
+  fontWeight: 700,
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.03em',
   cursor: 'pointer',
-  transition: 'all 0.15s'
+  transition: 'all 0.15s',
+  boxShadow: 'var(--shadow-paper)'
 };
 const optionSelectedStyle = {
-  background: 'var(--color-primary, #4a90e2)',
-  color: '#fff',
-  border: '2px solid var(--color-primary, #4a90e2)'
+  background: 'linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%)',
+  color: 'var(--wood-darkest)',
+  border: '1px solid var(--brass-dark)',
+  boxShadow: 'var(--shadow-inset), 0 2px 6px rgba(0,0,0,0.4)'
 };
 const optionCorrectStyle = {
-  background: '#2dbb5b', color: '#fff', border: '2px solid #2dbb5b'
+  background: 'linear-gradient(180deg, #6ed988 0%, #3aac5a 60%, #267d40 100%)',
+  color: '#0e2a16',
+  border: '1px solid #267d40',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px rgba(0,0,0,0.4)'
 };
 const optionWrongStyle = {
-  background: '#e74c3c', color: '#fff', border: '2px solid #e74c3c'
+  background: 'linear-gradient(180deg, #ff7d6c 0%, #d54a3a 60%, #8c2a1c 100%)',
+  color: '#3a0c06',
+  border: '1px solid #8c2a1c',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 6px rgba(0,0,0,0.4)'
 };
 const nextBtnStyle = {
   padding: '14px 32px',
-  borderRadius: 12,
-  border: '2px solid #2dbb5b',
-  background: '#2dbb5b',
-  color: '#fff',
+  borderRadius: 4,
+  border: '1px solid #267d40',
+  background: 'linear-gradient(180deg, #6ed988 0%, #3aac5a 60%, #267d40 100%)',
+  color: '#0e2a16',
   fontSize: 18,
   fontWeight: 700,
-  cursor: 'pointer'
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.04em',
+  cursor: 'pointer',
+  boxShadow: 'var(--shadow-inset), 0 2px 6px rgba(0,0,0,0.4)'
 };
 
 export default MultipleChoiceShell;

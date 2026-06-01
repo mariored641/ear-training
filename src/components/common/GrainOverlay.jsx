@@ -1,29 +1,25 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const WORKSHOP_ROUTES = ['/', '/positions', '/backing-tracks'];
 const HOME_ROUTE = '/';
 
 /**
- * Route-aware visual layer for the Workshop theme:
- *  - `body.workshop-active` (all workshop routes): wood/brass token palette + solid dark wood bg.
+ * Visual layer for the Workshop theme:
+ *  - `body.workshop-active` (every route): wood/brass token palette + solid dark wood bg.
  *  - `body.home-wood-bg` (homepage only): photographic walnut desk JPG + SVG grain overlay.
- *
- * Other Aurora-themed routes (ear training, dictation, feedback, etc.) get nothing.
  */
 export default function GrainOverlay() {
   const { pathname } = useLocation();
-  const workshop = WORKSHOP_ROUTES.includes(pathname);
   const home = pathname === HOME_ROUTE;
 
   useEffect(() => {
-    document.body.classList.toggle('workshop-active', workshop);
+    document.body.classList.add('workshop-active');
     document.body.classList.toggle('home-wood-bg', home);
     return () => {
       document.body.classList.remove('workshop-active');
       document.body.classList.remove('home-wood-bg');
     };
-  }, [workshop, home]);
+  }, [home]);
 
   if (!home) return null;
 
