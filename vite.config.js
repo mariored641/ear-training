@@ -103,6 +103,7 @@ function soundfontServPlugin() {
 export default defineConfig({
   server: {
     port: process.env.PORT ? parseInt(process.env.PORT) : undefined,
+    host: true,
   },
   plugins: [
     react(),

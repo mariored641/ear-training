@@ -15,7 +15,7 @@ import React, { useState, useRef, useCallback } from 'react'
 import { loadStyleById } from '../../lib/style-engine/StyleLoader.js'
 import * as SFP    from '../../lib/soundfont/SoundFontPlayer.js'
 import { InstrumentedEngine } from './shared/InstrumentedEngine.js'
-import { AudioMetronome }     from './shared/AudioMetronome.js'
+import { AudioMetronome }     from '../../lib/audio/AudioMetronome.js'
 import { StatsTable, computeStats } from './shared/StatsTable.jsx'
 
 const STYLE_OPTIONS = [

@@ -465,6 +465,18 @@ export const BoltClassicIcon = (props) => (
 );
 
 // ─────────────────────────────────────────────
+// Global Tools FAB icon (own design, MIT)
+// ─────────────────────────────────────────────
+export const WrenchIcon = (props) => (
+  <Svg viewBox="0 0 64 64" {...props}>
+    <g fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M44 8 A12 12 0 0 0 30 26 L10 46 A4 4 0 0 0 10 52 L12 54 A4 4 0 0 0 18 54 L38 34 A12 12 0 0 0 56 20 L48 28 L40 28 L40 20 L48 12 Z" />
+    </g>
+    <circle cx="14" cy="50" r="1.6" fill="currentColor" />
+  </Svg>
+);
+
+// ─────────────────────────────────────────────
 // Saved for future "Tuner" feature (own design, MIT)
 // Standalone SVG also at: public/icons/tuning-fork.svg
 // ─────────────────────────────────────────────

@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './components/home/HomePage';
 import GrainOverlay from './components/common/GrainOverlay';
+import { ToolsProvider } from './components/global-tools/ToolsContext';
+import GlobalTools from './components/global-tools/GlobalTools';
 
 // Lazy load category screens
 const MelodicCategoryScreen = React.lazy(() => import('./components/category/MelodicCategoryScreen'));
@@ -76,9 +78,10 @@ const Sf2LabPage            = React.lazy(() => import('./components/sf2-lab/Sf2L
 function App() {
   return (
     <Router>
-      <GrainOverlay />
-      <React.Suspense fallback={<div className="container">Loading...</div>}>
-        <Routes>
+      <ToolsProvider>
+        <GrainOverlay />
+        <React.Suspense fallback={<div className="container">Loading...</div>}>
+          <Routes>
           <Route path="/" element={<HomePage />} />
 
           {/* Category Screens (legacy — kept as fallback during ear-training refactor) */}
@@ -176,6 +179,8 @@ function App() {
           <Route path="/exercise4" element={<Exercise4 />} />
         </Routes>
       </React.Suspense>
+      <GlobalTools />
+      </ToolsProvider>
     </Router>
   );
 }
