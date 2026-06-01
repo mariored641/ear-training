@@ -13,6 +13,27 @@
   pointer-events: none; /* children re-enable */
 }
 
+.gt-cluster.is-dragging .gt-fab-main {
+  cursor: grabbing;
+  transform: scale(1.08);
+  filter: brightness(1.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 160, 0.55),
+    0 0 0 3px var(--brass-glow),
+    0 10px 28px rgba(0, 0, 0, 0.55);
+}
+.gt-cluster.is-dragging.open .gt-fab-main {
+  transform: scale(1.08) rotate(0deg);
+}
+
+.gt-fab-main {
+  touch-action: none;
+  cursor: grab;
+}
+.gt-fab-main:active {
+  cursor: grabbing;
+}
+
 .gt-fab {
   position: absolute;
   inset: 0;
@@ -76,10 +97,27 @@
 }
 
 /* Final positions — measured from the center of the main FAB.
-   Radius 78px. Tuner ~30°, Metronome ~60°, Recorder ~90° (straight up). */
+   Radius 78px. Tuner ~30°, Metronome ~60°, Recorder ~90° (straight along main axis).
+   Default fan is up-right (FAB anchored bottom-left). Variants below override
+   the --tx/--ty signs for the other three quadrants. */
 .gt-mini-tuner { --tx:  67px; --ty: -39px; transition-delay: 0ms; }
 .gt-mini-metro { --tx:  39px; --ty: -67px; transition-delay: 50ms; }
 .gt-mini-rec   { --tx:   0px; --ty: -78px; transition-delay: 100ms; }
+
+/* Fan-up, opening to the left (FAB near right edge) */
+.gt-fan-up-left .gt-mini-tuner { --tx: -67px; --ty: -39px; }
+.gt-fan-up-left .gt-mini-metro { --tx: -39px; --ty: -67px; }
+.gt-fan-up-left .gt-mini-rec   { --tx:   0px; --ty: -78px; }
+
+/* Fan-down, opening to the right (FAB near top-left) */
+.gt-fan-down-right .gt-mini-tuner { --tx:  67px; --ty:  39px; }
+.gt-fan-down-right .gt-mini-metro { --tx:  39px; --ty:  67px; }
+.gt-fan-down-right .gt-mini-rec   { --tx:   0px; --ty:  78px; }
+
+/* Fan-down, opening to the left (FAB near top-right) */
+.gt-fan-down-left .gt-mini-tuner { --tx: -67px; --ty:  39px; }
+.gt-fan-down-left .gt-mini-metro { --tx: -39px; --ty:  67px; }
+.gt-fan-down-left .gt-mini-rec   { --tx:   0px; --ty:  78px; }
 
 .gt-cluster.open .gt-fab-mini {
   transform: translate(var(--tx), var(--ty)) scale(1) rotate(0deg);
@@ -139,15 +177,27 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Popovers (Tuner / Metronome)
+   Popovers (Tuner / Metronome) — anchored inside the cluster so
+   they follow drag and flip with the fan direction.
    ───────────────────────────────────────────────────────────── */
 .gt-popover-anchor {
-  position: fixed;
-  left: 24px;
-  bottom: 96px; /* above the cluster */
+  position: absolute;
   z-index: 2110;
   pointer-events: auto;
 }
+
+/* Default (fan-up-right): popover above the cluster, left-aligned. */
+.gt-fan-up-right .gt-popover-anchor   { bottom: 96px; left: 0;  }
+.gt-fan-up-right .gt-popover           { transform-origin: bottom left; }
+
+.gt-fan-up-left .gt-popover-anchor    { bottom: 96px; right: 0; }
+.gt-fan-up-left .gt-popover            { transform-origin: bottom right; }
+
+.gt-fan-down-right .gt-popover-anchor { top: 96px;    left: 0;  }
+.gt-fan-down-right .gt-popover         { transform-origin: top left; }
+
+.gt-fan-down-left .gt-popover-anchor  { top: 96px;    right: 0; }
+.gt-fan-down-left .gt-popover          { transform-origin: top right; }
 
 .gt-popover {
   background: var(--glass-bg-strong);
