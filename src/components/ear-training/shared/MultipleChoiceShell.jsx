@@ -7,6 +7,8 @@ import QuestionsCounter from './QuestionsCounter';
 import BinaryToggle from './BinaryToggle';
 import ChipSelector from './ChipSelector';
 import { loadStoredLevel } from './LevelNavigator';
+import audioPlayer from '../../../utils/AudioPlayer';
+import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import './earTrainingShared.css';
 
 /**
@@ -72,6 +74,9 @@ const MultipleChoiceShell = ({
   const [done, setDone] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
   const playIdRef = useRef(0);
+  const playAbortRef = useRef(null);
+  const playbackTimersRef = useRef(new Set());
+  const uiTimersRef = useRef(new Set());
   const lastQuestionRef = useRef(null);
 
   const ctx = {
@@ -85,6 +90,81 @@ const MultipleChoiceShell = ({
     if (!q) return null;
     return questionKey ? questionKey(q) : String(q.correctId);
   };
+
+  const clearPlaybackTimers = useCallback(() => {
+    playbackTimersRef.current.forEach((timerId) => clearTimeout(timerId));
+    playbackTimersRef.current.clear();
+  }, []);
+
+  const clearUiTimers = useCallback(() => {
+    uiTimersRef.current.forEach((timerId) => clearTimeout(timerId));
+    uiTimersRef.current.clear();
+  }, []);
+
+  const stopAudio = useCallback(() => {
+    audioPlayer.stop?.();
+    harmonicAudioPlayer.stop?.();
+  }, []);
+
+  const cancelPlayback = useCallback(() => {
+    playIdRef.current++;
+    playAbortRef.current?.abort();
+    playAbortRef.current = null;
+    clearPlaybackTimers();
+    stopAudio();
+  }, [clearPlaybackTimers, stopAudio]);
+
+  const setPlaybackTimeout = useCallback((fn, delay) => {
+    const timerId = setTimeout(() => {
+      playbackTimersRef.current.delete(timerId);
+      fn();
+    }, delay);
+    playbackTimersRef.current.add(timerId);
+    return timerId;
+  }, []);
+
+  const setUiTimeout = useCallback((fn, delay) => {
+    const timerId = setTimeout(() => {
+      uiTimersRef.current.delete(timerId);
+      fn();
+    }, delay);
+    uiTimersRef.current.add(timerId);
+    return timerId;
+  }, []);
+
+  const waitForPlayback = useCallback((signal, delay) => new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve(false);
+      return;
+    }
+    const timerId = setTimeout(() => {
+      playbackTimersRef.current.delete(timerId);
+      resolve(!signal?.aborted);
+    }, delay);
+    playbackTimersRef.current.add(timerId);
+    signal?.addEventListener('abort', () => {
+      clearTimeout(timerId);
+      playbackTimersRef.current.delete(timerId);
+      resolve(false);
+    }, { once: true });
+  }), []);
+
+  const playQuestion = useCallback((q) => {
+    if (!q || !onPlay) return;
+    cancelPlayback();
+    const myId = ++playIdRef.current;
+    const controller = new AbortController();
+    playAbortRef.current = controller;
+    const playbackCtx = {
+      ...ctx,
+      signal: controller.signal,
+      isCancelled: () => controller.signal.aborted || playIdRef.current !== myId,
+      wait: (delay) => waitForPlayback(controller.signal, delay)
+    };
+    setPlaybackTimeout(() => {
+      if (!playbackCtx.isCancelled()) onPlay(q, level, playbackCtx);
+    }, 200);
+  }, [cancelPlayback, ctx, level, onPlay, setPlaybackTimeout, waitForPlayback]);
 
   const startQuestion = useCallback(() => {
     setAttempted(false);
@@ -103,12 +183,9 @@ const MultipleChoiceShell = ({
     }
     lastQuestionRef.current = q;
     setQuestion(q);
-    if (q && onPlay) {
-      const myId = ++playIdRef.current;
-      setTimeout(() => { if (playIdRef.current === myId) onPlay(q, level, ctx); }, 200);
-    }
+    playQuestion(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [generateQuestion, level, onPlay, instrument?.value, reference?.value, chips?.activeIds]);
+  }, [generateQuestion, level, playQuestion, instrument?.value, reference?.value, chips?.activeIds]);
 
   useEffect(() => {
     setQuestionIndex(0);
@@ -116,11 +193,15 @@ const MultipleChoiceShell = ({
     setDone(false);
     lastQuestionRef.current = null;
     startQuestion();
-    return () => { playIdRef.current++; };
+    return () => {
+      cancelPlayback();
+      clearUiTimers();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, numQuestions]);
 
   const goToNext = () => {
+    cancelPlayback();
     if (questionIndex + 1 >= numQuestions) {
       setDone(true);
     } else {
@@ -138,19 +219,19 @@ const MultipleChoiceShell = ({
       setFirstTry(p => p + 1);
     }
     setAttempted(true);
-    setTimeout(() => setFeedback(null), 600);
+    setUiTimeout(() => setFeedback(null), 600);
     if (correct) {
       const mode = advancement?.value ?? 'auto';
       if (mode === 'manual') {
-        setTimeout(() => setShowNextButton(true), 600);
+        setUiTimeout(() => setShowNextButton(true), 600);
       } else {
-        setTimeout(goToNext, 800);
+        setUiTimeout(goToNext, 800);
       }
     }
   };
 
   const handleReplay = () => {
-    if (question && onPlay) onPlay(question, level, ctx);
+    playQuestion(question);
   };
 
   if (done) {
@@ -210,6 +291,7 @@ const MultipleChoiceShell = ({
           return (
             <button
               key={opt.id}
+              data-answer-state={isCorrect ? 'correct' : isWrong ? 'wrong' : isSel ? 'selected' : 'idle'}
               onClick={() => handleAnswer(opt.id)}
               disabled={(answered === opt.id && feedback === 'correct') || showNextButton}
               style={{

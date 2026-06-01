@@ -89,20 +89,24 @@ const ExerciseF0 = () => {
 
   const onPlay = useCallback(async (q, _level, ctx) => {
     if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
+    if (ctx?.isCancelled?.()) return;
     const ref = ctx?.reference ?? reference;
     if (ref === 'cadence') {
       await harmonicAudioPlayer.playCadence('PAC', q.tonic, null, q.mode, 0.7);
-      await new Promise(r => setTimeout(r, 200));
+      if (ctx?.isCancelled?.()) return;
+      if (ctx?.wait && !(await ctx.wait(200))) return;
     } else if (ref === 'chord') {
       const tonicChord = q.mode === 'minor' ? q.tonic + 'm' : q.tonic;
       const notes = resolveChord(tonicChord);
       if (notes) harmonicAudioPlayer.playChord(notes, 0.8, 'strummed');
-      await new Promise(r => setTimeout(r, 1000));
+      if (ctx?.wait && !(await ctx.wait(1000))) return;
     } else if (ref === 'note') {
       if (!audioPlayer.initialized) await audioPlayer.init();
+      if (ctx?.isCancelled?.()) return;
       await audioPlayer.playNote(q.tonic + '4', 1.0);
-      await new Promise(r => setTimeout(r, 1100));
+      if (ctx?.wait && !(await ctx.wait(1100))) return;
     }
+    if (ctx?.isCancelled?.()) return;
     const notes = resolveChord(q.chord);
     if (notes) harmonicAudioPlayer.playChord(notes, 2.0, 'strummed');
   }, [key, instrument, reference]);
