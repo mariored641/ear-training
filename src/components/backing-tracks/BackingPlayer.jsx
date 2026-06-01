@@ -8,6 +8,7 @@ import { PresetLibrary }          from './PresetLibrary.jsx'
 import { MyProgressions }         from './MyProgressions.jsx'
 import { ChordPreviewStrip }      from './ChordPreviewStrip.jsx'
 import { PolyscalePopup }         from './PolyscalePopup.jsx'
+import { PentatonicBoxIcon }      from '../icons/AppIcons'
 
 const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
 
@@ -580,12 +581,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
               onClick={() => togglePopup('fretboard')}
               title="צוואר"
             >
-              <svg viewBox="0 0 24 24" className="bp-tab-icon">
-                <path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>
-                <circle cx="7"  cy="7"  r="1.3"/>
-                <circle cx="12" cy="12" r="1.3"/>
-                <circle cx="17" cy="17" r="1.3"/>
-              </svg>
+              <PentatonicBoxIcon className="bp-tab-icon" />
             </button>
           )}
           <button

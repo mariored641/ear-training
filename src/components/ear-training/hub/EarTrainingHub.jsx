@@ -1,6 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../../common/CategoryCard';
+import {
+  QuarterNoteIcon,
+  PianoOctaveIcon,
+  HubRomanIcon,
+  VoicesCrossIcon,
+  SingerStaffIcon,
+  GuitarPickIcon,
+  BoltAuraIcon,
+} from '../../icons/AppIcons';
 import './EarTrainingHub.css';
 
 const EarTrainingHub = () => {
@@ -9,7 +18,7 @@ const EarTrainingHub = () => {
   const subCategories = [
     {
       id: 'melodic',
-      icon: '🎵',
+      icon: <QuarterNoteIcon />,
       title: 'Melody',
       titleHebrew: 'מלודיה',
       description: 'זיהוי דרגות, כיוון תנועה וסולמות',
@@ -18,7 +27,7 @@ const EarTrainingHub = () => {
     },
     {
       id: 'harmonic-isolated',
-      icon: '🎹',
+      icon: <PianoOctaveIcon />,
       title: 'Isolated Harmony',
       titleHebrew: 'הרמוניה מבודדת',
       description: 'אופי אקורד, היפוך, סוג וטנשנים',
@@ -27,7 +36,7 @@ const EarTrainingHub = () => {
     },
     {
       id: 'functional',
-      icon: '🎼',
+      icon: <HubRomanIcon />,
       title: 'Functional Harmony',
       titleHebrew: 'הרמוניה פונקציונלית',
       description: 'דרגות, קדנצות, מהלכים והכתבה',
@@ -36,7 +45,7 @@ const EarTrainingHub = () => {
     },
     {
       id: 'voice-leading',
-      icon: '🎶',
+      icon: <VoicesCrossIcon />,
       title: 'Voice Leading',
       titleHebrew: 'תנועת קול',
       description: 'עקיבה אחר קו בס וקו סופרן',
@@ -45,7 +54,7 @@ const EarTrainingHub = () => {
     },
     {
       id: 'solfege',
-      icon: '🎤',
+      icon: <SingerStaffIcon />,
       title: 'Solfège',
       titleHebrew: 'סולפז\'',
       description: 'שירה מתווים וזיהוי תיווי',
@@ -54,7 +63,7 @@ const EarTrainingHub = () => {
     },
     {
       id: 'guitar',
-      icon: '🎸',
+      icon: <GuitarPickIcon />,
       title: 'Guitar',
       titleHebrew: 'גיטרה',
       description: 'מיפוי צוואר ושמיעה צבעונית',
@@ -63,7 +72,7 @@ const EarTrainingHub = () => {
     },
     {
       id: 'reactive',
-      icon: '⚡',
+      icon: <BoltAuraIcon />,
       title: 'Reactive',
       titleHebrew: 'שמיעה ריאקטיבית',
       description: 'בלי לחשוב, בלי לתייג — רק להגיב לאקורד',

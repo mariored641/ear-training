@@ -1,17 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../../home/ExerciseCard';
+import { DegreeRomanIcon, CadenceIcon, HarmonicDictationIcon, MetronomeIcon, ProgressionIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const FunctionalSubScreen = () => {
   const navigate = useNavigate();
 
   const exercises = [
-    { id: 'F0', icon: '🎯', title: 'F0 — דרגת אקורד בודד', path: '/exercise/F0' },
-    { id: 'F1', icon: '🏁', title: 'F1 — זיהוי קדנצה', path: '/exercise/F1' },
-    { id: 'F2', icon: '📝', title: 'F2 — הכתבה הרמונית', path: '/exercise/F2' },
-    { id: 'F3', icon: '⏱️', title: 'F3 — ריתמוס הרמוני', path: '/exercise/F3' },
-    { id: 'F4', icon: '🎼', title: 'F4 — מהלך מוכר', path: '/exercise/F4' }
+    { id: 'F0', icon: <DegreeRomanIcon />,         title: 'F0 — דרגת אקורד בודד', path: '/exercise/F0' },
+    { id: 'F1', icon: <CadenceIcon />,             title: 'F1 — זיהוי קדנצה', path: '/exercise/F1' },
+    { id: 'F2', icon: <HarmonicDictationIcon />,   title: 'F2 — הכתבה הרמונית', path: '/exercise/F2' },
+    { id: 'F3', icon: <MetronomeIcon />,           title: 'F3 — ריתמוס הרמוני', path: '/exercise/F3' },
+    { id: 'F4', icon: <ProgressionIcon />,         title: 'F4 — מהלך מוכר', path: '/exercise/F4' }
   ];
 
   return (

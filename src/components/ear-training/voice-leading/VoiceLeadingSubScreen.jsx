@@ -1,14 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../../home/ExerciseCard';
+import { BassLineIcon, SopranoLineIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const VoiceLeadingSubScreen = () => {
   const navigate = useNavigate();
 
   const exercises = [
-    { id: 'V1', icon: '🎻', title: 'V1 — עקיבת קו בס', path: '/exercise/V1' },
-    { id: 'V2', icon: '🎤', title: 'V2 — עקיבת קו סופרן', path: '/exercise/V2' }
+    { id: 'V1', icon: <BassLineIcon />,    title: 'V1 — עקיבת קו בס', path: '/exercise/V1' },
+    { id: 'V2', icon: <SopranoLineIcon />, title: 'V2 — עקיבת קו סופרן', path: '/exercise/V2' }
   ];
 
   return (

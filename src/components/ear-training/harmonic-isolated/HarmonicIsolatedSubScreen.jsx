@@ -1,16 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../../home/ExerciseCard';
+import { ChordTriadIcon, ChordInversionIcon, Chord7Icon, ChordTensionsIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const HarmonicIsolatedSubScreen = () => {
   const navigate = useNavigate();
 
   const exercises = [
-    { id: 'H1', icon: '🎹', title: 'H1 — אופי אקורד', path: '/exercise/H1' },
-    { id: 'H2', icon: '🔄', title: 'H2 — היפוך אקורד', path: '/exercise/H2' },
-    { id: 'H3', icon: '🎶', title: 'H3 — סוג אקורד', path: '/exercise/H3' },
-    { id: 'H4', icon: '🎷', title: 'H4 — טנשנים (ג\'אז)', path: '/exercise/H4' }
+    { id: 'H1', icon: <ChordTriadIcon />,     title: 'H1 — אופי אקורד', path: '/exercise/H1' },
+    { id: 'H2', icon: <ChordInversionIcon />, title: 'H2 — היפוך אקורד', path: '/exercise/H2' },
+    { id: 'H3', icon: <Chord7Icon />,         title: 'H3 — סוג אקורד', path: '/exercise/H3' },
+    { id: 'H4', icon: <ChordTensionsIcon />,  title: 'H4 — טנשנים (ג\'אז)', path: '/exercise/H4' }
   ];
 
   return (

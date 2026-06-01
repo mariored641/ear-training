@@ -1,13 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../../home/ExerciseCard';
+import { PentatonicBoxIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const GuitarSubScreen = () => {
   const navigate = useNavigate();
 
   const exercises = [
-    { id: 'G1', icon: '🎸', title: 'G1 — מיפוי צוואר', path: '/exercise/G1' }
+    { id: 'G1', icon: <PentatonicBoxIcon />, title: 'G1 — מיפוי צוואר', path: '/exercise/G1' }
   ];
 
   return (

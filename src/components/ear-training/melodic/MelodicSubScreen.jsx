@@ -1,15 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../../home/ExerciseCard';
+import { TargetIcon, DirectionUpIcon, ScaleAscendingIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const MelodicSubScreen = () => {
   const navigate = useNavigate();
 
   const exercises = [
-    { id: 'M1', icon: '🎯', title: 'M1 — זיהוי דרגה מלודית', path: '/exercise/M1' },
-    { id: 'M2', icon: '↗️', title: 'M2 — כיוון תנועה מלודית', path: '/exercise/M2' },
-    { id: 'M3', icon: '🎼', title: 'M3 — זיהוי סולם', path: '/exercise/M3' }
+    { id: 'M1', icon: <TargetIcon />,          title: 'M1 — זיהוי דרגה מלודית', path: '/exercise/M1' },
+    { id: 'M2', icon: <DirectionUpIcon />,     title: 'M2 — כיוון תנועה מלודית', path: '/exercise/M2' },
+    { id: 'M3', icon: <ScaleAscendingIcon />,  title: 'M3 — זיהוי סולם', path: '/exercise/M3' }
   ];
 
   return (

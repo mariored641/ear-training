@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בחירת אייקונים — אלתור בהישג יד</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Special+Elite&family=Heebo:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<style>
+:root {
+  --wood-darkest: #1a0f08;
+  --wood-dark:    #2a1a0d;
+  --wood-medium:  #4a2f1a;
+  --wood-light:   #6b4423;
+  --wood-grain:   #3a2415;
+  --brass:        #d4a957;
+  --brass-bright: #f0c674;
+  --brass-dark:   #8b6914;
+  --paper:        #f4ecd8;
+  --paper-dark:   #d4c5a0;
+  --ink:          #2c1810;
+  --leather:      #5c3a1d;
+  --glass-bg:     rgba(244, 236, 216, 0.06);
+  --glass-border: rgba(212, 169, 87, 0.25);
+  --shadow-deep:  0 8px 24px rgba(0,0,0,0.6);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Heebo', system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(212,169,87,0.08), transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgba(91,58,29,0.4), transparent 60%),
+    linear-gradient(180deg, var(--wood-darkest) 0%, var(--wood-dark) 40%, var(--wood-darkest) 100%);
+  color: var(--paper);
+  min-height: 100vh;
+  padding: 2rem 1.5rem 5rem;
+  background-attachment: fixed;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    repeating-linear-gradient(95deg, transparent 0, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px),
+    repeating-linear-gradient(85deg, transparent 0, transparent 7px, rgba(255,255,255,0.015) 7px, rgba(255,255,255,0.015) 8px);
+  pointer-events: none;
+  z-index: 0;
+}
+.container { max-width: 1400px; margin: 0 auto; position: relative; z-index: 1; }
+
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(244,236,216,0.04), rgba(0,0,0,0.2));
+  box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+h1 {
+  font-family: 'Special Elite', monospace;
+  font-size: 2.4rem;
+  margin: 0 0 0.5rem;
+  color: var(--brass-bright);
+  letter-spacing: 0.5px;
+}
+header p {
+  margin: 0.5rem 0;
+  color: var(--paper-dark);
+  font-size: 1rem;
+}
+.subtitle { font-family: 'Patrick Hand', cursive; font-size: 1.2rem; color: var(--paper); }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-top: 1.2rem;
+}
+.legend span {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(212,169,87,0.12);
+  border: 1px solid rgba(212,169,87,0.3);
+  color: var(--paper-dark);
+}
+
+.section {
+  margin-bottom: 3rem;
+  padding: 1.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(244,236,216,0.025), rgba(0,0,0,0.15));
+  box-shadow: var(--shadow-deep);
+}
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px dashed rgba(212,169,87,0.3);
+}
+.section-title {
+  font-family: 'Special Elite', monospace;
+  font-size: 1.5rem;
+  color: var(--brass-bright);
+  margin: 0;
+}
+.section-title small {
+  display: block;
+  font-family: 'Heebo';
+  font-size: 0.85rem;
+  color: var(--paper-dark);
+  margin-top: 0.2rem;
+  letter-spacing: 0.3px;
+}
+.selected-indicator {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1rem;
+  color: var(--brass);
+  padding: 0.3rem 0.8rem;
+  background: rgba(212,169,87,0.1);
+  border-radius: 999px;
+  border: 1px dashed var(--brass-dark);
+}
+.selected-indicator.empty { color: var(--paper-dark); opacity: 0.6; }
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.9rem;
+}
+.icon-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(244,236,216,0.04), rgba(0,0,0,0.1));
+  border: 1.5px solid rgba(212,169,87,0.18);
+  border-radius: 12px;
+  padding: 1.2rem 0.6rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+.icon-card:hover {
+  border-color: var(--brass);
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(212,169,87,0.08), rgba(0,0,0,0.1));
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,169,87,0.3);
+}
+.icon-card.selected {
+  border-color: var(--brass-bright);
+  background: linear-gradient(180deg, rgba(212,169,87,0.18), rgba(91,58,29,0.2));
+  box-shadow: 0 6px 18px rgba(212,169,87,0.25), inset 0 0 0 2px var(--brass);
+}
+.icon-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  width: 22px;
+  height: 22px;
+  background: var(--brass);
+  color: var(--wood-darkest);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+.icon-card iconify-icon,
+.icon-card .custom-svg {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: var(--paper);
+  transition: color 0.18s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-card .custom-svg svg { width: 100%; height: 100%; }
+.icon-card:hover iconify-icon,
+.icon-card:hover .custom-svg,
+.icon-card.selected iconify-icon,
+.icon-card.selected .custom-svg {
+  color: var(--brass-bright);
+}
+.summary-item .custom-svg {
+  width: 1.8rem;
+  height: 1.8rem;
+  color: var(--brass-bright);
+  display: flex;
+  flex-shrink: 0;
+}
+.summary-item .custom-svg svg { width: 100%; height: 100%; }
+.icon-name {
+  font-size: 0.7rem;
+  font-family: monospace;
+  color: var(--paper-dark);
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.3;
+}
+.icon-lib {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  color: var(--brass-bright);
+  background: rgba(212,169,87,0.12);
+  border: 1px solid rgba(212,169,87,0.3);
+}
+.icon-lib[data-license="MIT"] { background: rgba(140, 220, 140, 0.1); border-color: rgba(140, 220, 140, 0.3); color: #b5e8b5; }
+.icon-lib[data-license="Apache"] { background: rgba(140, 180, 220, 0.1); border-color: rgba(140, 180, 220, 0.3); color: #b5d4e8; }
+.icon-lib[data-license="CC-BY"] { background: rgba(220, 180, 140, 0.1); border-color: rgba(220, 180, 140, 0.3); color: #e8d4b5; }
+.icon-lib[data-license="CC0"] { background: rgba(180, 220, 140, 0.1); border-color: rgba(180, 220, 140, 0.3); color: #d4e8b5; }
+
+.icon-card[data-own="true"] {
+  background: linear-gradient(180deg, rgba(212,169,87,0.06), rgba(91,58,29,0.12));
+  border-color: rgba(212,169,87,0.35);
+}
+.icon-card[data-own="true"]::before {
+  content: '🎨 שלנו';
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 0.6rem;
+  background: var(--brass-dark);
+  color: var(--paper);
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-family: 'Heebo';
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  opacity: 0.85;
+}
+
+.preview-styles {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(212,169,87,0.2);
+  flex-wrap: wrap;
+}
+.preview-style {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.6rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid rgba(212,169,87,0.15);
+  background: rgba(0,0,0,0.15);
+}
+.preview-style iconify-icon { font-size: 2.5rem; }
+.preview-style div { font-size: 0.7rem; color: var(--paper-dark); margin-top: 0.4rem; }
+
+#summary {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  background: linear-gradient(180deg, rgba(42,26,13,0.95), rgba(26,15,8,0.98));
+  backdrop-filter: blur(12px);
+  border: 1.5px solid var(--brass);
+  border-radius: 14px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.7);
+  z-index: 100;
+  max-width: 1400px;
+  margin: 0 auto;
+  transition: transform 0.3s ease;
+}
+#summary.collapsed { transform: translateY(calc(100% - 50px)); }
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.summary-title {
+  font-family: 'Special Elite', monospace;
+  font-size: 1.1rem;
+  color: var(--brass-bright);
+  margin: 0;
+}
+.summary-toggle {
+  background: var(--brass);
+  color: var(--wood-darkest);
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Heebo';
+  font-size: 0.85rem;
+}
+.summary-body {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.7rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(244,236,216,0.05);
+  border: 1px solid rgba(212,169,87,0.2);
+  border-radius: 8px;
+}
+.summary-item iconify-icon { font-size: 1.6rem; color: var(--brass-bright); }
+.summary-item-text { font-size: 0.78rem; }
+.summary-item-text strong { display: block; color: var(--paper); }
+.summary-item-text code { color: var(--paper-dark); font-size: 0.7rem; }
+.summary-item.empty { opacity: 0.5; }
+.summary-item.empty iconify-icon { color: var(--paper-dark); }
+
+#actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+button.action {
+  padding: 0.5rem 1.1rem;
+  background: linear-gradient(180deg, var(--brass-bright), var(--brass-dark));
+  color: var(--wood-darkest);
+  border: 1px solid var(--brass-dark);
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Heebo';
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+button.action:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+button.action.secondary {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--glass-border);
+}
+
+.style-filter {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.style-filter button {
+  background: transparent;
+  border: 1px solid rgba(212,169,87,0.3);
+  color: var(--paper-dark);
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: 'Heebo';
+  transition: all 0.15s;
+}
+.style-filter button.active {
+  background: var(--brass);
+  color: var(--wood-darkest);
+  border-color: var(--brass);
+  font-weight: 700;
+}
+.style-filter button:hover:not(.active) { color: var(--brass-bright); border-color: var(--brass); }
+
+#toast {
+  position: fixed; top: 2rem; left: 50%; transform: translateX(-50%);
+  background: var(--brass); color: var(--wood-darkest);
+  padding: 0.8rem 1.5rem; border-radius: 999px;
+  font-weight: 700; box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  opacity: 0; transition: opacity 0.3s; z-index: 200;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>בחירת אייקונים</h1>
+    <p class="subtitle">אלתור בהישג יד — ערכת Workshop / Wood Vintage</p>
+    <p>כל האייקונים חינמיים, מותרים לשימוש מסחרי. לחץ על אייקון כדי לבחור — תוכל לשנות בכל שלב. הסיכום בתחתית הדף.</p>
+    <div class="legend">
+      <span>🟢 MIT — חופשי לחלוטין, ללא קרדיט</span>
+      <span>🔵 Apache 2.0 — חופשי, ללא קרדיט</span>
+      <span>🟡 CC-BY — חופשי, נדרש קרדיט</span>
+    </div>
+    <div class="style-filter" style="margin-top: 1.4rem">
+      <button class="active" data-filter="all">הכל</button>
+      <button data-filter="own">🎨 שלנו בלבד</button>
+      <button data-filter="line">קווי / מינימליסטי</button>
+      <button data-filter="duotone">דו-טון</button>
+      <button data-filter="filled">מלא</button>
+      <button data-filter="vintage">וינטג' / רף</button>
+    </div>
+  </header>
+
+  <div id="sections"></div>
+</div>
+
+<div id="summary" class="collapsed">
+  <div class="summary-header" onclick="document.getElementById('summary').classList.toggle('collapsed')">
+    <h3 class="summary-title">🎯 הבחירות שלי (<span id="count">0</span>/13)</h3>
+    <button class="summary-toggle">פתח / סגור</button>
+  </div>
+  <div class="summary-body" id="summary-body"></div>
+  <div id="actions">
+    <button class="action" onclick="exportJSON()">📋 העתק JSON</button>
+    <button class="action secondary" onclick="resetAll()">↺ אפס</button>
+    <button class="action secondary" onclick="copySVGUrls()">🔗 העתק כתובות SVG</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SECTIONS = [
+  {
+    id: 'ear-training',
+    title: 'שמיעה מוזיקלית',
+    subtitle: 'Musical Ear Training — חטיבת-על, מסך הבית — כל האייקונים אומתו ✓',
+    icons: [
+      { lib: 'f7', name: 'tuningfork', license: 'MIT', style: ['line'] },
+      { lib: 'game-icons', name: 'human-ear', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'elf-ear', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'sound-waves', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'big-wave', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'high-tide', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'echo-ripples', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'ringing-bell', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'ringing-alarm', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'bellows', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'speaker', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'sound-on', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'musical-score', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'ocarina', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'trumpet-flag', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'mighty-horn', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'hunting-horn', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'french-horn', license: 'CC-BY', style: ['vintage','filled'] },
+    ],
+  },
+  {
+    id: 'dictation',
+    title: 'הכתבה',
+    subtitle: 'Dictation — מסך הבית',
+    icons: [
+      { lib: 'lucide', name: 'pencil', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'pencil-line', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'notebook-pen', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'pencil-line', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'notepad-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'music-notes-plus', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'pencil', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'writing', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'note', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'fountain-pen-tip', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'quill-ink', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'feather', license: 'CC-BY', style: ['vintage','filled'] },
+    ],
+  },
+  {
+    id: 'rhythm',
+    title: 'קצב',
+    subtitle: 'Rhythm Training — מסך הבית',
+    icons: [
+      { lib: 'lucide', name: 'drum', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'metronome', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'metronome-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'drum-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'metronome', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'activity-heartbeat', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'metronome', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'metronome', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'drum-kit', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'snare-drum', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'lucide', name: 'activity', license: 'MIT', style: ['line'] },
+      { lib: 'solar', name: 'rewind-back-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+  {
+    id: 'positions',
+    title: 'פוזיציות',
+    subtitle: 'Scale Positions — אייקונים מותאמים: תבנית פנטטוני A מינור (Box 1, fret 5)',
+    icons: [
+      { lib: 'custom', name: 'pentatonic-box-clean', license: 'MIT', style: ['line','filled'],
+        customSvg: `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round">
+          <g stroke="currentColor" stroke-width="0.7" fill="none" opacity="0.45">
+            <line x1="18" y1="6" x2="18" y2="54"/>
+            <line x1="40" y1="6" x2="40" y2="54"/>
+            <line x1="62" y1="6" x2="62" y2="54"/>
+            <line x1="84" y1="6" x2="84" y2="54"/>
+          </g>
+          <g stroke="currentColor" stroke-width="0.9" fill="none">
+            <line x1="13" y1="10" x2="89" y2="10"/>
+            <line x1="13" y1="18" x2="89" y2="18"/>
+            <line x1="13" y1="27" x2="89" y2="27"/>
+            <line x1="13" y1="36" x2="89" y2="36"/>
+            <line x1="13" y1="45" x2="89" y2="45"/>
+            <line x1="13" y1="54" x2="89" y2="54"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="18" cy="10" r="3"/><circle cx="84" cy="10" r="3"/>
+            <circle cx="18" cy="18" r="3"/><circle cx="84" cy="18" r="3"/>
+            <circle cx="18" cy="27" r="3"/><circle cx="62" cy="27" r="3"/>
+            <circle cx="18" cy="36" r="3"/><circle cx="62" cy="36" r="3"/>
+            <circle cx="18" cy="45" r="3"/><circle cx="62" cy="45" r="3"/>
+            <circle cx="18" cy="54" r="3"/><circle cx="84" cy="54" r="3"/>
+          </g>
+        </svg>` },
+      { lib: 'custom', name: 'pentatonic-box-roots', license: 'MIT', style: ['line','filled'],
+        customSvg: `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round">
+          <g stroke="currentColor" stroke-width="0.7" fill="none" opacity="0.45">
+            <line x1="18" y1="6" x2="18" y2="54"/>
+            <line x1="40" y1="6" x2="40" y2="54"/>
+            <line x1="62" y1="6" x2="62" y2="54"/>
+            <line x1="84" y1="6" x2="84" y2="54"/>
+          </g>
+          <g stroke="currentColor" stroke-width="0.9" fill="none">
+            <line x1="13" y1="10" x2="89" y2="10"/>
+            <line x1="13" y1="18" x2="89" y2="18"/>
+            <line x1="13" y1="27" x2="89" y2="27"/>
+            <line x1="13" y1="36" x2="89" y2="36"/>
+            <line x1="13" y1="45" x2="89" y2="45"/>
+            <line x1="13" y1="54" x2="89" y2="54"/>
+          </g>
+          <g stroke="currentColor" stroke-width="1.2" fill="none">
+            <circle cx="84" cy="10" r="2.6"/>
+            <circle cx="18" cy="18" r="2.6"/><circle cx="84" cy="18" r="2.6"/>
+            <circle cx="18" cy="27" r="2.6"/><circle cx="62" cy="27" r="2.6"/>
+            <circle cx="18" cy="36" r="2.6"/>
+            <circle cx="18" cy="45" r="2.6"/><circle cx="62" cy="45" r="2.6"/>
+            <circle cx="84" cy="54" r="2.6"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="18" cy="10" r="4"/>
+            <circle cx="62" cy="36" r="4"/>
+            <circle cx="18" cy="54" r="4"/>
+          </g>
+        </svg>` },
+      { lib: 'custom', name: 'pentatonic-box-bold', license: 'MIT', style: ['filled'],
+        customSvg: `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round">
+          <g stroke="currentColor" stroke-width="1.4" fill="none">
+            <line x1="13" y1="10" x2="89" y2="10"/>
+            <line x1="13" y1="18" x2="89" y2="18"/>
+            <line x1="13" y1="27" x2="89" y2="27"/>
+            <line x1="13" y1="36" x2="89" y2="36"/>
+            <line x1="13" y1="45" x2="89" y2="45"/>
+            <line x1="13" y1="54" x2="89" y2="54"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="18" cy="10" r="3.8"/><circle cx="84" cy="10" r="3.8"/>
+            <circle cx="18" cy="18" r="3.8"/><circle cx="84" cy="18" r="3.8"/>
+            <circle cx="18" cy="27" r="3.8"/><circle cx="62" cy="27" r="3.8"/>
+            <circle cx="18" cy="36" r="3.8"/><circle cx="62" cy="36" r="3.8"/>
+            <circle cx="18" cy="45" r="3.8"/><circle cx="62" cy="45" r="3.8"/>
+            <circle cx="18" cy="54" r="3.8"/><circle cx="84" cy="54" r="3.8"/>
+          </g>
+        </svg>` },
+      { lib: 'custom', name: 'pentatonic-box-vintage', license: 'MIT', style: ['vintage','line'],
+        customSvg: `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+          <g stroke="currentColor" stroke-width="0.6" fill="none" opacity="0.4">
+            <path d="M18 7 Q18.4 30 18 53"/>
+            <path d="M40 7 Q39.7 31 40 53"/>
+            <path d="M62 7 Q62.3 29 62 53"/>
+            <path d="M84 7 Q83.8 30 84 53"/>
+          </g>
+          <g stroke="currentColor" stroke-width="0.9" fill="none">
+            <path d="M13 10 Q50 10.4 89 10"/>
+            <path d="M13 18 Q50 17.7 89 18"/>
+            <path d="M13 27 Q50 27.3 89 27"/>
+            <path d="M13 36 Q50 35.8 89 36"/>
+            <path d="M13 45 Q50 45.2 89 45"/>
+            <path d="M13 54 Q50 53.8 89 54"/>
+          </g>
+          <g stroke="currentColor" stroke-width="1.4" fill="currentColor">
+            <circle cx="18" cy="10" r="2.8"/><circle cx="84" cy="10.3" r="2.6"/>
+            <circle cx="18.2" cy="18" r="2.7"/><circle cx="84" cy="18" r="2.8"/>
+            <circle cx="18" cy="27" r="2.6"/><circle cx="62.2" cy="27" r="2.8"/>
+            <circle cx="18" cy="36" r="2.8"/><circle cx="62" cy="36.2" r="2.7"/>
+            <circle cx="18.2" cy="45" r="2.7"/><circle cx="62" cy="45" r="2.8"/>
+            <circle cx="18" cy="54" r="2.8"/><circle cx="84" cy="54" r="2.6"/>
+          </g>
+        </svg>` },
+      { lib: 'custom', name: 'pentatonic-box-roman', license: 'MIT', style: ['line'],
+        customSvg: `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" font-family="Special Elite, monospace">
+          <g stroke="currentColor" stroke-width="0.6" fill="none" opacity="0.4">
+            <line x1="22" y1="14" x2="22" y2="56"/>
+            <line x1="42" y1="14" x2="42" y2="56"/>
+            <line x1="62" y1="14" x2="62" y2="56"/>
+            <line x1="82" y1="14" x2="82" y2="56"/>
+          </g>
+          <g stroke="currentColor" stroke-width="0.8" fill="none">
+            <line x1="17" y1="18" x2="87" y2="18"/>
+            <line x1="17" y1="26" x2="87" y2="26"/>
+            <line x1="17" y1="33" x2="87" y2="33"/>
+            <line x1="17" y1="40" x2="87" y2="40"/>
+            <line x1="17" y1="47" x2="87" y2="47"/>
+            <line x1="17" y1="55" x2="87" y2="55"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="22" cy="18" r="2.6"/><circle cx="82" cy="18" r="2.6"/>
+            <circle cx="22" cy="26" r="2.6"/><circle cx="82" cy="26" r="2.6"/>
+            <circle cx="22" cy="33" r="2.6"/><circle cx="62" cy="33" r="2.6"/>
+            <circle cx="22" cy="40" r="2.6"/><circle cx="62" cy="40" r="2.6"/>
+            <circle cx="22" cy="47" r="2.6"/><circle cx="62" cy="47" r="2.6"/>
+            <circle cx="22" cy="55" r="2.6"/><circle cx="82" cy="55" r="2.6"/>
+          </g>
+          <text x="22" y="11" text-anchor="middle" fill="currentColor" font-size="7" opacity="0.7">V</text>
+          <text x="82" y="11" text-anchor="middle" fill="currentColor" font-size="7" opacity="0.7">VIII</text>
+        </svg>` },
+      { lib: 'game-icons', name: 'guitar', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'guitar-head', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'tabler', name: 'guitar-pick', license: 'MIT', style: ['line'] },
+    ],
+  },
+  {
+    id: 'backing-tracks',
+    title: 'באקינג טראקס',
+    subtitle: 'Backing Tracks — מסך הבית',
+    icons: [
+      { lib: 'lucide', name: 'music', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'disc-3', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'music-2', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'music-notes', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'music-notes-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'playlist-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'vinyl-record-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'music', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'vinyl', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'gramophone', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'music-spell', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'boombox', license: 'CC-BY', style: ['vintage','filled'] },
+    ],
+  },
+  {
+    id: 'feedback',
+    title: 'פידבק',
+    subtitle: 'Feedback — מסך הבית',
+    icons: [
+      { lib: 'lucide', name: 'mic', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'video', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'camera', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'microphone', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'microphone-stage', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'microphone-stage-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'video-camera-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'microphone', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'video', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'microphone-variant', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'microphone', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'solar', name: 'microphone-3-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+  {
+    id: 'melodic',
+    title: '🎵 מלודיה',
+    subtitle: 'Melodic — תת-חטיבה בתוך שמיעה מוזיקלית',
+    icons: [
+      { lib: 'lucide', name: 'audio-waveform', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'music', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'waveform', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'music-note', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'music-note-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'wave-sine', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'music', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'music-note-eighth', license: 'Apache', style: ['filled'] },
+      { lib: 'mdi', name: 'sine-wave', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'musical-notes', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'music-spell', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'solar', name: 'music-note-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+  {
+    id: 'harmonic-isolated',
+    title: '🎹 הרמוניה מבודדת',
+    subtitle: 'Harmonic Isolated — תת-חטיבה',
+    icons: [
+      { lib: 'lucide', name: 'layers', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'piano', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'stack', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'stack-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'piano-keys', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'piano-keys-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'piano', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'stack-2', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'piano', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'musical-keyboard', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'piano-keys', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'solar', name: 'layers-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+  {
+    id: 'functional',
+    title: '🎼 הרמוניה פונקציונלית',
+    subtitle: 'Functional Harmony — תת-חטיבה',
+    icons: [
+      { lib: 'lucide', name: 'network', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'git-branch', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'route', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'tree-structure', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'tree-structure-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'graph-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'flow-arrow-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'hierarchy', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'binary-tree', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'sitemap', license: 'Apache', style: ['filled'] },
+      { lib: 'mdi', name: 'flowchart', license: 'Apache', style: ['filled'] },
+      { lib: 'mdi', name: 'flowchart-outline', license: 'Apache', style: ['line'] },
+      { lib: 'f7', name: 'flowchart-fill', license: 'MIT', style: ['filled'] },
+      { lib: 'hugeicons', name: 'flowchart-01', license: 'MIT', style: ['line'] },
+    ],
+  },
+  {
+    id: 'voice-leading',
+    title: '🎶 תנועת קול',
+    subtitle: 'Voice Leading — תת-חטיבה',
+    icons: [
+      { lib: 'lucide', name: 'spline', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'waves', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'git-merge', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'wave-sine', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'wave-sine-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'flow-arrow', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'arrows-down-up-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'wave-saw-tool', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'arrows-up-down', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'sine-wave', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'curling-vines', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'solar', name: 'waves-angle-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+  {
+    id: 'solfege',
+    title: '🎤 סולפז\'',
+    subtitle: 'Solfege — תת-חטיבה',
+    icons: [
+      { lib: 'lucide', name: 'mic-vocal', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'mic', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'microphone', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'microphone-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'user-sound', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'music-notes-simple-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'microphone-2', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'user-music', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'account-voice', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'sing', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'opera', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'solar', name: 'microphone-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+  {
+    id: 'guitar',
+    title: '🎸 גיטרה',
+    subtitle: 'Guitar — תת-חטיבה',
+    icons: [
+      { lib: 'lucide', name: 'guitar', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'guitar', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'guitar-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'guitar-fill', license: 'MIT', style: ['filled'] },
+      { lib: 'tabler', name: 'guitar-pick', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'guitar-acoustic', license: 'Apache', style: ['filled'] },
+      { lib: 'mdi', name: 'guitar-electric', license: 'Apache', style: ['filled'] },
+      { lib: 'mdi', name: 'guitar-pick', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'guitar', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'guitar-head', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'game-icons', name: 'guitar-bass-head', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'solar', name: 'music-note-2-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+  {
+    id: 'reactive',
+    title: '⚡ ריאקטיבי',
+    subtitle: 'Reactive — תת-חטיבה',
+    icons: [
+      { lib: 'lucide', name: 'zap', license: 'MIT', style: ['line'] },
+      { lib: 'lucide', name: 'zap-off', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'lightning', license: 'MIT', style: ['line'] },
+      { lib: 'ph', name: 'lightning-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'ph', name: 'lightning-fill', license: 'MIT', style: ['filled'] },
+      { lib: 'ph', name: 'thunder-duotone', license: 'MIT', style: ['duotone'] },
+      { lib: 'tabler', name: 'bolt', license: 'MIT', style: ['line'] },
+      { lib: 'tabler', name: 'flame', license: 'MIT', style: ['line'] },
+      { lib: 'mdi', name: 'flash', license: 'Apache', style: ['filled'] },
+      { lib: 'mdi', name: 'lightning-bolt', license: 'Apache', style: ['filled'] },
+      { lib: 'game-icons', name: 'lightning-bolt', license: 'CC-BY', style: ['vintage','filled'] },
+      { lib: 'solar', name: 'bolt-bold-duotone', license: 'CC-BY', style: ['duotone'] },
+    ],
+  },
+];
+
+const OWN_VARIANTS = {
+  'ear-training': [
+    { name: 'ear-bold', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M36 8C22 7 13 18 13 32c0 12 5 21 11 23 5 2 9-1 9-6 0-4-3-7-7-8-3-1-2-5 0-7s5-2 8-2c7 0 12-5 12-12 0-7-5-12-12-12z"/></svg>` },
+    { name: 'ear-listening', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M30 9C18 9 11 19 11 31c0 11 5 21 10 22 4 1 7-1 7-5 0-3-2-7-5-8-3-1-2-5 0-7s4-2 7-2c6 0 10-5 10-11 0-6-5-11-10-12z"/><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M44 22c3 5 3 11 0 16"/><path d="M51 16c6 9 6 22 0 32"/></g></svg>` },
+    { name: 'ear-anatomic', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M36 8C22 8 14 18 14 32s5 22 11 24c5 1 8-2 8-6 0-3-3-7-7-8-2-1-1-4 1-7 3-3 6-3 9-3 7 0 12-5 12-11 0-7-5-12-12-13z"/><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.38" d="M24 27c1-5 6-8 10-7"/></svg>` },
+  ],
+  'dictation': [
+    { name: 'quill-diagonal', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M50 6c-3 0-8 3-13 8-9 9-19 22-22 28-2 3-2 9 0 11l9-2c4-1 7-3 10-6 8-6 22-22 25-29 1-4-4-10-9-10z"/><circle cx="13" cy="52" r="3" fill="currentColor"/><circle cx="19" cy="58" r="1.6" fill="currentColor" opacity="0.6"/></svg>` },
+    { name: 'quill-inkwell', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><ellipse cx="32" cy="52" rx="16" ry="4"/><rect x="18" y="44" width="28" height="8"/><path d="M40 48L52 14c1-3 3-4 5-4 2 0 3 2 2 4-3 8-13 36-13 36z"/></g><line x1="44" y1="30" x2="42" y2="46" stroke="currentColor" stroke-width="1.5" opacity="0.4"/></svg>` },
+    { name: 'quill-staff', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.6"><line x1="4" y1="38" x2="42" y2="38"/><line x1="4" y1="42" x2="42" y2="42"/><line x1="4" y1="46" x2="42" y2="46"/><line x1="4" y1="50" x2="42" y2="50"/><line x1="4" y1="54" x2="42" y2="54"/></g><path fill="currentColor" d="M52 6c-3 0-19 18-26 30-3 5-3 12-3 12l9-3c4-1 8-3 12-7 10-10 22-26 22-28 0-3-11-4-14-4z"/></svg>` },
+  ],
+  'rhythm': [
+    { name: 'drum-cymbal', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="26" cy="44" r="17" fill="currentColor"/><circle cx="26" cy="44" r="5" fill="none" stroke="currentColor" stroke-width="2.2" opacity="0.42"/><ellipse cx="48" cy="20" rx="14" ry="3" fill="currentColor" transform="rotate(-15 48 20)"/><line x1="50" y1="22" x2="50" y2="44" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>` },
+    { name: 'snare-sticks', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><ellipse cx="32" cy="36" rx="22" ry="5"/><path d="M10 36v12a22 5 0 0 0 44 0V36z"/></g><ellipse cx="32" cy="35" rx="22" ry="5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/><g stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="4" y1="6" x2="22" y2="30"/><line x1="60" y1="6" x2="42" y2="30"/></g></svg>` },
+    { name: 'mini-kit', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><circle cx="32" cy="46" r="13"/><ellipse cx="14" cy="22" rx="9" ry="2.5" transform="rotate(-15 14 22)"/><ellipse cx="50" cy="22" rx="9" ry="2.5" transform="rotate(15 50 22)"/></g><g stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"><line x1="14" y1="22" x2="14" y2="40"/><line x1="50" y1="22" x2="50" y2="40"/></g><circle cx="32" cy="46" r="4" fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.4"/></svg>` },
+  ],
+  'backing-tracks': [
+    { name: 'boombox-classic', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="22" width="52" height="32" rx="3" fill="currentColor" opacity="0.18"/><rect x="6" y="22" width="52" height="32" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M20 10h24a6 6 0 0 1 0 12H20a6 6 0 0 1 0-12z" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="18" cy="38" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="46" cy="38" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="38" r="3" fill="currentColor"/><circle cx="46" cy="38" r="3" fill="currentColor"/><rect x="28" y="32" width="8" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>` },
+    { name: 'boombox-reels', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="20" width="56" height="34" rx="3" fill="currentColor" opacity="0.18"/><rect x="4" y="20" width="56" height="34" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M22 12h20a4 4 0 0 1 0 8H22a4 4 0 0 1 0-8z" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="24" cy="36" r="7" fill="currentColor"/><circle cx="40" cy="36" r="7" fill="currentColor"/><circle cx="24" cy="36" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/><circle cx="40" cy="36" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/></svg>` },
+    { name: 'boombox-vintage', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="20" width="52" height="34" rx="2" fill="currentColor"/><g fill="none" stroke-linecap="round" opacity="0.4"><circle cx="18" cy="36" r="9" stroke="currentColor" stroke-width="1.6"/><circle cx="46" cy="36" r="9" stroke="currentColor" stroke-width="1.6"/></g><g fill="currentColor" opacity="0.35"><circle cx="18" cy="36" r="3.5"/><circle cx="46" cy="36" r="3.5"/><rect x="28" y="30" width="8" height="5" rx="0.8"/></g><path d="M22 12h20a4 4 0 0 1 0 8H22a4 4 0 0 1 0-8z" fill="currentColor" opacity="0.35"/></svg>` },
+  ],
+  'feedback': [
+    { name: 'mic-classic', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"><ellipse cx="32" cy="20" rx="11" ry="13" fill="currentColor" opacity="0.2"/><ellipse cx="32" cy="20" rx="11" ry="13" stroke-width="2.5"/><g stroke-width="1.5" opacity="0.55"><line x1="22" y1="16" x2="42" y2="16"/><line x1="22" y1="20" x2="42" y2="20"/><line x1="22" y1="24" x2="42" y2="24"/></g><g stroke-width="2.5"><path d="M32 33v8"/><path d="M22 41h20"/><path d="M32 41v17"/><line x1="24" y1="58" x2="40" y2="58"/></g></svg>` },
+    { name: 'mic-ribbon', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="22" y="10" width="20" height="30" rx="3" fill="currentColor" opacity="0.2"/><rect x="22" y="10" width="20" height="30" rx="3" stroke-width="2.5"/><g stroke-width="1.5" opacity="0.55"><line x1="32" y1="14" x2="32" y2="36"/><path d="M27 18l5 5l-5 5M37 18l-5 5l5 5"/></g><g stroke-width="2.5"><line x1="32" y1="42" x2="32" y2="56"/><line x1="22" y1="58" x2="42" y2="58"/></g></svg>` },
+    { name: 'mic-condenser', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="32" cy="20" r="13" fill="currentColor" opacity="0.2"/><circle cx="32" cy="20" r="13" stroke-width="2.5"/><g stroke-width="1.4" opacity="0.5"><line x1="22" y1="20" x2="42" y2="20"/><line x1="32" y1="9" x2="32" y2="31"/><line x1="24" y1="13" x2="40" y2="27"/><line x1="40" y1="13" x2="24" y2="27"/></g><g stroke-width="2.5"><line x1="32" y1="35" x2="32" y2="48"/><line x1="20" y1="54" x2="44" y2="54"/></g></svg>` },
+  ],
+  'melodic': [
+    { name: 'notes-beamed', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><ellipse cx="18" cy="48" rx="7" ry="5" transform="rotate(-20 18 48)"/><ellipse cx="46" cy="42" rx="7" ry="5" transform="rotate(-20 46 42)"/><rect x="22" y="12" width="3" height="36"/><rect x="50" y="6" width="3" height="36"/><path d="M22 12l31-3v5l-31 3z"/><path d="M22 22l31-3v5l-31 3z"/></g></svg>` },
+    { name: 'note-quarter', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><ellipse cx="22" cy="46" rx="9" ry="6" transform="rotate(-20 22 46)"/><rect x="28" y="10" width="3" height="36"/><path d="M28 10c14 4 18 14 18 22-2-8-8-13-18-14z"/></g></svg>` },
+    { name: 'notes-ascending', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><ellipse cx="12" cy="50" rx="5" ry="4" transform="rotate(-20 12 50)"/><ellipse cx="32" cy="40" rx="5" ry="4" transform="rotate(-20 32 40)"/><ellipse cx="52" cy="30" rx="5" ry="4" transform="rotate(-20 52 30)"/><rect x="16" y="22" width="2.4" height="28"/><rect x="36" y="12" width="2.4" height="28"/><rect x="56" y="2" width="2.4" height="28"/></g></svg>` },
+  ],
+  'harmonic-isolated': [
+    { name: 'piano-octave', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="14" width="56" height="36" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><g stroke="currentColor" stroke-width="1.6"><line x1="12" y1="14" x2="12" y2="50"/><line x1="20" y1="14" x2="20" y2="50"/><line x1="28" y1="14" x2="28" y2="50"/><line x1="36" y1="14" x2="36" y2="50"/><line x1="44" y1="14" x2="44" y2="50"/><line x1="52" y1="14" x2="52" y2="50"/></g><g fill="currentColor"><rect x="9" y="14" width="6" height="22"/><rect x="17" y="14" width="6" height="22"/><rect x="33" y="14" width="6" height="22"/><rect x="41" y="14" width="6" height="22"/><rect x="49" y="14" width="6" height="22"/></g></svg>` },
+    { name: 'piano-4keys', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="10" width="52" height="44" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><g stroke="currentColor" stroke-width="1.8"><line x1="19" y1="10" x2="19" y2="54"/><line x1="32" y1="10" x2="32" y2="54"/><line x1="45" y1="10" x2="45" y2="54"/></g><g fill="currentColor"><rect x="14" y="10" width="10" height="26" rx="1"/><rect x="27" y="10" width="10" height="26" rx="1"/><rect x="40" y="10" width="10" height="26" rx="1"/></g></svg>` },
+    { name: 'piano-section', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><rect x="6" y="18" width="9" height="34" rx="0.8"/><rect x="17" y="18" width="9" height="34" rx="0.8"/><rect x="28" y="18" width="9" height="34" rx="0.8"/><rect x="39" y="18" width="9" height="34" rx="0.8"/><rect x="50" y="18" width="9" height="34" rx="0.8"/></g><g fill="currentColor" opacity="0.55"><rect x="12" y="18" width="5" height="20" rx="0.5"/><rect x="23" y="18" width="5" height="20" rx="0.5"/><rect x="44" y="18" width="5" height="20" rx="0.5"/><rect x="55" y="18" width="5" height="20" rx="0.5"/></g></svg>` },
+  ],
+  'functional': [
+    { name: 'hub-3-spokes', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="2.5 3.5"><line x1="32" y1="32" x2="12" y2="14"/><line x1="32" y1="32" x2="54" y2="16"/><line x1="32" y1="32" x2="50" y2="52"/></g><g fill="currentColor"><circle cx="32" cy="32" r="6"/><circle cx="12" cy="14" r="4"/><circle cx="54" cy="16" r="4"/><circle cx="50" cy="52" r="4"/></g></svg>` },
+    { name: 'hub-network', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-dasharray="2.5 3" opacity="0.65"><line x1="32" y1="32" x2="14" y2="14"/><line x1="32" y1="32" x2="50" y2="14"/><line x1="32" y1="32" x2="14" y2="50"/><line x1="32" y1="32" x2="50" y2="50"/></g><g fill="currentColor"><circle cx="32" cy="32" r="5.5"/><circle cx="14" cy="14" r="3.5"/><circle cx="50" cy="14" r="3.5"/><circle cx="14" cy="50" r="3.5"/><circle cx="50" cy="50" r="3.5"/></g></svg>` },
+    { name: 'hub-mappin', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="3 3"><path d="M32 38 Q22 24 12 14"/><path d="M32 38 Q44 24 54 14"/><path d="M32 38 Q40 50 52 56"/></g><path fill="currentColor" d="M32 14c-5 0-9 4-9 9 0 7 9 17 9 17s9-10 9-17c0-5-4-9-9-9z"/><circle cx="32" cy="23" r="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="14" r="3.5"/><circle cx="54" cy="14" r="3.5"/><circle cx="52" cy="56" r="3.5"/></g><g fill="currentColor"><circle cx="12" cy="14" r="1.6"/><circle cx="54" cy="14" r="1.6"/><circle cx="52" cy="56" r="1.6"/></g></svg>` },
+    { name: 'hub-roman', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" font-family="Special Elite, monospace"><g stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-dasharray="2.5 3"><line x1="32" y1="32" x2="12" y2="14"/><line x1="32" y1="32" x2="54" y2="16"/><line x1="32" y1="32" x2="50" y2="52"/></g><g fill="currentColor"><circle cx="32" cy="32" r="9"/><circle cx="12" cy="14" r="6"/><circle cx="54" cy="16" r="6"/><circle cx="50" cy="52" r="6"/></g><g fill="rgba(0,0,0,0.65)" font-size="9" text-anchor="middle"><text x="32" y="35.5">I</text><text x="12" y="17.5">ii</text><text x="54" y="19.5">IV</text><text x="50" y="55.5">V</text></g></svg>` },
+  ],
+  'voice-leading': [
+    { name: 'voices-cross', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><circle cx="10" cy="18" r="3.4"/><circle cx="10" cy="46" r="3.4"/><circle cx="54" cy="18" r="3.4"/><circle cx="54" cy="46" r="3.4"/></g><g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M13.5 18 Q32 18 54 46"/><path d="M13.5 46 Q32 46 54 18"/></g></svg>` },
+    { name: 'voices-stack', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><circle cx="10" cy="14" r="3"/><circle cx="10" cy="28" r="3"/><circle cx="10" cy="38" r="3"/><circle cx="10" cy="52" r="3"/><circle cx="54" cy="20" r="3"/><circle cx="54" cy="26" r="3"/><circle cx="54" cy="42" r="3"/><circle cx="54" cy="50" r="3"/></g><g stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"><path d="M13 14 Q32 14 51 20"/><path d="M13 28 Q32 26 51 26"/><path d="M13 38 Q32 40 51 42"/><path d="M13 52 Q32 52 51 50"/></g></svg>` },
+    { name: 'voices-stepwise', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 46 L22 38 L36 26 L50 18"/></g><g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"><path d="M8 18 L22 26 L36 38 L50 46"/></g><g fill="currentColor"><circle cx="8" cy="46" r="3"/><circle cx="22" cy="38" r="3"/><circle cx="36" cy="26" r="3"/><circle cx="50" cy="18" r="3"/><circle cx="8" cy="18" r="3"/><circle cx="22" cy="26" r="3"/><circle cx="36" cy="38" r="3"/><circle cx="50" cy="46" r="3"/></g></svg>` },
+  ],
+  'solfege': [
+    { name: 'singer-profile', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><circle cx="22" cy="20" r="11"/><path d="M10 54q0-14 12-14t12 14v6H10z"/></g><g fill="none" stroke="rgba(0,0,0,0.45)" stroke-width="1.8" stroke-linecap="round"><circle cx="22" cy="22" r="2.5" fill="rgba(0,0,0,0.55)" stroke="none"/></g><g fill="currentColor"><circle cx="46" cy="14" r="3"/><rect x="48" y="2" width="2" height="14"/><circle cx="54" cy="32" r="2.5"/><rect x="55" y="22" width="1.8" height="12"/></g></svg>` },
+    { name: 'singer-waves', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><circle cx="22" cy="22" r="10"/><path d="M10 54q0-14 12-14t12 14v6H10z"/></g><circle cx="22" cy="22" r="2.6" fill="rgba(0,0,0,0.5)"/><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M42 18 Q46 28 42 38"/><path d="M50 12 Q58 28 50 44"/></g></svg>` },
+    { name: 'singer-staff', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><circle cx="20" cy="20" r="10"/><path d="M8 54q0-14 12-14t12 14v6H8z"/></g><g stroke="currentColor" stroke-width="1.1" fill="none" opacity="0.55"><line x1="36" y1="22" x2="60" y2="22"/><line x1="36" y1="26" x2="60" y2="26"/><line x1="36" y1="30" x2="60" y2="30"/><line x1="36" y1="34" x2="60" y2="34"/><line x1="36" y1="38" x2="60" y2="38"/></g><g fill="currentColor"><ellipse cx="44" cy="26" rx="3.4" ry="2.4"/><rect x="47" y="14" width="1.6" height="12"/><ellipse cx="56" cy="32" rx="3.4" ry="2.4"/><rect x="59" y="20" width="1.6" height="12"/></g></svg>` },
+  ],
+  'guitar': [
+    { name: 'pick-classic', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M32 8q-14 0-18 14q-4 14 8 28q4 4 10 4q6 0 10-4q12-14 8-28q-4-14-18-14z"/></svg>` },
+    { name: 'pick-shine', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M32 8q-14 0-18 14q-4 14 8 28q4 4 10 4q6 0 10-4q12-14 8-28q-4-14-18-14z"/><path fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round" d="M24 18q6 5 12 0"/></svg>` },
+    { name: 'pick-strings', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g stroke="currentColor" stroke-width="1.6" fill="none" opacity="0.55" stroke-linecap="round"><line x1="0" y1="42" x2="64" y2="42"/><line x1="0" y1="52" x2="64" y2="52"/></g><path fill="currentColor" d="M30 0q-12 0-15 12q-3 13 6 24q4 4 9 4q5 0 9-4q9-11 6-24q-3-12-15-12z"/></svg>` },
+  ],
+  'reactive': [
+    { name: 'bolt-classic', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M38 4L18 32h10L20 60l24-32h-10L40 4z"/></svg>` },
+    { name: 'bolt-aura', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.45"><line x1="4" y1="20" x2="14" y2="22"/><line x1="50" y1="22" x2="60" y2="20"/><line x1="6" y1="42" x2="14" y2="42"/><line x1="50" y1="42" x2="58" y2="42"/><line x1="14" y1="8" x2="20" y2="14"/><line x1="44" y1="14" x2="50" y2="8"/></g><path fill="currentColor" d="M38 4L18 32h10L20 60l24-32h-10L40 4z"/></svg>` },
+    { name: 'bolt-forked', svg: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" opacity="0.55" d="M28 4L14 28h8L16 50l18-22h-8L34 4z"/><path fill="currentColor" d="M44 12L26 36h10L28 60l22-28h-10L48 12z"/></svg>` },
+  ],
+};
+
+SECTIONS.forEach(s => {
+  const own = OWN_VARIANTS[s.id];
+  if (own && own.length) {
+    s.icons = [
+      ...own.map(v => ({ lib: 'own', name: v.name, license: 'MIT', style: ['own','custom'], customSvg: v.svg })),
+      ...s.icons,
+    ];
+  }
+});
+
+const STORAGE_KEY = 'icon-picker-selections';
+let selections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let currentFilter = 'all';
+
+function render() {
+  const wrap = document.getElementById('sections');
+  wrap.innerHTML = '';
+  SECTIONS.forEach(section => {
+    const sel = selections[section.id];
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.dataset.section = section.id;
+    div.innerHTML = `
+      <div class="section-header">
+        <h2 class="section-title">
+          ${section.title}
+          <small>${section.subtitle}</small>
+        </h2>
+        <div class="selected-indicator ${sel ? '' : 'empty'}">
+          ${sel ? `נבחר: <code style="color:var(--paper)">${sel.lib}:${sel.name}</code>` : 'לא נבחר עדיין'}
+        </div>
+      </div>
+      <div class="icon-grid">
+        ${section.icons.map(ic => renderIcon(section.id, ic, sel)).join('')}
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+  applyFilter(currentFilter);
+  updateSummary();
+}
+
+function renderIcon(sectionId, ic, currentSel) {
+  const isSelected = currentSel && currentSel.lib === ic.lib && currentSel.name === ic.name;
+  const styles = (ic.style || []).join(' ');
+  const display = ic.customSvg
+    ? `<div class="custom-svg">${ic.customSvg}</div>`
+    : `<iconify-icon icon="${ic.lib}:${ic.name}"></iconify-icon>`;
+  const isOwn = ic.lib === 'own';
+  return `
+    <div class="icon-card ${isSelected ? 'selected' : ''}"
+         data-styles="${styles}"
+         data-own="${isOwn}"
+         onclick="select('${sectionId}', '${ic.lib}', '${ic.name}', '${ic.license}')">
+      ${display}
+      <div class="icon-name">${ic.lib}:${ic.name}</div>
+      <div class="icon-lib" data-license="${ic.license}">${isOwn ? 'MIT · שלנו' : ic.license}</div>
+    </div>
+  `;
+}
+
+function select(sectionId, lib, name, license) {
+  selections[sectionId] = { lib, name, license };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(selections));
+  render();
+  toast(`✓ נשמר: ${lib}:${name}`);
+}
+
+function applyFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.style-filter button').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === filter);
+  });
+  document.querySelectorAll('.icon-card').forEach(c => {
+    if (filter === 'all') { c.style.display = ''; return; }
+    const styles = c.dataset.styles || '';
+    c.style.display = styles.includes(filter) ? '' : 'none';
+  });
+}
+
+document.querySelectorAll('.style-filter button').forEach(b => {
+  b.addEventListener('click', () => applyFilter(b.dataset.filter));
+});
+
+function updateSummary() {
+  const body = document.getElementById('summary-body');
+  const count = Object.keys(selections).length;
+  document.getElementById('count').textContent = count;
+  body.innerHTML = SECTIONS.map(s => {
+    const sel = selections[s.id];
+    if (sel) {
+      const fullIcon = s.icons.find(i => i.lib === sel.lib && i.name === sel.name);
+      const display = fullIcon && fullIcon.customSvg
+        ? `<div class="custom-svg">${fullIcon.customSvg}</div>`
+        : `<iconify-icon icon="${sel.lib}:${sel.name}"></iconify-icon>`;
+      return `<div class="summary-item">
+        ${display}
+        <div class="summary-item-text">
+          <strong>${s.title}</strong>
+          <code>${sel.lib}:${sel.name}</code>
+        </div>
+      </div>`;
+    }
+    return `<div class="summary-item empty">
+      <iconify-icon icon="ph:question"></iconify-icon>
+      <div class="summary-item-text">
+        <strong>${s.title}</strong>
+        <code>— לא נבחר</code>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exportJSON() {
+  const out = {};
+  SECTIONS.forEach(s => {
+    out[s.id] = selections[s.id] || null;
+  });
+  const json = JSON.stringify(out, null, 2);
+  navigator.clipboard.writeText(json).then(() => toast('✓ JSON הועתק ללוח'));
+}
+
+function copySVGUrls() {
+  const urls = [];
+  SECTIONS.forEach(s => {
+    const sel = selections[s.id];
+    if (sel) {
+      urls.push(`${s.id}: https://api.iconify.design/${sel.lib}/${sel.name}.svg`);
+    }
+  });
+  navigator.clipboard.writeText(urls.join('\n')).then(() => toast('✓ URLs הועתקו'));
+}
+
+function resetAll() {
+  if (!confirm('לאפס את כל הבחירות?')) return;
+  selections = {};
+  localStorage.removeItem(STORAGE_KEY);
+  render();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+render();
+
+async function validateIcons() {
+  const byLib = {};
+  SECTIONS.forEach(s => s.icons.forEach(ic => {
+    if (ic.lib === 'custom' || ic.customSvg) return;
+    if (!byLib[ic.lib]) byLib[ic.lib] = new Set();
+    byLib[ic.lib].add(ic.name);
+  }));
+  const missing = new Set();
+  await Promise.all(Object.entries(byLib).map(async ([lib, names]) => {
+    try {
+      const list = [...names].join(',');
+      const r = await fetch(`https://api.iconify.design/${lib}.json?icons=${encodeURIComponent(list)}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      const found = new Set(Object.keys(data.icons || {}));
+      names.forEach(n => { if (!found.has(n)) missing.add(`${lib}:${n}`); });
+    } catch (e) {
+      console.warn('Validation failed for', lib, e);
+    }
+  }));
+  if (missing.size === 0) return;
+  console.log(`Hidden ${missing.size} missing icons:`, [...missing]);
+  document.querySelectorAll('.icon-card').forEach(card => {
+    const nameEl = card.querySelector('.icon-name');
+    if (nameEl && missing.has(nameEl.textContent.trim())) card.style.display = 'none';
+  });
+  const badge = document.createElement('div');
+  badge.style.cssText = 'position:fixed;top:1rem;right:1rem;background:rgba(0,0,0,0.7);color:var(--paper-dark);padding:0.4rem 0.8rem;border-radius:999px;font-size:0.75rem;border:1px solid rgba(212,169,87,0.3);z-index:50;font-family:monospace';
+  badge.textContent = `${missing.size} broken icons hidden`;
+  badge.title = [...missing].join('\n');
+  document.body.appendChild(badge);
+  setTimeout(() => badge.style.opacity = '0.4', 3000);
+}
+validateIcons();
+</script>
+</body>
+</html>

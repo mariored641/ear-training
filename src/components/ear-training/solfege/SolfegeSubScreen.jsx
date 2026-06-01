@@ -1,14 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../../home/ExerciseCard';
+import { SightSingingIcon, SheetReadingIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const SolfegeSubScreen = () => {
   const navigate = useNavigate();
 
   const exercises = [
-    { id: 'S1', icon: '🎼', title: 'S1 — שירה מתוך תווים', path: '/exercise/S1' },
-    { id: 'S2', icon: '👁️', title: 'S2 — זיהוי תיווי מנגינה', path: '/exercise/S2' }
+    { id: 'S1', icon: <SightSingingIcon />, title: 'S1 — שירה מתוך תווים', path: '/exercise/S1' },
+    { id: 'S2', icon: <SheetReadingIcon />, title: 'S2 — זיהוי תיווי מנגינה', path: '/exercise/S2' }
   ];
 
   return (

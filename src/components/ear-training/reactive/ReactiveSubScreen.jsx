@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from '../../home/ExerciseCard';
+import { TargetIcon, BoltClassicIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const ReactiveSubScreen = () => {
@@ -9,13 +10,13 @@ const ReactiveSubScreen = () => {
   const exercises = [
     {
       id: 'R1',
-      icon: '🎯',
+      icon: <TargetIcon />,
       title: 'R1 — דיאטוני',
       path: '/exercise/R1',
     },
     {
       id: 'R2',
-      icon: '⚡',
+      icon: <BoltClassicIcon />,
       title: 'R2 — אקראי מלא',
       path: '/exercise/R2',
     },

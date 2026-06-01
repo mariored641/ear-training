@@ -1,14 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  EarIcon,
+  DrumKitIcon,
+  QuillIcon,
+  PentatonicBoxIcon,
+  BoomboxIcon,
+  MicrophoneIcon,
+} from '../icons/AppIcons';
 import './HomePage.css';
 
 const SATELLITES = [
-  { icon: '👂', label: 'שמיעה מוזיקלית', route: '/category/ear-training' },
-  { icon: '🥁', label: 'קצב',           route: '/exercise/4' },
-  { icon: '🎼', label: 'הכתבה',         route: '/category/dictation' },
-  { icon: '🎸', label: 'פוזיציות',      route: '/positions' },
-  { icon: '🎵', label: 'באקינג טראקס',  route: '/backing-tracks' },
-  { icon: '📹', label: 'פידבק',         route: '/feedback' },
+  { Icon: EarIcon,            label: 'שמיעה מוזיקלית', route: '/category/ear-training' },
+  { Icon: DrumKitIcon,        label: 'קצב',           route: '/exercise/4' },
+  { Icon: QuillIcon,          label: 'הכתבה',         route: '/category/dictation' },
+  { Icon: PentatonicBoxIcon,  label: 'פוזיציות',      route: '/positions' },
+  { Icon: BoomboxIcon,        label: 'באקינג טראקס',  route: '/backing-tracks' },
+  { Icon: MicrophoneIcon,     label: 'פידבק',         route: '/feedback' },
 ];
 
 const HomePage = () => {
@@ -95,7 +103,7 @@ const HomePage = () => {
               >
                 <div className="label">{sat.label}</div>
                 <div className="orb" onClick={() => navigate(sat.route)}>
-                  {sat.icon}
+                  <sat.Icon />
                 </div>
               </div>
             );
