@@ -34,6 +34,30 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Global scrollbar styling — brass/dark theme for all scrollable areas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 146, 61, 0.35) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(184, 146, 61, 0.35);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 146, 61, 0.55);
+}
+
 /* Utility classes */
 .container {
   max-width: 1200px;
