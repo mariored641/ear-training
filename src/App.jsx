@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './components/home/HomePage';
 import GrainOverlay from './components/common/GrainOverlay';
 import { ToolsProvider } from './components/global-tools/ToolsContext';
 import GlobalTools from './components/global-tools/GlobalTools';
+import { prefetchBuffer } from './lib/soundfont/SoundFontPlayer';
 
 // Lazy load category screens
 const MelodicCategoryScreen = React.lazy(() => import('./components/category/MelodicCategoryScreen'));
@@ -76,6 +77,16 @@ const BackingTracksTestPage = React.lazy(() => import('./components/backing-trac
 const Sf2LabPage            = React.lazy(() => import('./components/sf2-lab/Sf2LabPage'));
 
 function App() {
+  useEffect(() => {
+    const id = requestIdleCallback
+      ? requestIdleCallback(() => prefetchBuffer(), { timeout: 5000 })
+      : setTimeout(() => prefetchBuffer(), 3000)
+    return () => {
+      if (requestIdleCallback) cancelIdleCallback(id)
+      else clearTimeout(id)
+    }
+  }, [])
+
   return (
     <Router>
       <ToolsProvider>

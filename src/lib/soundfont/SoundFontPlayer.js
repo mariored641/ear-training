@@ -181,6 +181,21 @@ function applyDefaultPrograms() {
 }
 
 /**
+ * מוריד ושומר את ה-SF2 ב-IndexedDB ברקע, בלי AudioContext.
+ * בטוח לקריאה לפני כל gesture של המשתמש.
+ * קריאה חוזרת כשהבאפר כבר ב-cache היא no-op מהירה.
+ */
+export async function prefetchBuffer() {
+  const library = getDefaultLibrary()
+  if (!library?.url) return
+  try {
+    await fetchSoundFontBuffer(library, null)
+  } catch {
+    // fail silently — not critical, init() will retry
+  }
+}
+
+/**
  * אתחול המנגן. קורא פעם אחת, חוזר מהר בקריאות חוזרות.
  * @param {function} onProgress   (message: string, percent: number) => void
  * @param {object}   libraryConfig (אופציונלי) ספרייה לטעון בפעם הראשונה. ברירת המחדל — JJazzLab.
