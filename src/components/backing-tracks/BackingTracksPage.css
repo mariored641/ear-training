@@ -754,9 +754,8 @@ body.backing-page-active #root {
   cursor: pointer;
   transition: all 0.15s;
 }
-.bp-style-name::before {
-  content: '🎵';
-  font-size: 14px;
+.bp-style-name svg {
+  opacity: 0.9;
 }
 .bp-style-name::after {
   content: '▼';

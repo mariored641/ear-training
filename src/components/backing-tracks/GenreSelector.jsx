@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { GENRE_CATALOG } from './useBackingTrackEngine'
+import { GENRE_ICON_MAP } from '../icons/AppIcons'
 
 export function GenreSelector({ genre, onGenreChange }) {
   const [openCategory, setOpenCategory] = useState(null)
@@ -36,7 +37,9 @@ export function GenreSelector({ genre, onGenreChange }) {
                   setOpenCategory(null)
                 }}
               >
-                <span className="genre-icon">{cat.icon}</span>
+                <span className="genre-icon">
+                  {(() => { const I = GENRE_ICON_MAP[cat.category]; return I ? <I /> : cat.icon })()}
+                </span>
                 <div className="genre-text">
                   <span className="genre-label">{cat.label}</span>
                   <span className="genre-sub">{shownLabel}</span>

@@ -465,6 +465,93 @@ export const BoltClassicIcon = (props) => (
 );
 
 // ─────────────────────────────────────────────
+// Backing Tracks genre icons (own design, MIT)
+// ─────────────────────────────────────────────
+
+export const JazzSaxIcon = (props) => (
+  <Svg viewBox="0 0 64 64" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path stroke="currentColor" strokeWidth="3"
+      d="M 52 6 L 42 12 Q 36 18 36 28 Q 36 42 24 52 Q 16 58 8 54 Q 2 50 4 44 Q 6 38 12 40" />
+    <path stroke="currentColor" strokeWidth="2.5"
+      d="M 4 44 Q 0 56 12 60 Q 20 62 26 54" />
+    <line stroke="currentColor" strokeWidth="2.5" x1="52" y1="6" x2="60" y2="2" />
+    <circle cx="38" cy="20" r="2.8" fill="currentColor" />
+    <circle cx="34" cy="32" r="2.5" fill="currentColor" />
+    <circle cx="24" cy="46" r="2.5" fill="currentColor" />
+  </Svg>
+);
+
+export const LatinMaracasIcon = (props) => (
+  <Svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeLinecap="round" {...props}>
+    <circle cx="18" cy="22" r="13" strokeWidth="2.5" />
+    <line x1="18" y1="35" x2="18" y2="60" strokeWidth="3" />
+    <circle cx="14" cy="18" r="2" fill="currentColor" stroke="none" />
+    <circle cx="22" cy="18" r="2" fill="currentColor" stroke="none" />
+    <circle cx="46" cy="18" r="13" strokeWidth="2.5" />
+    <line x1="46" y1="31" x2="46" y2="60" strokeWidth="3" />
+    <circle cx="42" cy="14" r="2" fill="currentColor" stroke="none" />
+    <circle cx="50" cy="14" r="2" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
+export const BluesHarpIcon = (props) => (
+  <Svg viewBox="0 0 64 64" {...props}>
+    <rect x="4" y="20" width="56" height="24" rx="4" fill="none" stroke="currentColor" strokeWidth="2.5" />
+    <rect x="8" y="26" width="8" height="12" rx="2" fill="currentColor" fillOpacity="0.5" />
+    <rect x="19" y="26" width="8" height="12" rx="2" fill="currentColor" fillOpacity="0.5" />
+    <rect x="30" y="26" width="8" height="12" rx="2" fill="currentColor" fillOpacity="0.5" />
+    <rect x="41" y="26" width="8" height="12" rx="2" fill="currentColor" fillOpacity="0.5" />
+    <rect x="52" y="26" width="8" height="12" rx="2" fill="currentColor" fillOpacity="0.5" />
+  </Svg>
+);
+
+export const RockElectricIcon = (props) => (
+  <Svg viewBox="0 0 64 64" {...props}>
+    <path
+      fill="currentColor" fillOpacity="0.18"
+      stroke="currentColor" strokeWidth="2.5"
+      strokeLinecap="round" strokeLinejoin="round"
+      d="M 32 6 L 56 50 L 44 58 L 32 44 L 20 58 L 8 50 Z"
+    />
+    <rect x="28" y="2" width="8" height="6" rx="1.5" fill="currentColor" fillOpacity="0.35" stroke="currentColor" strokeWidth="1.5" />
+    <rect x="22" y="26" width="20" height="5" rx="1.5" fill="currentColor" fillOpacity="0.55" />
+  </Svg>
+);
+
+export const CountryAcousticIcon = (props) => (
+  <Svg viewBox="0 0 64 64" {...props}>
+    <path
+      fill="currentColor" fillOpacity="0.15"
+      stroke="currentColor" strokeWidth="2.5"
+      strokeLinecap="round" strokeLinejoin="round"
+      d="M 32 6 Q 18 6 14 16 Q 12 22 14 28 Q 8 34 8 42 Q 8 56 22 60 Q 32 62 42 60 Q 56 56 56 42 Q 56 34 50 28 Q 52 22 50 16 Q 46 6 32 6 Z"
+    />
+    <circle cx="32" cy="40" r="8" fill="none" stroke="currentColor" strokeWidth="2" />
+    <rect x="28" y="2" width="8" height="6" rx="1.5" fill="currentColor" fillOpacity="0.35" stroke="currentColor" strokeWidth="1.5" />
+  </Svg>
+);
+
+export const AmbientWaveIcon = (props) => (
+  <Svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeLinecap="round" {...props}>
+    <path strokeWidth="2.5" opacity="0.85"
+      d="M 2 26 C 10 16 18 16 26 26 C 34 36 42 36 50 26 C 54 21 58 22 62 24" />
+    <path strokeWidth="2" opacity="0.5"
+      d="M 2 36 C 10 46 18 46 26 36 C 34 26 42 26 50 36 C 54 41 58 40 62 38" />
+    <path strokeWidth="1.5" opacity="0.3"
+      d="M 2 46 C 10 54 18 54 26 46 C 34 38 42 38 50 46 C 54 50 58 49 62 48" />
+  </Svg>
+);
+
+export const GENRE_ICON_MAP = {
+  jazz:    JazzSaxIcon,
+  latin:   LatinMaracasIcon,
+  blues:   BluesHarpIcon,
+  rock:    RockElectricIcon,
+  country: CountryAcousticIcon,
+  ambient: AmbientWaveIcon,
+};
+
+// ─────────────────────────────────────────────
 // Global Tools FAB icon (own design, MIT)
 // ─────────────────────────────────────────────
 export const WrenchIcon = (props) => (

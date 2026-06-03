@@ -8,7 +8,7 @@ import { PresetLibrary }          from './PresetLibrary.jsx'
 import { MyProgressions }         from './MyProgressions.jsx'
 import { ChordPreviewStrip }      from './ChordPreviewStrip.jsx'
 import { PolyscalePopup }         from './PolyscalePopup.jsx'
-import { PentatonicBoxIcon }      from '../icons/AppIcons'
+import { PentatonicBoxIcon, GENRE_ICON_MAP } from '../icons/AppIcons'
 
 const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
 
@@ -84,9 +84,16 @@ function GenrePopup({ genre, onGenreChange, onClose }) {
     <div className="bp-popup bp-popup--genre">
       <div className="bp-popup-title">Style</div>
       <div className="bp-genre-list">
-        {GENRE_CATALOG.map(cat => (
+        {GENRE_CATALOG.map(cat => {
+          const CatIcon = GENRE_ICON_MAP[cat.category]
+          return (
           <div key={cat.category} className="bp-genre-category">
-            <div className="bp-genre-cat-header">{cat.icon} {cat.label}</div>
+            <div className="bp-genre-cat-header">
+              {CatIcon
+                ? <CatIcon style={{ width: '14px', height: '14px', display: 'inline-block', verticalAlign: 'middle', marginRight: '5px' }} />
+                : cat.icon + ' '}
+              {cat.label}
+            </div>
             <div className="bp-genre-items">
               {cat.subtypes.map(sub => (
                 <button
@@ -100,7 +107,8 @@ function GenrePopup({ genre, onGenreChange, onClose }) {
               ))}
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -366,13 +374,18 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     }
   }, [isPlaying, play, stop, activePopup])
 
-  // Style display name
+  // Style display name + active genre icon
   const styleName = useMemo(() => {
     for (const cat of GENRE_CATALOG) {
       const sub = cat.subtypes.find(s => s.id === genre)
       if (sub) return sub.label
     }
     return 'Select Style'
+  }, [genre])
+
+  const ActiveGenreIcon = useMemo(() => {
+    const cat = GENRE_CATALOG.find(c => c.subtypes.some(s => s.id === genre))
+    return cat ? GENRE_ICON_MAP[cat.category] : null
   }, [genre])
 
   // Auto-scroll active chord-bar into view while playing
@@ -533,6 +546,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           className={`bp-style-name${activePopup === 'genre' ? ' active' : ''}`}
           onClick={() => togglePopup('genre')}
         >
+          {ActiveGenreIcon && <ActiveGenreIcon style={{ width: '18px', height: '18px', flexShrink: 0 }} />}
           <span>{styleName}</span>
         </button>
 
