@@ -83,6 +83,9 @@ export default function GlobalTools() {
     startRecording,
     stopRecording,
     lastResult,
+    metroIsRunning,
+    metroKeepAlive,
+    metroStop,
   } = useTools();
 
   // ─── Fan direction (recomputed on position change + window resize) ───
@@ -108,11 +111,12 @@ export default function GlobalTools() {
     return computeFanDirection(cx, cy);
   }, [position, fanTick]);
 
-  // Close on route change
+  // Close FAB on route change; stop metro only when keepAlive is off
   useEffect(() => {
     setPanel(null);
     setOpen(false);
-  }, [pathname]);
+    if (!metroKeepAlive) metroStop();
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ESC closes everything
   useEffect(() => {
@@ -247,6 +251,7 @@ export default function GlobalTools() {
   };
 
   const recording = recordingState === 'recording';
+  const metroBgActive = metroIsRunning && panel !== 'metronome';
 
   // Inline style: when the user has chosen a position, switch from the default
   // bottom-left anchoring to absolute top-left.
@@ -280,6 +285,13 @@ export default function GlobalTools() {
 
         {/* Recording badge — clings beside the wrench while recording */}
         <RecordingBadge />
+
+        {/* Metronome background-active badge */}
+        {metroBgActive && (
+          <div className="gt-metro-bg-badge" aria-label="מטרונום פועל ברקע">
+            <MetronomeIcon />
+          </div>
+        )}
 
         {/* Mini FABs — fan arc */}
         <button

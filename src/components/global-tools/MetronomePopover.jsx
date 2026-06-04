@@ -1,9 +1,9 @@
 /**
  * MetronomePopover — compact metronome with BPM, beats-per-bar dots, +/- controls.
+ * State lives in ToolsContext so the metronome survives panel close / navigation.
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { AudioMetronome } from '../../lib/audio/AudioMetronome.js';
+import React, { useEffect, useRef } from 'react';
 import { useTools } from './ToolsContext.jsx';
 
 const BPM_MIN = 40;
@@ -12,54 +12,33 @@ const BEATS_MIN = 2;
 const BEATS_MAX = 8;
 
 export default function MetronomePopover() {
-  const { getAudioContext } = useTools();
-  const [bpm, setBpm] = useState(100);
-  const [beatsPerBar, setBeatsPerBar] = useState(4);
-  const [isRunning, setIsRunning] = useState(false);
-  const [currentBeat, setCurrentBeat] = useState(-1);
+  const {
+    metroBpm, setMetroBpm,
+    metroBeatsPerBar, setMetroBeatsPerBar,
+    metroIsRunning, metroCurrentBeat,
+    metroStart, metroStop,
+    metroKeepAlive, setMetroKeepAlive,
+  } = useTools();
 
-  const metroRef = useRef(null);
   const tapsRef = useRef([]);
 
+  // Keep a ref to the current keepAlive so the cleanup can read it without stale closure
+  const keepAliveRef = useRef(metroKeepAlive);
+  useEffect(() => { keepAliveRef.current = metroKeepAlive; }, [metroKeepAlive]);
+
+  // Stop metro when panel closes, unless keepAlive is on
   useEffect(() => () => {
-    try { metroRef.current?.stop(); } catch {}
-    metroRef.current = null;
-  }, []);
+    if (!keepAliveRef.current) metroStop();
+  }, [metroStop]);
 
-  useEffect(() => {
-    if (metroRef.current) metroRef.current.setTempo(bpm);
-  }, [bpm]);
-
-  useEffect(() => {
-    if (metroRef.current) metroRef.current.setBeatsPerBar(beatsPerBar);
-  }, [beatsPerBar]);
-
-  const handleStart = useCallback(() => {
-    const ctx = getAudioContext();
-    const metro = new AudioMetronome(ctx, bpm, {
-      beatsPerBar,
-      onBeat: (beatInBar) => setCurrentBeat(beatInBar),
-    });
-    metroRef.current = metro;
-    metro.start(ctx.currentTime + 0.05);
-    setIsRunning(true);
-  }, [getAudioContext, bpm, beatsPerBar]);
-
-  const handleStop = useCallback(() => {
-    try { metroRef.current?.stop(); } catch {}
-    metroRef.current = null;
-    setIsRunning(false);
-    setCurrentBeat(-1);
-  }, []);
-
-  const toggle = () => (isRunning ? handleStop() : handleStart());
+  const toggle = () => (metroIsRunning ? metroStop() : metroStart());
 
   const bumpBpm = (delta) => {
-    setBpm((b) => Math.max(BPM_MIN, Math.min(BPM_MAX, b + delta)));
+    setMetroBpm(Math.max(BPM_MIN, Math.min(BPM_MAX, metroBpm + delta)));
   };
 
   const bumpBeats = (delta) => {
-    setBeatsPerBar((n) => Math.max(BEATS_MIN, Math.min(BEATS_MAX, n + delta)));
+    setMetroBeatsPerBar(Math.max(BEATS_MIN, Math.min(BEATS_MAX, metroBeatsPerBar + delta)));
   };
 
   const handleTap = () => {
@@ -74,7 +53,7 @@ export default function MetronomePopover() {
       const sorted = [...intervals].sort((a, b) => a - b);
       const median = sorted[Math.floor(sorted.length / 2)];
       const newBpm = Math.round(60000 / median);
-      if (newBpm >= BPM_MIN && newBpm <= BPM_MAX) setBpm(newBpm);
+      if (newBpm >= BPM_MIN && newBpm <= BPM_MAX) setMetroBpm(newBpm);
     }
   };
 
@@ -83,7 +62,7 @@ export default function MetronomePopover() {
       <div className="gt-metro-bpm-row">
         <button type="button" className="gt-step-btn" onClick={() => bumpBpm(-1)} aria-label="−1 BPM">−</button>
         <div className="gt-metro-bpm">
-          <span className="gt-metro-bpm-num">{bpm}</span>
+          <span className="gt-metro-bpm-num">{metroBpm}</span>
           <span className="gt-metro-bpm-lbl">BPM</span>
         </div>
         <button type="button" className="gt-step-btn" onClick={() => bumpBpm(1)} aria-label="+1 BPM">+</button>
@@ -95,18 +74,18 @@ export default function MetronomePopover() {
         min={BPM_MIN}
         max={BPM_MAX}
         step={1}
-        value={bpm}
-        onChange={(e) => setBpm(Number(e.target.value))}
+        value={metroBpm}
+        onChange={(e) => setMetroBpm(Number(e.target.value))}
         aria-label="BPM"
       />
 
       <div className="gt-metro-dots-row">
         <button type="button" className="gt-step-btn gt-step-btn-sm" onClick={() => bumpBeats(-1)} aria-label="הורד נקודה">−</button>
         <div className="gt-metro-dots">
-          {Array.from({ length: beatsPerBar }).map((_, i) => (
+          {Array.from({ length: metroBeatsPerBar }).map((_, i) => (
             <div
               key={i}
-              className={`gt-metro-dot ${i === 0 ? 'accent' : ''} ${currentBeat === i ? 'live' : ''}`}
+              className={`gt-metro-dot ${i === 0 ? 'accent' : ''} ${metroCurrentBeat === i ? 'live' : ''}`}
             />
           ))}
         </div>
@@ -117,12 +96,21 @@ export default function MetronomePopover() {
         <button type="button" className="gt-tap-btn" onClick={handleTap}>TAP</button>
         <button
           type="button"
-          className={`gt-startstop-btn ${isRunning ? 'is-on' : ''}`}
+          className={`gt-startstop-btn ${metroIsRunning ? 'is-on' : ''}`}
           onClick={toggle}
         >
-          {isRunning ? 'עצור' : 'הפעל'}
+          {metroIsRunning ? 'עצור' : 'הפעל'}
         </button>
       </div>
+
+      <button
+        type="button"
+        className={`gt-metro-keepalive-btn ${metroKeepAlive ? 'is-on' : ''}`}
+        onClick={() => setMetroKeepAlive(!metroKeepAlive)}
+        aria-pressed={metroKeepAlive}
+      >
+        המשך ברקע
+      </button>
     </div>
   );
 }
