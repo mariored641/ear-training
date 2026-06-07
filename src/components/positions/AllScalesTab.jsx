@@ -161,8 +161,9 @@ const AllScalesTab = () => {
   const noteDisplayMap = useMemo(() => {
     const base = buildDefaultDisplayMap(selectedRoot);
     if (!currentItem) return base;
-    return { ...base, ...buildEnharmonicDisplayMap(selectedRoot, currentItem.intervals) };
-  }, [selectedRoot, currentItem]);
+    const isChordItem = !!ALL_CHORDS_MAP[selectedId];
+    return { ...base, ...buildEnharmonicDisplayMap(selectedRoot, currentItem.intervals, isChordItem) };
+  }, [selectedRoot, currentItem, selectedId]);
 
   const hasRange = fretRangeStart !== null || fretRangeEnd !== null;
 

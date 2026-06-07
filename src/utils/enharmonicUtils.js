@@ -20,8 +20,8 @@ const CHROMATIC_FLAT_FROM_A = ['A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', '
 const FLAT_ROOTS = new Set(['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb']);
 
 // Normalize accidental roots to their preferred enharmonic spelling.
-// A# → Bb, D# → Eb, G# → Ab, C# → Db; F# stays as F# (common guitar key).
-const ROOT_NORMALIZATION = { 'A#': 'Bb', 'D#': 'Eb', 'G#': 'Ab', 'C#': 'Db' };
+// A# → Bb, D# → Eb, G# → Ab, C# → Db, F# → Gb.
+const ROOT_NORMALIZATION = { 'A#': 'Bb', 'D#': 'Eb', 'G#': 'Ab', 'C#': 'Db', 'F#': 'Gb' };
 
 export function normalizeRoot(root) {
   return ROOT_NORMALIZATION[root] ?? root;
@@ -30,7 +30,7 @@ export function normalizeRoot(root) {
 // Display labels for the root selector UI
 export const ROOT_DISPLAY_NAMES = {
   A: 'A', 'A#': 'Bb', B: 'B', C: 'C', 'C#': 'Db',
-  D: 'D', 'D#': 'Eb', E: 'E', F: 'F', 'F#': 'F#',
+  D: 'D', 'D#': 'Eb', E: 'E', F: 'F', 'F#': 'Gb',
   G: 'G', 'G#': 'Ab',
 };
 
@@ -86,13 +86,23 @@ function computeWithPreference(normalizedRoot, intervals) {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 // Compute enharmonically correct note names for a root + interval array.
-// 7-note scales: sequential letter algorithm (always theoretically correct).
+// isChord=true: skip root normalization (C# chord stays C#, E, G#; not Db, E, Ab).
+// 7-note scales: sequential letter algorithm with safe double-accidental check.
 // All other lengths: flat/sharp preference based on key.
-export function computeEnharmonicNotes(root, intervals) {
+export function computeEnharmonicNotes(root, intervals, isChord = false) {
+  if (isChord) {
+    return computeWithPreference(root, intervals);
+  }
   const norm = normalizeRoot(root);
-  return intervals.length === 7
-    ? computeDiatonicNoteNames(norm, intervals)
-    : computeWithPreference(norm, intervals);
+  if (intervals.length === 7) {
+    const candidate = computeDiatonicNoteNames(norm, intervals);
+    // If normalization produces double accidentals (e.g. F# minor → Gb → Bbb), revert
+    if (candidate.some(n => n.includes('bb') || n.includes('##'))) {
+      return computeDiatonicNoteNames(root, intervals);
+    }
+    return candidate;
+  }
+  return computeWithPreference(norm, intervals);
 }
 
 // ── Chord tones ───────────────────────────────────────────────────────────────
@@ -129,12 +139,11 @@ const INTERVAL_SEMITONES = {
 // e.g. getChordToneNoteName('G', 'b3') → 'Bb'  (not 'A#')
 //      getChordToneNoteName('C', '#5') → 'G#'   (not 'Ab')
 export function getChordToneNoteName(root, tone) {
-  const norm      = normalizeRoot(root);
   const semi      = INTERVAL_SEMITONES[tone];
   if (semi === undefined) return '';
-  const rootSemitone   = noteToSemitoneFromC(norm);
+  const rootSemitone   = noteToSemitoneFromC(root);
   const noteSemitone   = (rootSemitone + semi) % 12;
-  const rootLetterIdx  = letterIndex(norm);
+  const rootLetterIdx  = letterIndex(root);
   const offset         = INTERVAL_LETTER_OFFSET[tone] ?? 0;
   const expLetterIdx   = (rootLetterIdx + offset) % 7;
   return spellingWithLetter(noteSemitone, LETTER_NAMES[expLetterIdx]);
@@ -145,10 +154,9 @@ export function getChordToneNoteName(root, tone) {
 // Build a map from CHROMATIC_FROM_A name to enharmonic display name,
 // for a specific root + interval array.
 // e.g. for F major: { 'A#': 'Bb', 'F':'F', 'G':'G', ... }
-export function buildEnharmonicDisplayMap(root, intervals) {
-  const norm         = normalizeRoot(root);
-  const rootSemitone = noteToSemitoneFromC(norm);
-  const enharmonic   = computeEnharmonicNotes(root, intervals);
+export function buildEnharmonicDisplayMap(root, intervals, isChord = false) {
+  const rootSemitone = noteToSemitoneFromC(root);
+  const enharmonic   = computeEnharmonicNotes(root, intervals, isChord);
   const map = {};
   intervals.forEach((interval, i) => {
     const noteFromC = (rootSemitone + interval) % 12;

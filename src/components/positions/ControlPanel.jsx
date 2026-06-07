@@ -6,7 +6,7 @@ const POSITION_NAMES = ['C', 'A', 'G', 'E', 'D'];
 
 const NOTE_DISPLAY_LABELS = {
   'A': 'A', 'A#': 'Bb', 'B': 'B', 'C': 'C', 'C#': 'Db',
-  'D': 'D', 'D#': 'Eb', 'E': 'E', 'F': 'F', 'F#': 'F#',
+  'D': 'D', 'D#': 'Eb', 'E': 'E', 'F': 'F', 'F#': 'Gb',
   'G': 'G', 'G#': 'Ab',
 };
 
