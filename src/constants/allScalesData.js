@@ -2,9 +2,9 @@
 // intervals: semitones from root, sorted ascending, starting with 0
 
 export const NOTE_DISPLAY_LABELS = {
-  'A': 'A', 'A#': 'A#/Bb', 'B': 'B', 'C': 'C', 'C#': 'C#/Db',
-  'D': 'D', 'D#': 'D#/Eb', 'E': 'E', 'F': 'F', 'F#': 'F#/Gb',
-  'G': 'G', 'G#': 'G#/Ab',
+  'A': 'A', 'A#': 'Bb', 'B': 'B', 'C': 'C', 'C#': 'Db',
+  'D': 'D', 'D#': 'Eb', 'E': 'E', 'F': 'F', 'F#': 'F#',
+  'G': 'G', 'G#': 'Ab',
 };
 
 // Degree names for display (semitones 0–11 from root)

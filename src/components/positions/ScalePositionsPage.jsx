@@ -8,6 +8,7 @@ import QuickReferencePopup from './QuickReferencePopup';
 import AllScalesTab from './AllScalesTab';
 import PartialChordsTab from './PartialChordsTab';
 import { generateFretboardNotes } from '../../utils/positionCalculations';
+import { ROOT_DISPLAY_NAMES } from '../../utils/enharmonicUtils';
 import './ScalePositionsPage.css';
 
 const MAX_ACTIVE_ARPEGGIOS = 3;
@@ -68,7 +69,7 @@ const ScalePositionsPage = () => {
     }
   }, []);
 
-  const scaleTitle = `${selectedRoot} ${selectedType === 'major' ? 'Major' : 'Minor'}`;
+  const scaleTitle = `${ROOT_DISPLAY_NAMES[selectedRoot] ?? selectedRoot} ${selectedType === 'major' ? 'Major' : 'Minor'}`;
 
   // Shared fretboard + controls used by both positions and arpeggios tabs
   const sharedControls = (

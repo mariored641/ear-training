@@ -4,20 +4,10 @@ import './ControlPanel.css';
 
 const POSITION_NAMES = ['C', 'A', 'G', 'E', 'D'];
 
-// Display labels: show both sharp and flat names for accidentals
 const NOTE_DISPLAY_LABELS = {
-  'A': 'A',
-  'A#': 'A#/Bb',
-  'B': 'B',
-  'C': 'C',
-  'C#': 'C#/Db',
-  'D': 'D',
-  'D#': 'D#/Eb',
-  'E': 'E',
-  'F': 'F',
-  'F#': 'F#/Gb',
-  'G': 'G',
-  'G#': 'G#/Ab',
+  'A': 'A', 'A#': 'Bb', 'B': 'B', 'C': 'C', 'C#': 'Db',
+  'D': 'D', 'D#': 'Eb', 'E': 'E', 'F': 'F', 'F#': 'F#',
+  'G': 'G', 'G#': 'Ab',
 };
 
 const ControlPanel = ({

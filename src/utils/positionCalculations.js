@@ -6,6 +6,7 @@ import {
   RELATIVE_MINOR_OFFSET,
   C_AM_POSITION_RANGES,
 } from '../constants/positionData';
+import { computeEnharmonicNotes } from './enharmonicUtils';
 
 /**
  * Get the notes of a scale given a root and type
@@ -59,9 +60,17 @@ export function getScaleDegree(note, root, scaleType) {
 /**
  * Calculate ALL scale notes on the entire fretboard (0-15 frets, 6 strings).
  * This is the core function - computes every occurrence of each scale tone.
+ * Each note has a `displayNote` field with the correct enharmonic spelling.
  */
 export function getAllScaleNotesOnFretboard(root, scaleType) {
-  const scaleNotes = getScaleNotes(root, scaleType);
+  const scaleNotes = getScaleNotes(root, scaleType); // CHROMATIC_SCALE names for matching
+  const intervals = scaleType === 'major' ? MAJOR_SCALE_INTERVALS : MINOR_SCALE_INTERVALS;
+  const enharmonicNotes = computeEnharmonicNotes(root, intervals);
+
+  // Map CHROMATIC_SCALE name → enharmonic display name for this scale
+  const displayMap = {};
+  scaleNotes.forEach((chromName, i) => { displayMap[chromName] = enharmonicNotes[i]; });
+
   const relativeRoot = getRelativeKey(root, scaleType);
   const majorRoot = scaleType === 'major' ? root : relativeRoot;
   const minorRoot = scaleType === 'minor' ? root : relativeRoot;
@@ -76,7 +85,8 @@ export function getAllScaleNotesOnFretboard(root, scaleType) {
         notes.push({
           string,
           fret,
-          note,
+          note,                               // CHROMATIC_SCALE name (used for internal matching)
+          displayNote: displayMap[note] ?? note, // enharmonically correct display name
           scaleDegree: getScaleDegree(note, root, scaleType),
           isRoot: note === root,
           isMajorRoot: note === majorRoot,
