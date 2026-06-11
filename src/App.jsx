@@ -5,6 +5,8 @@ import GrainOverlay from './components/common/GrainOverlay';
 import { ToolsProvider } from './components/global-tools/ToolsContext';
 import GlobalTools from './components/global-tools/GlobalTools';
 import { prefetchBuffer } from './lib/soundfont/SoundFontPlayer';
+import audioPlayer from './utils/AudioPlayer';
+import harmonicAudioPlayer from './utils/HarmonicAudioPlayer';
 
 // Lazy load category screens
 const MelodicCategoryScreen = React.lazy(() => import('./components/category/MelodicCategoryScreen'));
@@ -78,9 +80,14 @@ const Sf2LabPage            = React.lazy(() => import('./components/sf2-lab/Sf2L
 
 function App() {
   useEffect(() => {
+    const preloadAll = () => {
+      prefetchBuffer();
+      audioPlayer.preload();
+      harmonicAudioPlayer.preload();
+    };
     const id = requestIdleCallback
-      ? requestIdleCallback(() => prefetchBuffer(), { timeout: 5000 })
-      : setTimeout(() => prefetchBuffer(), 3000)
+      ? requestIdleCallback(preloadAll, { timeout: 5000 })
+      : setTimeout(preloadAll, 3000)
     return () => {
       if (requestIdleCallback) cancelIdleCallback(id)
       else clearTimeout(id)

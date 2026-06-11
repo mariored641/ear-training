@@ -10,13 +10,24 @@ class AudioPlayer {
     this.initialized = false;
     this.currentInstrument = 'piano'; // 'piano' or 'guitar'
     this.isLoading = false;
+    this._loadPromise = null;
+  }
+
+  // Start fetching + decoding samples in the background (no user gesture needed).
+  // init() will await this promise instead of starting a new load.
+  async preload() {
+    if (this._loadPromise || this.initialized) return;
+    this._loadPromise = this.createSampler(this.currentInstrument);
   }
 
   async init() {
     if (this.initialized) return;
 
     await Tone.start();
-    await this.createSampler(this.currentInstrument);
+    if (!this._loadPromise) {
+      this._loadPromise = this.createSampler(this.currentInstrument);
+    }
+    await this._loadPromise;
     this.initialized = true;
   }
 
@@ -92,8 +103,9 @@ class AudioPlayer {
    */
   async setInstrument(instrument) {
     this.currentInstrument = instrument;
+    this._loadPromise = this.createSampler(instrument);
     if (this.initialized) {
-      await this.createSampler(instrument);
+      await this._loadPromise;
     } else {
       await this.init();
     }
@@ -203,6 +215,7 @@ class AudioPlayer {
       this.sampler.dispose();
       this.sampler = null;
       this.initialized = false;
+      this._loadPromise = null;
     }
   }
 }

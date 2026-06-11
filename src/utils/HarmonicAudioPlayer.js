@@ -22,26 +22,33 @@ class HarmonicAudioPlayer {
     this.sampler = null; // For chords and single notes (4A, 4C)
     this.melodySampler = null; // For melody notes (4B)
     this.pianoSampler = null; // Always available for chords
+    this._loadPromise = null;
+  }
+
+  // Start fetching + decoding samples in the background (no user gesture needed).
+  async preload() {
+    if (this._loadPromise || this.initialized) return;
+    this._loadPromise = this._loadAll();
+  }
+
+  async _loadAll() {
+    await this.loadPianoSampler();
+    await this.loadInstrument(this.instrument);
   }
 
   async init() {
     if (this.initialized) return;
 
     await Tone.start();
-
-    // Load piano sampler for chords (always available)
-    await this.loadPianoSampler();
-
-    // Load main instrument
-    await this.loadInstrument(this.instrument);
-
+    if (!this._loadPromise) {
+      this._loadPromise = this._loadAll();
+    }
+    await this._loadPromise;
     this.initialized = true;
   }
 
   async loadPianoSampler() {
-    if (this.pianoSampler) {
-      this.pianoSampler.dispose();
-    }
+    if (this.pianoSampler) return; // already loaded
 
     this.pianoSampler = new Tone.Sampler({
       urls: {
@@ -366,6 +373,7 @@ class HarmonicAudioPlayer {
     }
     this.melodySampler = null;
     this.initialized = false;
+    this._loadPromise = null;
   }
 }
 
