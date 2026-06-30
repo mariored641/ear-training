@@ -70,10 +70,11 @@ const ExerciseG1 = () => {
   const [feedback, setFeedback]         = useState(null);
   const [done, setDone]                 = useState(false);
 
-  const isPlayingRef      = useRef(false);
-  const melodyRef         = useRef(null);
-  const stateRef          = useRef({});
+  const isPlayingRef       = useRef(false);
+  const melodyRef          = useRef(null);
+  const stateRef           = useRef({});
   const sessionFirstTryRef = useRef(0);
+  const sessionTotalRef    = useRef(0);
   stateRef.current   = { level, source, numQuestions, notation };
 
   const levelDef = LEVEL_DEFAULTS[level] || LEVEL_DEFAULTS[1];
@@ -113,6 +114,7 @@ const ExerciseG1 = () => {
 
   useEffect(() => {
     sessionFirstTryRef.current = 0;
+    sessionTotalRef.current = 0;
     setDone(false);
     setSessionState(initSession());
     setTimeout(() => loadMelody(1), 150);
@@ -125,6 +127,8 @@ const ExerciseG1 = () => {
     if (checkNotePosition(string, fret, correctNote)) {
       const newMarked = [...markedNotes, { string, fret, noteIndices: [currentNoteIndex + 1] }];
       const allDone = newMarked.reduce((s, n) => s + n.noteIndices.length, 0) >= currentMelody.notes.length;
+      sessionTotalRef.current += 1;
+      if (!noteAttempts[currentNoteIndex]) sessionFirstTryRef.current += 1;
       setFeedback('correct');
       setTimeout(() => setFeedback(null), 500);
       setSessionState(prev => ({
@@ -132,8 +136,6 @@ const ExerciseG1 = () => {
         currentNoteIndex: allDone ? prev.currentNoteIndex : prev.currentNoteIndex + 1
       }));
       if (allDone) {
-        const melodyPerfect = Object.keys(noteAttempts).length === 0;
-        if (melodyPerfect) sessionFirstTryRef.current += 1;
         setTimeout(() => {
           const nextQ = sessionState.currentQuestion + 1;
           if (nextQ > stateRef.current.numQuestions) { setDone(true); }
@@ -179,8 +181,8 @@ const ExerciseG1 = () => {
         <EarTrainingHeader exerciseTitle="G1 — מיפוי צוואר גיטרה"
           levels={LEVELS} currentLevel={level} onLevelChange={setLevel}
           storageKey={storageKey} onBack={() => navigate('/category/ear-training/guitar')} />
-        <SessionSummary total={numQuestions} firstTry={sessionFirstTryRef.current}
-          onRetry={() => { setDone(false); setSessionState(initSession()); loadMelody(1); }}
+        <SessionSummary total={sessionTotalRef.current} firstTry={sessionFirstTryRef.current}
+          onRetry={() => { sessionFirstTryRef.current = 0; sessionTotalRef.current = 0; setDone(false); setSessionState(initSession()); loadMelody(1); }}
           onBack={() => navigate('/category/ear-training/guitar')}
           levelLabel={LEVELS.find(l => l.number === level)?.label} />
       </>

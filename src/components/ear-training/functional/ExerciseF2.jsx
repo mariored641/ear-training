@@ -124,13 +124,13 @@ const ExerciseF2 = () => {
   const [positionIndex, setPositionIndex] = useState(0); // which slot we're filling
   const [slots, setSlots] = useState([]); // filled answers per slot
   const [feedback, setFeedback] = useState(null);
-  const [firstTry, setFirstTry] = useState(0);
   const [posAttempts, setPosAttempts] = useState({});
   const [done, setDone] = useState(false);
   const [selectedBtnId, setSelectedBtnId] = useState(null);
-  const isPlayingRef = useRef(false);
-  const lastProgKeyRef = useRef(null);
-  const hadMistakeRef = useRef(false);
+  const isPlayingRef       = useRef(false);
+  const lastProgKeyRef     = useRef(null);
+  const sessionFirstTryRef = useRef(0);
+  const sessionTotalRef    = useRef(0);
 
   const buttons = getButtons(level);
 
@@ -152,7 +152,6 @@ const ExerciseF2 = () => {
       attempts++;
     }
     lastProgKeyRef.current = keyOf(prog);
-    hadMistakeRef.current = false;
     setProgression(prog);
     setPositionIndex(0);
     setSlots(Array(prog.length).fill(null));
@@ -163,7 +162,9 @@ const ExerciseF2 = () => {
   }, [level]);
 
   useEffect(() => {
-    setQuestionIndex(0); setFirstTry(0); setDone(false);
+    sessionFirstTryRef.current = 0;
+    sessionTotalRef.current = 0;
+    setQuestionIndex(0); setDone(false);
     lastProgKeyRef.current = null;
     setTimeout(startQuestion, 100);
   }, [level, numQuestions]);
@@ -204,14 +205,14 @@ const ExerciseF2 = () => {
     setSelectedBtnId(`${btn.degree}_${btn.name}`);
     setPosAttempts(prev => ({ ...prev, [positionIndex]: (prev[positionIndex] || 0) + 1 }));
     setSlots(prev => { const n = [...prev]; n[positionIndex] = { ...btn, ok: isOk }; return n; });
-    if (!isOk) hadMistakeRef.current = true;
     setFeedback(isOk ? 'correct' : 'wrong');
     setTimeout(() => { setFeedback(null); setSelectedBtnId(null); }, 600);
 
     if (isOk) {
+      sessionTotalRef.current += 1;
+      if (isFirst) sessionFirstTryRef.current += 1;
       const nextPos = positionIndex + 1;
       if (nextPos >= progression.length) {
-        if (!hadMistakeRef.current && isFirst) setFirstTry(p => p + 1);
         setTimeout(() => {
           if (questionIndex + 1 >= numQuestions) { setDone(true); }
           else { setQuestionIndex(p => p + 1); setTimeout(startQuestion, 100); }
@@ -228,8 +229,8 @@ const ExerciseF2 = () => {
         <EarTrainingHeader exerciseTitle="F2 — הכתבה הרמונית" levels={LEVELS} currentLevel={level}
           onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/functional')} />
-        <SessionSummary total={numQuestions} firstTry={firstTry}
-          onRetry={() => { setQuestionIndex(0); setFirstTry(0); setDone(false); setTimeout(startQuestion, 100); }}
+        <SessionSummary total={sessionTotalRef.current} firstTry={sessionFirstTryRef.current}
+          onRetry={() => { sessionFirstTryRef.current = 0; sessionTotalRef.current = 0; setQuestionIndex(0); setDone(false); setTimeout(startQuestion, 100); }}
           onBack={() => navigate('/category/ear-training/functional')}
           levelLabel={LEVELS.find(l => l.number === level)?.label} />
       </>
