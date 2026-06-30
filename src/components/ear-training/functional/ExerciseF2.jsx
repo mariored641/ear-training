@@ -130,6 +130,7 @@ const ExerciseF2 = () => {
   const [selectedBtnId, setSelectedBtnId] = useState(null);
   const isPlayingRef = useRef(false);
   const lastProgKeyRef = useRef(null);
+  const hadMistakeRef = useRef(false);
 
   const buttons = getButtons(level);
 
@@ -151,6 +152,7 @@ const ExerciseF2 = () => {
       attempts++;
     }
     lastProgKeyRef.current = keyOf(prog);
+    hadMistakeRef.current = false;
     setProgression(prog);
     setPositionIndex(0);
     setSlots(Array(prog.length).fill(null));
@@ -202,13 +204,14 @@ const ExerciseF2 = () => {
     setSelectedBtnId(`${btn.degree}_${btn.name}`);
     setPosAttempts(prev => ({ ...prev, [positionIndex]: (prev[positionIndex] || 0) + 1 }));
     setSlots(prev => { const n = [...prev]; n[positionIndex] = { ...btn, ok: isOk }; return n; });
+    if (!isOk) hadMistakeRef.current = true;
     setFeedback(isOk ? 'correct' : 'wrong');
     setTimeout(() => { setFeedback(null); setSelectedBtnId(null); }, 600);
 
     if (isOk) {
-      if (isFirst) setFirstTry(p => p + 1);
       const nextPos = positionIndex + 1;
       if (nextPos >= progression.length) {
+        if (!hadMistakeRef.current && isFirst) setFirstTry(p => p + 1);
         setTimeout(() => {
           if (questionIndex + 1 >= numQuestions) { setDone(true); }
           else { setQuestionIndex(p => p + 1); setTimeout(startQuestion, 100); }
