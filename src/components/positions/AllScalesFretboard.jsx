@@ -251,14 +251,20 @@ const AllScalesFretboard = ({
         className={`asf-nut-cell${dimmed ? ' dimmed' : ''}${clickDisabled ? ' click-disabled' : ''}`}
         {...pointerHandlers}
       >
-        <button
-          className={`asf-string-label${stringActive ? ' active' : ''}`}
-          onClick={(e) => { e.stopPropagation(); onStringClick?.(stringNum); }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onPointerUp={(e) => e.stopPropagation()}
-        >
-          {STRING_TUNING[stringNum - 1]}
-        </button>
+        {onStringClick ? (
+          <button
+            className={`asf-string-label${stringActive ? ' active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); onStringClick(stringNum); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+          >
+            {STRING_TUNING[stringNum - 1]}
+          </button>
+        ) : (
+          <span className={`asf-string-label${stringActive ? ' active' : ''}`} style={{ pointerEvents: 'none' }}>
+            {STRING_TUNING[stringNum - 1]}
+          </span>
+        )}
         <div className={noteClasses} style={noteStyle}>
           {marked ? marked.label : ((isActive || isChordOnly) ? getLabel(noteName) : '')}
         </div>

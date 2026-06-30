@@ -227,7 +227,6 @@ const ExerciseG1 = () => {
           onNoteClick={() => {}}
           onNoteLongPress={() => {}}
           onFretClick={() => {}}
-          onStringClick={() => {}}
         />
       </div>
       <FeedbackOverlay state={feedback} />
