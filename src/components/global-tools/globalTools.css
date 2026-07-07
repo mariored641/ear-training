@@ -399,6 +399,31 @@
   accent-color: var(--brass);
 }
 
+.gt-metro-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.gt-metro-volume-icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.gt-metro-volume-pct {
+  font-family: var(--font-hand);
+  font-size: 11px;
+  opacity: 0.6;
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.gt-metro-volume-row .gt-metro-slider {
+  margin: 0;
+  flex: 1;
+}
+
 .gt-metro-dots-row {
   display: flex;
   align-items: center;

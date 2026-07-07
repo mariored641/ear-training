@@ -47,6 +47,11 @@ export class AudioMetronome {
     this._beatsPerBar = Math.max(2, Math.min(8, n | 0))
   }
 
+  setVolume(v) {
+    this._gain = v
+    if (this._gainNode) this._gainNode.gain.value = v
+  }
+
   beatDuration() {
     return 60 / this._bpm
   }

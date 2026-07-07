@@ -41,12 +41,16 @@ function mimeToExt(mime) {
 
 const METRO_BPM_KEY = 'globalTools.metro.bpm';
 const METRO_KEEP_ALIVE_KEY = 'globalTools.metro.keepAlive';
+const METRO_VOLUME_KEY = 'globalTools.metro.volume';
 
 function readMetroBpm() {
   try { const v = Number(localStorage.getItem(METRO_BPM_KEY)); return v >= 40 && v <= 240 ? v : 100; } catch { return 100; }
 }
 function readMetroKeepAlive() {
   try { return localStorage.getItem(METRO_KEEP_ALIVE_KEY) === 'true'; } catch { return false; }
+}
+function readMetroVolume() {
+  try { const v = Number(localStorage.getItem(METRO_VOLUME_KEY)); return v >= 0 && v <= 1 ? v : 0.5; } catch { return 0.5; }
 }
 
 export function ToolsProvider({ children }) {
@@ -60,8 +64,10 @@ export function ToolsProvider({ children }) {
   const metroRef = useRef(null);
   const metroBpmRef = useRef(readMetroBpm());
   const metroBeatsPerBarRef = useRef(4);
+  const metroVolumeRef = useRef(readMetroVolume());
   const [metroBpm, setMetroBpmState] = useState(metroBpmRef.current);
   const [metroBeatsPerBar, setMetroBeatsPerBarState] = useState(4);
+  const [metroVolume, setMetroVolumeState] = useState(metroVolumeRef.current);
   const [metroIsRunning, setMetroIsRunning] = useState(false);
   const [metroCurrentBeat, setMetroCurrentBeat] = useState(-1);
   const [metroKeepAlive, setMetroKeepAliveState] = useState(readMetroKeepAlive);
@@ -96,6 +102,13 @@ export function ToolsProvider({ children }) {
     try { localStorage.setItem(METRO_KEEP_ALIVE_KEY, String(val)); } catch {}
   }, []);
 
+  const setMetroVolume = useCallback((v) => {
+    metroVolumeRef.current = v;
+    setMetroVolumeState(v);
+    try { localStorage.setItem(METRO_VOLUME_KEY, String(v)); } catch {}
+    if (metroRef.current) metroRef.current.setVolume(v * 0.5);
+  }, []);
+
   const getAudioContext = useCallback(() => {
     if (!audioCtxRef.current) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -111,6 +124,7 @@ export function ToolsProvider({ children }) {
     const ctx = getAudioContext();
     const metro = new AudioMetronome(ctx, metroBpmRef.current, {
       beatsPerBar: metroBeatsPerBarRef.current,
+      gain: metroVolumeRef.current * 0.5,
       onBeat: (beatInBar) => setMetroCurrentBeat(beatInBar),
     });
     metroRef.current = metro;
@@ -197,6 +211,8 @@ export function ToolsProvider({ children }) {
     setMetroBpm,
     metroBeatsPerBar,
     setMetroBeatsPerBar,
+    metroVolume,
+    setMetroVolume,
     metroIsRunning,
     metroCurrentBeat,
     metroStart,

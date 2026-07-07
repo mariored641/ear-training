@@ -15,6 +15,7 @@ export default function MetronomePopover() {
   const {
     metroBpm, setMetroBpm,
     metroBeatsPerBar, setMetroBeatsPerBar,
+    metroVolume, setMetroVolume,
     metroIsRunning, metroCurrentBeat,
     metroStart, metroStop,
     metroKeepAlive, setMetroKeepAlive,
@@ -78,6 +79,21 @@ export default function MetronomePopover() {
         onChange={(e) => setMetroBpm(Number(e.target.value))}
         aria-label="BPM"
       />
+
+      <div className="gt-metro-volume-row">
+        <span className="gt-metro-volume-icon">{metroVolume === 0 ? '🔇' : metroVolume < 0.5 ? '🔈' : '🔊'}</span>
+        <input
+          type="range"
+          className="gt-metro-slider"
+          min={0}
+          max={1}
+          step={0.05}
+          value={metroVolume}
+          onChange={(e) => setMetroVolume(Number(e.target.value))}
+          aria-label="עוצמת קול"
+        />
+        <span className="gt-metro-volume-pct">{Math.round(metroVolume * 100)}%</span>
+      </div>
 
       <div className="gt-metro-dots-row">
         <button type="button" className="gt-step-btn gt-step-btn-sm" onClick={() => bumpBeats(-1)} aria-label="הורד נקודה">−</button>
