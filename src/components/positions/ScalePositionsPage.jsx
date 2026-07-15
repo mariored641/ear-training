@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ControlPanel from './ControlPanel';
 import DisplayOptionsBar from './DisplayOptionsBar';
@@ -12,6 +12,22 @@ import { ROOT_DISPLAY_NAMES } from '../../utils/enharmonicUtils';
 import './ScalePositionsPage.css';
 
 const MAX_ACTIVE_ARPEGGIOS = 3;
+
+const PARTIAL_CHORDS_STORAGE_KEY = 'earTraining:positions:partialChords';
+
+function loadPartialChordsFromStorage() {
+  try {
+    const raw = localStorage.getItem(PARTIAL_CHORDS_STORAGE_KEY);
+    if (!raw) return { progression: [], activeIdx: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      progression: Array.isArray(parsed.progression) ? parsed.progression : [],
+      activeIdx: Number.isInteger(parsed.activeIdx) ? parsed.activeIdx : 0,
+    };
+  } catch {
+    return { progression: [], activeIdx: 0 };
+  }
+}
 
 const ScalePositionsPage = () => {
   const navigate = useNavigate();
@@ -29,9 +45,25 @@ const ScalePositionsPage = () => {
   const [activeArpeggios, setActiveArpeggios] = useState([]);
   const [hideRoots, setHideRoots] = useState(false);
 
-  // Partial Chords tab state
-  const [partialChordsProgression, setPartialChordsProgression] = useState([]);
-  const [activePartialChordIdx, setActivePartialChordIdx] = useState(0);
+  // Partial Chords tab state — restored from localStorage so a student's
+  // in-progress chords survive closing the tab/app (no backend needed).
+  const [partialChordsProgression, setPartialChordsProgression] = useState(
+    () => loadPartialChordsFromStorage().progression
+  );
+  const [activePartialChordIdx, setActivePartialChordIdx] = useState(
+    () => loadPartialChordsFromStorage().activeIdx
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        PARTIAL_CHORDS_STORAGE_KEY,
+        JSON.stringify({ progression: partialChordsProgression, activeIdx: activePartialChordIdx })
+      );
+    } catch {
+      // localStorage unavailable (private browsing, quota) — silently skip persistence
+    }
+  }, [partialChordsProgression, activePartialChordIdx]);
 
   const fretboardNotes = useMemo(
     () => generateFretboardNotes(selectedRoot, selectedType, selectedPositions, showAll),
