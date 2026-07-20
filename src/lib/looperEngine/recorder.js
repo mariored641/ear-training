@@ -130,7 +130,9 @@ export class MicrophoneRecorder {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: false,
+          // Keep speaker playback (click + existing layers) out of overdubs.
+          // Noise suppression and AGC stay off so guitar dynamics are preserved.
+          echoCancellation: true,
           noiseSuppression: false,
           autoGainControl: false,
           channelCount: { ideal: 2 },
