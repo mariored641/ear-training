@@ -53,6 +53,7 @@ const AllScalesFretboard = ({
   onCellClick,         // (stringNum, fret, noteName) => void  — overrides onNoteClick when present
   markedCells,         // Map<`${stringNum}-${fret}`, { label: string, color?: string }> | null
   disableInactiveStringClicks,  // boolean — dimmed strings not clickable
+  noteDisplayMap,      // { [chromaticName]: displayName } — enharmonic display names
 }) => {
   const timers = useRef({});
   const longPressed = useRef({});
@@ -127,7 +128,7 @@ const AllScalesFretboard = ({
   // Get note label based on display mode
   const getLabel = useCallback((noteName) => {
     if (displayMode === 'dots') return '';
-    if (displayMode === 'notes') return noteName;
+    if (displayMode === 'notes') return noteDisplayMap?.[noteName] ?? noteName;
     if (displayMode === 'degrees') {
       const rootIdx = CHROMATIC_SCALE.indexOf(selectedRoot);
       const noteIdx = CHROMATIC_SCALE.indexOf(noteName);
@@ -135,7 +136,7 @@ const AllScalesFretboard = ({
       return INTERVAL_NAMES[semitones] ?? '?';
     }
     return '';
-  }, [displayMode, selectedRoot]);
+  }, [displayMode, selectedRoot, noteDisplayMap]);
 
   // Build chord ring shadows for a note
   const getChordRingStyle = useCallback((noteName) => {
@@ -250,14 +251,20 @@ const AllScalesFretboard = ({
         className={`asf-nut-cell${dimmed ? ' dimmed' : ''}${clickDisabled ? ' click-disabled' : ''}`}
         {...pointerHandlers}
       >
-        <button
-          className={`asf-string-label${stringActive ? ' active' : ''}`}
-          onClick={(e) => { e.stopPropagation(); onStringClick?.(stringNum); }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onPointerUp={(e) => e.stopPropagation()}
-        >
-          {STRING_TUNING[stringNum - 1]}
-        </button>
+        {onStringClick ? (
+          <button
+            className={`asf-string-label${stringActive ? ' active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); onStringClick(stringNum); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+          >
+            {STRING_TUNING[stringNum - 1]}
+          </button>
+        ) : (
+          <span className={`asf-string-label${stringActive ? ' active' : ''}`} style={{ pointerEvents: 'none' }}>
+            {STRING_TUNING[stringNum - 1]}
+          </span>
+        )}
         <div className={noteClasses} style={noteStyle}>
           {marked ? marked.label : ((isActive || isChordOnly) ? getLabel(noteName) : '')}
         </div>
