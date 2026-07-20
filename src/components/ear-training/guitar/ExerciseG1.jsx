@@ -54,7 +54,7 @@ function stringsToMap(arr) {
 }
 
 function initSession() {
-  return { currentQuestion: 1, currentMelody: null, currentNoteIndex: 0, markedNotes: [], correctFirstTry: 0, totalNotes: 0, highlightedNote: null, noteAttempts: {} };
+  return { currentQuestion: 1, currentMelody: null, currentNoteIndex: 0, markedNotes: [], highlightedNote: null, noteAttempts: {} };
 }
 
 const ExerciseG1 = () => {
@@ -70,9 +70,11 @@ const ExerciseG1 = () => {
   const [feedback, setFeedback]         = useState(null);
   const [done, setDone]                 = useState(false);
 
-  const isPlayingRef = useRef(false);
-  const melodyRef    = useRef(null);
-  const stateRef     = useRef({});
+  const isPlayingRef       = useRef(false);
+  const melodyRef          = useRef(null);
+  const stateRef           = useRef({});
+  const sessionFirstTryRef = useRef(0);
+  const sessionTotalRef    = useRef(0);
   stateRef.current   = { level, source, numQuestions, notation };
 
   const levelDef = LEVEL_DEFAULTS[level] || LEVEL_DEFAULTS[1];
@@ -111,6 +113,8 @@ const ExerciseG1 = () => {
   }, []);
 
   useEffect(() => {
+    sessionFirstTryRef.current = 0;
+    sessionTotalRef.current = 0;
     setDone(false);
     setSessionState(initSession());
     setTimeout(() => loadMelody(1), 150);
@@ -121,14 +125,14 @@ const ExerciseG1 = () => {
     if (!currentMelody) return;
     const correctNote = currentMelody.notes[currentNoteIndex];
     if (checkNotePosition(string, fret, correctNote)) {
-      const isFirstTry = !noteAttempts[currentNoteIndex];
       const newMarked = [...markedNotes, { string, fret, noteIndices: [currentNoteIndex + 1] }];
       const allDone = newMarked.reduce((s, n) => s + n.noteIndices.length, 0) >= currentMelody.notes.length;
-      const newFT = isFirstTry ? sessionState.correctFirstTry + 1 : sessionState.correctFirstTry;
+      sessionTotalRef.current += 1;
+      if (!noteAttempts[currentNoteIndex]) sessionFirstTryRef.current += 1;
       setFeedback('correct');
       setTimeout(() => setFeedback(null), 500);
       setSessionState(prev => ({
-        ...prev, markedNotes: newMarked, correctFirstTry: newFT, totalNotes: prev.totalNotes + 1,
+        ...prev, markedNotes: newMarked,
         currentNoteIndex: allDone ? prev.currentNoteIndex : prev.currentNoteIndex + 1
       }));
       if (allDone) {
@@ -177,8 +181,8 @@ const ExerciseG1 = () => {
         <EarTrainingHeader exerciseTitle="G1 — מיפוי צוואר גיטרה"
           levels={LEVELS} currentLevel={level} onLevelChange={setLevel}
           storageKey={storageKey} onBack={() => navigate('/category/ear-training/guitar')} />
-        <SessionSummary total={numQuestions} firstTry={sessionState.correctFirstTry}
-          onRetry={() => { setDone(false); setSessionState(initSession()); loadMelody(1); }}
+        <SessionSummary total={sessionTotalRef.current} firstTry={sessionFirstTryRef.current}
+          onRetry={() => { sessionFirstTryRef.current = 0; sessionTotalRef.current = 0; setDone(false); setSessionState(initSession()); loadMelody(1); }}
           onBack={() => navigate('/category/ear-training/guitar')}
           levelLabel={LEVELS.find(l => l.number === level)?.label} />
       </>
@@ -223,7 +227,6 @@ const ExerciseG1 = () => {
           onNoteClick={() => {}}
           onNoteLongPress={() => {}}
           onFretClick={() => {}}
-          onStringClick={() => {}}
         />
       </div>
       <FeedbackOverlay state={feedback} />

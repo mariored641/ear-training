@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './components/home/HomePage';
 import GrainOverlay from './components/common/GrainOverlay';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import { ToolsProvider } from './components/global-tools/ToolsContext';
 import GlobalTools from './components/global-tools/GlobalTools';
 import { prefetchBuffer } from './lib/soundfont/SoundFontPlayer';
@@ -81,16 +82,18 @@ const Sf2LabPage            = React.lazy(() => import('./components/sf2-lab/Sf2L
 
 function App() {
   useEffect(() => {
-    const id = requestIdleCallback
-      ? requestIdleCallback(() => prefetchBuffer(), { timeout: 5000 })
+    const hasIdleCallback = typeof window.requestIdleCallback === 'function'
+    const id = hasIdleCallback
+      ? window.requestIdleCallback(() => prefetchBuffer(), { timeout: 5000 })
       : setTimeout(() => prefetchBuffer(), 3000)
     return () => {
-      if (requestIdleCallback) cancelIdleCallback(id)
+      if (hasIdleCallback) window.cancelIdleCallback(id)
       else clearTimeout(id)
     }
   }, [])
 
   return (
+    <ErrorBoundary>
     <Router>
       <ToolsProvider>
         <GrainOverlay />
@@ -199,6 +202,7 @@ function App() {
       <GlobalTools />
       </ToolsProvider>
     </Router>
+    </ErrorBoundary>
   );
 }
 
