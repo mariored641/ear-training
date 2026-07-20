@@ -62,6 +62,9 @@ const ScalePositionsPage = React.lazy(() => import('./components/positions/Scale
 // Backing Tracks module
 const BackingTracksPage = React.lazy(() => import('./components/backing-tracks/BackingTracksPage'));
 
+// Looper module
+const LooperPage = React.lazy(() => import('./components/looper/LooperPage'));
+
 // Feedback module
 const FeedbackPage = React.lazy(() => import('./components/feedback/FeedbackPage'));
 const FeedbackTestPage = React.lazy(() => import('./components/feedback-test/FeedbackTestPage'));
@@ -154,6 +157,9 @@ function App() {
 
           {/* Backing Tracks module */}
           <Route path="/backing-tracks" element={<BackingTracksPage />} />
+
+          {/* Looper module */}
+          <Route path="/looper" element={<LooperPage />} />
 
           {/* Feedback module */}
           <Route path="/feedback" element={<FeedbackPage />} />

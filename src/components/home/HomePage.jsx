@@ -7,6 +7,7 @@ import {
   PentatonicBoxIcon,
   BoomboxIcon,
   MicrophoneIcon,
+  ProgressionIcon,
 } from '../icons/AppIcons';
 import './HomePage.css';
 
@@ -16,6 +17,7 @@ const SATELLITES = [
   { Icon: QuillIcon,          label: 'הכתבה',         route: '/category/dictation' },
   { Icon: PentatonicBoxIcon,  label: 'פוזיציות',      route: '/positions' },
   { Icon: BoomboxIcon,        label: 'באקינג טראקס',  route: '/backing-tracks' },
+  { Icon: ProgressionIcon,    label: 'לופר',           route: '/looper' },
   { Icon: MicrophoneIcon,     label: 'פידבק',         route: '/feedback' },
 ];
 

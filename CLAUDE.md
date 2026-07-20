@@ -58,7 +58,7 @@ Production: https://ear-training-rose.vercel.app
 
 ## מבנה החטיבות — שמות רשמיים
 
-האפליקציה מחולקת ל-6 חטיבות. השמות הבאים הם הרשמיים — השתמש בהם תמיד:
+האפליקציה מחולקת ל-7 חטיבות. השמות הבאים הם הרשמיים — השתמש בהם תמיד:
 
 ### חטיבות תרגול (לתלמידים)
 
@@ -184,6 +184,17 @@ Production: https://ear-training-rose.vercel.app
 - טכנולוגיות: MediaRecorder API, getUserMedia, Web Audio AnalyserNode, YouTube IFrame API, Web Share API
 - אין שרת, אין DB — הכל client-side
 
+**8. לופר / Looper**
+- Route: `/looper` (ישיר, ללא category screen)
+- Component: `looper/LooperPage.jsx`
+- כלי סקיצה רב-שכבתי: מטרונום, count-in, עד 6 שכבות מסונכרנות, overdub, mute/solo/volume/pan, undo וייצוא WAV
+- Hook מרכזי: `looper/useLooperEngine.js`
+- מנוע מבודד: `lib/looperEngine/` — כל שימוש ב-Tone.js כלוא מחוץ לקומפוננטות React
+- ההקלטה נאספת כ-PCM מול שעון ה-AudioContext ונחתכת לאורך משותף, כדי למנוע drift בין שכבות
+- השכבה הראשונה נועלת אורך של 1–8 תיבות; BPM ומשקל ננעלים לאחריה כדי לשמור סנכרון
+- sessions נשמרים מקומית ב-IndexedDB ומשוחזרים בכניסה הבאה; אין שרת או DB חיצוני
+- ייצוא MVP: WAV offline mix-down עם בחירת שכבות. MP3 נשאר הרחבה עתידית כדי לא להוסיף encoder כבד ל-bundle
+
 ---
 
 ## ארכיטקטורת Audio
@@ -254,7 +265,9 @@ src/
     positions/ScalePositionsPage.jsx    ← Scale Positions
     backing-tracks/BackingTracksPage.jsx
     feedback/FeedbackPage.jsx          ← Feedback (PrepScreen + RecordingScreen + PreviewScreen)
+    looper/LooperPage.jsx              ← Looper (multi-track recording + export)
   lib/backing-tracks/              ← לוגיקת Backing Tracks
+  lib/looperEngine/                ← מנוע Looper מבודד + הקלטה/ייצוא/שמירה
   utils/                           ← Audio players (AudioPlayer, HarmonicAudioPlayer, ...)
   constants/
     harmonicDefaults.js            ← CHORD_DEFINITIONS + EXTENDED_CHORDS (264 אקורדים)

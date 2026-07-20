@@ -308,6 +308,10 @@ body.home-page-active #root {
   background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.20), transparent 60%),
               radial-gradient(circle at 50% 50%, #724a2a 0%, var(--wood-deep) 85%);
 }
+.home-page-constellation .satellite.s-7 .orb {
+  background: radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.19), transparent 60%),
+              radial-gradient(circle at 50% 50%, #604020 0%, var(--wood-darkest) 85%);
+}
 
 /* ===== Constellation lines — brass dashes ===== */
 .home-page-constellation .lines {
