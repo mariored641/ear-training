@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guitar Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Stage / Constellation ===== */
+  .stage {
+    position: relative; z-index: 1;
+    height: 100vh; width: 100vw;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .constellation {
+    position: relative;
+    width: min(90vmin, 760px);
+    height: min(90vmin, 760px);
+  }
+  .center-hub {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.3);
+    box-shadow:
+      0 0 60px rgba(110, 168, 255, 0.45),
+      inset 0 0 40px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    z-index: 5;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  @keyframes hubPulse {
+    from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+    to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  }
+  .center-hub .center-info {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 6%;
+  }
+  .center-hub .center-info .emoji {
+    font-size: clamp(28px, 5vmin, 48px);
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 12px rgba(110,168,255,0.7));
+  }
+  .center-hub .center-info h2 {
+    margin: 0 0 4px 0;
+    font-size: clamp(13px, 2vmin, 20px);
+    font-weight: 700; line-height: 1.15;
+  }
+  .center-hub .center-info p {
+    margin: 0;
+    font-size: clamp(9px, 1.3vmin, 12px);
+    color: var(--text-dim); line-height: 1.3;
+  }
+
+  /* Satellites */
+  .satellite {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 34vmin;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 22vmin; height: 22vmin;
+    pointer-events: none;
+    animation: floatY 6s ease-in-out infinite alternate;
+  }
+  .satellite.s-2 { animation-delay: -1s; }
+  .satellite.s-3 { animation-delay: -2s; }
+  @keyframes floatY {
+    from { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius)*-1)) rotate(calc(var(--angle)*-1)); }
+    to   { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc((var(--radius)*-1) - 6px)) rotate(calc(var(--angle)*-1)); }
+  }
+  .satellite .label {
+    position: absolute; left: 50%; bottom: calc(78% + 10px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(11px, 1.7vmin, 15px); font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    animation: labelFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes labelFloat {
+    from { transform: translateX(-50%) translateY(0); }
+    to   { transform: translateX(-50%) translateY(-4px); }
+  }
+  .satellite .sub-label {
+    position: absolute; left: 50%; top: calc(78% - 4px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(9px, 1.3vmin, 11px); font-weight: 500;
+    color: var(--accent-2); opacity: 0.85;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .satellite .orb {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 78%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+      var(--orb-bg);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--orb-border);
+    box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(28px, 5.5vmin, 52px);
+    cursor: pointer; pointer-events: auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .satellite .orb:hover {
+    transform: translateX(-50%) scale(1.12);
+    box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
+    border-color: rgba(220, 235, 255, 0.7);
+  }
+  .satellite.s-1 .orb { box-shadow: 0 0 30px rgba(255, 180, 100, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+
+  .lines { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .lines line { stroke: rgba(180, 210, 255, 0.12); stroke-width: 1; stroke-dasharray: 3 5; }
+
+  /* ===== Exercise template ===== */
+  .exercise-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 80px 20px 110px;
+    gap: 22px;
+  }
+  .ex-header {
+    text-align: center;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+  .ex-code {
+    font-size: 12px; letter-spacing: 1.5px; font-weight: 600;
+    color: var(--accent); opacity: 0.85; text-transform: uppercase;
+  }
+  .ex-title {
+    margin: 0; font-size: clamp(22px, 3.5vmin, 32px); font-weight: 700;
+  }
+  .ex-progress {
+    font-size: 13px; color: var(--text-dim); margin-top: 4px;
+  }
+  .ex-prompt {
+    margin: 0; font-size: clamp(15px, 2vmin, 18px);
+    color: var(--text-dim); max-width: 700px; text-align: center;
+    line-height: 1.5;
+  }
+  .play-pad {
+    width: clamp(110px, 18vmin, 180px); height: clamp(110px, 18vmin, 180px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.4), rgba(42, 90, 255, 0.25));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    box-shadow: 0 0 60px rgba(110, 168, 255, 0.5), inset 0 0 30px rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(42px, 7vmin, 72px);
+    font-family: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  .play-pad:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 80px rgba(180, 210, 255, 0.7), inset 0 0 40px rgba(255,255,255,0.15);
+  }
+
+  .ex-answers {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; align-items: center;
+    max-width: 800px;
+  }
+  .ans-chip {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: clamp(13px, 1.7vmin, 16px);
+    font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+    min-width: 60px;
+  }
+  .ans-chip:hover {
+    background: rgba(110, 168, 255, 0.2);
+    border-color: rgba(180, 210, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.3);
+  }
+  .ans-chip.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+
+  .ex-footer {
+    position: fixed; bottom: 18px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 14px;
+    align-items: center;
+    z-index: 70;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .hint-btn, .skip-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  .hint-btn:hover, .skip-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+  .toggles-row {
+    display: flex; gap: 8px; margin-top: 4px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .pill-toggle {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-toggle.active { background: rgba(110, 168, 255, 0.25); border-color: var(--accent); color: var(--text); }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+
+  /* ===== Canon Fretboard (from redesign-v1) ===== */
+  .fretboard {
+    background: linear-gradient(180deg, #20242c, #14171c);
+    border: 1.5px solid rgba(180,210,255,0.18);
+    border-radius: 14px;
+    padding: 16px 14px;
+    position: relative;
+    overflow-x: auto;
+  }
+  .fb-grid {
+    display: grid; gap: 4px;
+    grid-template-columns: 30px repeat(13, 1fr);
+  }
+  .fb-cell {
+    height: 34px; position: relative;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .fb-cell.nut { border-right: 3px solid rgba(255,255,255,0.6); }
+  .fb-cell.fret-num {
+    background: transparent; border: none;
+    color: var(--text-dim); font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    height: 22px;
+  }
+  .fb-string {
+    color: var(--text-dim); font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fb-dot {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(180, 210, 255, 0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+  .fb-dot.root { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .fb-dot.arp  { background: rgba(120, 220, 255, 0.7); }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Guitar fragment additions
+     All classes prefixed `guitar-` or are the GLOBAL drawer
+     (`.levels-drawer`, `.levels-trigger`) which is shared with
+     every other section.
+     ============================================================ -->
+<style id="section-guitar">
+  /* ---- Global Levels Drawer (shared with every section) ---- */
+  .levels-trigger {
+    position: fixed; top: 50px; left: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s ease;
+  }
+  .levels-trigger:hover { background: rgba(255,255,255,0.16); }
+  .levels-trigger .hamburger { font-size: 15px; line-height: 1; color: var(--accent-2); }
+  .levels-trigger .current-level { color: var(--accent); font-weight: 700; }
+
+  .levels-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5, 13, 42, 0.55);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .levels-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .levels-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(380px, 90vw);
+    z-index: 210;
+    background:
+      linear-gradient(180deg, rgba(13, 42, 122, 0.85), rgba(10, 31, 92, 0.92));
+    border-right: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5),
+                inset -1px 0 0 rgba(180, 210, 255, 0.08);
+    transform: translateX(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex; flex-direction: column;
+    direction: rtl;
+  }
+  .levels-drawer.open { transform: translateX(0); }
+
+  .levels-drawer-header {
+    padding: 18px 20px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(180, 210, 255, 0.12);
+  }
+  .levels-drawer-title {
+    margin: 0;
+    font-size: 17px; font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .levels-drawer-title .ex-tag {
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--accent);
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(110, 168, 255, 0.15);
+    border: 1px solid rgba(110, 168, 255, 0.3);
+  }
+  .levels-drawer-close {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 16px; cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .levels-drawer-close:hover {
+    background: rgba(255,255,255,0.14);
+    color: var(--text);
+  }
+
+  .levels-drawer-list {
+    list-style: none;
+    margin: 0; padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .levels-drawer-list::-webkit-scrollbar { width: 6px; }
+  .levels-drawer-list::-webkit-scrollbar-thumb {
+    background: rgba(180, 210, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  .level-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .level-item:hover {
+    background: rgba(110, 168, 255, 0.1);
+    border-color: rgba(180, 210, 255, 0.2);
+  }
+  .level-item.active {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.35),
+                inset 0 0 14px rgba(110, 168, 255, 0.08);
+  }
+  .level-item.locked { opacity: 0.45; cursor: not-allowed; }
+  .level-item.locked:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: transparent;
+  }
+  .level-item-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .level-item.active .level-item-num {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    color: #051030;
+    box-shadow: 0 0 12px rgba(110, 168, 255, 0.7);
+  }
+  .level-item.completed .level-item-num {
+    background: rgba(120, 220, 180, 0.25);
+    border-color: rgba(120, 220, 180, 0.6);
+    color: #e0fff0;
+  }
+  .level-item-label {
+    flex: 1;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+  }
+  .level-item.active .level-item-label { color: var(--accent-2); font-weight: 600; }
+  .level-item-icon { font-size: 13px; color: var(--text-dim); }
+  .level-item.completed .level-item-icon { color: rgba(120, 220, 180, 0.9); }
+
+  /* ---- Settings strip (mirrors melodic-settings-strip pattern) ----
+     Justification: identical visual to the melodic fragment's settings
+     strip — same separator + same strip-title, so it inherits the
+     melodic naming and behaves identically across sections. */
+  .guitar-settings-strip {
+    width: 100%;
+    max-width: 900px;
+    border-top: 1px dashed rgba(180, 210, 255, 0.18);
+    padding-top: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .guitar-settings-strip .strip-title {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  /* ---- G1 — Note progress dots (NoteIndicator equivalent) ----
+     Justification: the React `NoteIndicator` shows ●●○○○ — current
+     note in the played melody, plus filled dots for notes already
+     placed. Canon has no chip series for "find note 2 of 5", and we
+     want it distinct from `.ans-chip`. */
+  .guitar-note-indicator {
+    display: flex; gap: 10px; align-items: center;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+  }
+  .guitar-note-indicator .ni-label {
+    font-size: 11px; color: var(--text-dim);
+    letter-spacing: 0.8px; margin-inline-end: 4px;
+  }
+  .guitar-note-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(180,210,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: var(--text-dim);
+    transition: all 0.2s ease;
+  }
+  .guitar-note-dot.done {
+    background: rgba(120, 220, 180, 0.3);
+    border-color: rgba(120, 220, 180, 0.7);
+    color: #e0fff0;
+  }
+  .guitar-note-dot.current {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    color: #051030;
+    box-shadow: 0 0 14px rgba(110, 168, 255, 0.7);
+    animation: noteDotPulse 1.4s ease-in-out infinite alternate;
+  }
+  @keyframes noteDotPulse {
+    from { box-shadow: 0 0 8px rgba(110, 168, 255, 0.45); }
+    to   { box-shadow: 0 0 20px rgba(110, 168, 255, 0.95); }
+  }
+
+  /* ---- G1 — Fretboard cells need to be clickable + show hover state +
+            a "target" highlight where the correct answer lives.
+     Justification: canon `.fb-cell` is a passive grid cell; G1 needs
+     interactivity. We extend it via modifier classes rather than
+     redefine the layout. */
+  .fb-cell.guitar-fret-cell {
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s ease;
+  }
+  .fb-cell.guitar-fret-cell:hover {
+    background: rgba(110, 168, 255, 0.12);
+  }
+  /* a string the level disables (e.g. level 1 = only A string) */
+  .fb-cell.guitar-fret-disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+  }
+  .fb-cell.guitar-fret-disabled:hover { background: transparent; }
+  /* a fret outside the level range (e.g. pos5 = frets 5-8 only) */
+  .fb-cell.guitar-fret-out-of-range {
+    background: rgba(0,0,0,0.25);
+    opacity: 0.5;
+  }
+  .fb-cell.guitar-fret-out-of-range:hover { background: rgba(0,0,0,0.25); }
+
+  /* the correct answer cell — pulsing target ring (visible after wrong
+     guess, or as a "hint" reveal). Distinct from canon .fb-dot.root
+     (which is a static colored dot) because this is a transient
+     teaching hint. */
+  .guitar-fret-target {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2.5px dashed var(--accent-2);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.7),
+                inset 0 0 10px rgba(110, 168, 255, 0.25);
+    animation: targetPulse 1.2s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes targetPulse {
+    from { transform: translate(-50%, -50%) scale(0.85); opacity: 0.7; }
+    to   { transform: translate(-50%, -50%) scale(1.05); opacity: 1;   }
+  }
+
+  /* a fb-dot the student already placed correctly (filled with sequence
+     number) — adopts the `.fb-dot` look but uses the green "correct"
+     tint to match `.guitar-note-dot.done`. */
+  .fb-dot.guitar-fret-placed {
+    background: rgba(120, 220, 180, 0.85);
+    box-shadow: 0 0 14px rgba(120, 220, 180, 0.7);
+    color: #051030;
+  }
+
+  /* ---- G1 — Fretboard range overlay banner ----
+     Justification: the level limits range (e.g. "pos5 = frets 5-8");
+     we need to communicate that visually above the fretboard. Canon
+     has no banner element. */
+  .guitar-range-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: rgba(110, 168, 255, 0.08);
+    border: 1px solid rgba(110, 168, 255, 0.25);
+    border-radius: 999px;
+    font-size: 12px; color: var(--accent-2);
+    letter-spacing: 0.3px;
+  }
+  .guitar-range-banner .v {
+    color: var(--text); font-weight: 700; margin-inline-start: 4px;
+  }
+  .guitar-range-banner .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 6px var(--accent);
+  }
+
+  /* ---- G1 — String filter chips ----
+     A row of 6 mini chips showing which strings are "live" for this
+     level. Distinct from `.ans-chip` because they aren't answers, and
+     distinct from `.pill-toggle` because they include a visual
+     enabled/disabled state with a strikethrough feel for off strings.
+     Justification: no canon class for a string-by-string subset
+     visualization. */
+  .guitar-string-filter {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .guitar-string-filter .gsf-label {
+    font-size: 11px; color: var(--text-dim);
+    letter-spacing: 0.8px; margin-inline-end: 4px;
+  }
+  .guitar-string-chip {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(110, 168, 255, 0.18);
+    border: 1.5px solid var(--accent);
+    color: var(--text);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .guitar-string-chip:hover { transform: translateY(-2px); }
+  .guitar-string-chip.off {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    text-decoration: line-through;
+    opacity: 0.55;
+  }
+
+  /* ---- G1 — Fretboard wrapper that anchors the legend ----
+     Just a container — only used so the legend & range banner sit
+     visually attached to the fretboard. */
+  .guitar-fretboard-wrap {
+    width: 100%;
+    max-width: min(960px, 95vw);
+    display: flex; flex-direction: column; gap: 10px;
+    align-items: center;
+  }
+
+  /* ---- G1 — Fretboard legend (root / arp / your taps / target) ----
+     Justification: the React UI uses NoteIndicator + colored dots on
+     the fretboard; the user needs a small legend to read them.
+     Canon has no legend class. */
+  .guitar-fb-legend {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    justify-content: center;
+    font-size: 11px; color: var(--text-dim);
+  }
+  .guitar-fb-legend .legend-item {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .guitar-fb-legend .swatch {
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .guitar-fb-legend .swatch.scale  { background: rgba(180,210,255,0.35); }
+  .guitar-fb-legend .swatch.placed { background: rgba(120,220,180,0.85); box-shadow: 0 0 6px rgba(120,220,180,0.7); }
+  .guitar-fb-legend .swatch.target {
+    background: transparent;
+    border: 2px dashed var(--accent-2);
+    box-shadow: 0 0 6px rgba(110,168,255,0.7);
+  }
+
+  /* ---- standalone preview helpers (only used when opened alone) ---- */
+  .preview-section {
+    position: relative;
+    min-height: 100vh;
+  }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Guitar Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>שמיעה מוזיקלית<span>›</span>גיטרה</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     ============================================================ -->
+<script type="application/json" id="views-guitar">
+{
+  "guitar": {
+    "type": "radial",
+    "breadcrumb": "גיטרה",
+    "parent": "ear-training",
+    "title": "גיטרה",
+    "sub": "1 Exercise",
+    "centerEmoji": "🎸",
+    "satellites": [
+      { "icon": "🗺️", "label": "מיפוי צוואר", "sub": "G1", "goto": "ex-g1" }
+    ]
+  },
+  "ex-g1": {
+    "type": "exercise-custom",
+    "renderer": "renderG1",
+    "breadcrumb": "G1 — מיפוי צוואר",
+    "parent": "guitar"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Level data (mirrors LEVELS + LEVEL_DEFAULTS from ExerciseG1.jsx) =====
+  // The 7 levels build from "single note on A string, frets 0-5" all the way
+  // up to "6-note melody in 5th position (frets 5-8) on all strings".
+  const G1_LEVELS = [
+    { n: 1, label: 'שלב 1 — תו בודד, מיתר A, פרטים 0-5',           strings: ['A'],                              frets: [0, 5], notes: 1, done: true  },
+    { n: 2, label: 'שלב 2 — תו בודד, כל המיתרים, פרטים 0-5',       strings: ['E','A','D','G','B','e'],          frets: [0, 5], notes: 1, done: true  },
+    { n: 3, label: 'שלב 3 — 2 תווים, תנועה מדרגית',                strings: ['E','A','D','G','B','e'],          frets: [0, 5], notes: 2, done: false, current: true },
+    { n: 4, label: 'שלב 4 — 3 תווים, מעורב',                       strings: ['E','A','D','G','B','e'],          frets: [0, 5], notes: 3, done: false },
+    { n: 5, label: 'שלב 5 — פוזיציה 1 (פרטים 0-3), 4 תווים',       strings: ['E','A','D','G','B','e'],          frets: [0, 3], notes: 4, done: false },
+    { n: 6, label: 'שלב 6 — פוזיציה 2 (פרטים 2-5), 5 תווים',       strings: ['E','A','D','G','B','e'],          frets: [2, 5], notes: 5, done: false, locked: true },
+    { n: 7, label: 'שלב 7 — פוזיציה 5 (פרטים 5-8), 6 תווים',       strings: ['E','A','D','G','B','e'],          frets: [5, 8], notes: 6, done: false, locked: true }
+  ];
+
+  // ===== Generic drawer renderer (identical to melodic fragment) =====
+  function renderLevelsDrawer(exId, exTitle, levels) {
+    const items = levels.map(l => {
+      const classes = ['level-item'];
+      if (l.current) classes.push('active');
+      if (l.done && !l.current) classes.push('completed');
+      if (l.locked) classes.push('locked');
+      const icon = l.locked   ? '🔒'
+                 : l.current  ? '●'
+                 : l.done     ? '✓'
+                 :              '';
+      return `
+        <li class="${classes.join(' ')}" onclick="${l.locked ? '' : `selectLevel('${exId}', ${l.n})`}">
+          <span class="level-item-num">${l.n}</span>
+          <span class="level-item-label">${l.label}</span>
+          <span class="level-item-icon">${icon}</span>
+        </li>`;
+    }).join('');
+    return `
+      <div class="levels-overlay" id="levels-overlay-${exId}" onclick="toggleDrawer('${exId}')"></div>
+      <aside class="levels-drawer" id="levels-drawer-${exId}" role="dialog" aria-label="בחר שלב">
+        <div class="levels-drawer-header">
+          <h3 class="levels-drawer-title">
+            <span class="ex-tag">${exId.toUpperCase()}</span>
+            <span>בחר שלב</span>
+          </h3>
+          <button class="levels-drawer-close" onclick="toggleDrawer('${exId}')" aria-label="סגור">✕</button>
+        </div>
+        <ul class="levels-drawer-list">${items}</ul>
+      </aside>`;
+  }
+
+  function renderLevelsTrigger(exId, currentLabel) {
+    return `
+      <button class="levels-trigger" onclick="toggleDrawer('${exId}')" title="בחר שלב">
+        <span class="hamburger">☰</span>
+        <span>שלבים</span>
+        <span class="current-level">· ${currentLabel}</span>
+      </button>`;
+  }
+
+  // ===== Guitar Hub (radial — 1 satellite at 12 o'clock) =====
+  function renderGuitarHub() {
+    // Only ONE satellite → place it at 12 o'clock (angle 0deg).
+    const sats = [
+      { icon: '🗺️', label: 'מיפוי צוואר', sub: 'G1', goto: 'ex-g1', slot: 1, angle: 0 }
+    ];
+    const satHtml = sats.map(s => `
+      <div class="satellite s-${s.slot}" style="--angle:${s.angle}deg" data-angle="${s.angle}">
+        <div class="label">${s.label}</div>
+        <div class="orb" onclick="navigate('${s.goto}')">${s.icon}</div>
+        <div class="sub-label">${s.sub}</div>
+      </div>`).join('');
+    return `
+      <div class="stage">
+        <div class="constellation" id="cur-const">
+          <svg class="lines" id="cur-lines"></svg>
+          <div class="center-hub">
+            <div class="center-info">
+              <div class="emoji">🎸</div>
+              <h2>גיטרה</h2>
+              <p>1 Exercise · 7 Levels</p>
+            </div>
+          </div>
+          ${satHtml}
+        </div>
+      </div>`;
+  }
+
+  // ===== Helper: standard guitar tuning + chromatic =====
+  // Strings from low to high (visual top = high e in canon `.fb-grid`).
+  // We render top→bottom: e, B, G, D, A, E (matches canon `positions` tool).
+  const STRINGS_DISPLAY = ['e','B','G','D','A','E'];        // top → bottom in the grid
+  const OPEN_PITCH      = { 'e': 64, 'B': 59, 'G': 55, 'D': 50, 'A': 45, 'E': 40 };
+  const CHROM = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  function noteAt(stringName, fret) {
+    const midi = OPEN_PITCH[stringName] + fret;
+    return CHROM[midi % 12];
+  }
+
+  // ===== Exercise G1 — מיפוי צוואר =====
+  function renderG1() {
+    const level = G1_LEVELS.find(l => l.current) || G1_LEVELS[0];
+    const FRETS = 13; // 0 (open / nut) + 12 frets visible
+    const activeStrings = new Set(level.strings);
+    const [fromFret, toFret] = level.frets;
+
+    // Mock state — for level 3 (current) we have 2 notes, the first one has
+    // already been placed; the second is the "target" that the user must
+    // click. We choose A string fret 3 (= C) for placed[0], and D string
+    // fret 2 (= E) as the target.
+    const placedNotes = [
+      { string: 'A', fret: 3, seq: 1 }
+    ];
+    const targetCell = { string: 'D', fret: 2 };
+
+    // Build fret-number header row
+    const fretNums = ['<div></div>'];
+    for (let f = 0; f < FRETS; f++) {
+      fretNums.push(`<div class="fb-cell fret-num">${f}</div>`);
+    }
+
+    // Build one row per string
+    const stringRows = STRINGS_DISPLAY.map(sn => {
+      const stringActive = activeStrings.has(sn);
+      const cells = [];
+      for (let f = 0; f < FRETS; f++) {
+        const inRange       = (f >= fromFret && f <= toFret);
+        const isPlaced      = placedNotes.find(p => p.string === sn && p.fret === f);
+        const isTarget      = (targetCell.string === sn && targetCell.fret === f);
+        const noteName      = noteAt(sn, f);
+        const classList     = ['fb-cell'];
+        if (f === 0) classList.push('nut');
+        if (stringActive && inRange) {
+          classList.push('guitar-fret-cell');
+        } else if (!stringActive) {
+          classList.push('guitar-fret-disabled');
+        } else if (!inRange) {
+          classList.push('guitar-fret-out-of-range');
+        }
+
+        let inner = '';
+        if (isPlaced) {
+          inner = `<div class="fb-dot guitar-fret-placed">${isPlaced.seq}</div>`;
+        } else if (isTarget) {
+          inner = `<div class="guitar-fret-target"></div>`;
+        } else if (stringActive && inRange && f > 0) {
+          // a faint "available cell" hint dot to make the active region visible
+          inner = `<div class="fb-dot" style="width:6px;height:6px;background:rgba(180,210,255,0.18);"></div>`;
+        }
+        cells.push(`<div class="${classList.join(' ')}">${inner}</div>`);
+      }
+      return `<div class="fb-string">${sn}</div>${cells.join('')}`;
+    }).join('');
+
+    // Note progress indicator (NoteIndicator equivalent)
+    const noteDots = [];
+    for (let i = 0; i < level.notes; i++) {
+      const cls = i < placedNotes.length ? 'done'
+                : i === placedNotes.length ? 'current'
+                : '';
+      noteDots.push(`<div class="guitar-note-dot ${cls}">${i + 1}</div>`);
+    }
+
+    // String filter chips — show all 6, off-styled if not in level
+    const stringChips = STRINGS_DISPLAY.map(sn => {
+      const on = activeStrings.has(sn);
+      return `<button class="guitar-string-chip${on ? '' : ' off'}">${sn}</button>`;
+    }).join('');
+
+    return `
+      ${renderLevelsTrigger('g1', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">G1</div>
+          <h1 class="ex-title">מיפוי צוואר גיטרה</h1>
+          <div class="ex-progress">שאלה 4 / 10  ·  מהפעם הראשונה: 3  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">שמע את המנגינה ולחץ על הפרט הנכון בצוואר עבור כל תו.</p>
+
+        <button class="play-pad" title="נגן שוב">🔊</button>
+
+        <!-- NoteIndicator equivalent: ●●○ — which note in the sequence -->
+        <div class="guitar-note-indicator">
+          <span class="ni-label">תו</span>
+          ${noteDots.join('')}
+          <span class="ni-label" style="margin-inline:6px 0">מתוך ${level.notes}</span>
+        </div>
+
+        <div class="guitar-fretboard-wrap">
+          <!-- Range banner — communicates the level's fret window -->
+          <div class="control-row" style="gap:14px">
+            <div class="guitar-range-banner">
+              <span class="dot"></span>
+              <span>טווח פרטים:</span>
+              <span class="v">${fromFret}-${toFret}</span>
+            </div>
+            <!-- String filter — visualizes which strings are live at this level -->
+            <div class="guitar-string-filter">
+              <span class="gsf-label">מיתרים</span>
+              ${stringChips}
+            </div>
+          </div>
+
+          <div class="fretboard" dir="ltr">
+            <div class="fb-grid">
+              ${fretNums.join('')}
+              ${stringRows}
+            </div>
+          </div>
+
+          <div class="guitar-fb-legend">
+            <span class="legend-item"><span class="swatch scale"></span> אפשרי</span>
+            <span class="legend-item"><span class="swatch placed"></span> סימנת</span>
+            <span class="legend-item"><span class="swatch target"></span> מטרה (רמז)</span>
+          </div>
+        </div>
+
+        <!-- Note-name display toggle: visible labels on/off -->
+        <div class="toggles-row">
+          <button class="pill-toggle active">שמות תווים: גלוי</button>
+          <button class="pill-toggle">שמות תווים: מוסתר</button>
+        </div>
+
+        <!-- Settings strip — mirrors ctrlRow in ExerciseG1.jsx -->
+        <div class="guitar-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מקור:</strong> <span class="v">אקראי</span></span>
+            <span class="select-pill" style="cursor:default"><strong>סימון:</strong> <span class="v">בסדר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">גיטרה</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">אקראי</button>
+            <button class="pill-toggle">ספרייה</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">סימון בסדר</button>
+            <button class="pill-toggle">חופשי</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז (סמן מטרה)</button>
+          <button class="hint-btn">🔊 נגן שוב</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('g1', 'G1 — מיפוי צוואר', G1_LEVELS)}
+    `;
+  }
+
+  // ===== Standalone preview: stack both views =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 2  ·  guitar hub</div>
+        ${renderGuitarHub()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 2 / 2  ·  ex-g1</div>
+        ${renderG1()}
+      </section>
+    `;
+    // Draw constellation lines once the hub is in the DOM
+    requestAnimationFrame(drawConstellationLines);
+  }
+
+  function drawConstellationLines() {
+    const container = document.getElementById('cur-const');
+    const svg = document.getElementById('cur-lines');
+    if (!container || !svg) return;
+    const w = container.clientWidth, h = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.innerHTML = '';
+    const cRect = container.getBoundingClientRect();
+    const cx = w / 2, cy = h / 2;
+    container.querySelectorAll('.satellite .orb').forEach(orb => {
+      const r = orb.getBoundingClientRect();
+      const x = r.left + r.width / 2 - cRect.left;
+      const y = r.top + r.height / 2 - cRect.top;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+      line.setAttribute('x2', x);  line.setAttribute('y2', y);
+      svg.appendChild(line);
+    });
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    const map = { 'guitar': 0, 'ex-g1': 1 };
+    const idx = map[id];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function goBack() { history.back(); }
+
+  function toggleDrawer(exId) {
+    const drawer  = document.getElementById(`levels-drawer-${exId}`);
+    const overlay = document.getElementById(`levels-overlay-${exId}`);
+    if (!drawer || !overlay) return;
+    const open = !drawer.classList.contains('open');
+    drawer.classList.toggle('open',  open);
+    overlay.classList.toggle('open', open);
+  }
+  function selectLevel(exId, n) {
+    toggleDrawer(exId);
+    console.log(`[mockup] selectLevel ${exId} → ${n}`);
+  }
+
+  window.addEventListener('resize', drawConstellationLines);
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Solfège Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Stage / Constellation ===== */
+  .stage {
+    position: relative; z-index: 1;
+    height: 100vh; width: 100vw;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .constellation {
+    position: relative;
+    width: min(90vmin, 760px);
+    height: min(90vmin, 760px);
+  }
+  .center-hub {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.3);
+    box-shadow:
+      0 0 60px rgba(110, 168, 255, 0.45),
+      inset 0 0 40px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    z-index: 5;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  @keyframes hubPulse {
+    from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+    to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  }
+  .center-hub .center-info {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 6%;
+  }
+  .center-hub .center-info .emoji {
+    font-size: clamp(28px, 5vmin, 48px);
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 12px rgba(110,168,255,0.7));
+  }
+  .center-hub .center-info h2 {
+    margin: 0 0 4px 0;
+    font-size: clamp(13px, 2vmin, 20px);
+    font-weight: 700; line-height: 1.15;
+  }
+  .center-hub .center-info p {
+    margin: 0;
+    font-size: clamp(9px, 1.3vmin, 12px);
+    color: var(--text-dim); line-height: 1.3;
+  }
+
+  /* Satellites */
+  .satellite {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 34vmin;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 22vmin; height: 22vmin;
+    pointer-events: none;
+    animation: floatY 6s ease-in-out infinite alternate;
+  }
+  .satellite.s-2 { animation-delay: -1s; }
+  .satellite.s-3 { animation-delay: -2s; }
+  @keyframes floatY {
+    from { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius)*-1)) rotate(calc(var(--angle)*-1)); }
+    to   { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc((var(--radius)*-1) - 6px)) rotate(calc(var(--angle)*-1)); }
+  }
+  .satellite .label {
+    position: absolute; left: 50%; bottom: calc(78% + 10px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(11px, 1.7vmin, 15px); font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    animation: labelFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes labelFloat {
+    from { transform: translateX(-50%) translateY(0); }
+    to   { transform: translateX(-50%) translateY(-4px); }
+  }
+  .satellite .sub-label {
+    position: absolute; left: 50%; top: calc(78% - 4px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(9px, 1.3vmin, 11px); font-weight: 500;
+    color: var(--accent-2); opacity: 0.85;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .satellite .orb {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 78%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+      var(--orb-bg);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--orb-border);
+    box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(28px, 5.5vmin, 52px);
+    cursor: pointer; pointer-events: auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .satellite .orb:hover {
+    transform: translateX(-50%) scale(1.12);
+    box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
+    border-color: rgba(220, 235, 255, 0.7);
+  }
+  .satellite.s-1 .orb { box-shadow: 0 0 30px rgba(255, 180, 100, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-2 .orb { box-shadow: 0 0 30px rgba(255, 120, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-3 .orb { box-shadow: 0 0 30px rgba(150, 220, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+
+  .lines { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .lines line { stroke: rgba(180, 210, 255, 0.12); stroke-width: 1; stroke-dasharray: 3 5; }
+
+  /* ===== Exercise template ===== */
+  .exercise-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 80px 20px 110px;
+    gap: 22px;
+  }
+  .ex-header {
+    text-align: center;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+  .ex-code {
+    font-size: 12px; letter-spacing: 1.5px; font-weight: 600;
+    color: var(--accent); opacity: 0.85; text-transform: uppercase;
+  }
+  .ex-title {
+    margin: 0; font-size: clamp(22px, 3.5vmin, 32px); font-weight: 700;
+  }
+  .ex-progress {
+    font-size: 13px; color: var(--text-dim); margin-top: 4px;
+  }
+  .ex-prompt {
+    margin: 0; font-size: clamp(15px, 2vmin, 18px);
+    color: var(--text-dim); max-width: 700px; text-align: center;
+    line-height: 1.5;
+  }
+  .play-pad {
+    width: clamp(110px, 18vmin, 180px); height: clamp(110px, 18vmin, 180px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.4), rgba(42, 90, 255, 0.25));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    box-shadow: 0 0 60px rgba(110, 168, 255, 0.5), inset 0 0 30px rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(42px, 7vmin, 72px);
+    font-family: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  .play-pad:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 80px rgba(180, 210, 255, 0.7), inset 0 0 40px rgba(255,255,255,0.15);
+  }
+
+  .ex-answers {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; align-items: center;
+    max-width: 800px;
+  }
+  .ans-chip {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: clamp(13px, 1.7vmin, 16px);
+    font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+    min-width: 60px;
+  }
+  .ans-chip:hover {
+    background: rgba(110, 168, 255, 0.2);
+    border-color: rgba(180, 210, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.3);
+  }
+  .ans-chip.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+
+  .ex-footer {
+    position: fixed; bottom: 18px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 14px;
+    align-items: center;
+    z-index: 70;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .hint-btn, .skip-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  .hint-btn:hover, .skip-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+  .toggles-row {
+    display: flex; gap: 8px; margin-top: 4px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .pill-toggle {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-toggle.active { background: rgba(110, 168, 255, 0.25); border-color: var(--accent); color: var(--text); }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+
+  /* Staff mock — canonical */
+  .staff-mock {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    height: 140px;
+    position: relative;
+    overflow: hidden;
+    padding: 28px 30px;
+  }
+  .staff-line {
+    height: 2px; background: rgba(180,210,255,0.4);
+    margin-bottom: 18px;
+  }
+  .staff-line:last-child { margin-bottom: 0; }
+  .staff-note {
+    position: absolute;
+    width: 22px; height: 16px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 14px var(--accent);
+  }
+
+  /* Record button — canonical (from .rec-btn in canon) */
+  .rec-btn {
+    width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #ff7a7a, #c80000);
+    border: 3px solid rgba(255,255,255,0.9);
+    box-shadow: 0 0 35px rgba(255, 80, 80, 0.6);
+    cursor: pointer;
+    font-family: inherit;
+    color: #fff;
+    font-size: 38px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .rec-btn:hover { transform: scale(1.05); }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Solfège fragment additions
+     All classes prefixed `solfege-` (or extend a canon class with
+     a `solfege-…` modifier). The global drawer (`.levels-drawer`,
+     `.levels-trigger`) is shared with every other section.
+     ============================================================ -->
+<style id="section-solfege">
+  /* ---- Global Levels Drawer (shared with every section) ---- */
+  .levels-trigger {
+    position: fixed; top: 50px; left: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s ease;
+  }
+  .levels-trigger:hover { background: rgba(255,255,255,0.16); }
+  .levels-trigger .hamburger {
+    font-size: 15px; line-height: 1;
+    color: var(--accent-2);
+  }
+  .levels-trigger .current-level {
+    color: var(--accent); font-weight: 700;
+  }
+
+  .levels-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5, 13, 42, 0.55);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .levels-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .levels-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(380px, 90vw);
+    z-index: 210;
+    background:
+      linear-gradient(180deg, rgba(13, 42, 122, 0.85), rgba(10, 31, 92, 0.92));
+    border-right: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5),
+                inset -1px 0 0 rgba(180, 210, 255, 0.08);
+    transform: translateX(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex; flex-direction: column;
+    direction: rtl;
+  }
+  .levels-drawer.open { transform: translateX(0); }
+
+  .levels-drawer-header {
+    padding: 18px 20px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(180, 210, 255, 0.12);
+  }
+  .levels-drawer-title {
+    margin: 0;
+    font-size: 17px; font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .levels-drawer-title .ex-tag {
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--accent);
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(110, 168, 255, 0.15);
+    border: 1px solid rgba(110, 168, 255, 0.3);
+  }
+  .levels-drawer-close {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 16px; cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .levels-drawer-close:hover {
+    background: rgba(255,255,255,0.14);
+    color: var(--text);
+  }
+
+  .levels-drawer-list {
+    list-style: none;
+    margin: 0; padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .levels-drawer-list::-webkit-scrollbar { width: 6px; }
+  .levels-drawer-list::-webkit-scrollbar-thumb {
+    background: rgba(180, 210, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  .level-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .level-item:hover {
+    background: rgba(110, 168, 255, 0.1);
+    border-color: rgba(180, 210, 255, 0.2);
+  }
+  .level-item.active {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.35),
+                inset 0 0 14px rgba(110, 168, 255, 0.08);
+  }
+  .level-item.locked {
+    opacity: 0.45; cursor: not-allowed;
+  }
+  .level-item.locked:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: transparent;
+  }
+  .level-item-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .level-item.active .level-item-num {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    color: #051030;
+    box-shadow: 0 0 12px rgba(110, 168, 255, 0.7);
+  }
+  .level-item.completed .level-item-num {
+    background: rgba(120, 220, 180, 0.25);
+    border-color: rgba(120, 220, 180, 0.6);
+    color: #e0fff0;
+  }
+  .level-item-label {
+    flex: 1;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+  }
+  .level-item.active .level-item-label { color: var(--accent-2); font-weight: 600; }
+  .level-item-icon {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .level-item.completed .level-item-icon { color: rgba(120, 220, 180, 0.9); }
+  .level-item.locked .level-item-icon { color: var(--text-dim); }
+
+  /* ============================================================
+     S1 / S2 — staff variants
+
+     Justification: the canon `.staff-mock` is a "filler" prop —
+     it gives 5 lines and a few dots. Solfège exercises USE the
+     staff as their *primary information surface* — so we add
+     `solfege-staff-large` as a modifier that grows the canvas,
+     keeps the same line/dot DNA, and supports note-labels (the
+     Do/Re/Mi caption under each note) and a target-glow ring
+     used by S2 to mark the question note.
+     ============================================================ */
+  .staff-mock.solfege-staff-large {
+    height: clamp(170px, 22vmin, 220px);
+    padding: 36px 42px 50px;
+    width: 100%; max-width: 640px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .staff-mock.solfege-staff-large .staff-line {
+    margin-bottom: 20px;
+    background: rgba(180, 210, 255, 0.55);
+  }
+  .staff-mock.solfege-staff-large .staff-note {
+    width: 24px; height: 18px;
+    transform: translate(-50%, -50%);
+    /* dot positions are placed at the center, so the layout uses
+       50%-anchored positioning rather than top/left corner anchoring */
+  }
+  /* clef glyph on the leading edge of the staff */
+  .staff-mock.solfege-staff-large .solfege-clef {
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: clamp(46px, 7vmin, 64px);
+    color: var(--accent-2);
+    opacity: 0.85;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(110, 168, 255, 0.55));
+    pointer-events: none;
+  }
+  /* note-name label (Do, Re, Mi…) — placed under each staff-note */
+  .solfege-note-label {
+    position: absolute;
+    transform: translate(-50%, 0);
+    font-size: 11px; font-weight: 700;
+    color: var(--accent-2);
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+    letter-spacing: 0.5px;
+    pointer-events: none;
+  }
+  /* note "now playing" state for S1 — pulses */
+  .staff-note.solfege-note-current {
+    background: #fff;
+    box-shadow: 0 0 22px #fff, 0 0 38px var(--accent);
+    animation: solfegeNotePulse 1.1s ease-in-out infinite;
+  }
+  @keyframes solfegeNotePulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50%      { transform: translate(-50%, -50%) scale(1.18); }
+  }
+  /* target ring for S2 — glowing halo around the answer note */
+  .staff-note.solfege-note-target {
+    background: rgba(255, 200, 100, 0.95);
+    box-shadow: 0 0 20px rgba(255, 200, 100, 0.95),
+                0 0 36px rgba(255, 180, 60, 0.7);
+  }
+  .staff-note.solfege-note-target::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255, 220, 150, 0.7);
+    animation: solfegeTargetSpin 6s linear infinite;
+  }
+  @keyframes solfegeTargetSpin {
+    from { transform: rotate(0); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* ============================================================
+     S1 — record button extension + state copy
+
+     The canon `.rec-btn` is the right primitive — we extend it
+     with an `.solfege-rec-btn` modifier that adds a recording-
+     state pulsing ring (for the "now recording" state) and a
+     row containing the button + a Play-target button so the
+     user can audition the target before singing.
+     ============================================================ */
+  .solfege-record-row {
+    display: flex; gap: 18px; align-items: center; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .rec-btn.solfege-rec-btn {
+    position: relative;
+  }
+  .rec-btn.solfege-rec-btn .rec-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: inset 0 0 6px rgba(255, 80, 80, 0.6);
+  }
+  .rec-btn.solfege-rec-btn.recording {
+    animation: solfegeRecPulse 1s ease-in-out infinite;
+  }
+  .rec-btn.solfege-rec-btn.recording .rec-dot {
+    border-radius: 6px;
+    width: 24px; height: 24px;
+    background: #fff;
+  }
+  @keyframes solfegeRecPulse {
+    0%, 100% { box-shadow: 0 0 35px rgba(255, 80, 80, 0.6); }
+    50%      { box-shadow: 0 0 65px rgba(255, 80, 80, 1), 0 0 100px rgba(255, 50, 50, 0.5); }
+  }
+  .rec-btn.solfege-rec-btn .rec-caption {
+    position: absolute;
+    bottom: -28px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px; letter-spacing: 1px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+  .rec-btn.solfege-rec-btn.recording .rec-caption {
+    color: #ff8a8a;
+    font-weight: 700;
+  }
+
+  /* small audition button next to the record button */
+  .solfege-audition-btn {
+    width: 80px; height: 80px; border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.32), rgba(42, 90, 255, 0.2));
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 30px rgba(110, 168, 255, 0.35);
+    transition: transform 0.2s ease;
+  }
+  .solfege-audition-btn:hover { transform: scale(1.06); }
+
+  /* ============================================================
+     S1 — Pitch tracker (THE distinctive S1 element)
+
+     Justification: nothing in the canon represents *live audio
+     input vs target pitch*. This is a vertical column showing
+     the staff range with a horizontal line for the target pitch
+     and a moving glowing dot for the sung pitch. The dot is
+     positioned by --sung-y (% from top), the target by
+     --target-y. A semitone-cents readout sits at the bottom.
+     ============================================================ */
+  .solfege-pitch-tracker {
+    position: relative;
+    width: 100%; max-width: 640px;
+    height: 110px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    overflow: hidden;
+    padding: 10px 14px;
+  }
+  .solfege-pitch-tracker .pt-header {
+    position: absolute;
+    top: 8px; right: 14px; left: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10px; letter-spacing: 1px;
+    color: var(--text-dim); text-transform: uppercase;
+    pointer-events: none;
+  }
+  .solfege-pitch-tracker .pt-header .v {
+    color: var(--accent-2); font-weight: 700; letter-spacing: 0;
+  }
+  .solfege-pitch-tracker .pt-track {
+    position: absolute;
+    top: 28px; left: 14px; right: 14px; bottom: 28px;
+    background:
+      linear-gradient(180deg,
+        rgba(110, 168, 255, 0.04) 0%,
+        rgba(110, 168, 255, 0.08) 50%,
+        rgba(110, 168, 255, 0.04) 100%);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  /* horizontal target-pitch line */
+  .solfege-pitch-tracker .pt-target-line {
+    position: absolute;
+    left: 0; right: 0;
+    top: var(--target-y, 50%);
+    height: 2px;
+    background: rgba(255, 200, 100, 0.95);
+    box-shadow: 0 0 12px rgba(255, 200, 100, 0.7);
+  }
+  .solfege-pitch-tracker .pt-target-label {
+    position: absolute;
+    left: 8px;
+    top: calc(var(--target-y, 50%) - 9px);
+    font-size: 10px; font-weight: 700;
+    color: rgba(255, 220, 160, 0.95);
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+  /* sung pitch — moving dot with vertical guide line */
+  .solfege-pitch-tracker .pt-sung-dot {
+    position: absolute;
+    left: var(--sung-x, 50%);
+    top: var(--sung-y, 50%);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 14px var(--accent-2), 0 0 28px rgba(110, 168, 255, 0.7);
+    transform: translate(-50%, -50%);
+  }
+  .solfege-pitch-tracker .pt-sung-trace {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .solfege-pitch-tracker .pt-sung-trace path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.55;
+    filter: drop-shadow(0 0 4px rgba(110, 168, 255, 0.5));
+  }
+  /* cents readout */
+  .solfege-pitch-tracker .pt-readout {
+    position: absolute;
+    bottom: 6px; left: 14px; right: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .solfege-pitch-tracker .pt-readout .pt-cents {
+    color: var(--accent-2); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .solfege-pitch-tracker .pt-readout .pt-cents.flat { color: #ffb56e; }
+  .solfege-pitch-tracker .pt-readout .pt-cents.sharp { color: #ff8a8a; }
+  .solfege-pitch-tracker .pt-readout .pt-cents.intune { color: #6fffa1; }
+
+  /* ============================================================
+     S1 — Self-rate buttons (correct / wrong)
+
+     Justification: S1 ends with a "did you sing it right?"
+     dialog. The React code uses tinted green/red CTA buttons
+     — we mirror that with a chip variant that's strongly
+     coloured rather than glassy.
+     ============================================================ */
+  .solfege-self-rate {
+    display: flex; gap: 14px; justify-content: center;
+    align-items: center; flex-wrap: wrap;
+  }
+  .solfege-self-rate .rate-btn {
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-size: 15px; font-weight: 700; font-family: inherit;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    backdrop-filter: blur(8px);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .solfege-self-rate .rate-btn.correct {
+    background: rgba(45, 187, 91, 0.25);
+    border-color: rgba(120, 220, 160, 0.6);
+    color: #d6ffe0;
+    box-shadow: 0 0 22px rgba(45, 187, 91, 0.35);
+  }
+  .solfege-self-rate .rate-btn.correct:hover {
+    background: rgba(45, 187, 91, 0.4);
+    transform: translateY(-2px);
+  }
+  .solfege-self-rate .rate-btn.wrong {
+    background: rgba(231, 76, 60, 0.2);
+    border-color: rgba(255, 130, 130, 0.55);
+    color: #ffdcd6;
+    box-shadow: 0 0 22px rgba(231, 76, 60, 0.3);
+  }
+  .solfege-self-rate .rate-btn.wrong:hover {
+    background: rgba(231, 76, 60, 0.35);
+    transform: translateY(-2px);
+  }
+
+  /* ============================================================
+     Settings strip (shared with melodic fragment) — uses
+     `solfege-settings-strip` to keep the namespace local but
+     visually matches the melodic one for consistency.
+     ============================================================ */
+  .solfege-settings-strip {
+    width: 100%;
+    max-width: 900px;
+    border-top: 1px dashed rgba(180, 210, 255, 0.18);
+    padding-top: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .solfege-settings-strip .strip-title {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  /* ============================================================
+     S2 — Solfège syllable chips
+
+     Justification: the canon `.ans-chip` is a pill — fine for
+     short text. For Do/Re/Mi/Fa/Sol/La/Ti we want the syllable
+     bigger and we also want each chip to carry a small "scale-
+     degree number" superscript (1, 2, 3…). The modifier
+     `solfege-syllable-chip` adds that without breaking the
+     canon styling.
+     ============================================================ */
+  .ex-answers.solfege-syllables-row {
+    gap: 12px;
+    max-width: 720px;
+  }
+  .ans-chip.solfege-syllable-chip {
+    min-width: 78px;
+    padding: 14px 18px 10px;
+    border-radius: 14px;
+    flex-direction: column;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 2px;
+    font-size: 17px;
+    line-height: 1.1;
+  }
+  .ans-chip.solfege-syllable-chip .syl-name {
+    font-size: 17px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .ans-chip.solfege-syllable-chip .syl-degree {
+    font-size: 10px; font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+  .ans-chip.solfege-syllable-chip.active .syl-degree {
+    color: var(--accent-2);
+  }
+
+  /* ============================================================
+     standalone preview helpers (only used when opened alone)
+     ============================================================ */
+  .preview-section {
+    position: relative;
+    min-height: 100vh;
+  }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Solfège Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>שמיעה מוזיקלית<span>›</span>סולפז'</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     ============================================================ -->
+<script type="application/json" id="views-solfege">
+{
+  "solfege": {
+    "type": "radial",
+    "breadcrumb": "סולפז'",
+    "parent": "ear-training",
+    "title": "סולפז'",
+    "sub": "2 Exercises",
+    "centerEmoji": "🎤",
+    "satellites": [
+      { "icon": "🎤", "label": "שירה מתוך תווים",  "sub": "S1", "goto": "ex-s1" },
+      { "icon": "👁️", "label": "זיהוי תיווי מנגינה", "sub": "S2", "goto": "ex-s2" }
+    ]
+  },
+  "ex-s1": {
+    "type": "exercise-custom",
+    "renderer": "renderS1",
+    "breadcrumb": "S1 — שירה מתוך תווים",
+    "parent": "solfege"
+  },
+  "ex-s2": {
+    "type": "exercise-custom",
+    "renderer": "renderS2",
+    "breadcrumb": "S2 — זיהוי תיווי מנגינה",
+    "parent": "solfege"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Level data (mirrors the React components) =====
+  const S1_LEVELS = [
+    { n: 1, label: 'שלב 1 — מדרגי בלבד',           done: true },
+    { n: 2, label: 'שלב 2 — קפיצות קטנות',          done: true, current: true },
+    { n: 3, label: "שלב 3 — ארפג'יו",               done: false },
+    { n: 4, label: 'שלב 4 — ביטויים',               done: false },
+    { n: 5, label: "שלב 5 — מז'ור מלא",             done: false, locked: true },
+    { n: 6, label: 'שלב 6 — מינור',                 done: false, locked: true },
+    { n: 7, label: 'שלב 7 — כרומטי',                done: false, locked: true }
+  ];
+  const S2_LEVELS = [
+    { n: 1, label: 'שלב 1 — הבדל ברור (4 תווים)',     done: true },
+    { n: 2, label: 'שלב 2 — הבדל תו אחד (4 תווים)',   done: false, current: true },
+    { n: 3, label: "שלב 3 — מז'ור (6 תווים)",         done: false },
+    { n: 4, label: 'שלב 4 — קפיצות (6-8 תווים)',      done: false },
+    { n: 5, label: 'שלב 5 — מינור (8 תווים)',         done: false, locked: true },
+    { n: 6, label: 'שלב 6 — כרומטי (8 תווים)',        done: false, locked: true }
+  ];
+
+  // ===== Generic drawer renderer =====
+  function renderLevelsDrawer(exId, exTitle, levels) {
+    const items = levels.map(l => {
+      const classes = ['level-item'];
+      if (l.current) classes.push('active');
+      if (l.done && !l.current) classes.push('completed');
+      if (l.locked) classes.push('locked');
+      const icon = l.locked   ? '🔒'
+                 : l.current  ? '●'
+                 : l.done     ? '✓'
+                 :              '';
+      return `
+        <li class="${classes.join(' ')}" onclick="${l.locked ? '' : `selectLevel('${exId}', ${l.n})`}">
+          <span class="level-item-num">${l.n}</span>
+          <span class="level-item-label">${l.label}</span>
+          <span class="level-item-icon">${icon}</span>
+        </li>`;
+    }).join('');
+    return `
+      <div class="levels-overlay" id="levels-overlay-${exId}" onclick="toggleDrawer('${exId}')"></div>
+      <aside class="levels-drawer" id="levels-drawer-${exId}" role="dialog" aria-label="בחר שלב">
+        <div class="levels-drawer-header">
+          <h3 class="levels-drawer-title">
+            <span class="ex-tag">${exId.toUpperCase()}</span>
+            <span>בחר שלב</span>
+          </h3>
+          <button class="levels-drawer-close" onclick="toggleDrawer('${exId}')" aria-label="סגור">✕</button>
+        </div>
+        <ul class="levels-drawer-list">${items}</ul>
+      </aside>`;
+  }
+
+  function renderLevelsTrigger(exId, currentLabel) {
+    return `
+      <button class="levels-trigger" onclick="toggleDrawer('${exId}')" title="בחר שלב">
+        <span class="hamburger">☰</span>
+        <span>שלבים</span>
+        <span class="current-level">· ${currentLabel}</span>
+      </button>`;
+  }
+
+  // ===== Solfège Hub (radial) =====
+  function renderSolfegeHub() {
+    const sats = [
+      { icon: '🎤', label: 'שירה מתוך תווים',   sub: 'S1', goto: 'ex-s1', slot: 1 },
+      { icon: '👁️', label: 'זיהוי תיווי מנגינה', sub: 'S2', goto: 'ex-s2', slot: 2 }
+    ];
+    const n = sats.length;
+    const satHtml = sats.map((s, i) => {
+      const angle = (i * 360 / n).toFixed(2);
+      return `
+        <div class="satellite s-${s.slot}" style="--angle:${angle}deg" data-angle="${angle}">
+          <div class="label">${s.label}</div>
+          <div class="orb" onclick="navigate('${s.goto}')">${s.icon}</div>
+          <div class="sub-label">${s.sub}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="stage">
+        <div class="constellation" id="cur-const">
+          <svg class="lines" id="cur-lines"></svg>
+          <div class="center-hub">
+            <div class="center-info">
+              <div class="emoji">🎤</div>
+              <h2>סולפז'</h2>
+              <p>2 Exercises</p>
+            </div>
+          </div>
+          ${satHtml}
+        </div>
+      </div>`;
+  }
+
+  // ===== Helper: render staff with notes + syllable labels =====
+  // notes is an array of { left:%, top:%, syllable:'Do', state?:'current'|'target' }
+  function renderSolfegeStaff(notes, opts = {}) {
+    const dots = notes.map(n => {
+      const cls = ['staff-note'];
+      if (n.state === 'current') cls.push('solfege-note-current');
+      if (n.state === 'target')  cls.push('solfege-note-target');
+      return `<div class="${cls.join(' ')}" style="left:${n.left}%; top:${n.top}%"></div>`;
+    }).join('');
+    const labels = (opts.showLabels !== false) ? notes.map(n =>
+      `<div class="solfege-note-label" style="left:${n.left}%; top:calc(100% - 18px)">${n.syllable || ''}</div>`
+    ).join('') : '';
+    return `
+      <div class="staff-mock solfege-staff-large" aria-label="${opts.aria || 'תיווי'}">
+        <span class="solfege-clef" aria-hidden="true">𝄞</span>
+        <div class="staff-line"></div>
+        <div class="staff-line"></div>
+        <div class="staff-line"></div>
+        <div class="staff-line"></div>
+        <div class="staff-line"></div>
+        ${dots}
+        ${labels}
+      </div>`;
+  }
+
+  // ===== Exercise S1 — שירה מתוך תווים =====
+  function renderS1() {
+    const level = S1_LEVELS.find(l => l.current) || S1_LEVELS[0];
+
+    // Mocked melody: "Do Re Mi Sol Mi" — the second note (Re) is the
+    // one the user is currently singing (highlighted as `current`).
+    const notes = [
+      { left: 16, top: 78, syllable: 'Do' },
+      { left: 30, top: 68, syllable: 'Re', state: 'current' },
+      { left: 44, top: 58, syllable: 'Mi' },
+      { left: 58, top: 38, syllable: 'Sol' },
+      { left: 72, top: 58, syllable: 'Mi' },
+      { left: 86, top: 78, syllable: 'Do' }
+    ];
+
+    // Pitch-tracker: target line + simulated sung trace climbing toward it
+    // (the path mirrors the staff melody but offset slightly flat).
+    const pitchTrace = `
+      <svg class="pt-sung-trace" viewBox="0 0 600 70" preserveAspectRatio="none">
+        <path d="M 20,55 L 100,48 L 180,42 L 260,32 Q 280,30 295,33 L 320,38" />
+      </svg>`;
+
+    return `
+      ${renderLevelsTrigger('s1', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">S1</div>
+          <h1 class="ex-title">שירה מתוך תווים</h1>
+          <div class="ex-progress">שאלה 4 / 10  ·  צדקתי: 3  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">שיר את המנגינה המופיעה בתיווי. המיקרופון מאזין ומשווה לתו המטרה.</p>
+
+        <!-- UNIQUE: Staff with target melody AT TOP -->
+        ${renderSolfegeStaff(notes, { aria: 'מנגינה לשירה' })}
+
+        <!-- UNIQUE: Pitch tracker — target line + sung pitch dot -->
+        <div class="solfege-pitch-tracker" aria-label="עוקב גובה צליל">
+          <div class="pt-header">
+            <span>גובה הצליל</span>
+            <span>מטרה: <span class="v">Re (D4)</span></span>
+          </div>
+          <div class="pt-track">
+            <!-- horizontal target-pitch line at the target y -->
+            <div class="pt-target-line" style="--target-y: 38%"></div>
+            <div class="pt-target-label" style="--target-y: 38%">D4 · Re</div>
+            <!-- historical sung trace -->
+            ${pitchTrace}
+            <!-- live sung pitch dot, slightly flat (lower than target) -->
+            <div class="pt-sung-dot" style="--sung-x: 58%; --sung-y: 46%"></div>
+          </div>
+          <div class="pt-readout">
+            <span>גובה זוהה: <strong style="color:var(--text)">D4 −12¢</strong></span>
+            <span class="pt-cents flat">−12¢ · נמוך מעט</span>
+          </div>
+        </div>
+
+        <!-- UNIQUE: Record button (canonical .rec-btn) + audition Play -->
+        <div class="solfege-record-row">
+          <button class="solfege-audition-btn" title="נגן את המנגינה (audition)">▶</button>
+          <button class="rec-btn solfege-rec-btn recording" title="עצור הקלטה">
+            <span class="rec-dot"></span>
+            <span class="rec-caption">● מקליט</span>
+          </button>
+          <button class="solfege-audition-btn" title="נגן קדנציית רפרנס" style="font-size:22px">🎵</button>
+        </div>
+
+        <!-- Self-rate (S1 ends with "did I sing this right?") -->
+        <p style="margin:6px 0 0 0; font-size:13px; color:var(--text-dim)">
+          אחרי השירה — דרג את עצמך:
+        </p>
+        <div class="solfege-self-rate">
+          <button class="rate-btn correct">✓ צדקתי</button>
+          <button class="rate-btn wrong">✗ טעיתי</button>
+        </div>
+
+        <!-- Settings strip (mirrors React ctrlRow: numQuestions + instrument) -->
+        <div class="solfege-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>טמפו:</strong> <span class="v">90 BPM</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן קדנציה</button>
+          <button class="hint-btn">▶ נגן מנגינה</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('s1', 'S1 — שירה מתוך תווים', S1_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise S2 — זיהוי תיווי מנגינה =====
+  function renderS2() {
+    const level = S2_LEVELS.find(l => l.current) || S2_LEVELS[0];
+
+    // A single highlighted target note on the staff: "Mi" position
+    const targetNotes = [
+      { left: 50, top: 58, syllable: 'Mi', state: 'target' }
+    ];
+
+    // Solfège syllable chips with scale-degree caption
+    const syllables = [
+      { name: 'Do',  degree: '1' },
+      { name: 'Re',  degree: '2' },
+      { name: 'Mi',  degree: '3', active: true },
+      { name: 'Fa',  degree: '4' },
+      { name: 'Sol', degree: '5' },
+      { name: 'La',  degree: '6' },
+      { name: 'Ti',  degree: '7' }
+    ];
+    const chipsHtml = syllables.map(s =>
+      `<button class="ans-chip solfege-syllable-chip${s.active ? ' active' : ''}">
+        <span class="syl-name">${s.name}</span>
+        <span class="syl-degree">${s.degree}</span>
+      </button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('s2', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">S2</div>
+          <h1 class="ex-title">זיהוי תיווי מנגינה</h1>
+          <div class="ex-progress">שאלה 3 / 10  ·  מהפעם הראשונה: 2  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">איזו דרגה (סולפז') מסומנת בתיווי?</p>
+
+        <!-- UNIQUE: Staff at top with single highlighted target note -->
+        ${renderSolfegeStaff(targetNotes, { showLabels: false, aria: 'תו המטרה' })}
+
+        <!-- Standard play-pad — replay the note that's drawn above -->
+        <button class="play-pad" title="נגן את התו">▶</button>
+
+        <!-- Answer chips: 7 solfège syllables -->
+        <div class="ex-answers solfege-syllables-row">
+          ${chipsHtml}
+        </div>
+
+        <!-- ReferencePlayer — what plays before the target -->
+        <div class="toggles-row">
+          <span style="font-size:11px; color:var(--text-dim); letter-spacing:1px; align-self:center">רפרנס:</span>
+          <button class="pill-toggle">קדנציה</button>
+          <button class="pill-toggle">אקורד</button>
+          <button class="pill-toggle active">תו טוניקה</button>
+          <button class="pill-toggle">ללא</button>
+        </div>
+
+        <!-- Settings strip (mirrors MultipleChoiceShell ctrlRow) -->
+        <div class="solfege-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>רפרנס:</strong> <span class="v">תו טוניקה</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מעבר:</strong> <span class="v">אוטומטי</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">אוטומטי</button>
+            <button class="pill-toggle">ידני</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('s2', 'S2 — זיהוי תיווי מנגינה', S2_LEVELS)}
+    `;
+  }
+
+  // ===== Standalone preview: stack all 3 views =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 3  ·  solfege hub</div>
+        ${renderSolfegeHub()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 2 / 3  ·  ex-s1</div>
+        ${renderS1()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 3 / 3  ·  ex-s2</div>
+        ${renderS2()}
+      </section>
+    `;
+    requestAnimationFrame(drawConstellationLines);
+  }
+
+  function drawConstellationLines() {
+    const container = document.getElementById('cur-const');
+    const svg = document.getElementById('cur-lines');
+    if (!container || !svg) return;
+    const w = container.clientWidth, h = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.innerHTML = '';
+    const cRect = container.getBoundingClientRect();
+    const cx = w / 2, cy = h / 2;
+    container.querySelectorAll('.satellite .orb').forEach(orb => {
+      const r = orb.getBoundingClientRect();
+      const x = r.left + r.width / 2 - cRect.left;
+      const y = r.top + r.height / 2 - cRect.top;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+      line.setAttribute('x2', x);  line.setAttribute('y2', y);
+      svg.appendChild(line);
+    });
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    const map = { 'solfege': 0, 'ex-s1': 1, 'ex-s2': 2 };
+    const idx = map[id];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function goBack() { history.back(); }
+
+  function toggleDrawer(exId) {
+    const drawer  = document.getElementById(`levels-drawer-${exId}`);
+    const overlay = document.getElementById(`levels-overlay-${exId}`);
+    if (!drawer || !overlay) return;
+    const open = !drawer.classList.contains('open');
+    drawer.classList.toggle('open',  open);
+    overlay.classList.toggle('open', open);
+  }
+  function selectLevel(exId, n) {
+    toggleDrawer(exId);
+    console.log(`[mockup] selectLevel ${exId} → ${n}`);
+  }
+
+  window.addEventListener('resize', drawConstellationLines);
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

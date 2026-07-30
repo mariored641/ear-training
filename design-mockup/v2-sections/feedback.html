@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Feedback Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Tool screens (canon) ===== */
+  .tool-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    overflow: auto;
+    padding: 80px 24px 40px;
+    color: var(--text);
+  }
+  .tool-stage .container {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .tool-title {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-align: center;
+  }
+  .tool-title h1 {
+    margin: 0; font-size: clamp(24px, 3.6vmin, 32px); font-weight: 700;
+  }
+  .tool-title p { margin: 0; color: var(--text-dim); font-size: 14px; }
+
+  .tool-card {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  }
+  .tool-card h3 {
+    margin: 0 0 12px 0; font-size: 14px;
+    color: var(--text-dim); letter-spacing: 0.5px;
+    text-transform: uppercase; font-weight: 600;
+  }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+
+  /* play-pad — used as "start" CTA on prep screen */
+  .play-pad {
+    width: clamp(96px, 14vmin, 130px); height: clamp(96px, 14vmin, 130px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.4), rgba(42, 90, 255, 0.25));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    box-shadow: 0 0 60px rgba(110, 168, 255, 0.5), inset 0 0 30px rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(34px, 5vmin, 50px);
+    font-family: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  .play-pad:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 80px rgba(180, 210, 255, 0.7), inset 0 0 40px rgba(255,255,255,0.15);
+  }
+  .play-pad:disabled { opacity: 0.4; cursor: not-allowed; animation: none; }
+  @keyframes hubPulse {
+    from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+    to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  }
+
+  /* ===== Canon classes — feedback section ===== */
+  .yt-frame {
+    aspect-ratio: 16 / 9; background: #000;
+    border-radius: 12px; border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.4); font-size: 13px;
+    position: relative; overflow: hidden;
+  }
+  .yt-frame::after {
+    content: '▶'; font-size: 60px; color: rgba(255,255,255,0.25);
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .rec-btn {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #ff7a7a, #c80000);
+    border: 3px solid rgba(255,255,255,0.9);
+    box-shadow: 0 0 35px rgba(255, 80, 80, 0.6);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .rec-btn:hover { transform: scale(1.05); }
+  .url-input {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 12px 18px; border-radius: 12px;
+    font-size: 14px; font-family: inherit;
+    width: 100%; max-width: 560px;
+  }
+  .url-input::placeholder { color: var(--text-dim); }
+
+  .screen-tabs {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    padding: 4px; border-radius: 999px;
+    width: max-content; margin: 0 auto;
+  }
+  .screen-tabs button {
+    background: transparent; color: var(--text-dim);
+    border: none; padding: 6px 16px; border-radius: 999px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .screen-tabs button.active {
+    background: var(--bg-light); color: #fff;
+  }
+
+  /* ---- standalone preview helpers (only used when opened alone) ---- */
+  .preview-section {
+    position: relative;
+    min-height: 100vh;
+  }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Feedback fragment additions
+     All non-canon classes prefixed `feedback-`.
+     ============================================================ -->
+<style id="section-feedback">
+  /* ---- Layout helpers shared across the 3 screens ---- */
+  .feedback-screen {
+    display: flex; flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---- PREP SCREEN ---------------------------------------------------- */
+  /* ---- URL validation chip — replaces ad-hoc inline state on .url-input ----
+     Justification: the canon .url-input has no built-in state slot. We pair
+     it with a sibling pill that flips between "✓ קישור תקין" / "✗ קישור לא תקין".
+     The pill itself reuses .select-pill (canon) — only the *-ok / *-err
+     modifiers are feedback-* additions. */
+  .url-input-row {
+    display: flex; gap: 10px; align-items: center;
+    width: 100%; flex-wrap: wrap;
+  }
+  .url-input-row .url-input { flex: 1; min-width: 240px; }
+  .feedback-validate-pill { white-space: nowrap; }
+  .feedback-validate-pill.feedback-validate-pill--ok {
+    background: rgba(120, 220, 180, 0.15);
+    border-color: rgba(120, 220, 180, 0.55);
+    color: #d4ffe8;
+  }
+  .feedback-validate-pill.feedback-validate-pill--err {
+    background: rgba(255, 120, 120, 0.12);
+    border-color: rgba(255, 120, 120, 0.45);
+    color: #ffd9d9;
+  }
+
+  /* ---- Permission cards (camera + mic) ----
+     Justification: each permission needs an icon, status badge, and CTA in
+     a compact row. .tool-card alone is too generic; we add an inner
+     row layout. Reuses .select-pill for the action button. */
+  .feedback-perm-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  @media (max-width: 720px) { .feedback-perm-grid { grid-template-columns: 1fr; } }
+  .feedback-perm-card {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 14px 16px;
+  }
+  .feedback-perm-icon {
+    font-size: 30px; line-height: 1;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(110, 168, 255, 0.12);
+    border: 1.5px solid rgba(180, 210, 255, 0.3);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .feedback-perm-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .feedback-perm-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .feedback-perm-status {
+    font-size: 12px; color: var(--text-dim);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .feedback-perm-status::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-dim);
+  }
+  .feedback-perm-status.feedback-perm-status--ok {
+    color: rgba(180, 240, 200, 0.95);
+  }
+  .feedback-perm-status.feedback-perm-status--ok::before {
+    background: #4ade80;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+  }
+  .feedback-perm-status.feedback-perm-status--denied {
+    color: rgba(255, 180, 180, 0.95);
+  }
+  .feedback-perm-status.feedback-perm-status--denied::before {
+    background: #f87171;
+    box-shadow: 0 0 10px rgba(248, 113, 113, 0.7);
+  }
+  .feedback-perm-status.feedback-perm-status--idle::before {
+    background: rgba(180, 210, 255, 0.45);
+  }
+
+  /* ---- Diagram source picker (mirrors fb-tab from the React) ----
+     Justification: canon has no two-state mini-tab. Borrowing the same
+     micro-tab pattern the React uses. */
+  .feedback-mini-tabs {
+    display: inline-flex;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    padding: 3px; border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .feedback-mini-tabs button {
+    background: transparent; color: var(--text-dim);
+    border: none; padding: 5px 14px; border-radius: 999px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .feedback-mini-tabs button.active {
+    background: rgba(110, 168, 255, 0.25);
+    color: var(--text);
+  }
+  .feedback-file-drop {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px dashed rgba(180, 210, 255, 0.3);
+    color: var(--text-dim);
+    padding: 14px 18px; border-radius: 12px;
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .feedback-file-drop:hover {
+    background: rgba(110, 168, 255, 0.06);
+    border-color: rgba(180, 210, 255, 0.5);
+  }
+  .feedback-file-drop.feedback-file-drop--done {
+    background: rgba(120, 220, 180, 0.08);
+    border-color: rgba(120, 220, 180, 0.5);
+    color: #d4ffe8;
+  }
+
+  /* ---- Audio routing notice (warning-style banner) ----
+     Justification: a soft warning visually distinct from `tool-card`. */
+  .feedback-notice {
+    background: rgba(255, 200, 120, 0.08);
+    border: 1.5px solid rgba(255, 200, 120, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px; line-height: 1.5;
+    color: rgba(255, 230, 200, 0.95);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .feedback-notice .icon { font-size: 18px; line-height: 1.3; }
+
+  /* ---- Big "Start" CTA wrapper ---- */
+  .feedback-cta-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    margin-top: 8px;
+  }
+  .feedback-cta-wrap .cta-label {
+    font-size: 13px; color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  /* ---- RECORDING SCREEN ----------------------------------------------- */
+  /* The recording screen overlays the full viewport (the React component
+     does too: `.fb-recording-screen`). In the mockup we render it inside
+     a tall stage so it lives next to the other previews. */
+  .feedback-rec-stage {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #000;
+    min-height: 480px;
+    aspect-ratio: 16 / 10;
+    border: 1.5px solid var(--glass-border);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  }
+  /* In the master assembler this could become fixed-inset 0 — for the
+     mockup we keep it bounded so the preview is scrollable. */
+  .feedback-rec-stage .yt-frame {
+    width: 100%; height: 100%;
+    border-radius: 0;
+    border: none;
+    aspect-ratio: auto;
+  }
+  .feedback-rec-stage .yt-frame::after {
+    background:
+      linear-gradient(135deg, rgba(110, 168, 255, 0.08), transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 60%);
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 80px;
+  }
+
+  /* Pretend-thumbnail bars to suggest the YouTube video underneath */
+  .feedback-yt-mock {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg,
+        rgba(35, 12, 50, 0.95) 0%,
+        rgba(20, 8, 35, 0.85) 40%,
+        rgba(8, 12, 30, 0.9) 100%
+      );
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .feedback-yt-mock::before {
+    content: '';
+    position: absolute; inset: 20% 30%;
+    background:
+      radial-gradient(circle, rgba(110, 168, 255, 0.25), transparent 70%);
+    filter: blur(40px);
+  }
+  .feedback-yt-mock .yt-mock-title {
+    position: relative; z-index: 2;
+    text-align: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+  .feedback-yt-mock .yt-mock-title .play-glyph {
+    font-size: 80px; opacity: 0.5;
+    display: block; line-height: 1; margin-bottom: 8px;
+  }
+
+  /* Fullscreen button (canon: similar to .select-pill but icon-only) */
+  .feedback-fs-btn {
+    position: absolute; top: 12px; left: 12px;
+    z-index: 10;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    color: var(--text);
+    font-size: 18px; cursor: pointer;
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feedback-fs-btn:hover { background: rgba(0, 0, 0, 0.75); }
+
+  /* ---- PiP camera overlay (draggable) ----
+     Justification: canon has no "draggable overlay box". This is the
+     visual stand-in for `<CameraPiP>` from the React. */
+  .feedback-pip {
+    position: absolute;
+    top: 18px; right: 18px;
+    z-index: 6;
+    width: 160px; height: 200px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(60, 30, 80, 0.9), rgba(20, 10, 30, 0.95));
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
+    cursor: grab;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feedback-pip::before {
+    /* "camera silhouette" — head + shoulders blob */
+    content: '';
+    position: absolute;
+    width: 100%; height: 100%;
+    background:
+      radial-gradient(ellipse 30% 30% at 50% 40%, rgba(220, 180, 200, 0.55), transparent 65%),
+      radial-gradient(ellipse 70% 40% at 50% 95%, rgba(180, 140, 200, 0.5), transparent 70%);
+  }
+  .feedback-pip-grab-hint {
+    position: absolute; top: 6px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px; color: rgba(255,255,255,0.6);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .feedback-pip-switch {
+    position: absolute; bottom: 6px; right: 6px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.65);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--text);
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+  }
+
+  /* ---- VU meter (vertical bars) ----
+     Justification: the React uses a single horizontal canvas bar but the
+     spec asks for vertical bars. We render 14 bars rising with a green→
+     yellow→red gradient (matches the React canvas gradient). */
+  .feedback-vu {
+    position: absolute;
+    bottom: 18px; right: 18px;
+    z-index: 6;
+    display: flex; gap: 3px; align-items: flex-end;
+    height: 90px; padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+  }
+  .feedback-vu .vu-bar {
+    width: 5px;
+    background: linear-gradient(to top, #4caf50 0%, #ffc107 65%, #f44336 100%);
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(110, 168, 255, 0.3);
+  }
+  .feedback-vu .vu-help {
+    position: absolute; top: -8px; right: -8px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(110, 168, 255, 0.85);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: #fff; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  /* ---- Recording timer ----
+     Justification: floating timer pill; canon has no equivalent. */
+  .feedback-timer {
+    position: absolute;
+    top: 18px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    background: rgba(200, 0, 0, 0.85);
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 999px;
+    font-size: 16px; font-weight: 700;
+    letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 0 20px rgba(255, 80, 80, 0.5);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .feedback-timer .timer-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #fff;
+    animation: feedbackBlink 1s ease-in-out infinite;
+  }
+  @keyframes feedbackBlink { 50% { opacity: 0.3; } }
+
+  /* ---- Big REC button — pulses red when active ----
+     Justification: extends canon .rec-btn. The base .rec-btn is the
+     idle style; .feedback-rec-btn--active is the "recording" pulse. */
+  .feedback-rec-area {
+    position: absolute;
+    bottom: 26px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .feedback-rec-area .rec-hint {
+    font-size: 11px; color: rgba(255,255,255,0.7);
+    background: rgba(0,0,0,0.55);
+    padding: 4px 12px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .rec-btn.feedback-rec-btn--active {
+    animation: feedbackRecPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes feedbackRecPulse {
+    0%, 100% {
+      box-shadow: 0 0 25px rgba(255, 80, 80, 0.5),
+                  0 0 0 0 rgba(255, 80, 80, 0.5);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 45px rgba(255, 80, 80, 0.9),
+                  0 0 0 14px rgba(255, 80, 80, 0);
+      transform: scale(1.06);
+    }
+  }
+  /* Stop variant — square inside the circle */
+  .rec-btn.feedback-rec-btn--active::after {
+    content: '';
+    position: absolute;
+    width: 24px; height: 24px;
+    background: #fff;
+    border-radius: 4px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .rec-btn { position: relative; }
+
+  /* ---- Back button on rec screen (visible only when not recording) ---- */
+  .feedback-rec-back {
+    position: absolute;
+    bottom: 26px; right: 22px;
+    z-index: 6;
+    background: rgba(0, 0, 0, 0.55);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+  }
+  .feedback-rec-back:hover { background: rgba(0, 0, 0, 0.75); }
+
+  /* ---- PREVIEW SCREEN ------------------------------------------------- */
+  /* Reuse .yt-frame for the recorded video, then a control row. */
+  .feedback-preview-video {
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 14px;
+    border: 1.5px solid var(--glass-border);
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feedback-preview-video::before {
+    /* fake recorded-content gradient */
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(135deg,
+        rgba(80, 40, 120, 0.6) 0%,
+        rgba(20, 30, 60, 0.7) 50%,
+        rgba(10, 20, 40, 0.85) 100%);
+  }
+  .feedback-preview-video .play-glyph {
+    position: relative; z-index: 2;
+    width: 78px; height: 78px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; color: #fff;
+    backdrop-filter: blur(6px);
+  }
+  .feedback-preview-video .playback-bar {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    z-index: 3;
+    height: 36px;
+    padding: 6px 14px;
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+    font-size: 11px; color: rgba(255,255,255,0.85);
+  }
+  .feedback-preview-video .pb-btn {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px;
+  }
+  .feedback-preview-video .pb-track {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.2);
+    position: relative;
+  }
+  .feedback-preview-video .pb-track::after {
+    content: '';
+    position: absolute; inset: 0 60% 0 0;
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .feedback-preview-video .pb-time {
+    font-variant-numeric: tabular-nums;
+    color: rgba(255,255,255,0.9);
+  }
+
+  /* ---- Preview action buttons ----
+     Justification: these need to look weightier than .select-pill and group
+     visually as "main actions". Reuses the canon glass surface. */
+  .feedback-preview-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  @media (max-width: 720px) { .feedback-preview-actions { grid-template-columns: 1fr; } }
+  .feedback-action-btn {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    color: var(--text);
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 14px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s ease;
+  }
+  .feedback-action-btn:hover {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 6px 22px rgba(110, 168, 255, 0.3);
+    transform: translateY(-2px);
+  }
+  .feedback-action-btn .ico { font-size: 22px; }
+  .feedback-action-btn.feedback-action-btn--primary {
+    background: linear-gradient(135deg, rgba(110, 168, 255, 0.45), rgba(42, 90, 255, 0.3));
+    border-color: var(--accent-2);
+    box-shadow: 0 0 24px rgba(110, 168, 255, 0.4);
+  }
+  .feedback-action-btn.feedback-action-btn--done {
+    background: rgba(120, 220, 180, 0.18);
+    border-color: rgba(120, 220, 180, 0.55);
+    color: #d4ffe8;
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Feedback Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>פידבק</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     Single view; internally toggles between 3 screens.
+     ============================================================ -->
+<script type="application/json" id="views-feedback">
+{
+  "feedback": {
+    "type": "tool-custom",
+    "renderer": "renderFeedback",
+    "breadcrumb": "פידבק"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Main renderer — single view, switches screens =====
+  function renderFeedback(initialScreen) {
+    const screen = initialScreen || 'prep';
+    return `
+      <div class="tool-stage"><div class="container">
+        <div class="tool-title">
+          <h1>📹 פידבק</h1>
+          <p>הקלט את עצמך מנגן על באקינג טראק מ-YouTube ושלח למישר</p>
+        </div>
+
+        <div class="screen-tabs" id="feedback-tabs">
+          <button class="${screen === 'prep' ? 'active' : ''}" onclick="feedbackScreen('prep')">1. הכנה</button>
+          <button class="${screen === 'rec'  ? 'active' : ''}" onclick="feedbackScreen('rec')">2. הקלטה</button>
+          <button class="${screen === 'prev' ? 'active' : ''}" onclick="feedbackScreen('prev')">3. תצוגה מקדימה</button>
+        </div>
+
+        <div id="feedback-prep" class="feedback-screen" style="display:${screen === 'prep' ? 'flex' : 'none'}">
+          ${renderFeedbackPrep()}
+        </div>
+        <div id="feedback-rec" class="feedback-screen" style="display:${screen === 'rec' ? 'flex' : 'none'}">
+          ${renderFeedbackRec()}
+        </div>
+        <div id="feedback-prev" class="feedback-screen" style="display:${screen === 'prev' ? 'flex' : 'none'}">
+          ${renderFeedbackPrev()}
+        </div>
+      </div></div>
+    `;
+  }
+
+  // ===== Screen 1: Prep =====
+  function renderFeedbackPrep() {
+    return `
+      <div class="tool-card">
+        <h3>קישור YouTube של באקינג טראק</h3>
+        <div class="url-input-row">
+          <input class="url-input" dir="ltr"
+            value="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            placeholder="https://www.youtube.com/watch?v=..." />
+          <button class="select-pill feedback-validate-pill feedback-validate-pill--ok">
+            ✓ קישור תקין
+          </button>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>דיאגרמה <span style="opacity:0.5; font-weight:400; text-transform:none; letter-spacing:0">(אופציונלי)</span></h3>
+        <div class="feedback-mini-tabs">
+          <button class="active">📎 העלה קובץ</button>
+          <button>🔗 קישור</button>
+        </div>
+        <div class="feedback-file-drop feedback-file-drop--done">
+          <span>✓</span>
+          <span>autumn-leaves-chart.pdf</span>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>הרשאות</h3>
+        <div class="feedback-perm-grid">
+          <div class="feedback-perm-card">
+            <div class="feedback-perm-icon">📷</div>
+            <div class="feedback-perm-body">
+              <div class="feedback-perm-title">מצלמה</div>
+              <div class="feedback-perm-status feedback-perm-status--ok">מורשה</div>
+            </div>
+            <button class="select-pill">בדוק שוב</button>
+          </div>
+          <div class="feedback-perm-card">
+            <div class="feedback-perm-icon">🎤</div>
+            <div class="feedback-perm-body">
+              <div class="feedback-perm-title">מיקרופון</div>
+              <div class="feedback-perm-status feedback-perm-status--idle">ממתין להרשאה</div>
+            </div>
+            <button class="select-pill">הרשה גישה</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback-notice">
+        <span class="icon">🔊</span>
+        <span>וודא שהבאקינג טראק יוצא מהרמקול של המכשיר ולא מאוזניות — המיקרופון צריך לקלוט גם אותו</span>
+      </div>
+
+      <div class="feedback-cta-wrap">
+        <div class="cta-label">לחץ להתחלת ההקלטה</div>
+        <button class="play-pad" onclick="feedbackScreen('rec')" title="התחל">▶</button>
+        <div class="cta-label" style="opacity:0.6">המשך →</div>
+      </div>
+    `;
+  }
+
+  // ===== Screen 2: Recording =====
+  function renderFeedbackRec() {
+    // 14 VU bars, heights simulate a "live" reading
+    const vuHeights = [25, 42, 38, 55, 60, 78, 65, 88, 72, 95, 80, 70, 55, 38];
+    const vuBars = vuHeights.map(h =>
+      `<div class="vu-bar" style="height:${h}%"></div>`
+    ).join('');
+
+    return `
+      <div class="feedback-rec-stage">
+        <!-- Faux YouTube backdrop -->
+        <div class="feedback-yt-mock">
+          <div class="yt-mock-title">
+            <span class="play-glyph">▶</span>
+            <div>Autumn Leaves — Backing Track in Gm</div>
+            <div style="opacity:0.5; font-size:11px; margin-top:4px">YouTube backing track plays here</div>
+          </div>
+        </div>
+
+        <!-- Fullscreen button -->
+        <button class="feedback-fs-btn" title="מסך מלא">⛶</button>
+
+        <!-- Recording timer (visible while recording) -->
+        <div class="feedback-timer">
+          <span class="timer-dot"></span>
+          <span>00:42</span>
+        </div>
+
+        <!-- Draggable PiP camera preview -->
+        <div class="feedback-pip" title="גרור לכל מקום במסך">
+          <span class="feedback-pip-grab-hint">⋮⋮</span>
+          <button class="feedback-pip-switch" title="החלף מצלמה">🔄</button>
+        </div>
+
+        <!-- VU meter -->
+        <div class="feedback-vu">
+          ${vuBars}
+          <button class="vu-help" title="עזרה במד רמות">?</button>
+        </div>
+
+        <!-- REC button (active / pulsing) -->
+        <div class="feedback-rec-area">
+          <button class="rec-btn feedback-rec-btn--active" title="עצור הקלטה" aria-label="עצור הקלטה"></button>
+          <div class="rec-hint">לחץ לעצירה</div>
+        </div>
+
+        <!-- Back button (hidden while recording — shown here muted for completeness) -->
+        <button class="feedback-rec-back" style="opacity:0.4" disabled>← חזרה (אחרי עצירה)</button>
+      </div>
+
+      <!-- Helper strip below the stage explaining the on-screen controls -->
+      <div class="control-row" style="justify-content:space-between; padding: 0 4px; flex-wrap:wrap; gap:14px">
+        <div style="font-size:12px; color:var(--text-dim)">📷 גרור את התצוגה הקטנה (PiP) לכל מקום במסך</div>
+        <div style="font-size:12px; color:var(--text-dim)">🎚 בדוק שמד הרמות קופץ כשאתה מנגן</div>
+        <div style="font-size:12px; color:var(--text-dim)">⛶ לחץ מסך-מלא לסקרין נקי</div>
+      </div>
+    `;
+  }
+
+  // ===== Screen 3: Preview =====
+  function renderFeedbackPrev() {
+    return `
+      <div class="tool-card">
+        <h3>הצגה מקדימה של ההקלטה</h3>
+        <div class="feedback-preview-video">
+          <div class="play-glyph">▶</div>
+          <div class="playback-bar">
+            <div class="pb-btn">▶</div>
+            <div class="pb-time">00:17</div>
+            <div class="pb-track"></div>
+            <div class="pb-time">00:42</div>
+            <div class="pb-btn">🔊</div>
+            <div class="pb-btn">⛶</div>
+          </div>
+        </div>
+
+        <div class="feedback-preview-actions">
+          <button class="feedback-action-btn feedback-action-btn--primary">
+            <span class="ico">📤</span>
+            <span>שלח למישר (WhatsApp)</span>
+          </button>
+          <button class="feedback-action-btn feedback-action-btn--done">
+            <span class="ico">✓</span>
+            <span>נשמר למכשיר</span>
+          </button>
+          <button class="feedback-action-btn">
+            <span class="ico">🔄</span>
+            <span>הקלט שוב</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="control-row" style="margin-top: 4px">
+        <span class="select-pill" style="cursor:default">
+          <strong>פורמט:</strong> <span class="v">video/mp4</span>
+        </span>
+        <span class="select-pill" style="cursor:default">
+          <strong>משך:</strong> <span class="v">00:42</span>
+        </span>
+        <span class="select-pill" style="cursor:default">
+          <strong>קובץ:</strong> <span class="v">guitar-feedback-1748182400.mp4</span>
+        </span>
+      </div>
+    `;
+  }
+
+  // ===== Screen switching (canonical helper expected by the assembler) =====
+  function feedbackScreen(which) {
+    ['prep', 'rec', 'prev'].forEach(s => {
+      const el = document.getElementById('feedback-' + s);
+      if (el) el.style.display = (s === which) ? 'flex' : 'none';
+    });
+    const btns = document.querySelectorAll('#feedback-tabs button');
+    const order = ['prep', 'rec', 'prev'];
+    btns.forEach((b, i) => b.classList.toggle('active', order[i] === which));
+  }
+
+  // ===== Standalone preview: stack 3 instances, one per initial screen =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section" id="sec-prep">
+        <div class="preview-marker">VIEW 1 / 3  ·  feedback — prep</div>
+        ${renderFeedback('prep')}
+      </section>
+      <section class="preview-section" id="sec-rec">
+        <div class="preview-marker">VIEW 2 / 3  ·  feedback — recording (live)</div>
+        ${renderFeedbackStandalone('rec')}
+      </section>
+      <section class="preview-section" id="sec-prev">
+        <div class="preview-marker">VIEW 3 / 3  ·  feedback — preview</div>
+        ${renderFeedbackStandalone('prev')}
+      </section>
+    `;
+  }
+
+  /* The single-view renderer above keys all 3 screens off the same element
+     ids ("feedback-prep", "feedback-rec", "feedback-prev"). For the
+     STANDALONE preview we want each section to show its own screen
+     without sharing ids — so we render a duplicate with unique scoped ids. */
+  function renderFeedbackStandalone(which) {
+    let inner;
+    if (which === 'prep') inner = renderFeedbackPrep();
+    else if (which === 'rec') inner = renderFeedbackRec();
+    else inner = renderFeedbackPrev();
+    return `
+      <div class="tool-stage"><div class="container">
+        <div class="tool-title">
+          <h1>📹 פידבק</h1>
+          <p>הקלט את עצמך מנגן על באקינג טראק מ-YouTube ושלח למישר</p>
+        </div>
+        <div class="screen-tabs">
+          <button class="${which==='prep'?'active':''}">1. הכנה</button>
+          <button class="${which==='rec' ?'active':''}">2. הקלטה</button>
+          <button class="${which==='prev'?'active':''}">3. תצוגה מקדימה</button>
+        </div>
+        <div class="feedback-screen" style="display:flex; flex-direction:column; gap:18px">
+          ${inner}
+        </div>
+      </div></div>
+    `;
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    const map = { 'feedback': 0 };
+    const idx = map[id];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function goBack() { history.back(); }
+
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

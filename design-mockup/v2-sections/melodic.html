@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Melodic Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Stage / Constellation ===== */
+  .stage {
+    position: relative; z-index: 1;
+    height: 100vh; width: 100vw;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .constellation {
+    position: relative;
+    width: min(90vmin, 760px);
+    height: min(90vmin, 760px);
+  }
+  .center-hub {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.3);
+    box-shadow:
+      0 0 60px rgba(110, 168, 255, 0.45),
+      inset 0 0 40px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    z-index: 5;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  @keyframes hubPulse {
+    from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+    to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  }
+  .center-hub .center-info {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 6%;
+  }
+  .center-hub .center-info .emoji {
+    font-size: clamp(28px, 5vmin, 48px);
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 12px rgba(110,168,255,0.7));
+  }
+  .center-hub .center-info h2 {
+    margin: 0 0 4px 0;
+    font-size: clamp(13px, 2vmin, 20px);
+    font-weight: 700; line-height: 1.15;
+  }
+  .center-hub .center-info p {
+    margin: 0;
+    font-size: clamp(9px, 1.3vmin, 12px);
+    color: var(--text-dim); line-height: 1.3;
+  }
+
+  /* Satellites */
+  .satellite {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 34vmin;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 22vmin; height: 22vmin;
+    pointer-events: none;
+    animation: floatY 6s ease-in-out infinite alternate;
+  }
+  .satellite.s-2 { animation-delay: -1s; }
+  .satellite.s-3 { animation-delay: -2s; }
+  @keyframes floatY {
+    from { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius)*-1)) rotate(calc(var(--angle)*-1)); }
+    to   { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc((var(--radius)*-1) - 6px)) rotate(calc(var(--angle)*-1)); }
+  }
+  .satellite .label {
+    position: absolute; left: 50%; bottom: calc(78% + 10px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(11px, 1.7vmin, 15px); font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    animation: labelFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes labelFloat {
+    from { transform: translateX(-50%) translateY(0); }
+    to   { transform: translateX(-50%) translateY(-4px); }
+  }
+  .satellite .sub-label {
+    position: absolute; left: 50%; top: calc(78% - 4px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(9px, 1.3vmin, 11px); font-weight: 500;
+    color: var(--accent-2); opacity: 0.85;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .satellite .orb {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 78%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+      var(--orb-bg);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--orb-border);
+    box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(28px, 5.5vmin, 52px);
+    cursor: pointer; pointer-events: auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .satellite .orb:hover {
+    transform: translateX(-50%) scale(1.12);
+    box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
+    border-color: rgba(220, 235, 255, 0.7);
+  }
+  .satellite.s-1 .orb { box-shadow: 0 0 30px rgba(255, 180, 100, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-2 .orb { box-shadow: 0 0 30px rgba(255, 120, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-3 .orb { box-shadow: 0 0 30px rgba(150, 220, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+
+  .lines { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .lines line { stroke: rgba(180, 210, 255, 0.12); stroke-width: 1; stroke-dasharray: 3 5; }
+
+  /* ===== Exercise template ===== */
+  .exercise-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 80px 20px 110px;
+    gap: 22px;
+  }
+  .ex-header {
+    text-align: center;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+  .ex-code {
+    font-size: 12px; letter-spacing: 1.5px; font-weight: 600;
+    color: var(--accent); opacity: 0.85; text-transform: uppercase;
+  }
+  .ex-title {
+    margin: 0; font-size: clamp(22px, 3.5vmin, 32px); font-weight: 700;
+  }
+  .ex-progress {
+    font-size: 13px; color: var(--text-dim); margin-top: 4px;
+  }
+  .ex-prompt {
+    margin: 0; font-size: clamp(15px, 2vmin, 18px);
+    color: var(--text-dim); max-width: 700px; text-align: center;
+    line-height: 1.5;
+  }
+  .play-pad {
+    width: clamp(110px, 18vmin, 180px); height: clamp(110px, 18vmin, 180px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.4), rgba(42, 90, 255, 0.25));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    box-shadow: 0 0 60px rgba(110, 168, 255, 0.5), inset 0 0 30px rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(42px, 7vmin, 72px);
+    font-family: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  .play-pad:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 80px rgba(180, 210, 255, 0.7), inset 0 0 40px rgba(255,255,255,0.15);
+  }
+
+  .ex-answers {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; align-items: center;
+    max-width: 800px;
+  }
+  .ans-chip {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: clamp(13px, 1.7vmin, 16px);
+    font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+    min-width: 60px;
+  }
+  .ans-chip:hover {
+    background: rgba(110, 168, 255, 0.2);
+    border-color: rgba(180, 210, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.3);
+  }
+  .ans-chip.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+
+  .ex-footer {
+    position: fixed; bottom: 18px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 14px;
+    align-items: center;
+    z-index: 70;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .hint-btn, .skip-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  .hint-btn:hover, .skip-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+  .toggles-row {
+    display: flex; gap: 8px; margin-top: 4px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .pill-toggle {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-toggle.active { background: rgba(110, 168, 255, 0.25); border-color: var(--accent); color: var(--text); }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+
+  /* Staff mock — used by M3 scale visualizer */
+  .staff-mock {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    height: 110px;
+    position: relative;
+    overflow: hidden;
+    padding: 20px 24px;
+  }
+  .staff-line {
+    height: 2px; background: rgba(180,210,255,0.4);
+    margin-bottom: 14px;
+  }
+  .staff-line:last-child { margin-bottom: 0; }
+  .staff-note {
+    position: absolute;
+    width: 18px; height: 13px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Melodic fragment additions
+     All classes prefixed `melodic-` or are the GLOBAL drawer
+     (`.levels-drawer`, `.levels-trigger`) which is shared with
+     every other section.
+     ============================================================ -->
+<style id="section-melodic">
+  /* ---- Global Levels Drawer (shared with every section) ---- */
+  .levels-trigger {
+    position: fixed; top: 50px; left: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s ease;
+  }
+  .levels-trigger:hover { background: rgba(255,255,255,0.16); }
+  .levels-trigger .hamburger {
+    font-size: 15px; line-height: 1;
+    color: var(--accent-2);
+  }
+  .levels-trigger .current-level {
+    color: var(--accent); font-weight: 700;
+  }
+
+  .levels-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5, 13, 42, 0.55);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .levels-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .levels-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(380px, 90vw);
+    z-index: 210;
+    background:
+      linear-gradient(180deg, rgba(13, 42, 122, 0.85), rgba(10, 31, 92, 0.92));
+    border-right: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5),
+                inset -1px 0 0 rgba(180, 210, 255, 0.08);
+    transform: translateX(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex; flex-direction: column;
+    direction: rtl;
+  }
+  .levels-drawer.open { transform: translateX(0); }
+
+  .levels-drawer-header {
+    padding: 18px 20px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(180, 210, 255, 0.12);
+  }
+  .levels-drawer-title {
+    margin: 0;
+    font-size: 17px; font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .levels-drawer-title .ex-tag {
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--accent);
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(110, 168, 255, 0.15);
+    border: 1px solid rgba(110, 168, 255, 0.3);
+  }
+  .levels-drawer-close {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 16px; cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .levels-drawer-close:hover {
+    background: rgba(255,255,255,0.14);
+    color: var(--text);
+  }
+
+  .levels-drawer-list {
+    list-style: none;
+    margin: 0; padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .levels-drawer-list::-webkit-scrollbar { width: 6px; }
+  .levels-drawer-list::-webkit-scrollbar-thumb {
+    background: rgba(180, 210, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  .level-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .level-item:hover {
+    background: rgba(110, 168, 255, 0.1);
+    border-color: rgba(180, 210, 255, 0.2);
+  }
+  .level-item.active {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.35),
+                inset 0 0 14px rgba(110, 168, 255, 0.08);
+  }
+  .level-item.locked {
+    opacity: 0.45; cursor: not-allowed;
+  }
+  .level-item.locked:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: transparent;
+  }
+  .level-item-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .level-item.active .level-item-num {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    color: #051030;
+    box-shadow: 0 0 12px rgba(110, 168, 255, 0.7);
+  }
+  .level-item.completed .level-item-num {
+    background: rgba(120, 220, 180, 0.25);
+    border-color: rgba(120, 220, 180, 0.6);
+    color: #e0fff0;
+  }
+  .level-item-label {
+    flex: 1;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+  }
+  .level-item.active .level-item-label { color: var(--accent-2); font-weight: 600; }
+  .level-item-icon {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .level-item.completed .level-item-icon { color: rgba(120, 220, 180, 0.9); }
+  .level-item.locked .level-item-icon { color: var(--text-dim); }
+
+  /* ---- M1 — Degree Clock visualization ---- */
+  /* A circular dial showing the diatonic degrees as positions on a clock.
+     The "active" position (the answer being shown / clicked) glows.
+     Justification: no canon class fits a circular degree picker — this
+     gives M1 a memorable, distinctive visual on top of the chip list. */
+  .melodic-degree-clock {
+    position: relative;
+    width: clamp(220px, 32vmin, 320px);
+    height: clamp(220px, 32vmin, 320px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(110, 168, 255, 0.08), transparent 70%);
+    border: 1.5px dashed rgba(180, 210, 255, 0.2);
+  }
+  .melodic-degree-clock-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 2px;
+    backdrop-filter: blur(8px);
+  }
+  .melodic-degree-clock-center .tonic-label {
+    font-size: 10px; letter-spacing: 1.2px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .melodic-degree-clock-center .tonic-name {
+    font-size: clamp(20px, 3.2vmin, 28px);
+    font-weight: 800; color: var(--accent-2);
+  }
+  .melodic-degree-clock-center .scale-name {
+    font-size: 11px; color: var(--text-dim); margin-top: 2px;
+  }
+  .melodic-degree-mark {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 42%;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .melodic-degree-mark:hover {
+    background: rgba(110, 168, 255, 0.15);
+    border-color: var(--accent);
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1))
+      scale(1.12);
+  }
+  .melodic-degree-mark.active {
+    background: rgba(110, 168, 255, 0.4);
+    border-color: var(--accent-2);
+    color: #fff;
+    box-shadow: 0 0 22px rgba(110, 168, 255, 0.7);
+  }
+  .melodic-degree-mark.chromatic {
+    background: rgba(255, 180, 100, 0.08);
+    border-color: rgba(255, 200, 130, 0.35);
+    color: rgba(255, 220, 170, 0.95);
+    width: 36px; height: 36px;
+    font-size: 11px;
+  }
+
+  /* ---- M2 — Big direction arrow buttons ----
+     Justification: the v1 .ans-chip is pill-sized; M2 has only 2-4
+     answers and benefits visually from large arrow tiles. We extend
+     .ans-chip with a `melodic-arrow-chip` modifier rather than
+     replace it, so the canon class still applies. */
+  .ex-answers.melodic-arrows-row {
+    gap: 20px;
+    max-width: 720px;
+  }
+  .ans-chip.melodic-arrow-chip {
+    min-width: 150px;
+    min-height: 130px;
+    padding: 22px 28px;
+    border-radius: 20px;
+    flex-direction: column;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+  }
+  .ans-chip.melodic-arrow-chip .arrow-glyph {
+    font-size: clamp(38px, 6vmin, 56px);
+    line-height: 1;
+    color: var(--accent-2);
+    filter: drop-shadow(0 0 14px rgba(110, 168, 255, 0.55));
+  }
+  .ans-chip.melodic-arrow-chip .arrow-text {
+    font-size: 14px; font-weight: 600; color: var(--text);
+  }
+  .ans-chip.melodic-arrow-chip:hover .arrow-glyph {
+    color: #fff;
+    filter: drop-shadow(0 0 22px rgba(180, 210, 255, 0.9));
+  }
+
+  /* ---- M2 — Contour visualizer (level 5) ----
+     A tiny line-graph showing the melodic shape that was played.
+     Justification: no canon class for a contour line. */
+  .melodic-contour {
+    width: clamp(200px, 30vmin, 320px);
+    height: 90px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 12px;
+    position: relative;
+  }
+  .melodic-contour svg {
+    width: 100%; height: 100%; display: block;
+  }
+  .melodic-contour-line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px rgba(110, 168, 255, 0.7));
+  }
+  .melodic-contour-dot {
+    fill: var(--accent-2);
+    filter: drop-shadow(0 0 6px rgba(180, 210, 255, 0.9));
+  }
+
+  /* ---- M3 — Scale visualizer ----
+     A horizontal staff with the scale's ascending notes shown as
+     glowing dots, plus a label. Justification: canon `.staff-mock`
+     handles the staff lines; we add a wrapper for label + the dot
+     row computed per-scale at runtime. */
+  .melodic-scale-vis {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    width: 100%;
+    max-width: 560px;
+  }
+  .melodic-scale-vis .scale-vis-label {
+    font-size: 12px; color: var(--text-dim);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .melodic-scale-vis .scale-vis-label .v {
+    color: var(--accent-2); font-weight: 700;
+    margin-inline-start: 6px; text-transform: none; letter-spacing: 0;
+  }
+
+  /* ---- M1 — chromatic chip row label ---- */
+  .melodic-chromatic-row {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .melodic-chromatic-row .chrom-hint {
+    font-size: 11px; color: var(--text-dim); letter-spacing: 0.5px;
+  }
+
+  /* ---- shared: settings strip below answers, hidden behind divider ---- */
+  .melodic-settings-strip {
+    width: 100%;
+    max-width: 900px;
+    border-top: 1px dashed rgba(180, 210, 255, 0.18);
+    padding-top: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .melodic-settings-strip .strip-title {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  /* ---- standalone preview helpers (only used when opened alone) ---- */
+  .preview-section {
+    position: relative;
+    min-height: 100vh;
+  }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Melodic Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>שמיעה מוזיקלית<span>›</span>מלודיה</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     ============================================================ -->
+<script type="application/json" id="views-melodic">
+{
+  "melodic": {
+    "type": "radial",
+    "breadcrumb": "מלודיה",
+    "parent": "ear-training",
+    "title": "מלודיה",
+    "sub": "3 Exercises",
+    "centerEmoji": "🎵",
+    "satellites": [
+      { "icon": "🎯", "label": "זיהוי דרגה",    "sub": "M1", "goto": "ex-m1" },
+      { "icon": "↕️", "label": "כיוון תנועה",   "sub": "M2", "goto": "ex-m2" },
+      { "icon": "🎶", "label": "זיהוי סולם",    "sub": "M3", "goto": "ex-m3" }
+    ]
+  },
+  "ex-m1": {
+    "type": "exercise-custom",
+    "renderer": "renderM1",
+    "breadcrumb": "M1 — זיהוי דרגה",
+    "parent": "melodic"
+  },
+  "ex-m2": {
+    "type": "exercise-custom",
+    "renderer": "renderM2",
+    "breadcrumb": "M2 — כיוון תנועה",
+    "parent": "melodic"
+  },
+  "ex-m3": {
+    "type": "exercise-custom",
+    "renderer": "renderM3",
+    "breadcrumb": "M3 — זיהוי סולם",
+    "parent": "melodic"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Level data (mirrors the React components) =====
+  const M1_LEVELS = [
+    { n:  1, label: 'שלב 1 — הטוניקה',           done: true },
+    { n:  2, label: 'שלב 2 — 1 ו-7',             done: true },
+    { n:  3, label: 'שלב 3 — הוספת 2',           done: true },
+    { n:  4, label: 'שלב 4 — הוספת 5',           done: false, current: true },
+    { n:  5, label: 'שלב 5 — הוספת 3',           done: false },
+    { n:  6, label: 'שלב 6 — הוספת 4',           done: false },
+    { n:  7, label: "שלב 7 — כל מז'ור",          done: false },
+    { n:  8, label: 'שלב 8 — מינור: 1 ו-♭7',    done: false },
+    { n:  9, label: 'שלב 9 — מינור: הרחבה',     done: false },
+    { n: 10, label: 'שלב 10 — כל מינור טבעי',   done: false },
+    { n: 11, label: 'שלב 11 — + ♭3 כרומטי',     done: false, locked: true },
+    { n: 12, label: 'שלב 12 — + ♭2',            done: false, locked: true },
+    { n: 13, label: 'שלב 13 — + ♭6',            done: false, locked: true },
+    { n: 14, label: 'שלב 14 — + ♭7',            done: false, locked: true },
+    { n: 15, label: 'שלב 15 — + ♭5',            done: false, locked: true },
+    { n: 16, label: "שלב 16 — כל 12 — מז'ור",   done: false, locked: true },
+    { n: 17, label: 'שלב 17 — כל 12 — מינור',   done: false, locked: true }
+  ];
+  const M2_LEVELS = [
+    { n: 1, label: 'עולה / יורד / חוזר — 2 תווים',                  done: true,  current: true },
+    { n: 2, label: 'כיוון כללי — 3 תווים',                          done: false },
+    { n: 3, label: 'צעד או קפיצה — 2 תווים',                        done: false },
+    { n: 4, label: 'גודל קפיצה — קטנה / בינונית / גדולה',           done: false, locked: true },
+    { n: 5, label: 'מיפוי קו — 4-6 תווים',                          done: false, locked: true }
+  ];
+  const M3_LEVELS = [
+    { n: 1, label: "מז'ור / מינור טבעי",                            done: true },
+    { n: 2, label: '3 מינורים — טבעי / הרמוני / מלודי',             done: false, current: true },
+    { n: 3, label: "דיאטוני — מז'ור + 3 מינורים",                   done: false },
+    { n: 4, label: '4 מודוסים בסיסיים',                             done: false },
+    { n: 5, label: 'שבעת המודוסים',                                 done: false, locked: true },
+    { n: 6, label: "סולמות ג'אז",                                   done: false, locked: true },
+    { n: 7, label: 'פנטטוניים + בלוז',                              done: false, locked: true },
+    { n: 8, label: 'סולמות סימטריים',                               done: false, locked: true },
+    { n: 9, label: 'הכל — בחירה חופשית',                            done: false, locked: true }
+  ];
+
+  // ===== Generic drawer renderer =====
+  function renderLevelsDrawer(exId, exTitle, levels) {
+    const items = levels.map(l => {
+      const classes = ['level-item'];
+      if (l.current) classes.push('active');
+      if (l.done && !l.current) classes.push('completed');
+      if (l.locked) classes.push('locked');
+      const icon = l.locked   ? '🔒'
+                 : l.current  ? '●'
+                 : l.done     ? '✓'
+                 :              '';
+      return `
+        <li class="${classes.join(' ')}" onclick="${l.locked ? '' : `selectLevel('${exId}', ${l.n})`}">
+          <span class="level-item-num">${l.n}</span>
+          <span class="level-item-label">${l.label}</span>
+          <span class="level-item-icon">${icon}</span>
+        </li>`;
+    }).join('');
+    return `
+      <div class="levels-overlay" id="levels-overlay-${exId}" onclick="toggleDrawer('${exId}')"></div>
+      <aside class="levels-drawer" id="levels-drawer-${exId}" role="dialog" aria-label="בחר שלב">
+        <div class="levels-drawer-header">
+          <h3 class="levels-drawer-title">
+            <span class="ex-tag">${exId.toUpperCase()}</span>
+            <span>בחר שלב</span>
+          </h3>
+          <button class="levels-drawer-close" onclick="toggleDrawer('${exId}')" aria-label="סגור">✕</button>
+        </div>
+        <ul class="levels-drawer-list">${items}</ul>
+      </aside>`;
+  }
+
+  function renderLevelsTrigger(exId, currentLabel) {
+    return `
+      <button class="levels-trigger" onclick="toggleDrawer('${exId}')" title="בחר שלב">
+        <span class="hamburger">☰</span>
+        <span>שלבים</span>
+        <span class="current-level">· ${currentLabel}</span>
+      </button>`;
+  }
+
+  // ===== Melodic Hub (radial) =====
+  function renderMelodicHub() {
+    const sats = [
+      { icon: '🎯', label: 'זיהוי דרגה',  sub: 'M1', goto: 'ex-m1', slot: 1 },
+      { icon: '↕️', label: 'כיוון תנועה', sub: 'M2', goto: 'ex-m2', slot: 2 },
+      { icon: '🎶', label: 'זיהוי סולם',  sub: 'M3', goto: 'ex-m3', slot: 3 }
+    ];
+    const n = sats.length;
+    const satHtml = sats.map((s, i) => {
+      const angle = (i * 360 / n).toFixed(2);
+      return `
+        <div class="satellite s-${s.slot}" style="--angle:${angle}deg" data-angle="${angle}">
+          <div class="label">${s.label}</div>
+          <div class="orb" onclick="navigate('${s.goto}')">${s.icon}</div>
+          <div class="sub-label">${s.sub}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="stage">
+        <div class="constellation" id="cur-const">
+          <svg class="lines" id="cur-lines"></svg>
+          <div class="center-hub">
+            <div class="center-info">
+              <div class="emoji">🎵</div>
+              <h2>מלודיה</h2>
+              <p>3 Exercises</p>
+            </div>
+          </div>
+          ${satHtml}
+        </div>
+      </div>`;
+  }
+
+  // ===== Helper: degree-clock dial for M1 =====
+  function renderDegreeClock(activeDegrees, currentlyHighlighted, tonic, scaleName) {
+    // 12 semitones around the dial. Display only the active diatonic +
+    // chromatic chips at their semitone position. 0 = top, going clockwise.
+    const labelMap = {
+      0: 'I', 1: '♭II', 2: 'II', 3: '♭III', 4: 'III', 5: 'IV',
+      6: '♭V', 7: 'V', 8: '♭VI', 9: 'VI', 10: '♭VII', 11: 'VII'
+    };
+    // diatonic = {0,2,4,5,7,9,11}; everything else is chromatic
+    const diatonic = new Set([0, 2, 4, 5, 7, 9, 11]);
+    const marks = activeDegrees.map(d => {
+      const angle = (d * 360 / 12).toFixed(2);
+      const isActive = d === currentlyHighlighted;
+      const isChrom = !diatonic.has(d);
+      const cls = ['melodic-degree-mark'];
+      if (isActive) cls.push('active');
+      if (isChrom)  cls.push('chromatic');
+      return `<div class="${cls.join(' ')}" style="--angle:${angle}deg">${labelMap[d]}</div>`;
+    }).join('');
+    return `
+      <div class="melodic-degree-clock">
+        <div class="melodic-degree-clock-center">
+          <span class="tonic-label">Tonic</span>
+          <span class="tonic-name">${tonic}</span>
+          <span class="scale-name">${scaleName}</span>
+        </div>
+        ${marks}
+      </div>`;
+  }
+
+  // ===== Exercise M1 — זיהוי דרגה =====
+  function renderM1() {
+    const level = M1_LEVELS.find(l => l.current) || M1_LEVELS[0];
+    // Level 4 config: notes [0, 11, 2, 7] = I, VII, II, V — major in C
+    const activeDegrees = [0, 11, 2, 7];
+    const highlighted = 7; // pretend the played note is V
+    const degreeLabels = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+    const ansChips = degreeLabels.map(d =>
+      `<button class="ans-chip${d === 'V' ? ' active' : ''}">${d}</button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('m1', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">M1</div>
+          <h1 class="ex-title">זיהוי דרגה</h1>
+          <div class="ex-progress">שאלה 4 / 10  ·  מהפעם הראשונה: 3  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">אקורד טוניקה ← תו — איזו דרגה ניגנה?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        ${renderDegreeClock(activeDegrees, highlighted, 'C', "Major")}
+
+        <div class="ex-answers">${ansChips}</div>
+
+        <!-- DegreeNameToggle: I,IV,V ↔ C,F,G -->
+        <div class="toggles-row">
+          <button class="pill-toggle active">I II III</button>
+          <button class="pill-toggle">C D E</button>
+        </div>
+
+        <!-- Full settings strip (mirrors the React ctrlRow) -->
+        <div class="melodic-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>רפרנס:</strong> <span class="v">אקורד</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">קדנצה</button>
+            <button class="pill-toggle">אקורד</button>
+            <button class="pill-toggle">תו</button>
+            <button class="pill-toggle">ללא</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('m1', 'M1 — זיהוי דרגה', M1_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise M2 — כיוון תנועה =====
+  function renderM2() {
+    const level = M2_LEVELS.find(l => l.current) || M2_LEVELS[0];
+    // Level 1: up / down / same
+    return `
+      ${renderLevelsTrigger('m2', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">M2</div>
+          <h1 class="ex-title">כיוון תנועה מלודית</h1>
+          <div class="ex-progress">שאלה 2 / 10  ·  מהפעם הראשונה: 2  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">לאיזה כיוון נעו התווים?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- Contour mini-graph: shows the two-note shape that was played -->
+        <div class="melodic-contour" aria-label="צורת המהלך">
+          <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+            <polyline class="melodic-contour-line" points="20,42 100,30 180,16"></polyline>
+            <circle class="melodic-contour-dot" cx="20"  cy="42" r="4"></circle>
+            <circle class="melodic-contour-dot" cx="100" cy="30" r="4"></circle>
+            <circle class="melodic-contour-dot" cx="180" cy="16" r="4"></circle>
+          </svg>
+        </div>
+
+        <div class="ex-answers melodic-arrows-row">
+          <button class="ans-chip melodic-arrow-chip">
+            <span class="arrow-glyph">↑</span>
+            <span class="arrow-text">עולה</span>
+          </button>
+          <button class="ans-chip melodic-arrow-chip">
+            <span class="arrow-glyph">↓</span>
+            <span class="arrow-text">יורד</span>
+          </button>
+          <button class="ans-chip melodic-arrow-chip">
+            <span class="arrow-glyph">→</span>
+            <span class="arrow-text">חוזר</span>
+          </button>
+        </div>
+
+        <div class="melodic-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מעבר:</strong> <span class="v">אוטומטי</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">אוטומטי</button>
+            <button class="pill-toggle">ידני</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('m2', 'M2 — כיוון תנועה', M2_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise M3 — זיהוי סולם =====
+  function renderM3() {
+    const level = M3_LEVELS.find(l => l.current) || M3_LEVELS[0];
+    // Level 2: natural / harmonic / melodic minor
+    const scales = [
+      { id: 'naturalMinor',  label: 'מינור טבעי' },
+      { id: 'harmonicMinor', label: 'מינור הרמוני', active: true },
+      { id: 'melodicMinor',  label: 'מינור מלודי' }
+    ];
+    const chips = scales.map(s =>
+      `<button class="ans-chip${s.active ? ' active' : ''}">${s.label}</button>`
+    ).join('');
+
+    // 7 staff notes climbing
+    const staffNotes = [
+      { left: 12, top: 70 },
+      { left: 24, top: 60 },
+      { left: 36, top: 50 },
+      { left: 48, top: 38 },
+      { left: 60, top: 30 },
+      { left: 72, top: 22 },
+      { left: 84, top: 14 }
+    ];
+    const noteDots = staffNotes.map(n =>
+      `<div class="staff-note" style="left:${n.left}%; top:${n.top}%"></div>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('m3', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">M3</div>
+          <h1 class="ex-title">זיהוי סולם</h1>
+          <div class="ex-progress">שאלה 3 / 10  ·  מהפעם הראשונה: 2  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">תו טוניקה ← סולם עולה — איזה סולם זה?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <div class="melodic-scale-vis">
+          <div class="scale-vis-label">סולם נוגן ב-<span class="v">A מינור הרמוני</span></div>
+          <div class="staff-mock" style="width:100%; max-width:560px">
+            <div class="staff-line"></div>
+            <div class="staff-line"></div>
+            <div class="staff-line"></div>
+            <div class="staff-line"></div>
+            <div class="staff-line"></div>
+            ${noteDots}
+          </div>
+        </div>
+
+        <div class="ex-answers">${chips}</div>
+
+        <!-- ChipSelector — what's in the answer pool (visible from level 4+
+             in the React code; shown here for the canon) -->
+        <div class="melodic-chromatic-row">
+          <div class="chrom-hint">בריכת תשובות</div>
+          <div class="toggles-row">
+            <button class="pill-toggle active">טבעי ✓</button>
+            <button class="pill-toggle active">הרמוני ✓</button>
+            <button class="pill-toggle active">מלודי ✓</button>
+          </div>
+        </div>
+
+        <div class="melodic-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>רפרנס:</strong> <span class="v">תו</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מעבר:</strong> <span class="v">אוטומטי</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle">קדנצה</button>
+            <button class="pill-toggle">אקורד</button>
+            <button class="pill-toggle active">תו</button>
+            <button class="pill-toggle">ללא</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('m3', 'M3 — זיהוי סולם', M3_LEVELS)}
+    `;
+  }
+
+  // ===== Standalone preview: stack all 4 views =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 4  ·  melodic hub</div>
+        ${renderMelodicHub()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 2 / 4  ·  ex-m1</div>
+        ${renderM1()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 3 / 4  ·  ex-m2</div>
+        ${renderM2()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 4 / 4  ·  ex-m3</div>
+        ${renderM3()}
+      </section>
+    `;
+    // Draw constellation lines once the hub is in the DOM
+    requestAnimationFrame(drawConstellationLines);
+  }
+
+  function drawConstellationLines() {
+    const container = document.getElementById('cur-const');
+    const svg = document.getElementById('cur-lines');
+    if (!container || !svg) return;
+    const w = container.clientWidth, h = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.innerHTML = '';
+    const cRect = container.getBoundingClientRect();
+    const cx = w / 2, cy = h / 2;
+    container.querySelectorAll('.satellite .orb').forEach(orb => {
+      const r = orb.getBoundingClientRect();
+      const x = r.left + r.width / 2 - cRect.left;
+      const y = r.top + r.height / 2 - cRect.top;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+      line.setAttribute('x2', x);  line.setAttribute('y2', y);
+      svg.appendChild(line);
+    });
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    // standalone: just scroll to that section
+    const map = { 'ex-m1': 1, 'ex-m2': 2, 'ex-m3': 3, 'melodic': 0 };
+    const idx = map[id];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function goBack() { history.back(); }
+
+  function toggleDrawer(exId) {
+    const drawer  = document.getElementById(`levels-drawer-${exId}`);
+    const overlay = document.getElementById(`levels-overlay-${exId}`);
+    if (!drawer || !overlay) return;
+    const open = !drawer.classList.contains('open');
+    drawer.classList.toggle('open',  open);
+    overlay.classList.toggle('open', open);
+  }
+  function selectLevel(exId, n) {
+    // standalone: just close the drawer. In the real app this updates state.
+    toggleDrawer(exId);
+    console.log(`[mockup] selectLevel ${exId} → ${n}`);
+  }
+
+  window.addEventListener('resize', drawConstellationLines);
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

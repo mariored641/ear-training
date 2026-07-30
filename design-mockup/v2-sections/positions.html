@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Positions Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform; }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Tool screen ===== */
+  .tool-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    overflow: visible;
+    padding: 80px 24px 40px;
+    color: var(--text);
+  }
+  .tool-stage .container {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .tool-title {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-align: center;
+  }
+  .tool-title h1 {
+    margin: 0; font-size: clamp(24px, 3.6vmin, 32px); font-weight: 700;
+  }
+  .tool-title p { margin: 0; color: var(--text-dim); font-size: 14px; }
+
+  .tool-card {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  }
+  .tool-card h3 {
+    margin: 0 0 12px 0; font-size: 14px;
+    color: var(--text-dim); letter-spacing: 0.5px;
+    text-transform: uppercase; font-weight: 600;
+  }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+
+  /* Fretboard mock */
+  .fretboard {
+    background: linear-gradient(180deg, #20242c, #14171c);
+    border: 1.5px solid rgba(180,210,255,0.18);
+    border-radius: 14px;
+    padding: 16px 14px;
+    position: relative;
+    overflow-x: auto;
+  }
+  .fb-grid {
+    display: grid; gap: 4px;
+    grid-template-columns: 30px repeat(14, 1fr);
+  }
+  .fb-cell {
+    height: 28px; position: relative;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  .fb-cell.nut { border-right: 3px solid rgba(255,255,255,0.6); }
+  .fb-cell.fret-num {
+    background: transparent; border: none;
+    color: var(--text-dim); font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    height: 20px;
+  }
+  .fb-string {
+    color: var(--text-dim); font-size: 11px;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-inline-end: 4px;
+  }
+  .fb-dot {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(180, 210, 255, 0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff;
+  }
+  .fb-dot.root { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .fb-dot.arp { background: rgba(120, 220, 255, 0.7); }
+
+  /* Position tabs (canon) */
+  .pos-tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .pos-tab {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    padding: 9px 18px; border-radius: 10px;
+    font-size: 13px; cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .pos-tab:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+  .pos-tab.active {
+    background: rgba(110, 168, 255, 0.25);
+    border-color: var(--accent);
+    color: var(--text); font-weight: 600;
+    box-shadow: 0 0 14px rgba(110, 168, 255, 0.3);
+  }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Positions fragment additions
+     All new classes prefixed `positions-` (per canon rule).
+     ============================================================ -->
+<style id="section-positions">
+  /* ---- Page header bar ---- */
+  .positions-pageheader {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-align: center;
+  }
+  .positions-pageheader .title-row {
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .positions-pageheader h1 {
+    margin: 0; font-size: clamp(24px, 3.6vmin, 32px); font-weight: 700;
+  }
+  .positions-pageheader .scale-title-pill {
+    background: rgba(110, 168, 255, 0.15);
+    border: 1.5px solid rgba(110, 168, 255, 0.35);
+    color: var(--accent-2);
+    padding: 4px 14px; border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .positions-pageheader p { margin: 0; color: var(--text-dim); font-size: 13px; }
+
+  /* ---- Quick Ref / Help button ---- */
+  .positions-quickref-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    width: 36px; height: 36px; border-radius: 50%;
+    font-size: 16px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .positions-quickref-btn:hover {
+    background: rgba(110,168,255,0.18);
+    border-color: var(--accent);
+  }
+
+  /* ---- Control rows (Root select / Type toggle / Position toggles) ---- */
+  .positions-control-block {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .positions-control-line {
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .positions-control-line .ctrl-label {
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text-dim); font-weight: 600;
+  }
+
+  /* Root native-style select rendered as a pill */
+  .positions-select {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 7px 30px 7px 14px;
+    border-radius: 999px;
+    font-size: 13px; font-family: inherit; font-weight: 600;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--accent) 50%),
+      linear-gradient(135deg, var(--accent) 50%, transparent 50%);
+    background-position:
+      calc(100% - 14px) 50%,
+      calc(100% - 9px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    transition: all 0.2s ease;
+  }
+  .positions-select:hover {
+    background-color: rgba(110, 168, 255, 0.15);
+    border-color: var(--accent);
+  }
+  .positions-select option {
+    background: var(--bg-mid); color: var(--text);
+  }
+
+  /* Major/Minor segmented toggle */
+  .positions-seg {
+    display: inline-flex;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .positions-seg-btn {
+    background: transparent;
+    color: var(--text-dim);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 12px; font-family: inherit; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .positions-seg-btn:hover { color: var(--text); }
+  .positions-seg-btn.active {
+    background: rgba(110, 168, 255, 0.3);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(110, 168, 255, 0.4);
+  }
+
+  /* CAGED Position buttons (toggles, multi-select) */
+  .positions-caged-row {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  }
+  .positions-caged-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    font-size: 16px; font-weight: 800; font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .positions-caged-btn:hover {
+    background: rgba(110, 168, 255, 0.15);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .positions-caged-btn.active {
+    background: rgba(110, 168, 255, 0.32);
+    border-color: var(--accent-2);
+    color: #fff;
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.55),
+                inset 0 0 12px rgba(255, 255, 255, 0.1);
+  }
+
+  /* Show-all checkbox + display-mode bar */
+  .positions-checkbox {
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    font-size: 13px; color: var(--text-dim);
+    user-select: none;
+  }
+  .positions-checkbox input {
+    appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--glass-border);
+    background: rgba(255,255,255,0.06);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  .positions-checkbox input:checked {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    box-shadow: 0 0 10px rgba(110, 168, 255, 0.5);
+  }
+  .positions-checkbox input:checked::after {
+    content: '✓';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: #051030; font-weight: 800;
+  }
+
+  .positions-display-bar {
+    display: inline-flex;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+  .positions-display-btn {
+    background: transparent;
+    color: var(--text-dim);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px; font-family: inherit; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .positions-display-btn:hover { color: var(--text); }
+  .positions-display-btn.active {
+    background: rgba(110, 168, 255, 0.3);
+    color: #fff;
+  }
+  .positions-display-btn.pentatonic.active {
+    background: rgba(255, 180, 100, 0.3);
+    box-shadow: 0 0 12px rgba(255, 180, 100, 0.35);
+  }
+
+  /* ---- Arpeggio buttons (Roman-numeral chord pickers) ---- */
+  .positions-arp-bar {
+    display: flex; flex-direction: column; gap: 10px;
+    align-items: center;
+  }
+  .positions-arp-row {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  }
+  .positions-arp-btn {
+    background: rgba(255,255,255,0.04);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    min-width: 46px; height: 38px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 14px; font-weight: 700; font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .positions-arp-btn[data-color="pink"]   { border-color: #E91E8C; color: #E91E8C; }
+  .positions-arp-btn[data-color="orange"] { border-color: #FF5722; color: #FF5722; }
+  .positions-arp-btn[data-color="amber"]  { border-color: #FFC107; color: #FFC107; }
+  .positions-arp-btn[data-color="cyan"]   { border-color: #00BCD4; color: #00BCD4; }
+  .positions-arp-btn[data-color="purple"] { border-color: #673AB7; color: #c8a8ff; }
+  .positions-arp-btn[data-color="violet"] { border-color: #E040FB; color: #E040FB; }
+  .positions-arp-btn[data-color="lime"]   { border-color: #76FF03; color: #76FF03; }
+
+  .positions-arp-btn:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-1px);
+  }
+  .positions-arp-btn.active {
+    color: #1a1a2e;
+    box-shadow: 0 0 14px currentColor;
+  }
+  .positions-arp-btn[data-color="pink"].active   { background: #E91E8C; color: #fff; }
+  .positions-arp-btn[data-color="orange"].active { background: #FF5722; color: #fff; }
+  .positions-arp-btn[data-color="amber"].active  { background: #FFC107; color: #1a1a2e; }
+  .positions-arp-btn[data-color="cyan"].active   { background: #00BCD4; color: #1a1a2e; }
+  .positions-arp-btn[data-color="purple"].active { background: #673AB7; color: #fff; }
+  .positions-arp-btn[data-color="violet"].active { background: #E040FB; color: #1a1a2e; }
+  .positions-arp-btn[data-color="lime"].active   { background: #76FF03; color: #1a1a2e; }
+
+  .positions-arp-extras {
+    display: flex; gap: 10px; align-items: center;
+    color: var(--text-dim); font-size: 11px;
+  }
+  .positions-arp-hint {
+    background: rgba(255, 200, 130, 0.08);
+    border: 1px dashed rgba(255, 200, 130, 0.3);
+    padding: 4px 10px; border-radius: 6px;
+    color: rgba(255, 220, 170, 0.9);
+    font-size: 11px;
+  }
+
+  /* ---- All Scales tab — root + scale/chord selectors, action row ---- */
+  .positions-allscales-controls {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .positions-allscales-row {
+    display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .positions-allscales-group {
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: flex-start;
+  }
+  .positions-allscales-group .ctrl-label {
+    font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-dim); font-weight: 600;
+  }
+  .positions-allscales-group .positions-select {
+    min-width: 200px;
+  }
+  .positions-allscales-actions {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+    color: var(--text-dim); font-size: 11px;
+  }
+  .positions-action-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .positions-action-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+  }
+
+  /* Overlay rows (All Scales tab — chord overlays) */
+  .positions-overlay-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.18);
+    padding-top: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .positions-overlay-header {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px;
+  }
+  .positions-overlay-add {
+    background: rgba(110, 168, 255, 0.15);
+    border: 1.5px solid var(--accent);
+    color: var(--accent-2);
+    padding: 5px 12px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; font-family: inherit;
+    cursor: pointer;
+  }
+  .positions-overlay-row {
+    display: flex; gap: 8px; align-items: center;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 6px 10px;
+  }
+  .positions-overlay-swatch {
+    width: 14px; height: 14px; border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .positions-overlay-remove {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    width: 24px; height: 24px; border-radius: 50%;
+    font-size: 11px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* ---- Partial Chords builder ---- */
+  .positions-pct-builder {
+    display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .positions-pct-group {
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: flex-start;
+  }
+  .positions-pct-group .ctrl-label {
+    font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-dim); font-weight: 600;
+  }
+  .positions-pct-fret-val {
+    color: var(--accent-2); font-weight: 700;
+  }
+  .positions-pct-slider {
+    appearance: none;
+    width: 180px; height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 999px;
+    outline: none;
+  }
+  .positions-pct-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px; height: 18px;
+    background: var(--accent);
+    border: 2px solid var(--accent-2);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(110, 168, 255, 0.55);
+  }
+  .positions-pct-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    background: var(--accent);
+    border: 2px solid var(--accent-2);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .positions-pct-add {
+    background: rgba(110, 168, 255, 0.25);
+    border: 1.5px solid var(--accent);
+    color: #fff;
+    padding: 8px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 0 14px rgba(110, 168, 255, 0.35);
+  }
+  .positions-pct-add:hover { transform: translateY(-1px); }
+
+  /* Progression pills row */
+  .positions-progression-pills {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    padding-top: 6px;
+  }
+  .positions-prog-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .positions-prog-pill:hover {
+    background: rgba(110, 168, 255, 0.15);
+    border-color: var(--accent);
+  }
+  .positions-prog-pill.active {
+    background: rgba(110, 168, 255, 0.32);
+    border-color: var(--accent-2);
+    box-shadow: 0 0 14px rgba(110, 168, 255, 0.4);
+  }
+
+  /* Partial chord shape cards */
+  .positions-pct-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .positions-pct-card {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .positions-pct-card.active {
+    border-color: var(--accent);
+    background: rgba(110, 168, 255, 0.08);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.3);
+  }
+  .positions-pct-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .positions-pct-card-title {
+    font-size: 16px; font-weight: 700; color: var(--text);
+  }
+  .positions-pct-card-fret {
+    font-size: 11px; color: var(--text-dim);
+    background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 999px;
+  }
+  .positions-pct-card-nav {
+    display: flex; gap: 6px; justify-content: space-between;
+    font-size: 11px; color: var(--text-dim);
+  }
+  .positions-pct-nav-group {
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .positions-pct-nav-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    width: 24px; height: 24px; border-radius: 6px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    line-height: 1;
+  }
+  .positions-pct-nav-btn:hover { color: var(--text); background: rgba(110,168,255,0.15); }
+
+  /* Mini fretboard inside partial chord card */
+  .positions-mini-fb {
+    background: linear-gradient(180deg, #20242c, #14171c);
+    border-radius: 10px;
+    padding: 8px 6px;
+    display: grid;
+    gap: 3px;
+    grid-template-columns: 14px repeat(5, 1fr);
+  }
+  .positions-mini-fb .mini-cell {
+    height: 22px; position: relative;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .positions-mini-fb .mini-cell.nut { border-right: 2px solid rgba(255,255,255,0.5); }
+  .positions-mini-fb .mini-cell.fret-num {
+    border: none; color: var(--text-dim); font-size: 9px;
+    height: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .positions-mini-fb .mini-string {
+    color: var(--text-dim); font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .positions-mini-fb .mini-dot {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(180, 210, 255, 0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700; color: #fff;
+  }
+  .positions-mini-fb .mini-dot.root {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* ---- Active position marker on full fretboard ---- */
+  .positions-active-marker {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1.2px; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .positions-active-marker .v {
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-inline-start: 6px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* ---- Standalone preview helpers ---- */
+  .preview-section {
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 30px;
+  }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Positions Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>פוזיציות</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     ============================================================ -->
+<script type="application/json" id="views-positions">
+{
+  "positions": {
+    "type": "tool-custom",
+    "renderer": "renderPositions",
+    "breadcrumb": "פוזיציות"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Mock data — mirrors React state defaults =====
+  const POS_STATE = {
+    activeTab: 'positions',          // 'positions' | 'arpeggios' | 'allscales' | 'partialchords'
+    root: 'A',
+    type: 'minor',                   // 'major' | 'minor'
+    positions: ['G'],                // CAGED toggles (multi-select)
+    showAll: false,
+    displayMode: 'degrees',          // 'dots' | 'notes' | 'degrees'
+    showPentatonic: false,
+
+    // Arpeggios
+    activeArpeggios: ['i', 'iv'],
+    hideRoots: false,
+
+    // All Scales tab
+    allScalesRoot: 'A',
+    allScalesId: 'dorian',
+    allScalesDisplay: 'notes',
+    overlays: [
+      { id: 1, color: '#FFC107', root: 'A', chord: 'maj7' },
+      { id: 2, color: '#E91E8C', root: 'D', chord: 'm7'   }
+    ],
+
+    // Partial Chords
+    pctRoot: 'A',
+    pctQuality: 'minor',
+    pctDisplay: 'tones',
+    pctFret: 5,
+    pctWidth: 3,
+    progression: [
+      { root: 'A', quality: 'minor', label: 'Am'  },
+      { root: 'D', quality: 'minor', label: 'Dm'  },
+      { root: 'G', quality: 'major', label: 'G'   },
+      { root: 'C', quality: 'major', label: 'C'   }
+    ],
+    pctActiveIdx: 1
+  };
+
+  const CHROMATIC = ['A', 'A#/Bb', 'B', 'C', 'C#/Db', 'D', 'D#/Eb', 'E', 'F', 'F#/Gb', 'G', 'G#/Ab'];
+  const CAGED_POSITIONS = ['C', 'A', 'G', 'E', 'D'];
+  const DISPLAY_MODES = [
+    { id: 'dots',    label: 'Dots Only'    },
+    { id: 'notes',   label: 'Note Names'   },
+    { id: 'degrees', label: 'Scale Degrees' }
+  ];
+  const ARPEGGIOS = [
+    { id: 'I',   label: 'I',   color: 'pink'   },
+    { id: 'IV',  label: 'IV',  color: 'orange' },
+    { id: 'V',   label: 'V',   color: 'amber'  },
+    { id: 'i',   label: 'i',   color: 'cyan'   },
+    { id: 'iv',  label: 'iv',  color: 'purple' },
+    { id: 'v',   label: 'v',   color: 'violet' },
+    { id: 'dim', label: 'ø',   color: 'lime'   }
+  ];
+
+  // Scale list — short subset of allScalesData.js
+  const SCALE_OPTGROUPS = [
+    { label: 'Major Family', items: [
+      { id: 'majorIonian',  name: 'Major (Ionian)' },
+      { id: 'mixolydian',   name: 'Mixolydian'     },
+      { id: 'lydian',       name: 'Lydian'         }
+    ] },
+    { label: 'Minor Family', items: [
+      { id: 'naturalMinor', name: 'Natural Minor'   },
+      { id: 'harmonicMinor',name: 'Harmonic Minor'  },
+      { id: 'melodicMinor', name: 'Melodic Minor'   },
+      { id: 'dorian',       name: 'Dorian'          },
+      { id: 'phrygian',     name: 'Phrygian'        },
+      { id: 'locrian',      name: 'Locrian'         }
+    ] },
+    { label: 'Pentatonic / Blues', items: [
+      { id: 'pentatonicMaj', name: 'Major Pentatonic' },
+      { id: 'pentatonicMin', name: 'Minor Pentatonic' },
+      { id: 'blues',         name: 'Blues'            }
+    ] }
+  ];
+
+  // ===== Helper: render a 14-fret fretboard =====
+  //  dotsFn(stringIdx, fret) -> { show: bool, root?: bool, arp?: bool, label?: string }
+  function renderFretboard(dotsFn) {
+    const stringNames = ['e', 'B', 'G', 'D', 'A', 'E']; // high to low
+    const fretNums = Array.from({length: 14}, (_, i) =>
+      `<div class="fb-cell fret-num">${i}</div>`).join('');
+    const rows = stringNames.map((sn, sIdx) => {
+      const cells = Array.from({length: 14}, (_, fIdx) => {
+        const d = dotsFn(sIdx, fIdx) || {};
+        const nut = fIdx === 0 ? 'nut' : '';
+        if (!d.show) return `<div class="fb-cell ${nut}"></div>`;
+        const cls = ['fb-dot'];
+        if (d.root) cls.push('root');
+        if (d.arp)  cls.push('arp');
+        const style = d.color ? `style="background:${d.color}; box-shadow:0 0 10px ${d.color}"` : '';
+        return `<div class="fb-cell ${nut}"><div class="${cls.join(' ')}" ${style}>${d.label || ''}</div></div>`;
+      }).join('');
+      return `<div class="fb-string">${sn}</div>${cells}`;
+    }).join('');
+    return `
+      <div class="fretboard">
+        <div class="fb-grid">
+          <div></div>${fretNums}
+          ${rows}
+        </div>
+      </div>`;
+  }
+
+  // Mini fretboard for partial-chord cards — 5 frets wide, 6 strings
+  function renderMiniFretboard(dotsFn, startFret) {
+    const stringNames = ['e','B','G','D','A','E'];
+    const fretNums = Array.from({length: 5}, (_, i) =>
+      `<div class="mini-cell fret-num">${startFret + i}</div>`).join('');
+    const rows = stringNames.map((sn, sIdx) => {
+      const cells = Array.from({length: 5}, (_, fIdx) => {
+        const d = dotsFn(sIdx, fIdx) || {};
+        if (!d.show) return `<div class="mini-cell"></div>`;
+        const cls = ['mini-dot'];
+        if (d.root) cls.push('root');
+        return `<div class="mini-cell"><div class="${cls.join(' ')}">${d.label || ''}</div></div>`;
+      }).join('');
+      return `<div class="mini-string">${sn}</div>${cells}`;
+    }).join('');
+    return `
+      <div class="positions-mini-fb">
+        <div></div>${fretNums}
+        ${rows}
+      </div>`;
+  }
+
+  // ===== Dot generators per tab =====
+  // A minor scale in G-shape (5th fret position) — degrees displayed
+  function dotsForPositionsTab(sIdx, fIdx) {
+    // mock A natural minor in 5th-position area
+    const map = {
+      // [stringIdx]: { fIdx: {root, label} }
+      0: { 5: { label: 'A', root: true }, 7: { label: 'b' }, 8: { label: 'c' }, 10: { label: 'd' }, 12: { label: 'e' } },
+      1: { 5: { label: 'e' }, 6: { label: 'f' }, 8: { label: 'g' }, 10: { label: 'a', root: true } },
+      2: { 5: { label: 'c' }, 7: { label: 'd' }, 9: { label: 'e' }, 10: { label: 'f' }, 12: { label: 'g' } },
+      3: { 5: { label: 'g' }, 7: { label: 'a', root: true }, 8: { label: 'b' }, 10: { label: 'c' }, 12: { label: 'd' } },
+      4: { 5: { label: 'd' }, 7: { label: 'e' }, 8: { label: 'f' }, 10: { label: 'g' }, 12: { label: 'a', root: true } },
+      5: { 5: { label: 'a', root: true }, 7: { label: 'b' }, 8: { label: 'c' }, 10: { label: 'd' }, 12: { label: 'e' } }
+    };
+    const cell = map[sIdx] && map[sIdx][fIdx];
+    if (!cell) return null;
+    // Show degree labels for the active mode
+    const degreeMap = { a: '1', b: '2', c: 'b3', d: '4', e: '5', f: 'b6', g: 'b7' };
+    return { show: true, root: cell.root, label: degreeMap[cell.label.toLowerCase()] || cell.label };
+  }
+
+  // Arpeggios overlay — i (Am) + iv (Dm) overlaid on Am scale dots
+  function dotsForArpeggiosTab(sIdx, fIdx) {
+    // First show greyish scale dots, then color overlays for active arpeggios
+    const scaleCell = dotsForPositionsTab(sIdx, fIdx);
+    // i = Am (root A, 3rd C, 5th E) — cyan
+    const iCells = {
+      0: { 5: true, 8: true, 12: true },
+      1: { 5: true, 10: true, 13: true },
+      2: { 7: true, 9: true, 10: true },
+      3: { 5: true, 7: true, 10: true },
+      4: { 7: true, 8: true, 12: true },
+      5: { 5: true, 8: true, 12: true }
+    };
+    // iv = Dm (D, F, A) — purple
+    const ivCells = {
+      0: { 6: true, 10: true, 13: true },
+      1: { 6: true, 10: true },
+      2: { 7: true, 10: true },
+      3: { 7: true, 8: true, 12: true },
+      4: { 5: true, 8: true, 12: true },
+      5: { 5: true, 8: true }
+    };
+    if (iCells[sIdx] && iCells[sIdx][fIdx]) {
+      return { show: true, label: '', color: '#00BCD4' };
+    }
+    if (ivCells[sIdx] && ivCells[sIdx][fIdx]) {
+      return { show: true, label: '', color: '#673AB7' };
+    }
+    if (scaleCell) return { show: true, label: '', color: 'rgba(180,210,255,0.18)' };
+    return null;
+  }
+
+  // All Scales — A Dorian across the whole neck (notes mode)
+  function dotsForAllScales(sIdx, fIdx) {
+    // A Dorian = A B C D E F# G — scatter notes across neck
+    const noteNames = ['A','B','C','D','E','F#','G'];
+    // string open notes high→low: e B G D A E
+    const openMidi = { 0: 64, 1: 59, 2: 55, 3: 50, 4: 45, 5: 40 };
+    const noteAt = (s, f) => {
+      const midi = openMidi[s] + f;
+      const pc = midi % 12;
+      // 0=C 1=C# 2=D 3=D# 4=E 5=F 6=F# 7=G 8=G# 9=A 10=A# 11=B
+      const nameMap = { 0:'C',1:'C#',2:'D',3:'D#',4:'E',5:'F',6:'F#',7:'G',8:'G#',9:'A',10:'A#',11:'B' };
+      return nameMap[pc];
+    };
+    const n = noteAt(sIdx, fIdx);
+    if (noteNames.includes(n)) {
+      const root = (n === 'A');
+      // Overlay sample: F# colored amber (from overlay 1)
+      let color = null;
+      if (n === 'F#') color = '#FFC107';
+      return { show: true, root, label: n, color };
+    }
+    return null;
+  }
+
+  // Partial chord mini — Dm triad on strings G-B-e, frets 3-5
+  function dotsForPctMini(chord) {
+    // Dm@5fr triad on top 3 strings: D-A-D-F-A-D — show shape on strings 0,1,2
+    if (chord.label === 'Dm') {
+      return (sIdx, fIdx) => {
+        // fIdx 0 = startFret (3). String 0=e, 1=B, 2=G
+        if (sIdx === 0 && fIdx === 2) return { show: true, label: '5' };          // 5fr e = D? actually A; label as 5
+        if (sIdx === 1 && fIdx === 0) return { show: true, label: 'b3' };         // 3fr B = D... label b3
+        if (sIdx === 2 && fIdx === 2) return { show: true, label: '1', root: true };
+        return null;
+      };
+    }
+    if (chord.label === 'Am') {
+      return (sIdx, fIdx) => {
+        if (sIdx === 0 && fIdx === 2) return { show: true, label: '5' };
+        if (sIdx === 1 && fIdx === 2) return { show: true, label: '1', root: true };
+        if (sIdx === 2 && fIdx === 2) return { show: true, label: 'b3' };
+        return null;
+      };
+    }
+    if (chord.label === 'G') {
+      return (sIdx, fIdx) => {
+        if (sIdx === 0 && fIdx === 0) return { show: true, label: '1', root: true };
+        if (sIdx === 1 && fIdx === 0) return { show: true, label: '3' };
+        if (sIdx === 2 && fIdx === 1) return { show: true, label: '5' };
+        return null;
+      };
+    }
+    if (chord.label === 'C') {
+      return (sIdx, fIdx) => {
+        if (sIdx === 0 && fIdx === 0) return { show: true, label: '3' };
+        if (sIdx === 1 && fIdx === 2) return { show: true, label: '1', root: true };
+        if (sIdx === 2 && fIdx === 2) return { show: true, label: '5' };
+        return null;
+      };
+    }
+    return () => null;
+  }
+
+  // ===== Tab Renderers =====
+  function renderRootSelect(value, onChangeStub) {
+    const opts = CHROMATIC.map(n => {
+      const noteVal = n.split('/')[0];
+      return `<option value="${noteVal}"${noteVal === value ? ' selected' : ''}>${n}</option>`;
+    }).join('');
+    return `<select class="positions-select" onchange="${onChangeStub}">${opts}</select>`;
+  }
+
+  function renderPositionsTab() {
+    const cagedBtns = CAGED_POSITIONS.map(p => {
+      const isActive = POS_STATE.positions.includes(p);
+      return `<button class="positions-caged-btn${isActive ? ' active' : ''}" onclick="togglePosition('${p}')">${p}</button>`;
+    }).join('');
+
+    const displayBtns = DISPLAY_MODES.map(m =>
+      `<button class="positions-display-btn${POS_STATE.displayMode === m.id ? ' active' : ''}"
+               onclick="setDisplayMode('${m.id}')">${m.label}</button>`
+    ).join('');
+
+    return `
+      <div class="tool-card positions-control-block">
+        <div class="positions-control-line">
+          <span class="ctrl-label">Root</span>
+          ${renderRootSelect(POS_STATE.root, "setRoot(event.target.value)")}
+          <span class="ctrl-label" style="margin-inline-start:14px">Type</span>
+          <div class="positions-seg">
+            <button class="positions-seg-btn${POS_STATE.type === 'major' ? ' active' : ''}" onclick="setType('major')">Major</button>
+            <button class="positions-seg-btn${POS_STATE.type === 'minor' ? ' active' : ''}" onclick="setType('minor')">Minor</button>
+          </div>
+          <button class="positions-quickref-btn" onclick="toggleQuickRef()" title="Quick Reference">📋</button>
+        </div>
+        <div class="positions-control-line">
+          <span class="ctrl-label">CAGED Positions</span>
+          <div class="positions-caged-row">${cagedBtns}</div>
+        </div>
+        <div class="positions-control-line">
+          <label class="positions-checkbox">
+            <input type="checkbox"${POS_STATE.showAll ? ' checked' : ''} onchange="setShowAll(this.checked)" />
+            <span>Show All Positions</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="positions-control-line" style="margin-bottom:14px">
+          <div class="positions-display-bar">${displayBtns}</div>
+          <button class="positions-display-btn pentatonic${POS_STATE.showPentatonic ? ' active' : ''}"
+                  onclick="setPentatonic(${!POS_STATE.showPentatonic})"
+                  style="border:1.5px solid var(--glass-border); border-radius:999px">
+            Pentatonic
+          </button>
+        </div>
+        <div class="positions-active-marker">
+          Active position<span class="v">G-shape · A Natural Minor · frets 5-9</span>
+        </div>
+        ${renderFretboard(dotsForPositionsTab)}
+      </div>
+    `;
+  }
+
+  function renderArpeggiosTab() {
+    // Same controls as Positions, plus arpeggio bar
+    const cagedBtns = CAGED_POSITIONS.map(p => {
+      const isActive = POS_STATE.positions.includes(p);
+      return `<button class="positions-caged-btn${isActive ? ' active' : ''}" onclick="togglePosition('${p}')">${p}</button>`;
+    }).join('');
+
+    const arpBtns = ARPEGGIOS.map(a =>
+      `<button class="positions-arp-btn${POS_STATE.activeArpeggios.includes(a.id) ? ' active' : ''}"
+               data-color="${a.color}" onclick="toggleArpeggio('${a.id}')" title="${a.label} chord">
+         ${a.label}
+       </button>`
+    ).join('');
+
+    return `
+      <div class="tool-card positions-control-block">
+        <div class="positions-control-line">
+          <span class="ctrl-label">Root</span>
+          ${renderRootSelect(POS_STATE.root, "setRoot(event.target.value)")}
+          <span class="ctrl-label" style="margin-inline-start:14px">Type</span>
+          <div class="positions-seg">
+            <button class="positions-seg-btn${POS_STATE.type === 'major' ? ' active' : ''}" onclick="setType('major')">Major</button>
+            <button class="positions-seg-btn${POS_STATE.type === 'minor' ? ' active' : ''}" onclick="setType('minor')">Minor</button>
+          </div>
+        </div>
+        <div class="positions-control-line">
+          <span class="ctrl-label">CAGED Positions</span>
+          <div class="positions-caged-row">${cagedBtns}</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>ארפג'יואים — מקס׳ 3 פעילים</h3>
+        <div class="positions-arp-bar">
+          <div class="positions-arp-row">${arpBtns}</div>
+          <div class="positions-arp-extras">
+            <button class="positions-action-btn${POS_STATE.hideRoots ? ' active' : ''}" onclick="toggleHideRoots()">
+              Roots ${POS_STATE.hideRoots ? '☐' : '☑'}
+            </button>
+            <button class="positions-action-btn" onclick="clearArpeggios()">✕ Clear arpeggios</button>
+            <span class="positions-arp-hint">בחר עד 3 דרגות — צבעים נקבעים אוטומטית</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="positions-active-marker">
+          Showing<span class="v">A Natural Minor · arpeggios i (Am) + iv (Dm)</span>
+        </div>
+        ${renderFretboard(dotsForArpeggiosTab)}
+      </div>
+    `;
+  }
+
+  function renderAllScalesTab() {
+    const scaleOpts = SCALE_OPTGROUPS.map(grp =>
+      `<optgroup label="${grp.label}">${grp.items.map(it =>
+        `<option value="${it.id}"${it.id === POS_STATE.allScalesId ? ' selected' : ''}>${it.name}</option>`
+      ).join('')}</optgroup>`
+    ).join('');
+
+    const dispBtns = ['dots','notes','degrees'].map(m =>
+      `<button class="positions-display-btn${POS_STATE.allScalesDisplay === m ? ' active' : ''}"
+               onclick="setAllScalesDisplay('${m}')">
+         ${m === 'dots' ? '●' : m === 'notes' ? 'A' : '1'}
+       </button>`
+    ).join('');
+
+    const overlayRows = POS_STATE.overlays.map(ov => `
+      <div class="positions-overlay-row">
+        <span class="positions-overlay-swatch" style="background:${ov.color}; color:${ov.color}"></span>
+        <select class="positions-select" style="padding:5px 28px 5px 12px; font-size:12px">
+          <option selected>${ov.root}</option>
+        </select>
+        <select class="positions-select" style="padding:5px 28px 5px 12px; font-size:12px; min-width:90px">
+          <option selected>${ov.chord}</option>
+          <option>m7</option>
+          <option>7</option>
+          <option>maj7</option>
+        </select>
+        <button class="positions-overlay-remove" onclick="removeOverlay(${ov.id})" title="הסר">✕</button>
+      </div>
+    `).join('');
+
+    return `
+      <div class="tool-card">
+        <h3>All Scales — חיפוש סולם / אקורד חופשי</h3>
+
+        <div class="positions-allscales-controls">
+          <div class="positions-allscales-row">
+            <div class="positions-allscales-group">
+              <span class="ctrl-label">Root</span>
+              ${renderRootSelect(POS_STATE.allScalesRoot, "setAllScalesRoot(event.target.value)")}
+            </div>
+
+            <div class="positions-allscales-group" style="flex:1; min-width:240px">
+              <span class="ctrl-label">Scale / Chord</span>
+              <select class="positions-select" style="width:100%"
+                      onchange="setAllScalesId(event.target.value)">
+                <option value="">— empty —</option>
+                ${scaleOpts}
+                <optgroup label="── Chords ──">
+                  <option>maj7</option>
+                  <option>m7</option>
+                  <option>7</option>
+                  <option>dim7</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="positions-allscales-group">
+              <span class="ctrl-label">Display</span>
+              <div class="positions-display-bar">${dispBtns}</div>
+            </div>
+          </div>
+
+          <div class="positions-allscales-actions">
+            <button class="positions-action-btn" onclick="allScalesClearNotes()">Clear notes</button>
+            <button class="positions-action-btn" onclick="allScalesClearRange()">Clear range</button>
+            <button class="positions-action-btn" onclick="allScalesClearColors()">Clear colors</button>
+            <span>tap note = show/hide · long press = color</span>
+          </div>
+
+          <div class="positions-overlay-section">
+            <div class="positions-overlay-header">
+              <span class="ctrl-label">Chord Overlays</span>
+              <button class="positions-overlay-add" onclick="addOverlay()">+ Add</button>
+            </div>
+            ${overlayRows || '<p style="font-size:12px; color:var(--text-dim); margin:0">Add chord overlays to see colored rings on the fretboard.</p>'}
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="positions-active-marker">
+          Showing<span class="v">A Dorian — notes mode + F#m7 overlay (amber)</span>
+        </div>
+        ${renderFretboard(dotsForAllScales)}
+      </div>
+    `;
+  }
+
+  function renderPartialChordsTab() {
+    const dispBtns = [
+      { id: 'dots',  label: 'Dots'    },
+      { id: 'tones', label: 'Numbers' },
+      { id: 'notes', label: 'Notes'   }
+    ].map(m =>
+      `<button class="positions-display-btn${POS_STATE.pctDisplay === m.id ? ' active' : ''}"
+               onclick="setPctDisplay('${m.id}')">${m.label}</button>`
+    ).join('');
+
+    const widthBtns = [3,4,5,6].map(w =>
+      `<button class="positions-caged-btn${POS_STATE.pctWidth === w ? ' active' : ''}"
+               style="width:36px; height:36px; font-size:13px"
+               onclick="setPctWidth(${w})">${w}</button>`
+    ).join('');
+
+    const pills = POS_STATE.progression.map((c, i) =>
+      `<button class="positions-prog-pill${i === POS_STATE.pctActiveIdx ? ' active' : ''}"
+               onclick="setPctActiveIdx(${i})">${c.label}</button>`
+    ).join('');
+
+    const cards = POS_STATE.progression.map((c, i) => {
+      const isActive = i === POS_STATE.pctActiveIdx;
+      return `
+        <div class="positions-pct-card${isActive ? ' active' : ''}" onclick="setPctActiveIdx(${i})">
+          <div class="positions-pct-card-header">
+            <span class="positions-pct-card-title">${c.label}</span>
+            <span class="positions-pct-card-fret">${POS_STATE.pctFret}fr</span>
+          </div>
+          ${renderMiniFretboard(dotsForPctMini(c), POS_STATE.pctFret - 2)}
+          <div class="positions-pct-card-nav">
+            <div class="positions-pct-nav-group">
+              <button class="positions-pct-nav-btn" title="CAGED prev">◀</button>
+              <span>CAGED</span>
+              <button class="positions-pct-nav-btn" title="CAGED next">▶</button>
+            </div>
+            <div class="positions-pct-nav-group">
+              <button class="positions-pct-nav-btn" title="String set prev">◀</button>
+              <span>Set</span>
+              <button class="positions-pct-nav-btn" title="String set next">▶</button>
+            </div>
+            <button class="positions-overlay-remove" onclick="event.stopPropagation(); removeFromProgression(${i})">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="tool-card">
+        <h3>Partial Chords — בנה פרוגרשן באקורדים חלקיים</h3>
+        <div class="positions-pct-builder">
+          <div class="positions-pct-group">
+            <span class="ctrl-label">Root</span>
+            ${renderRootSelect(POS_STATE.pctRoot, "setPctRoot(event.target.value)")}
+          </div>
+          <div class="positions-pct-group">
+            <span class="ctrl-label">Quality</span>
+            <div class="positions-seg">
+              <button class="positions-seg-btn${POS_STATE.pctQuality === 'major' ? ' active' : ''}"
+                      onclick="setPctQuality('major')">Maj</button>
+              <button class="positions-seg-btn${POS_STATE.pctQuality === 'minor' ? ' active' : ''}"
+                      onclick="setPctQuality('minor')">Min</button>
+              <button class="positions-seg-btn" onclick="openQualityPicker()" title="Choose extended quality">More…</button>
+            </div>
+          </div>
+
+          <button class="positions-pct-add" onclick="addPctChord()">+ Add</button>
+          <button class="positions-action-btn" onclick="clearProgression()">Clear</button>
+
+          <div class="positions-pct-group">
+            <span class="ctrl-label">Position — <span class="positions-pct-fret-val">${POS_STATE.pctFret}fr</span></span>
+            <input type="range" min="1" max="12" value="${POS_STATE.pctFret}"
+                   class="positions-pct-slider"
+                   oninput="setPctFret(Number(this.value))" />
+          </div>
+
+          <div class="positions-pct-group">
+            <span class="ctrl-label">Strings</span>
+            <div class="positions-caged-row">${widthBtns}</div>
+          </div>
+
+          <div class="positions-pct-group">
+            <span class="ctrl-label">Show</span>
+            <div class="positions-display-bar">${dispBtns}</div>
+          </div>
+        </div>
+
+        ${pills ? `<div class="positions-progression-pills">${pills}</div>` : ''}
+      </div>
+
+      ${POS_STATE.progression.length === 0
+        ? `<div class="tool-card" style="text-align:center; padding:40px">
+             <p style="color:var(--text-dim); margin:0">
+               Pick a root and quality, then press <b style="color:var(--text)">+ Add</b> to start a progression.
+             </p>
+           </div>`
+        : `<div class="tool-card">
+             <div class="positions-pct-cards">${cards}</div>
+           </div>`
+      }
+    `;
+  }
+
+  // ===== MAIN renderer — the single view registered in VIEWS =====
+  function renderPositions() {
+    const tabs = [
+      { id: 'positions',     label: 'Positions'      },
+      { id: 'arpeggios',     label: 'Arpeggios'      },
+      { id: 'allscales',     label: 'All Scales'     },
+      { id: 'partialchords', label: 'Partial Chords' }
+    ];
+    const tabRow = tabs.map(t =>
+      `<button class="pos-tab${POS_STATE.activeTab === t.id ? ' active' : ''}"
+               onclick="switchPositionsTab('${t.id}')"
+               data-tab="${t.id}">${t.label}</button>`
+    ).join('');
+
+    let tabContent = '';
+    if (POS_STATE.activeTab === 'positions')          tabContent = renderPositionsTab();
+    else if (POS_STATE.activeTab === 'arpeggios')     tabContent = renderArpeggiosTab();
+    else if (POS_STATE.activeTab === 'allscales')     tabContent = renderAllScalesTab();
+    else if (POS_STATE.activeTab === 'partialchords') tabContent = renderPartialChordsTab();
+
+    const scaleTitleStr = `${POS_STATE.root} ${POS_STATE.type === 'major' ? 'Major' : 'Minor'}`;
+
+    return `
+      <div class="tool-stage"><div class="container">
+
+        <div class="positions-pageheader">
+          <div class="title-row">
+            <h1>🎸 פוזיציות</h1>
+            <span class="scale-title-pill">${scaleTitleStr}</span>
+          </div>
+          <p>CAGED · ארפג'יואים · כל הסולמות · אקורדים חלקיים</p>
+        </div>
+
+        <div class="pos-tabs">${tabRow}</div>
+
+        <div id="positions-tab-content">${tabContent}</div>
+
+      </div></div>
+    `;
+  }
+
+  // ===== State mutations (rerender on each change) =====
+  function rerender() {
+    document.getElementById('positions-app-root').innerHTML = renderPositions();
+  }
+
+  // Tab switching — exposed to onclick handlers
+  function switchPositionsTab(tabId) {
+    POS_STATE.activeTab = tabId;
+    // When leaving arpeggios, the React component clears active arpeggios
+    if (tabId !== 'arpeggios') POS_STATE.activeArpeggios = [];
+    rerender();
+  }
+
+  // Positions tab
+  function setRoot(v)       { POS_STATE.root = v; rerender(); }
+  function setType(v)       { POS_STATE.type = v; rerender(); }
+  function togglePosition(p) {
+    const idx = POS_STATE.positions.indexOf(p);
+    if (idx >= 0) POS_STATE.positions.splice(idx, 1);
+    else          POS_STATE.positions.push(p);
+    rerender();
+  }
+  function setShowAll(v)    { POS_STATE.showAll = v; rerender(); }
+  function setDisplayMode(m){ POS_STATE.displayMode = m; rerender(); }
+  function setPentatonic(v) { POS_STATE.showPentatonic = v; rerender(); }
+  function toggleQuickRef() { console.log('[mockup] open QuickReferencePopup'); }
+
+  // Arpeggios tab
+  function toggleArpeggio(id) {
+    const idx = POS_STATE.activeArpeggios.indexOf(id);
+    if (idx >= 0) POS_STATE.activeArpeggios.splice(idx, 1);
+    else {
+      if (POS_STATE.activeArpeggios.length >= 3) POS_STATE.activeArpeggios.shift();
+      POS_STATE.activeArpeggios.push(id);
+    }
+    rerender();
+  }
+  function toggleHideRoots() { POS_STATE.hideRoots = !POS_STATE.hideRoots; rerender(); }
+  function clearArpeggios()  { POS_STATE.activeArpeggios = []; rerender(); }
+
+  // All Scales tab
+  function setAllScalesRoot(v)    { POS_STATE.allScalesRoot = v; rerender(); }
+  function setAllScalesId(v)      { POS_STATE.allScalesId = v; rerender(); }
+  function setAllScalesDisplay(m) { POS_STATE.allScalesDisplay = m; rerender(); }
+  function addOverlay() {
+    const palette = ['#FFC107', '#E91E8C', '#00BCD4', '#76FF03'];
+    const c = palette[POS_STATE.overlays.length % palette.length];
+    POS_STATE.overlays.push({ id: Date.now(), color: c, root: 'A', chord: 'maj7' });
+    rerender();
+  }
+  function removeOverlay(id) {
+    POS_STATE.overlays = POS_STATE.overlays.filter(o => o.id !== id);
+    rerender();
+  }
+  function allScalesClearNotes()  { console.log('[mockup] clear notes'); }
+  function allScalesClearRange()  { console.log('[mockup] clear fret range'); }
+  function allScalesClearColors() { console.log('[mockup] clear highlight colors'); }
+
+  // Partial Chords tab
+  function setPctRoot(v)    { POS_STATE.pctRoot = v; rerender(); }
+  function setPctQuality(v) { POS_STATE.pctQuality = v; rerender(); }
+  function setPctDisplay(m) { POS_STATE.pctDisplay = m; rerender(); }
+  function setPctWidth(w)   { POS_STATE.pctWidth = w; rerender(); }
+  function setPctFret(f)    { POS_STATE.pctFret = f; rerender(); }
+  function setPctActiveIdx(i) { POS_STATE.pctActiveIdx = i; rerender(); }
+  function addPctChord() {
+    const lbl = POS_STATE.pctRoot + (POS_STATE.pctQuality === 'minor' ? 'm' : '');
+    POS_STATE.progression.push({ root: POS_STATE.pctRoot, quality: POS_STATE.pctQuality, label: lbl });
+    POS_STATE.pctActiveIdx = POS_STATE.progression.length - 1;
+    rerender();
+  }
+  function clearProgression() {
+    POS_STATE.progression = [];
+    POS_STATE.pctActiveIdx = 0;
+    rerender();
+  }
+  function removeFromProgression(idx) {
+    POS_STATE.progression.splice(idx, 1);
+    if (POS_STATE.pctActiveIdx >= POS_STATE.progression.length) {
+      POS_STATE.pctActiveIdx = Math.max(0, POS_STATE.progression.length - 1);
+    }
+    rerender();
+  }
+  function openQualityPicker() { console.log('[mockup] open QualityPickerModal'); }
+
+  // ===== Standalone preview =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 1  ·  positions (4 tabs in-page)</div>
+        <div id="positions-app-root"></div>
+      </section>
+    `;
+    rerender();
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) { console.log('[mockup] navigate →', id); }
+  function goBack()     { history.back(); }
+
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

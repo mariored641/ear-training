@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ear Training App — Design Mockup (Current State)</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --color-primary: #2196F3;
+    --color-success: #4CAF50;
+    --color-error: #F44336;
+    --color-warning: #FFC107;
+    --color-bg: #FFFFFF;
+    --color-bg-secondary: #F5F5F5;
+    --color-text: #212121;
+    --color-text-secondary: #757575;
+    --border-color: #E0E0E0;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-size-sm: 14px;
+    --font-size-md: 16px;
+    --font-size-lg: 20px;
+    --font-size-xl: 24px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-family);
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+  }
+
+  /* Mockup chrome — view switcher at the very top */
+  .mockup-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #111;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .mockup-bar .label { opacity: 0.8; letter-spacing: 0.5px; }
+  .mockup-bar .switch { display: flex; gap: 8px; }
+  .mockup-bar button {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font-family);
+  }
+  .mockup-bar button.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  /* App page wrapper */
+  .home-page { min-height: calc(100vh - 42px); background: var(--color-bg-secondary); }
+
+  /* Header */
+  .home-header {
+    background: var(--color-primary);
+    color: #fff;
+    text-align: center;
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
+  .header-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .header-text { text-align: center; }
+  .header-logo-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90px;
+    width: 260px;
+    background: #fff;
+    border-radius: 12px;
+    margin: 0 auto var(--spacing-md);
+    overflow: hidden;
+  }
+  .header-logo-wrap .placeholder {
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+  .home-title {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 2.5rem;
+    font-weight: 600;
+  }
+  .home-subtitle { margin: 0; font-size: var(--font-size-lg); opacity: 0.9; }
+
+  .install-button {
+    position: absolute;
+    inset-inline-end: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+  }
+  .install-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); }
+
+  .back-button {
+    align-self: flex-start;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: #fff;
+    border: 2px solid var(--color-primary);
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    font-family: var(--font-family);
+  }
+
+  /* Card grid */
+  .home-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-xl) var(--spacing-lg);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-xl);
+  }
+
+  /* Category card */
+  .category-card {
+    background: #fff;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .category-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+  .category-icon { font-size: 48px; text-align: center; }
+  .category-content { display: flex; flex-direction: column; gap: 12px; }
+  .category-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+    text-align: center;
+  }
+  .category-title-hebrew {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin: 0;
+    text-align: center;
+  }
+  .category-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    margin: 0;
+    text-align: center;
+  }
+  .category-info {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-align: center;
+    padding: 8px 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+    align-self: center;
+  }
+  .category-enter-btn {
+    padding: 14px 32px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-primary);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: center;
+    font-family: var(--font-family);
+  }
+  .category-enter-btn:hover {
+    background: #fff;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    transform: scale(1.05);
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .home-title { font-size: 2rem; }
+    .home-content {
+      padding: var(--spacing-lg) var(--spacing-md);
+      grid-template-columns: 1fr;
+      gap: var(--spacing-lg);
+    }
+    .header-content { flex-direction: column; }
+    .install-button { width: 100%; justify-content: center; position: relative; margin-top: 12px; }
+    .category-card { padding: 24px; }
+    .category-icon { font-size: 36px; }
+    .category-title { font-size: 22px; }
+    .category-title-hebrew { font-size: 18px; }
+    .category-description { font-size: 14px; }
+    .category-enter-btn { width: 100%; padding: 12px 24px; font-size: 16px; }
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="mockup-bar">
+  <span class="label">🎨 MOCKUP — Ear Training App (Current State)</span>
+  <div class="switch">
+    <button id="btn-home" class="active" onclick="show('home')">🏠 Home</button>
+    <button id="btn-hub" onclick="show('hub')">👂 Ear Training Hub</button>
+  </div>
+</div>
+
+<!-- ====== HOME PAGE ====== -->
+<div id="view-home" class="view active">
+  <div class="home-page">
+    <header class="home-header">
+      <div class="header-content">
+        <div class="header-text">
+          <div class="header-logo-wrap">
+            <span class="placeholder">אלתור בהישג יד</span>
+          </div>
+          <h1 class="home-title">אלתור בהישג יד - האפליקציה</h1>
+          <p class="home-subtitle">Ear Training Application</p>
+        </div>
+        <button class="install-button">💾 Download</button>
+      </div>
+    </header>
+
+    <div class="home-content">
+      <!-- 1. Ear Training -->
+      <div class="category-card">
+        <div class="category-icon">👂</div>
+        <div class="category-content">
+          <h2 class="category-title">👂 Musical Ear Training</h2>
+          <h3 class="category-title-hebrew">חטיבת שמיעה מוזיקלית</h3>
+          <p class="category-description">מלודיה, הרמוניה, סולפז' וגיטרה — 17 תרגילים ב-6 תת-חטיבות</p>
+          <div class="category-info">17 Exercises</div>
+        </div>
+        <button class="category-enter-btn" onclick="show('hub')">Enter Category</button>
+      </div>
+
+      <!-- 2. Rhythm -->
+      <div class="category-card">
+        <div class="category-icon">🥁</div>
+        <div class="category-content">
+          <h2 class="category-title">🥁 Rhythm Training</h2>
+          <h3 class="category-title-hebrew">חטיבת קצב</h3>
+          <p class="category-description">Develop rhythmic reading and recognition skills</p>
+          <div class="category-info">Active</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 3. Dictation -->
+      <div class="category-card">
+        <div class="category-icon">🎼</div>
+        <div class="category-content">
+          <h2 class="category-title">🎼 Dictation</h2>
+          <h3 class="category-title-hebrew">חטיבת הכתבה</h3>
+          <p class="category-description">Rhythmic Dictation &amp; Melodic Dictation</p>
+          <div class="category-info">2 Exercises</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 4. Positions -->
+      <div class="category-card">
+        <div class="category-icon">🎸</div>
+        <div class="category-content">
+          <h2 class="category-title">🎸 Scale Positions</h2>
+          <h3 class="category-title-hebrew">חטיבת פוזיציות</h3>
+          <p class="category-description">CAGED system positions for any scale on the fretboard</p>
+          <div class="category-info">Active</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 5. Backing Tracks -->
+      <div class="category-card">
+        <div class="category-icon">🎵</div>
+        <div class="category-content">
+          <h2 class="category-title">🎵 Backing Tracks</h2>
+          <h3 class="category-title-hebrew">חטיבת ליווי</h3>
+          <p class="category-description">Play over Jazz, Blues, Rock &amp; Country backing tracks with custom chord progressions</p>
+          <div class="category-info">Active</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 6. Feedback -->
+      <div class="category-card">
+        <div class="category-icon">📹</div>
+        <div class="category-content">
+          <h2 class="category-title">📹 Feedback</h2>
+          <h3 class="category-title-hebrew">חטיבת פידבק</h3>
+          <p class="category-description">הקלט את עצמך מנגן על גבי באקינג טראק מיוטיוב ושלח למישר</p>
+          <div class="category-info">Active</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== EAR TRAINING HUB ====== -->
+<div id="view-hub" class="view">
+  <div class="home-page">
+    <header class="home-header">
+      <div class="header-content">
+        <div class="header-text">
+          <button class="back-button" onclick="show('home')">← Back to Home</button>
+          <h1 class="home-title">שמיעה מוזיקלית</h1>
+          <p class="home-subtitle">Musical Ear Training — 19 Exercises Across 7 Sub-Categories</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="home-content">
+      <!-- 1. Melody -->
+      <div class="category-card">
+        <div class="category-icon">🎵</div>
+        <div class="category-content">
+          <h2 class="category-title">🎵 Melody</h2>
+          <h3 class="category-title-hebrew">מלודיה</h3>
+          <p class="category-description">זיהוי דרגות, כיוון תנועה וסולמות</p>
+          <div class="category-info">3 Exercises</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 2. Isolated Harmony -->
+      <div class="category-card">
+        <div class="category-icon">🎹</div>
+        <div class="category-content">
+          <h2 class="category-title">🎹 Isolated Harmony</h2>
+          <h3 class="category-title-hebrew">הרמוניה מבודדת</h3>
+          <p class="category-description">אופי אקורד, היפוך, סוג וטנשנים</p>
+          <div class="category-info">4 Exercises</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 3. Functional Harmony -->
+      <div class="category-card">
+        <div class="category-icon">🎼</div>
+        <div class="category-content">
+          <h2 class="category-title">🎼 Functional Harmony</h2>
+          <h3 class="category-title-hebrew">הרמוניה פונקציונלית</h3>
+          <p class="category-description">דרגות, קדנצות, מהלכים והכתבה</p>
+          <div class="category-info">5 Exercises</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 4. Voice Leading -->
+      <div class="category-card">
+        <div class="category-icon">🎶</div>
+        <div class="category-content">
+          <h2 class="category-title">🎶 Voice Leading</h2>
+          <h3 class="category-title-hebrew">תנועת קול</h3>
+          <p class="category-description">עקיבה אחר קו בס וקו סופרן</p>
+          <div class="category-info">2 Exercises</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 5. Solfège -->
+      <div class="category-card">
+        <div class="category-icon">🎤</div>
+        <div class="category-content">
+          <h2 class="category-title">🎤 Solfège</h2>
+          <h3 class="category-title-hebrew">סולפז'</h3>
+          <p class="category-description">שירה מתווים וזיהוי תיווי</p>
+          <div class="category-info">2 Exercises</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 6. Guitar -->
+      <div class="category-card">
+        <div class="category-icon">🎸</div>
+        <div class="category-content">
+          <h2 class="category-title">🎸 Guitar</h2>
+          <h3 class="category-title-hebrew">גיטרה</h3>
+          <p class="category-description">מיפוי צוואר ושמיעה צבעונית</p>
+          <div class="category-info">1 Exercise</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+
+      <!-- 7. Reactive -->
+      <div class="category-card">
+        <div class="category-icon">⚡</div>
+        <div class="category-content">
+          <h2 class="category-title">⚡ Reactive</h2>
+          <h3 class="category-title-hebrew">שמיעה ריאקטיבית</h3>
+          <p class="category-description">בלי לחשוב, בלי לתייג — רק להגיב לאקורד</p>
+          <div class="category-info">2 Exercises</div>
+        </div>
+        <button class="category-enter-btn">Enter Category</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function show(which) {
+    document.getElementById('view-home').classList.toggle('active', which === 'home');
+    document.getElementById('view-hub').classList.toggle('active', which === 'hub');
+    document.getElementById('btn-home').classList.toggle('active', which === 'home');
+    document.getElementById('btn-hub').classList.toggle('active', which === 'hub');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+</script>
+</body>
+</html>

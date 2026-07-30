@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reactive Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+    /* Reactive-specific accent — electric cyan/violet, distinct from the
+       blue family used elsewhere. Justification: lightning ⚡ + reaction
+       speed need a tighter, hotter color to communicate urgency. */
+    --reactive-hot:    #ffd166;
+    --reactive-hotter: #ff7eb3;
+    --reactive-cool:   #7eeaff;
+    --reactive-cool-glow: rgba(126, 234, 255, 0.45);
+    --reactive-hot-glow:  rgba(255, 209, 102, 0.55);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Stage / Constellation ===== */
+  .stage {
+    position: relative; z-index: 1;
+    height: 100vh; width: 100vw;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .constellation {
+    position: relative;
+    width: min(90vmin, 760px);
+    height: min(90vmin, 760px);
+  }
+  .center-hub {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.3);
+    box-shadow:
+      0 0 60px rgba(110, 168, 255, 0.45),
+      inset 0 0 40px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    z-index: 5;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  @keyframes hubPulse {
+    from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+    to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  }
+  .center-hub .center-info {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 6%;
+  }
+  .center-hub .center-info .emoji {
+    font-size: clamp(28px, 5vmin, 48px);
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 12px rgba(110,168,255,0.7));
+  }
+  .center-hub .center-info h2 {
+    margin: 0 0 4px 0;
+    font-size: clamp(13px, 2vmin, 20px);
+    font-weight: 700; line-height: 1.15;
+  }
+  .center-hub .center-info p {
+    margin: 0;
+    font-size: clamp(9px, 1.3vmin, 12px);
+    color: var(--text-dim); line-height: 1.3;
+  }
+
+  /* Satellites */
+  .satellite {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 34vmin;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 22vmin; height: 22vmin;
+    pointer-events: none;
+    animation: floatY 6s ease-in-out infinite alternate;
+  }
+  .satellite.s-2 { animation-delay: -1s; }
+  .satellite.s-3 { animation-delay: -2s; }
+  @keyframes floatY {
+    from { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius)*-1)) rotate(calc(var(--angle)*-1)); }
+    to   { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc((var(--radius)*-1) - 6px)) rotate(calc(var(--angle)*-1)); }
+  }
+  .satellite .label {
+    position: absolute; left: 50%; bottom: calc(78% + 10px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(11px, 1.7vmin, 15px); font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    animation: labelFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes labelFloat {
+    from { transform: translateX(-50%) translateY(0); }
+    to   { transform: translateX(-50%) translateY(-4px); }
+  }
+  .satellite .sub-label {
+    position: absolute; left: 50%; top: calc(78% - 4px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(9px, 1.3vmin, 11px); font-weight: 500;
+    color: var(--accent-2); opacity: 0.85;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .satellite .orb {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 78%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+      var(--orb-bg);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--orb-border);
+    box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(28px, 5.5vmin, 52px);
+    cursor: pointer; pointer-events: auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .satellite .orb:hover {
+    transform: translateX(-50%) scale(1.12);
+    box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
+    border-color: rgba(220, 235, 255, 0.7);
+  }
+  /* Reactive satellite glow palette — hotter than the rest of the app to
+     telegraph the high-energy "speed" character of the section. */
+  .satellite.s-1 .orb { box-shadow: 0 0 36px var(--reactive-hot-glow),  inset 0 0 20px rgba(255,255,255,0.05); }
+  .satellite.s-2 .orb { box-shadow: 0 0 36px var(--reactive-cool-glow), inset 0 0 20px rgba(255,255,255,0.05); }
+
+  .lines { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .lines line { stroke: rgba(180, 210, 255, 0.12); stroke-width: 1; stroke-dasharray: 3 5; }
+
+  /* ===== Exercise template ===== */
+  .exercise-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 80px 20px 110px;
+    gap: 22px;
+  }
+  .ex-header {
+    text-align: center;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+  .ex-code {
+    font-size: 12px; letter-spacing: 1.5px; font-weight: 600;
+    color: var(--accent); opacity: 0.85; text-transform: uppercase;
+  }
+  .ex-title {
+    margin: 0; font-size: clamp(22px, 3.5vmin, 32px); font-weight: 700;
+  }
+  .ex-progress {
+    font-size: 13px; color: var(--text-dim); margin-top: 4px;
+  }
+  .ex-prompt {
+    margin: 0; font-size: clamp(15px, 2vmin, 18px);
+    color: var(--text-dim); max-width: 700px; text-align: center;
+    line-height: 1.5;
+  }
+  .play-pad {
+    width: clamp(110px, 18vmin, 180px); height: clamp(110px, 18vmin, 180px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.4), rgba(42, 90, 255, 0.25));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    box-shadow: 0 0 60px rgba(110, 168, 255, 0.5), inset 0 0 30px rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(42px, 7vmin, 72px);
+    font-family: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  .play-pad:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 80px rgba(180, 210, 255, 0.7), inset 0 0 40px rgba(255,255,255,0.15);
+  }
+
+  .ex-answers {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; align-items: center;
+    max-width: 800px;
+  }
+  .ans-chip {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: clamp(13px, 1.7vmin, 16px);
+    font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+    min-width: 60px;
+  }
+  .ans-chip:hover {
+    background: rgba(110, 168, 255, 0.2);
+    border-color: rgba(180, 210, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.3);
+  }
+  .ans-chip.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+
+  .ex-footer {
+    position: fixed; bottom: 18px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 14px;
+    align-items: center;
+    z-index: 70;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .hint-btn, .skip-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  .hint-btn:hover, .skip-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+  .toggles-row {
+    display: flex; gap: 8px; margin-top: 4px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .pill-toggle {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-toggle.active { background: rgba(110, 168, 255, 0.25); border-color: var(--accent); color: var(--text); }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+</style>
+
+<!-- ============================================================
+     SHARED DRAWER (carried from melodic.html — assembler dedupes)
+     ============================================================ -->
+<style id="shared-drawer">
+  .levels-trigger {
+    position: fixed; top: 50px; left: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s ease;
+  }
+  .levels-trigger:hover { background: rgba(255,255,255,0.16); }
+  .levels-trigger .hamburger { font-size: 15px; line-height: 1; color: var(--accent-2); }
+  .levels-trigger .current-level { color: var(--accent); font-weight: 700; }
+
+  .levels-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5, 13, 42, 0.55);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .levels-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .levels-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(380px, 90vw);
+    z-index: 210;
+    background: linear-gradient(180deg, rgba(13, 42, 122, 0.85), rgba(10, 31, 92, 0.92));
+    border-right: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.5), inset -1px 0 0 rgba(180,210,255,0.08);
+    transform: translateX(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex; flex-direction: column;
+    direction: rtl;
+  }
+  .levels-drawer.open { transform: translateX(0); }
+  .levels-drawer-header {
+    padding: 18px 20px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(180, 210, 255, 0.12);
+  }
+  .levels-drawer-title {
+    margin: 0; font-size: 17px; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .levels-drawer-title .ex-tag {
+    font-size: 11px; letter-spacing: 1.5px; color: var(--accent);
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(110, 168, 255, 0.15);
+    border: 1px solid rgba(110, 168, 255, 0.3);
+  }
+  .levels-drawer-close {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    width: 32px; height: 32px; border-radius: 50%;
+    font-size: 16px; cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .levels-drawer-close:hover { background: rgba(255,255,255,0.14); color: var(--text); }
+  .levels-drawer-list {
+    list-style: none; margin: 0; padding: 12px;
+    overflow-y: auto; flex: 1;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .levels-drawer-list::-webkit-scrollbar { width: 6px; }
+  .levels-drawer-list::-webkit-scrollbar-thumb {
+    background: rgba(180, 210, 255, 0.2); border-radius: 3px;
+  }
+  .level-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid transparent;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .level-item:hover {
+    background: rgba(110, 168, 255, 0.1);
+    border-color: rgba(180, 210, 255, 0.2);
+  }
+  .level-item.active {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.35),
+                inset 0 0 14px rgba(110, 168, 255, 0.08);
+  }
+  .level-item.locked { opacity: 0.45; cursor: not-allowed; }
+  .level-item.locked:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: transparent;
+  }
+  .level-item-num {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: var(--text-dim); flex-shrink: 0;
+  }
+  .level-item.active .level-item-num {
+    background: var(--accent); border-color: var(--accent-2);
+    color: #051030; box-shadow: 0 0 12px rgba(110, 168, 255, 0.7);
+  }
+  .level-item.completed .level-item-num {
+    background: rgba(120, 220, 180, 0.25);
+    border-color: rgba(120, 220, 180, 0.6);
+    color: #e0fff0;
+  }
+  .level-item-label { flex: 1; font-size: 13px; font-weight: 500; color: var(--text); }
+  .level-item.active .level-item-label { color: var(--accent-2); font-weight: 600; }
+  .level-item-icon { font-size: 13px; color: var(--text-dim); }
+  .level-item.completed .level-item-icon { color: rgba(120, 220, 180, 0.9); }
+  .level-item.locked .level-item-icon { color: var(--text-dim); }
+
+  /* Settings strip + standalone preview helpers — shared shape with melodic */
+  .reactive-settings-strip {
+    width: 100%;
+    max-width: 900px;
+    border-top: 1px dashed rgba(180, 210, 255, 0.18);
+    padding-top: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .reactive-settings-strip .strip-title {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  .preview-section { position: relative; min-height: 100vh; }
+  .preview-section + .preview-section { border-top: 1px dashed rgba(180, 210, 255, 0.12); }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Reactive fragment additions
+     All section-specific classes prefixed `reactive-`.
+     ============================================================ -->
+<style id="section-reactive">
+  /* ---- reactive-pulse-ring ----
+     Replaces the canon .play-pad for R1/R2. Three concentric expanding
+     rings telegraph the audible pulse (chord onset / progression beat)
+     so the user has both auditory and visual cues for "react now".
+     Justification: the standard .play-pad is a single click target with
+     no implicit rhythm; reactive needs a visible heartbeat. */
+  .reactive-pulse-ring {
+    position: relative;
+    width: clamp(180px, 28vmin, 280px);
+    height: clamp(180px, 28vmin, 280px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .reactive-pulse-ring::before,
+  .reactive-pulse-ring::after,
+  .reactive-pulse-ring .ring-extra {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--reactive-cool);
+    opacity: 0;
+    animation: reactivePulse 1.8s ease-out infinite;
+    pointer-events: none;
+  }
+  .reactive-pulse-ring::after  { animation-delay: 0.6s; }
+  .reactive-pulse-ring .ring-extra { animation-delay: 1.2s; }
+  @keyframes reactivePulse {
+    0%   { transform: scale(0.45); opacity: 0.0; }
+    18%  { opacity: 0.85; }
+    100% { transform: scale(1.12); opacity: 0; }
+  }
+  .reactive-pulse-core {
+    position: relative; z-index: 2;
+    width: 55%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.28), rgba(255,255,255,0.04) 70%),
+      linear-gradient(135deg, rgba(126, 234, 255, 0.55), rgba(255, 209, 102, 0.35));
+    border: 2px solid rgba(180, 230, 255, 0.7);
+    box-shadow:
+      0 0 50px var(--reactive-cool-glow),
+      inset 0 0 28px rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(34px, 5.5vmin, 56px);
+    color: #fff;
+    text-shadow: 0 0 14px rgba(0,0,0,0.4);
+    transition: transform 0.15s ease;
+  }
+  .reactive-pulse-ring:hover .reactive-pulse-core {
+    transform: scale(1.05);
+  }
+  /* "Hot" mode — flashes briefly when the chord onset hits, then cools */
+  .reactive-pulse-ring.hot .reactive-pulse-core {
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.4), rgba(255,255,255,0.04) 70%),
+      linear-gradient(135deg, var(--reactive-hot), var(--reactive-hotter));
+    box-shadow:
+      0 0 70px var(--reactive-hot-glow),
+      inset 0 0 30px rgba(255,255,255,0.18);
+  }
+
+  /* ---- reactive-hud — three big readouts above the ring ----
+     Streak / Reaction-time / Accuracy.
+     Justification: in fast-reaction mode the existing .ex-progress
+     line ("שאלה 1/10") is insufficient — the user needs to keep
+     attention on the ring, so the three numbers must be readable
+     in peripheral vision at large sizes. */
+  .reactive-hud {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+    max-width: 640px;
+  }
+  .reactive-hud-tile {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 12px 14px;
+    text-align: center;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .reactive-hud-tile .hud-label {
+    font-size: 10px; letter-spacing: 1.3px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 4px; display: block;
+  }
+  .reactive-hud-tile .hud-value {
+    font-size: clamp(22px, 3.4vmin, 30px);
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+  }
+  .reactive-hud-tile .hud-unit {
+    font-size: 12px; color: var(--text-dim);
+    font-weight: 500; margin-inline-start: 4px;
+  }
+  /* Streak tile — flame ramp, brightens with the number */
+  .reactive-hud-tile.reactive-streak .hud-value {
+    color: var(--reactive-hot);
+    text-shadow: 0 0 14px var(--reactive-hot-glow);
+  }
+  .reactive-hud-tile.reactive-streak::before {
+    content: '🔥';
+    position: absolute; top: 6px; right: 8px;
+    font-size: 16px; opacity: 0.7;
+    filter: drop-shadow(0 0 8px var(--reactive-hot-glow));
+  }
+  /* Reaction-time tile — cool color, monospace look */
+  .reactive-hud-tile.reactive-reaction-display .hud-value {
+    color: var(--reactive-cool);
+    text-shadow: 0 0 12px var(--reactive-cool-glow);
+  }
+  .reactive-hud-tile.reactive-reaction-display::before {
+    content: '⚡';
+    position: absolute; top: 6px; right: 8px;
+    font-size: 16px; opacity: 0.85;
+    filter: drop-shadow(0 0 8px var(--reactive-cool-glow));
+  }
+  /* Accuracy tile — neutral accent */
+  .reactive-hud-tile.reactive-accuracy::before {
+    content: '🎯';
+    position: absolute; top: 6px; right: 8px;
+    font-size: 16px; opacity: 0.75;
+  }
+
+  /* ---- reactive-tempo-meter — horizontal beat strip under the ring ----
+     Visualizes the 4-beat cycle at the current tempo. The "filled"
+     cell is the beat about to fire (chord onset). Helps the user
+     anticipate the next stimulus, much like a metronome strip.
+     Justification: there's no canon beat-strip; we cannot reuse
+     .chord-grid because that's for 1-bar chord cells with text. */
+  .reactive-tempo-meter {
+    display: flex; gap: 6px;
+    align-items: center; justify-content: center;
+    margin-top: -8px;
+  }
+  .reactive-tempo-meter .beat-cell {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    transition: all 0.15s ease;
+  }
+  .reactive-tempo-meter .beat-cell.on {
+    background: var(--reactive-cool);
+    border-color: #fff;
+    box-shadow: 0 0 14px var(--reactive-cool-glow);
+    transform: scale(1.25);
+  }
+  .reactive-tempo-meter .beat-cell.downbeat.on {
+    background: var(--reactive-hot);
+    box-shadow: 0 0 18px var(--reactive-hot-glow);
+  }
+  .reactive-tempo-meter .bpm-readout {
+    margin-inline-start: 14px;
+    font-size: 13px; color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .reactive-tempo-meter .bpm-readout strong {
+    color: var(--reactive-cool); font-size: 16px; font-weight: 800;
+    margin-inline-end: 4px;
+  }
+
+  /* ---- reactive-fast-chips — extra-large answer chips for speed taps ----
+     Justification: the canon .ans-chip is a pill ~36px tall. In a
+     reaction-time setting the user's eyes are on the ring; they need
+     a thumb-sized target with strong color cues. Extends .ans-chip
+     with a modifier so canon styles still cascade. */
+  .ex-answers.reactive-fast-chips {
+    gap: 14px;
+    max-width: 720px;
+  }
+  .ans-chip.reactive-fast-chip {
+    min-width: 100px;
+    min-height: 64px;
+    padding: 14px 24px;
+    border-radius: 18px;
+    font-size: clamp(16px, 2.3vmin, 22px);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow:
+      0 4px 16px rgba(0,0,0,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .ans-chip.reactive-fast-chip:hover {
+    border-color: var(--reactive-cool);
+    box-shadow:
+      0 8px 24px rgba(126, 234, 255, 0.3),
+      inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .ans-chip.reactive-fast-chip.correct {
+    background: rgba(120, 230, 160, 0.22);
+    border-color: rgba(140, 240, 180, 0.85);
+    box-shadow: 0 0 24px rgba(120, 230, 160, 0.5);
+    color: #e9ffec;
+  }
+  .ans-chip.reactive-fast-chip.wrong {
+    background: rgba(255, 110, 130, 0.22);
+    border-color: rgba(255, 140, 160, 0.85);
+    box-shadow: 0 0 24px rgba(255, 110, 130, 0.45);
+    color: #ffe9ec;
+  }
+
+  /* ---- reactive-progression-strip — R2 only ----
+     Shows the looping chord progression with a moving "now" highlight.
+     Each cell is a Roman-numeral degree placeholder; the active one
+     glows hot. Used together with the pulse-ring above it.
+     Justification: there's no canon class for a moving cursor over
+     a labeled bar-strip; .chord-grid is a 4-col grid with chord text,
+     too dense visually for the reactive context. */
+  .reactive-progression-strip {
+    display: flex; gap: 8px;
+    align-items: stretch; justify-content: center;
+    width: 100%; max-width: 640px;
+    padding: 10px 12px;
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+  }
+  .reactive-progression-strip .prog-cell {
+    flex: 1;
+    min-height: 56px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .reactive-progression-strip .prog-cell .deg {
+    font-size: clamp(15px, 2.1vmin, 19px);
+    color: var(--text);
+  }
+  .reactive-progression-strip .prog-cell .chord-name {
+    font-size: 10px; color: var(--text-dim);
+    font-weight: 500;
+  }
+  .reactive-progression-strip .prog-cell.active {
+    background: linear-gradient(135deg,
+                  rgba(126, 234, 255, 0.35),
+                  rgba(255, 209, 102, 0.25));
+    border-color: var(--reactive-cool);
+    box-shadow:
+      0 0 22px var(--reactive-cool-glow),
+      inset 0 0 18px rgba(255,255,255,0.08);
+    transform: translateY(-2px);
+  }
+  .reactive-progression-strip .prog-cell.active .deg {
+    color: #fff; text-shadow: 0 0 12px var(--reactive-cool-glow);
+  }
+  .reactive-progression-strip .prog-cell.past {
+    opacity: 0.45;
+  }
+
+  /* ---- reactive-scoring-toggle — Accuracy vs Streak vs Marathon ----
+     Justification: the canon .pill-toggle gives a flat row; for the
+     scoring mode we want the chosen option to read as a primary
+     setting (larger, with an icon), so we extend the toggles-row. */
+  .toggles-row.reactive-scoring-toggle .pill-toggle {
+    padding: 8px 16px;
+    font-size: 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .toggles-row.reactive-scoring-toggle .pill-toggle.active {
+    background: linear-gradient(135deg,
+                  rgba(126, 234, 255, 0.28),
+                  rgba(110, 168, 255, 0.18));
+    border-color: var(--reactive-cool);
+    color: #fff;
+    box-shadow: 0 0 16px var(--reactive-cool-glow);
+  }
+  .toggles-row.reactive-scoring-toggle .pill-toggle .mode-icon {
+    font-size: 14px; line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Reactive Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>שמיעה מוזיקלית<span>›</span>ריאקטיבית</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     ============================================================ -->
+<script type="application/json" id="views-reactive">
+{
+  "reactive": {
+    "type": "radial",
+    "breadcrumb": "ריאקטיבית",
+    "parent": "ear-training",
+    "title": "שמיעה ריאקטיבית",
+    "sub": "2 Exercises",
+    "centerEmoji": "⚡",
+    "satellites": [
+      { "icon": "⚡", "label": "אקורד מהיר", "sub": "R1", "goto": "ex-r1" },
+      { "icon": "💫", "label": "מהלך מהיר",  "sub": "R2", "goto": "ex-r2" }
+    ]
+  },
+  "ex-r1": {
+    "type": "exercise-custom",
+    "renderer": "renderR1",
+    "breadcrumb": "R1 — אקורד מהיר",
+    "parent": "reactive"
+  },
+  "ex-r2": {
+    "type": "exercise-custom",
+    "renderer": "renderR2",
+    "breadcrumb": "R2 — מהלך מהיר",
+    "parent": "reactive"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Level data (mirrors reactiveConstants.js) =====
+  const R1_LEVELS = [
+    { n: 1, label: 'שלב 1 — טריאדות דיאטוניות',                    done: true,  current: false },
+    { n: 2, label: 'שלב 2 — + מרובעים דיאטוניים',                  done: true,  current: false },
+    { n: 3, label: 'שלב 3 — + אקסטנציות (6 / sus / add9-11-13)',   done: false, current: true  },
+    { n: 4, label: 'שלב 4 — + טנשנים כרומטיים (♭9 / ♯11 / alt)',   done: false },
+    { n: 5, label: 'שלב 5 — + מיקסטורות אופי',                     done: false, locked: true },
+    { n: 6, label: 'שלב 6 — + מיקסטורות מודליות',                  done: false, locked: true }
+  ];
+  const R2_LEVELS = [
+    { n: 1, label: 'שלב 1 — קדנצות בסיסיות (I-IV-V-I)',            done: true,  current: false },
+    { n: 2, label: 'שלב 2 — + vi (I-V-vi-IV)',                     done: true,  current: true  },
+    { n: 3, label: 'שלב 3 — + ii (ii-V-I)',                        done: false },
+    { n: 4, label: 'שלב 4 — מהלכים מינוריים',                      done: false },
+    { n: 5, label: 'שלב 5 — שינויי טוניק (modulation)',            done: false, locked: true },
+    { n: 6, label: 'שלב 6 — מהלכים אקראיים מלאים',                 done: false, locked: true }
+  ];
+
+  // ===== Generic drawer renderer =====
+  function renderLevelsDrawer(exId, exTitle, levels) {
+    const items = levels.map(l => {
+      const classes = ['level-item'];
+      if (l.current) classes.push('active');
+      if (l.done && !l.current) classes.push('completed');
+      if (l.locked) classes.push('locked');
+      const icon = l.locked   ? '🔒'
+                 : l.current  ? '●'
+                 : l.done     ? '✓'
+                 :              '';
+      return `
+        <li class="${classes.join(' ')}" onclick="${l.locked ? '' : `selectLevel('${exId}', ${l.n})`}">
+          <span class="level-item-num">${l.n}</span>
+          <span class="level-item-label">${l.label}</span>
+          <span class="level-item-icon">${icon}</span>
+        </li>`;
+    }).join('');
+    return `
+      <div class="levels-overlay" id="levels-overlay-${exId}" onclick="toggleDrawer('${exId}')"></div>
+      <aside class="levels-drawer" id="levels-drawer-${exId}" role="dialog" aria-label="בחר שלב">
+        <div class="levels-drawer-header">
+          <h3 class="levels-drawer-title">
+            <span class="ex-tag">${exId.toUpperCase()}</span>
+            <span>בחר שלב</span>
+          </h3>
+          <button class="levels-drawer-close" onclick="toggleDrawer('${exId}')" aria-label="סגור">✕</button>
+        </div>
+        <ul class="levels-drawer-list">${items}</ul>
+      </aside>`;
+  }
+
+  function renderLevelsTrigger(exId, currentLabel) {
+    return `
+      <button class="levels-trigger" onclick="toggleDrawer('${exId}')" title="בחר שלב">
+        <span class="hamburger">☰</span>
+        <span>שלבים</span>
+        <span class="current-level">· ${currentLabel}</span>
+      </button>`;
+  }
+
+  // ===== Helpers =====
+  function renderHud({ streak, reactionMs, accuracy }) {
+    return `
+      <div class="reactive-hud">
+        <div class="reactive-hud-tile reactive-streak">
+          <span class="hud-label">רצף</span>
+          <span class="hud-value">${streak}</span>
+        </div>
+        <div class="reactive-hud-tile reactive-reaction-display">
+          <span class="hud-label">תגובה</span>
+          <span class="hud-value">${reactionMs}<span class="hud-unit">ms</span></span>
+        </div>
+        <div class="reactive-hud-tile reactive-accuracy">
+          <span class="hud-label">דיוק</span>
+          <span class="hud-value">${accuracy}<span class="hud-unit">%</span></span>
+        </div>
+      </div>`;
+  }
+
+  function renderPulseRing({ hot = false, icon = '⚡' } = {}) {
+    return `
+      <div class="reactive-pulse-ring ${hot ? 'hot' : ''}" title="המקלט הריאקטיבי">
+        <span class="ring-extra"></span>
+        <div class="reactive-pulse-core">${icon}</div>
+      </div>`;
+  }
+
+  function renderTempoMeter({ bpm, beat /* 1..4 */ }) {
+    const cells = [1, 2, 3, 4].map(i => {
+      const on = i === beat;
+      const isDown = i === 1;
+      return `<span class="beat-cell ${on ? 'on' : ''} ${isDown ? 'downbeat' : ''}"></span>`;
+    }).join('');
+    return `
+      <div class="reactive-tempo-meter">
+        ${cells}
+        <span class="bpm-readout"><strong>${bpm}</strong> BPM</span>
+      </div>`;
+  }
+
+  function renderScoringToggle(active /* 'accuracy'|'streak'|'marathon' */) {
+    const modes = [
+      { id: 'accuracy', icon: '🎯', label: 'דיוק' },
+      { id: 'streak',   icon: '🔥', label: 'רצף' },
+      { id: 'marathon', icon: '🏁', label: 'מרתון' }
+    ];
+    return `
+      <div class="toggles-row reactive-scoring-toggle">
+        ${modes.map(m =>
+          `<button class="pill-toggle ${active === m.id ? 'active' : ''}">
+             <span class="mode-icon">${m.icon}</span>${m.label}
+           </button>`).join('')}
+      </div>`;
+  }
+
+  // ===== Reactive Hub (radial) =====
+  function renderReactiveHub() {
+    const sats = [
+      { icon: '⚡', label: 'אקורד מהיר', sub: 'R1', goto: 'ex-r1', slot: 1 },
+      { icon: '💫', label: 'מהלך מהיר',  sub: 'R2', goto: 'ex-r2', slot: 2 }
+    ];
+    const n = sats.length;
+    const satHtml = sats.map((s, i) => {
+      const angle = (i * 360 / n).toFixed(2);
+      return `
+        <div class="satellite s-${s.slot}" style="--angle:${angle}deg" data-angle="${angle}">
+          <div class="label">${s.label}</div>
+          <div class="orb" onclick="navigate('${s.goto}')">${s.icon}</div>
+          <div class="sub-label">${s.sub}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="stage">
+        <div class="constellation" id="cur-const">
+          <svg class="lines" id="cur-lines"></svg>
+          <div class="center-hub">
+            <div class="center-info">
+              <div class="emoji">⚡</div>
+              <h2>שמיעה ריאקטיבית</h2>
+              <p>2 Exercises · Fast Reaction</p>
+            </div>
+          </div>
+          ${satHtml}
+        </div>
+      </div>`;
+  }
+
+  // ===== Exercise R1 — Quick Chord =====
+  function renderR1() {
+    const level = R1_LEVELS.find(l => l.current) || R1_LEVELS[0];
+    // Level 3 answer pool: triads + 7ths + extensions
+    const answers = [
+      { lbl: 'Maj',    cls: '' },
+      { lbl: 'min',    cls: 'correct' }, // pretend the user just tapped, this one was right
+      { lbl: 'dim',    cls: '' },
+      { lbl: 'Maj7',   cls: '' },
+      { lbl: 'm7',     cls: '' },
+      { lbl: '7',      cls: '' },
+      { lbl: 'sus4',   cls: '' },
+      { lbl: 'add9',   cls: '' }
+    ];
+    const chips = answers.map(a =>
+      `<button class="ans-chip reactive-fast-chip ${a.cls}">${a.lbl}</button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('r1', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">R1 · ⚡ Quick Chord</div>
+          <h1 class="ex-title">אקורד מהיר</h1>
+          <div class="ex-progress">שאלה 14 / 30  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">האקורד מתנגן בלולאה — הקש כמה שיותר מהר על האופי שלו</p>
+
+        ${renderHud({ streak: 7, reactionMs: 612, accuracy: 89 })}
+
+        ${renderPulseRing({ hot: true, icon: '⚡' })}
+
+        ${renderTempoMeter({ bpm: 90, beat: 1 })}
+
+        <div class="ex-answers reactive-fast-chips">${chips}</div>
+
+        <!-- Full settings strip -->
+        <div class="reactive-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">30</span></span>
+            <span class="select-pill" style="cursor:default"><strong>טמפו:</strong> <span class="v">90 BPM</span></span>
+            <span class="select-pill" style="cursor:default"><strong>גבול תגובה:</strong> <span class="v">1500ms</span></span>
+            <span class="select-pill" style="cursor:default"><strong>סאונד:</strong> <span class="v">Strings</span></span>
+            <span class="select-pill" style="cursor:default"><strong>סולם:</strong> <span class="v">C מז'ור</span></span>
+          </div>
+
+          <!-- Scoring mode — Accuracy vs Streak vs Marathon -->
+          <div class="control-row" style="gap:18px">
+            <span class="strip-title" style="margin:0">מצב ניקוד</span>
+            ${renderScoringToggle('streak')}
+          </div>
+
+          <!-- Sound / instrument toggles -->
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">Strings</button>
+            <button class="pill-toggle">Warm Pad</button>
+            <button class="pill-toggle">Choir</button>
+            <button class="pill-toggle">Synth Strings</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle">⏱ 60</button>
+            <button class="pill-toggle">⏱ 75</button>
+            <button class="pill-toggle active">⏱ 90</button>
+            <button class="pill-toggle">⏱ 120</button>
+            <button class="pill-toggle">⏱ 150</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle">🔇 ללא רפרנס</button>
+            <button class="pill-toggle active">🎼 קדנצה לפני</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">⏸ השהה</button>
+          <button class="hint-btn">🔁 התחל מחדש</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('r1', 'R1 — אקורד מהיר', R1_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise R2 — Quick Progression-Degree =====
+  function renderR2() {
+    const level = R2_LEVELS.find(l => l.current) || R2_LEVELS[0];
+
+    // Sample 4-chord loop: I → V → vi → IV in C
+    const progression = [
+      { deg: 'I',  chord: 'C',   state: 'past'  },
+      { deg: 'V',  chord: 'G',   state: 'active' }, // current
+      { deg: 'vi', chord: 'Am',  state: ''       },
+      { deg: 'IV', chord: 'F',   state: ''       }
+    ];
+    const progCells = progression.map(c =>
+      `<div class="prog-cell ${c.state}">
+         <span class="deg">${c.deg}</span>
+         <span class="chord-name">${c.chord}</span>
+       </div>`
+    ).join('');
+
+    // Answers for this level: I, IV, V, vi (matches the loop)
+    const answers = [
+      { lbl: 'I',  cls: '' },
+      { lbl: 'ii', cls: '' },
+      { lbl: 'iii', cls: '' },
+      { lbl: 'IV', cls: '' },
+      { lbl: 'V',  cls: 'correct' }, // user just tapped, that was right
+      { lbl: 'vi', cls: '' },
+      { lbl: 'vii°', cls: '' }
+    ];
+    const chips = answers.map(a =>
+      `<button class="ans-chip reactive-fast-chip ${a.cls}">${a.lbl}</button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('r2', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">R2 · 💫 Quick Progression-Degree</div>
+          <h1 class="ex-title">מהלך מהיר — דרגות בלולאה</h1>
+          <div class="ex-progress">שאלה 8 / 30  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">המהלך מתנגן בלולאה — הקש את הדרגה של האקורד <strong>הנשמע כרגע</strong></p>
+
+        ${renderHud({ streak: 4, reactionMs: 487, accuracy: 92 })}
+
+        ${renderPulseRing({ hot: false, icon: '💫' })}
+
+        ${renderTempoMeter({ bpm: 110, beat: 2 })}
+
+        <!-- Progression strip — shows the loop with a moving "now" cell -->
+        <div class="reactive-progression-strip" aria-label="מהלך פעיל">
+          ${progCells}
+        </div>
+
+        <div class="ex-answers reactive-fast-chips">${chips}</div>
+
+        <!-- Full settings strip -->
+        <div class="reactive-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">30</span></span>
+            <span class="select-pill" style="cursor:default"><strong>טמפו:</strong> <span class="v">110 BPM</span></span>
+            <span class="select-pill" style="cursor:default"><strong>אקורד / בר:</strong> <span class="v">1 (4 ביטים)</span></span>
+            <span class="select-pill" style="cursor:default"><strong>סולם:</strong> <span class="v">C מז'ור</span></span>
+            <span class="select-pill" style="cursor:default"><strong>אורך לולאה:</strong> <span class="v">4 אקורדים</span></span>
+          </div>
+
+          <!-- Scoring mode -->
+          <div class="control-row" style="gap:18px">
+            <span class="strip-title" style="margin:0">מצב ניקוד</span>
+            ${renderScoringToggle('accuracy')}
+          </div>
+
+          <!-- Tempo / loop-length / display -->
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle">⏱ 70</button>
+            <button class="pill-toggle">⏱ 90</button>
+            <button class="pill-toggle active">⏱ 110</button>
+            <button class="pill-toggle">⏱ 130</button>
+            <button class="pill-toggle">⏱ 160</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle">2 אקורדים</button>
+            <button class="pill-toggle active">4 אקורדים</button>
+            <button class="pill-toggle">8 אקורדים</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">דרגות I-vii°</button>
+            <button class="pill-toggle">שמות C-D-E</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">🎼 הראה מהלך</button>
+            <button class="pill-toggle">🙈 בלי תצוגה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">⏸ השהה</button>
+          <button class="hint-btn">🔁 התחל מחדש</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('r2', 'R2 — מהלך מהיר', R2_LEVELS)}
+    `;
+  }
+
+  // ===== Standalone preview: stack all 3 views =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 3  ·  reactive hub</div>
+        ${renderReactiveHub()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 2 / 3  ·  ex-r1 (Quick Chord)</div>
+        ${renderR1()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 3 / 3  ·  ex-r2 (Quick Progression-Degree)</div>
+        ${renderR2()}
+      </section>
+    `;
+    requestAnimationFrame(drawConstellationLines);
+  }
+
+  function drawConstellationLines() {
+    const container = document.getElementById('cur-const');
+    const svg = document.getElementById('cur-lines');
+    if (!container || !svg) return;
+    const w = container.clientWidth, h = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.innerHTML = '';
+    const cRect = container.getBoundingClientRect();
+    const cx = w / 2, cy = h / 2;
+    container.querySelectorAll('.satellite .orb').forEach(orb => {
+      const r = orb.getBoundingClientRect();
+      const x = r.left + r.width / 2 - cRect.left;
+      const y = r.top + r.height / 2 - cRect.top;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+      line.setAttribute('x2', x);  line.setAttribute('y2', y);
+      svg.appendChild(line);
+    });
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    const map = { 'reactive': 0, 'ex-r1': 1, 'ex-r2': 2 };
+    const idx = map[id];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function goBack() { history.back(); }
+
+  function toggleDrawer(exId) {
+    const drawer  = document.getElementById(`levels-drawer-${exId}`);
+    const overlay = document.getElementById(`levels-overlay-${exId}`);
+    if (!drawer || !overlay) return;
+    const open = !drawer.classList.contains('open');
+    drawer.classList.toggle('open',  open);
+    overlay.classList.toggle('open', open);
+  }
+  function selectLevel(exId, n) {
+    toggleDrawer(exId);
+    console.log(`[mockup] selectLevel ${exId} → ${n}`);
+  }
+
+  window.addEventListener('resize', drawConstellationLines);
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

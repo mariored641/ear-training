@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhythm Explorer Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Tool screens (canon) ===== */
+  .tool-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    overflow: auto;
+    padding: 80px 24px 120px;
+    color: var(--text);
+  }
+  .tool-stage .container {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .tool-title {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    text-align: center;
+  }
+  .tool-title h1 {
+    margin: 0; font-size: clamp(24px, 3.6vmin, 32px); font-weight: 700;
+  }
+  .tool-title p { margin: 0; color: var(--text-dim); font-size: 14px; }
+
+  .tool-card {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  }
+  .tool-card h3 {
+    margin: 0 0 12px 0; font-size: 14px;
+    color: var(--text-dim); letter-spacing: 0.5px;
+    text-transform: uppercase; font-weight: 600;
+  }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .select-pill:hover {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: rgba(180, 210, 255, 0.45);
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+  .select-pill.active {
+    background: rgba(110, 168, 255, 0.25);
+    border-color: var(--accent);
+    box-shadow: 0 0 16px rgba(110, 168, 255, 0.35);
+  }
+
+  /* Transport (canon) */
+  .transport {
+    display: flex; gap: 10px; align-items: center; justify-content: center;
+  }
+  .transport button {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text); font-size: 22px;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+  }
+  .transport button.play {
+    width: 72px; height: 72px; font-size: 28px;
+    background: var(--bg-light); border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(110, 168, 255, 0.5);
+  }
+  .transport button:hover { transform: scale(1.06); }
+
+  /* Metronome disc (canon) */
+  .metro-disc {
+    width: clamp(170px, 24vmin, 210px);
+    height: clamp(170px, 24vmin, 210px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.2), rgba(42, 90, 255, 0.1));
+    border: 1.5px solid rgba(180,210,255,0.35);
+    box-shadow: 0 0 50px rgba(110,168,255,0.4), inset 0 0 30px rgba(255,255,255,0.05);
+    position: relative;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px;
+  }
+  .metro-disc::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    border-top: 3px solid var(--accent);
+    animation: spinPulse 1s linear infinite;
+    opacity: 0.6;
+  }
+  @keyframes spinPulse { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Rhythm Explorer fragment additions.
+     All section-specific classes are prefixed `rhythm-`.
+     ============================================================ -->
+<style id="section-rhythm">
+  /* ---- Disc — number + tempo marking labels inside ----
+     Justification: canon .metro-disc renders the disc itself; we
+     stack BPM number + tempo marking inside it via a wrapper. */
+  .metro-disc .rhythm-bpm-number {
+    font-size: clamp(44px, 8vmin, 60px);
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 0 18px rgba(110,168,255,0.6);
+  }
+  .metro-disc .rhythm-bpm-unit {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .metro-disc .rhythm-tempo-mark {
+    font-size: 12px;
+    color: var(--accent-2);
+    font-style: italic;
+    margin-top: 4px;
+    font-weight: 500;
+    opacity: 0.85;
+  }
+  /* Pulse ring lit on each downbeat */
+  .metro-disc .rhythm-beat-ring {
+    position: absolute; inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    animation: rhythmBeatPulse 1s ease-out infinite;
+  }
+  @keyframes rhythmBeatPulse {
+    0%   { transform: scale(1);   opacity: 0.7; }
+    100% { transform: scale(1.15); opacity: 0; }
+  }
+
+  /* ---- Tab strip (top of tool — Rhythm Explorer / Polyrhythm / Advanced) ----
+     Justification: no canon class for an inline tab strip inside a tool
+     screen. .pos-tabs from canon is close but block-style; this one is
+     centered, glassy, pill-grouped. */
+  .rhythm-tab-strip {
+    display: inline-flex;
+    align-self: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    padding: 4px; border-radius: 999px;
+    backdrop-filter: blur(8px);
+  }
+  .rhythm-tab {
+    background: transparent;
+    color: var(--text-dim);
+    border: none;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .rhythm-tab:hover { color: var(--text); }
+  .rhythm-tab.active {
+    background: rgba(110, 168, 255, 0.28);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 0 14px rgba(110, 168, 255, 0.3);
+  }
+
+  /* ---- Sticky transport bar (canon transport + BPM slider + tap + sound) ----
+     Justification: the React app has a horizontal "StickyControls"
+     row containing the transport, BPM slider, and a sound-set toggle.
+     We compose it from canon .transport + a new .rhythm-bpm-strip wrapper
+     for the slider/number-input combo. */
+  .rhythm-sticky-bar {
+    display: flex; gap: 16px;
+    align-items: center; justify-content: center;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.05);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 22px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    flex-wrap: wrap;
+  }
+  .rhythm-bpm-strip {
+    display: flex; align-items: center; gap: 10px;
+    min-width: 280px;
+  }
+  .rhythm-bpm-strip .bpm-label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .rhythm-bpm-step {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    font-size: 16px; font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .rhythm-bpm-step:hover {
+    background: rgba(110, 168, 255, 0.2);
+    border-color: var(--accent);
+  }
+  .rhythm-bpm-readout {
+    min-width: 64px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent-2);
+    text-shadow: 0 0 14px rgba(110, 168, 255, 0.4);
+  }
+  .rhythm-bpm-slider {
+    flex: 1; min-width: 140px;
+    -webkit-appearance: none; appearance: none;
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(
+      to right,
+      var(--accent) 0%,
+      var(--accent) var(--fill, 30%),
+      rgba(255,255,255,0.1) var(--fill, 30%),
+      rgba(255,255,255,0.1) 100%);
+    outline: none;
+    cursor: pointer;
+  }
+  .rhythm-bpm-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    border: 2px solid var(--bg-deep);
+    box-shadow: 0 0 12px var(--accent);
+    cursor: pointer;
+  }
+  .rhythm-bpm-slider::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    border: 2px solid var(--bg-deep);
+    box-shadow: 0 0 12px var(--accent);
+    cursor: pointer;
+  }
+
+  .rhythm-sound-switch {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 4px;
+  }
+  .rhythm-sound-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .rhythm-sound-btn:hover { color: var(--text); }
+  .rhythm-sound-btn.active {
+    background: rgba(110, 168, 255, 0.28);
+    color: var(--text);
+    box-shadow: 0 0 12px rgba(110, 168, 255, 0.4);
+  }
+
+  /* tap pill (square-ish, distinct from circular transport) */
+  .rhythm-tap-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 13px; font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.2s ease;
+  }
+  .rhythm-tap-pill:hover {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+  }
+  .rhythm-tap-pill .tap-emoji { font-size: 18px; }
+
+  /* ---- Beat grid (Rhythm Explorer tab) ----
+     Justification: canon has no "step-sequencer" cell grid.
+     The React app uses 4 cell states (accent / normal / soft / mute).
+     Each beat is one row of N subdivision cells. */
+  .rhythm-beat-grid {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .rhythm-beat-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .rhythm-beat-label {
+    width: 70px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .rhythm-beat-cells {
+    flex: 1;
+    display: flex; gap: 6px;
+  }
+  .rhythm-cell {
+    flex: 1;
+    height: 56px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1.5px solid transparent;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,0.55);
+  }
+  .rhythm-cell:hover {
+    transform: scale(1.05);
+    border-color: rgba(180, 210, 255, 0.4);
+  }
+  .rhythm-cell.state-accent {
+    background: linear-gradient(135deg, var(--bg-light), #1a3da8);
+    border-color: var(--accent);
+    box-shadow: 0 0 16px rgba(110, 168, 255, 0.6),
+                inset 0 0 12px rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .rhythm-cell.state-normal {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: rgba(180, 210, 255, 0.4);
+    color: var(--text);
+  }
+  .rhythm-cell.state-soft {
+    background: rgba(110, 168, 255, 0.1);
+    border-color: rgba(180, 210, 255, 0.2);
+    color: var(--text-dim);
+  }
+  .rhythm-cell.state-mute {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px dashed rgba(180, 210, 255, 0.18);
+    color: rgba(255,255,255,0.25);
+  }
+  .rhythm-cell.playing {
+    border-color: #fff;
+    box-shadow: 0 0 26px rgba(255, 255, 255, 0.7),
+                inset 0 0 20px rgba(255, 255, 255, 0.2);
+    transform: scale(1.06);
+  }
+
+  /* legend below grid */
+  .rhythm-cell-legend {
+    display: flex; gap: 14px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-wrap: wrap;
+  }
+  .rhythm-cell-legend .swatch {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .rhythm-cell-legend .swatch .dot {
+    width: 14px; height: 14px; border-radius: 4px;
+    border: 1px solid var(--glass-border);
+  }
+
+  /* ---- Beats slider + subdivision picker row ---- */
+  .rhythm-meter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 720px) {
+    .rhythm-meter-row { grid-template-columns: 1fr; }
+  }
+  .rhythm-stat {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .rhythm-stat .v {
+    color: var(--accent-2);
+    font-weight: 700;
+    font-size: 16px;
+    margin-inline-start: 8px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .rhythm-mini-slider {
+    width: 100%;
+    -webkit-appearance: none; appearance: none;
+    height: 5px; border-radius: 3px;
+    background: linear-gradient(
+      to right,
+      var(--accent) 0%, var(--accent) var(--fill, 25%),
+      rgba(255,255,255,0.1) var(--fill, 25%), rgba(255,255,255,0.1) 100%);
+    margin-top: 10px;
+    outline: none; cursor: pointer;
+  }
+  .rhythm-mini-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent-2);
+    border: 2px solid var(--bg-deep);
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .rhythm-mini-slider::-moz-range-thumb {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent-2);
+    border: 2px solid var(--bg-deep);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* subdivision tiles */
+  .rhythm-subdivisions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .rhythm-sub-tile {
+    flex: 1; min-width: 60px;
+    padding: 12px 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    color: var(--text);
+  }
+  .rhythm-sub-tile:hover {
+    background: rgba(110, 168, 255, 0.15);
+    border-color: rgba(180, 210, 255, 0.4);
+  }
+  .rhythm-sub-tile.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 16px rgba(110, 168, 255, 0.35);
+  }
+  .rhythm-sub-tile .sub-icon {
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 4px;
+    color: var(--accent-2);
+  }
+  .rhythm-sub-tile .sub-num {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  .rhythm-sub-tile.active .sub-num { color: var(--text); }
+
+  /* ---- Time-sig grid ---- */
+  .rhythm-timesig-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 720px) {
+    .rhythm-timesig-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .rhythm-timesig-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 14px 4px;
+    border-radius: 12px;
+    font-size: 18px; font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .rhythm-timesig-btn:hover {
+    background: rgba(110, 168, 255, 0.15);
+    border-color: rgba(180, 210, 255, 0.4);
+  }
+  .rhythm-timesig-btn.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+  .rhythm-timesig-btn .ts-kind {
+    display: block;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 2px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .rhythm-timesig-btn.active .ts-kind { color: var(--accent-2); }
+
+  /* ---- Polyrhythm two-row visualizer ----
+     Justification: this is the "Polyrhythm" tab — two parallel bars
+     of evenly-spaced cells (top=N, bottom=M) over one shared cycle.
+     No canon class for this — we build a flex-cell row. */
+  .rhythm-poly-bar {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .rhythm-poly-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .rhythm-poly-row-label {
+    width: 100px;
+    display: flex; flex-direction: column; gap: 2px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .rhythm-poly-row-label .name {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .rhythm-poly-row-label .count {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent-2);
+    text-shadow: 0 0 12px rgba(110, 168, 255, 0.5);
+  }
+  .rhythm-poly-cells {
+    flex: 1;
+    display: flex; gap: 4px;
+    padding: 4px;
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 12px;
+    min-height: 64px;
+  }
+  .rhythm-poly-cell {
+    flex: 1;
+    border-radius: 8px;
+    cursor: pointer;
+    background: rgba(110, 168, 255, 0.16);
+    border: 1.5px solid rgba(180, 210, 255, 0.25);
+    transition: all 0.15s ease;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim);
+    font-size: 11px; font-weight: 600;
+  }
+  .rhythm-poly-cell:hover { transform: scale(1.05); }
+  .rhythm-poly-cell.accent {
+    background: linear-gradient(135deg, var(--bg-light), #1a3da8);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(110, 168, 255, 0.5);
+    color: #fff;
+  }
+  .rhythm-poly-cell.playing {
+    border-color: #fff;
+    box-shadow: 0 0 22px rgba(255,255,255,0.7);
+  }
+
+  .rhythm-poly-ratio {
+    font-size: 32px; font-weight: 800;
+    text-align: center;
+    color: var(--accent-2);
+    margin: 8px 0;
+    letter-spacing: 4px;
+    text-shadow: 0 0 18px rgba(110, 168, 255, 0.45);
+  }
+
+  /* polyrhythm preset chips */
+  .rhythm-poly-presets {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  }
+
+  /* ---- Advanced Subdivisions tab — beat list ----
+     Justification: each beat has a length (note value) and a division
+     (1..8). Render each beat as a card with length-icon + division
+     cells; columns of inner cells expand horizontally. */
+  .rhythm-adv-list {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .rhythm-adv-beat {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+  }
+  .rhythm-adv-handle {
+    width: 42px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .rhythm-adv-handle .num {
+    display: block;
+    font-size: 14px;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+  .rhythm-adv-length {
+    width: 100px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .rhythm-adv-length .note-icon {
+    font-size: 30px;
+    color: var(--accent-2);
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(110, 168, 255, 0.5));
+  }
+  .rhythm-adv-length .length-pill {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+  }
+  .rhythm-adv-div-cells {
+    flex: 1;
+    display: flex; gap: 4px;
+    min-height: 46px;
+  }
+  .rhythm-adv-div-cells .rhythm-cell { height: 46px; }
+  .rhythm-adv-div-meta {
+    width: 88px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  .rhythm-adv-div-meta .v {
+    color: var(--accent-2);
+    font-weight: 700;
+    font-size: 13px;
+    display: block;
+  }
+  .rhythm-adv-actions {
+    display: flex; gap: 6px;
+    flex-shrink: 0;
+  }
+  .rhythm-adv-icon-btn {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+  .rhythm-adv-icon-btn:hover {
+    background: rgba(110, 168, 255, 0.18);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  .rhythm-adv-add {
+    align-self: center;
+    background: rgba(110, 168, 255, 0.14);
+    border: 1.5px dashed var(--accent);
+    color: var(--accent-2);
+    padding: 10px 22px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .rhythm-adv-add:hover {
+    background: rgba(110, 168, 255, 0.25);
+    color: #fff;
+  }
+
+  /* ---- Presets row (Load / Save) ---- */
+  .rhythm-presets-row {
+    display: flex; gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .rhythm-presets-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s ease;
+  }
+  .rhythm-presets-btn:hover {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+  }
+  .rhythm-presets-btn.save {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+  }
+  .rhythm-presets-btn.save:hover {
+    background: rgba(110, 168, 255, 0.32);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+
+  /* ---- Tab content panel wrapper ---- */
+  .rhythm-tab-panel {
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  /* ---- standalone preview helpers ---- */
+  .preview-section {
+    position: relative;
+    min-height: 100vh;
+  }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Rhythm Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>קצב</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     Rhythm is a direct tool from home (no sub-hub, no exercises
+     beneath). Single view with custom renderer.
+     ============================================================ -->
+<script type="application/json" id="views-rhythm">
+{
+  "rhythm": {
+    "type": "tool-custom",
+    "renderer": "renderRhythm",
+    "breadcrumb": "קצב",
+    "parent": "home"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Mirror of constants/exercise4Defaults.js =====
+  const RHY_TIME_SIGS = [
+    { sig: '4/4',  kind: 'simple' },
+    { sig: '3/4',  kind: 'simple' },
+    { sig: '2/4',  kind: 'simple' },
+    { sig: '1/4',  kind: 'simple' },
+    { sig: '12/8', kind: 'compound' },
+    { sig: '9/8',  kind: 'compound' },
+    { sig: '6/8',  kind: 'compound' }
+  ];
+  const RHY_SUBDIVISIONS = [
+    { value: 1, icon: '♩',      label: 'רבעים' },
+    { value: 2, icon: '♪♪',     label: 'שמיניות' },
+    { value: 3, icon: '♪♪♪',    label: 'שלישונים' },
+    { value: 4, icon: '♬♬',     label: 'שש-עשרה' },
+    { value: 6, icon: '♬♬♬',    label: 'שלושים-ושתיים' }
+  ];
+  const RHY_POLY_PRESETS = [
+    { top: 3, bottom: 2, label: '3 : 2' },
+    { top: 4, bottom: 3, label: '4 : 3' },
+    { top: 5, bottom: 4, label: '5 : 4' },
+    { top: 7, bottom: 4, label: '7 : 4' },
+    { top: 5, bottom: 3, label: '5 : 3' },
+    { top: 7, bottom: 5, label: '7 : 5' }
+  ];
+
+  // ---- Tab strip ----
+  function renderTabStrip(activeTab) {
+    const tabs = [
+      { id: 'explorer', label: 'Rhythm Explorer' },
+      { id: 'poly',     label: 'Polyrhythm' },
+      { id: 'advanced', label: 'Advanced Subdivisions' }
+    ];
+    return `
+      <div class="rhythm-tab-strip">
+        ${tabs.map(t => `
+          <button class="rhythm-tab ${t.id === activeTab ? 'active' : ''}"
+                  onclick="setRhythmTab('${t.id}')">${t.label}</button>`).join('')}
+      </div>`;
+  }
+
+  // ---- Disc with BPM ----
+  function renderMetroDisc(bpm, tempoMark) {
+    return `
+      <div class="metro-disc">
+        <div class="rhythm-beat-ring"></div>
+        <div class="rhythm-bpm-number">${bpm}</div>
+        <div class="rhythm-bpm-unit">BPM</div>
+        <div class="rhythm-tempo-mark">${tempoMark}</div>
+      </div>`;
+  }
+
+  // ---- Sticky transport bar ----
+  function renderStickyBar(bpm, isPlaying, soundSet) {
+    const fill = ((bpm - 40) / (240 - 40)) * 100;
+    return `
+      <div class="rhythm-sticky-bar">
+        <button class="rhythm-tap-pill" onclick="rhythmTap()">
+          <span class="tap-emoji">👆</span>
+          <span>Tap</span>
+        </button>
+
+        <div class="transport">
+          <button title="Clear">🔄</button>
+          <button class="play" title="${isPlaying ? 'Pause' : 'Play'}">${isPlaying ? '⏸' : '▶'}</button>
+        </div>
+
+        <div class="rhythm-bpm-strip">
+          <span class="bpm-label">BPM</span>
+          <button class="rhythm-bpm-step" title="הורד">−</button>
+          <span class="rhythm-bpm-readout">${bpm}</span>
+          <button class="rhythm-bpm-step" title="העלה">+</button>
+          <input type="range" min="40" max="240" value="${bpm}"
+                 class="rhythm-bpm-slider"
+                 style="--fill:${fill.toFixed(1)}%">
+        </div>
+
+        <div class="rhythm-sound-switch" title="ערכת צליל">
+          <button class="rhythm-sound-btn ${soundSet === 'click' ? 'active' : ''}" title="Classic Click">🔘</button>
+          <button class="rhythm-sound-btn ${soundSet === 'drum'  ? 'active' : ''}" title="Drum Kit">🥁</button>
+        </div>
+      </div>`;
+  }
+
+  // ---- Beat grid (Rhythm Explorer) ----
+  function renderBeatGrid(beats, subdivision, pattern, playingPos) {
+    // pattern is an array of arrays of cell-state strings
+    const rows = pattern.map((row, beatIdx) => {
+      const cells = row.map((state, cellIdx) => {
+        const playing = playingPos && playingPos.beat === beatIdx && playingPos.cell === cellIdx;
+        return `<div class="rhythm-cell state-${state} ${playing ? 'playing' : ''}"
+                     title="לחץ לסבב מצב"></div>`;
+      }).join('');
+      return `
+        <div class="rhythm-beat-row">
+          <div class="rhythm-beat-label">Beat ${beatIdx + 1}</div>
+          <div class="rhythm-beat-cells">${cells}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="rhythm-beat-grid">${rows}</div>
+      <div class="rhythm-cell-legend">
+        <span class="swatch"><span class="dot" style="background:linear-gradient(135deg, var(--bg-light), #1a3da8); border-color:var(--accent)"></span>Accent</span>
+        <span class="swatch"><span class="dot" style="background:rgba(110, 168, 255, 0.28); border-color:rgba(180, 210, 255, 0.4)"></span>Normal</span>
+        <span class="swatch"><span class="dot" style="background:rgba(110, 168, 255, 0.1); border-color:rgba(180, 210, 255, 0.2)"></span>Soft</span>
+        <span class="swatch"><span class="dot" style="background:rgba(255,255,255,0.03); border:1.5px dashed rgba(180, 210, 255, 0.18)"></span>Mute</span>
+      </div>`;
+  }
+
+  // ---- Subdivision tiles ----
+  function renderSubdivisions(active) {
+    return `
+      <div class="rhythm-subdivisions">
+        ${RHY_SUBDIVISIONS.map(s => `
+          <button class="rhythm-sub-tile ${s.value === active ? 'active' : ''}">
+            <div class="sub-icon">${s.icon}</div>
+            <div class="sub-num">${s.label} · ${s.value}</div>
+          </button>`).join('')}
+      </div>`;
+  }
+
+  // ---- Time-sig grid ----
+  function renderTimeSigGrid(active) {
+    return `
+      <div class="rhythm-timesig-grid">
+        ${RHY_TIME_SIGS.map(t => `
+          <button class="rhythm-timesig-btn ${t.sig === active ? 'active' : ''}">
+            ${t.sig}
+            <span class="ts-kind">${t.kind === 'simple' ? 'פשוט' : 'מורכב'}</span>
+          </button>`).join('')}
+      </div>`;
+  }
+
+  // ---- Rhythm Explorer panel ----
+  function renderExplorerPanel() {
+    const beats = 4, subdivision = 4, timeSig = '4/4';
+    // Sample pattern: classic 4/4 rock beat at quarter+sixteenths
+    // accent=0, normal=1, soft=2, mute=3
+    const pattern = [
+      ['accent', 'soft',   'normal', 'soft'],
+      ['soft',   'soft',   'normal', 'soft'],
+      ['normal', 'soft',   'normal', 'soft'],
+      ['soft',   'soft',   'normal', 'mute']
+    ];
+    const playingPos = { beat: 1, cell: 2 };
+    const beatsFill = ((beats - 1) / (16 - 1)) * 100;
+
+    return `
+      <div class="rhythm-tab-panel">
+        <div class="tool-card">
+          <h3>🎼 רשת ביטים — לחץ על תא להחלפת מצב</h3>
+          ${renderBeatGrid(beats, subdivision, pattern, playingPos)}
+        </div>
+
+        <div class="rhythm-meter-row">
+          <div class="tool-card">
+            <h3>מספר ביטים</h3>
+            <div class="rhythm-stat">Beats <span class="v">${beats}</span></div>
+            <input type="range" min="1" max="16" value="${beats}"
+                   class="rhythm-mini-slider"
+                   style="--fill:${beatsFill.toFixed(1)}%">
+            <div class="control-row" style="justify-content:center; margin-top:8px">
+              <button class="rhythm-bpm-step">−</button>
+              <button class="rhythm-bpm-step">+</button>
+            </div>
+          </div>
+          <div class="tool-card">
+            <h3>חלוקות לתא (Subdivision)</h3>
+            ${renderSubdivisions(subdivision)}
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <h3>חתימת זמן (Time Signature)</h3>
+          ${renderTimeSigGrid(timeSig)}
+        </div>
+
+        <div class="tool-card">
+          <h3>פרסטים</h3>
+          <div class="rhythm-presets-row">
+            <button class="rhythm-presets-btn">📋 טען פרסט</button>
+            <button class="rhythm-presets-btn save">💾 שמור פרסט</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ---- Polyrhythm panel ----
+  function renderPolyPanel() {
+    const topCount = 3, bottomCount = 2;
+    const topCells = Array.from({length: topCount}, (_, i) =>
+      `<div class="rhythm-poly-cell ${i === 0 ? 'accent' : ''}">${i + 1}</div>`
+    ).join('');
+    const bottomCells = Array.from({length: bottomCount}, (_, i) =>
+      `<div class="rhythm-poly-cell ${i === 0 ? 'accent' : ''}">${i + 1}</div>`
+    ).join('');
+    return `
+      <div class="rhythm-tab-panel">
+        <div class="tool-card">
+          <h3>🎯 פוליריתם — שני קצבים בו-זמנית במחזור אחד</h3>
+          <div class="rhythm-poly-ratio">${topCount} : ${bottomCount}</div>
+
+          <div class="rhythm-poly-bar">
+            <div class="rhythm-poly-row">
+              <div class="rhythm-poly-row-label">
+                <span class="name">Top</span>
+                <span class="count">${topCount}</span>
+              </div>
+              <div class="rhythm-poly-cells">${topCells}</div>
+              <div class="control-row" style="flex-shrink:0; gap:4px">
+                <button class="rhythm-bpm-step">−</button>
+                <button class="rhythm-bpm-step">+</button>
+              </div>
+            </div>
+            <div class="rhythm-poly-row">
+              <div class="rhythm-poly-row-label">
+                <span class="name">Bottom</span>
+                <span class="count">${bottomCount}</span>
+              </div>
+              <div class="rhythm-poly-cells">${bottomCells}</div>
+              <div class="control-row" style="flex-shrink:0; gap:4px">
+                <button class="rhythm-bpm-step">−</button>
+                <button class="rhythm-bpm-step">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <h3>פרסטים מהירים</h3>
+          <div class="rhythm-poly-presets">
+            ${RHY_POLY_PRESETS.map(p =>
+              `<button class="select-pill ${p.top === topCount && p.bottom === bottomCount ? 'active' : ''}">${p.label}</button>`
+            ).join('')}
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <h3>אופי קצב כל שורה</h3>
+          <div class="control-row" style="justify-content:center">
+            <span class="select-pill" style="cursor:default"><strong>Top:</strong> <span class="v">Normal</span></span>
+            <span class="select-pill" style="cursor:default"><strong>Bottom:</strong> <span class="v">Normal</span></span>
+            <button class="select-pill">סבב מצב — Top</button>
+            <button class="select-pill">סבב מצב — Bottom</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ---- Advanced Subdivisions panel ----
+  function renderAdvancedPanel() {
+    const NOTE_ICONS = { '4': '𝅝', '2': '𝅗𝅥', '1': '♩', '0.5': '♪', '0.25': '𝅘𝅥𝅯' };
+    const beatsCfg = [
+      { length: 1,    division: 4, label: 'Sixteenths' },
+      { length: 1,    division: 3, label: 'Triplets'   },
+      { length: 0.5,  division: 5, label: 'Quintuplet' },
+      { length: 1,    division: 7, label: 'Septuplet'  }
+    ];
+    const beatRows = beatsCfg.map((b, i) => {
+      const cells = Array.from({length: b.division}, (_, ci) => {
+        const state = ci === 0 ? 'accent' : 'soft';
+        return `<div class="rhythm-cell state-${state}" style="flex:1"></div>`;
+      }).join('');
+      return `
+        <div class="rhythm-adv-beat">
+          <div class="rhythm-adv-handle">
+            <span class="num">${i + 1}</span>
+            <span>Beat</span>
+          </div>
+          <div class="rhythm-adv-length">
+            <div class="note-icon">${NOTE_ICONS[String(b.length)] || '♩'}</div>
+            <div class="length-pill">length: ${b.length}</div>
+          </div>
+          <div class="rhythm-adv-div-cells">${cells}</div>
+          <div class="rhythm-adv-div-meta">
+            <span class="v">${b.division}</span>
+            <span>${b.label}</span>
+          </div>
+          <div class="rhythm-adv-actions">
+            <button class="rhythm-adv-icon-btn" title="פחות חלוקות">−</button>
+            <button class="rhythm-adv-icon-btn" title="עוד חלוקות">+</button>
+            <button class="rhythm-adv-icon-btn" title="מחק">✕</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="rhythm-tab-panel">
+        <div class="tool-card">
+          <h3>🧪 תת-חלוקות מתקדמות — כל ביט עם חלוקה משלו</h3>
+          <div class="rhythm-adv-list">
+            ${beatRows}
+            <button class="rhythm-adv-add">+ הוסף ביט</button>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <h3>אורכי תווים אפשריים לכל ביט</h3>
+          <div class="control-row" style="justify-content:center; gap:14px">
+            <span class="select-pill" style="cursor:default; font-size:18px">𝅝 <span class="v">4</span></span>
+            <span class="select-pill" style="cursor:default; font-size:18px">𝅗𝅥 <span class="v">2</span></span>
+            <span class="select-pill active" style="font-size:18px">♩ <span class="v">1</span></span>
+            <span class="select-pill" style="cursor:default; font-size:18px">♪ <span class="v">0.5</span></span>
+            <span class="select-pill" style="cursor:default; font-size:18px">𝅘𝅥𝅯 <span class="v">0.25</span></span>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <h3>פרסטים</h3>
+          <div class="rhythm-presets-row">
+            <button class="rhythm-presets-btn">📋 טען פרסט</button>
+            <button class="rhythm-presets-btn save">💾 שמור פרסט</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ===== Main Rhythm tool renderer =====
+  function renderRhythm(activeTab = 'explorer') {
+    const bpm = 96;
+    const tempoMark = 'Andante';
+    const isPlaying = true;
+    const soundSet = 'click';
+
+    let panel = '';
+    if      (activeTab === 'explorer') panel = renderExplorerPanel();
+    else if (activeTab === 'poly')     panel = renderPolyPanel();
+    else                                panel = renderAdvancedPanel();
+
+    return `
+      <div class="tool-stage">
+        <div class="container">
+
+          <div class="tool-title">
+            <h1>🥁 אימון קצב — Rhythm Explorer</h1>
+            <p>מטרונום · פוליריתם · תת-חלוקות · רשת ביטים אינטראקטיבית</p>
+          </div>
+
+          ${renderTabStrip(activeTab)}
+
+          <div class="control-row" style="justify-content:center; gap:24px; align-items:center">
+            ${renderMetroDisc(bpm, tempoMark)}
+          </div>
+
+          ${renderStickyBar(bpm, isPlaying, soundSet)}
+
+          ${panel}
+
+        </div>
+      </div>`;
+  }
+
+  // ===== Standalone preview — all 3 tabs stacked =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 3  ·  rhythm — Rhythm Explorer tab</div>
+        ${renderRhythm('explorer')}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 2 / 3  ·  rhythm — Polyrhythm tab</div>
+        ${renderRhythm('poly')}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 3 / 3  ·  rhythm — Advanced Subdivisions tab</div>
+        ${renderRhythm('advanced')}
+      </section>
+    `;
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    document.querySelectorAll('.preview-section')[0]
+      ?.scrollIntoView({ behavior: 'smooth' });
+  }
+  function goBack() { history.back(); }
+  function setRhythmTab(tab) {
+    const map = { explorer: 0, poly: 1, advanced: 2 };
+    const idx = map[tab];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function rhythmTap() {
+    console.log('[mockup] tap');
+  }
+
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

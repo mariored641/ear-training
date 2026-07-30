@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Harmonic Isolated Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from melodic.html / redesign-v1
+     so this fragment opens standalone. Master assembler may strip
+     and replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Stage / Constellation ===== */
+  .stage {
+    position: relative; z-index: 1;
+    height: 100vh; width: 100vw;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .constellation {
+    position: relative;
+    width: min(90vmin, 760px);
+    height: min(90vmin, 760px);
+  }
+  .center-hub {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.3);
+    box-shadow:
+      0 0 60px rgba(110, 168, 255, 0.45),
+      inset 0 0 40px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    z-index: 5;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  @keyframes hubPulse {
+    from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+    to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  }
+  .center-hub .center-info {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 6%;
+  }
+  .center-hub .center-info .emoji {
+    font-size: clamp(28px, 5vmin, 48px);
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 12px rgba(110,168,255,0.7));
+  }
+  .center-hub .center-info h2 {
+    margin: 0 0 4px 0;
+    font-size: clamp(13px, 2vmin, 20px);
+    font-weight: 700; line-height: 1.15;
+  }
+  .center-hub .center-info p {
+    margin: 0;
+    font-size: clamp(9px, 1.3vmin, 12px);
+    color: var(--text-dim); line-height: 1.3;
+  }
+
+  /* Satellites */
+  .satellite {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 34vmin;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 22vmin; height: 22vmin;
+    pointer-events: none;
+    animation: floatY 6s ease-in-out infinite alternate;
+  }
+  .satellite.s-2 { animation-delay: -1s; }
+  .satellite.s-3 { animation-delay: -2s; }
+  .satellite.s-4 { animation-delay: -3s; }
+  @keyframes floatY {
+    from { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius)*-1)) rotate(calc(var(--angle)*-1)); }
+    to   { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc((var(--radius)*-1) - 6px)) rotate(calc(var(--angle)*-1)); }
+  }
+  .satellite .label {
+    position: absolute; left: 50%; bottom: calc(78% + 10px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(11px, 1.7vmin, 15px); font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    animation: labelFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes labelFloat {
+    from { transform: translateX(-50%) translateY(0); }
+    to   { transform: translateX(-50%) translateY(-4px); }
+  }
+  .satellite .sub-label {
+    position: absolute; left: 50%; top: calc(78% - 4px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(9px, 1.3vmin, 11px); font-weight: 500;
+    color: var(--accent-2); opacity: 0.85;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .satellite .orb {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 78%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+      var(--orb-bg);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--orb-border);
+    box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(28px, 5.5vmin, 52px);
+    cursor: pointer; pointer-events: auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .satellite .orb:hover {
+    transform: translateX(-50%) scale(1.12);
+    box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
+    border-color: rgba(220, 235, 255, 0.7);
+  }
+  .satellite.s-1 .orb { box-shadow: 0 0 30px rgba(255, 180, 100, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-2 .orb { box-shadow: 0 0 30px rgba(255, 120, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-3 .orb { box-shadow: 0 0 30px rgba(150, 220, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-4 .orb { box-shadow: 0 0 30px rgba(120, 255, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+
+  .lines { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .lines line { stroke: rgba(180, 210, 255, 0.12); stroke-width: 1; stroke-dasharray: 3 5; }
+
+  /* ===== Exercise template ===== */
+  .exercise-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 80px 20px 110px;
+    gap: 22px;
+  }
+  .ex-header {
+    text-align: center;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+  .ex-code {
+    font-size: 12px; letter-spacing: 1.5px; font-weight: 600;
+    color: var(--accent); opacity: 0.85; text-transform: uppercase;
+  }
+  .ex-title {
+    margin: 0; font-size: clamp(22px, 3.5vmin, 32px); font-weight: 700;
+  }
+  .ex-progress {
+    font-size: 13px; color: var(--text-dim); margin-top: 4px;
+  }
+  .ex-prompt {
+    margin: 0; font-size: clamp(15px, 2vmin, 18px);
+    color: var(--text-dim); max-width: 700px; text-align: center;
+    line-height: 1.5;
+  }
+  .play-pad {
+    width: clamp(110px, 18vmin, 180px); height: clamp(110px, 18vmin, 180px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.4), rgba(42, 90, 255, 0.25));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    box-shadow: 0 0 60px rgba(110, 168, 255, 0.5), inset 0 0 30px rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(42px, 7vmin, 72px);
+    font-family: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  .play-pad:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 80px rgba(180, 210, 255, 0.7), inset 0 0 40px rgba(255,255,255,0.15);
+  }
+
+  .ex-answers {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; align-items: center;
+    max-width: 800px;
+  }
+  .ans-chip {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: clamp(13px, 1.7vmin, 16px);
+    font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+    min-width: 60px;
+  }
+  .ans-chip:hover {
+    background: rgba(110, 168, 255, 0.2);
+    border-color: rgba(180, 210, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.3);
+  }
+  .ans-chip.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+
+  .ex-footer {
+    position: fixed; bottom: 18px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 14px;
+    align-items: center;
+    z-index: 70;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .hint-btn, .skip-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  .hint-btn:hover, .skip-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+  .toggles-row {
+    display: flex; gap: 8px; margin-top: 4px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .pill-toggle {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-toggle.active { background: rgba(110, 168, 255, 0.25); border-color: var(--accent); color: var(--text); }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+</style>
+
+<!-- ============================================================
+     SHARED DRAWER STYLE — same global classes as melodic.html.
+     The master assembler should dedupe this with melodic's copy.
+     ============================================================ -->
+<style id="shared-drawer">
+  .levels-trigger {
+    position: fixed; top: 50px; left: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s ease;
+  }
+  .levels-trigger:hover { background: rgba(255,255,255,0.16); }
+  .levels-trigger .hamburger { font-size: 15px; line-height: 1; color: var(--accent-2); }
+  .levels-trigger .current-level { color: var(--accent); font-weight: 700; }
+
+  .levels-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5, 13, 42, 0.55);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .levels-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .levels-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(380px, 90vw);
+    z-index: 210;
+    background:
+      linear-gradient(180deg, rgba(13, 42, 122, 0.85), rgba(10, 31, 92, 0.92));
+    border-right: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5),
+                inset -1px 0 0 rgba(180, 210, 255, 0.08);
+    transform: translateX(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex; flex-direction: column;
+    direction: rtl;
+  }
+  .levels-drawer.open { transform: translateX(0); }
+
+  .levels-drawer-header {
+    padding: 18px 20px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(180, 210, 255, 0.12);
+  }
+  .levels-drawer-title {
+    margin: 0;
+    font-size: 17px; font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .levels-drawer-title .ex-tag {
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--accent);
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(110, 168, 255, 0.15);
+    border: 1px solid rgba(110, 168, 255, 0.3);
+  }
+  .levels-drawer-close {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 16px; cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .levels-drawer-close:hover { background: rgba(255,255,255,0.14); color: var(--text); }
+
+  .levels-drawer-list {
+    list-style: none;
+    margin: 0; padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .levels-drawer-list::-webkit-scrollbar { width: 6px; }
+  .levels-drawer-list::-webkit-scrollbar-thumb {
+    background: rgba(180, 210, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  .level-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .level-item:hover {
+    background: rgba(110, 168, 255, 0.1);
+    border-color: rgba(180, 210, 255, 0.2);
+  }
+  .level-item.active {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.35),
+                inset 0 0 14px rgba(110, 168, 255, 0.08);
+  }
+  .level-item.locked { opacity: 0.45; cursor: not-allowed; }
+  .level-item.locked:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: transparent;
+  }
+  .level-item-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .level-item.active .level-item-num {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    color: #051030;
+    box-shadow: 0 0 12px rgba(110, 168, 255, 0.7);
+  }
+  .level-item.completed .level-item-num {
+    background: rgba(120, 220, 180, 0.25);
+    border-color: rgba(120, 220, 180, 0.6);
+    color: #e0fff0;
+  }
+  .level-item-label {
+    flex: 1;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+  }
+  .level-item.active .level-item-label { color: var(--accent-2); font-weight: 600; }
+  .level-item-icon { font-size: 13px; color: var(--text-dim); }
+  .level-item.completed .level-item-icon { color: rgba(120, 220, 180, 0.9); }
+  .level-item.locked .level-item-icon { color: var(--text-dim); }
+
+  /* Shared settings strip (same visual as melodic-settings-strip).
+     Master can dedupe by renaming to a global `.ex-settings-strip`. */
+  .melodic-settings-strip,
+  .harmonic-iso-settings-strip {
+    width: 100%;
+    max-width: 900px;
+    border-top: 1px dashed rgba(180, 210, 255, 0.18);
+    padding-top: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .melodic-settings-strip .strip-title,
+  .harmonic-iso-settings-strip .strip-title {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Harmonic Isolated fragment additions.
+     All new classes prefixed `harmonic-iso-` so the master can
+     keep them isolated.
+     ============================================================ -->
+<style id="section-harmonic-isolated">
+  /* ---- Shared stacked-chord visualizer ----
+     Used by H1 / H2 / H3 to show the played chord as a vertical
+     stack of glowing noteheads. Each row = a chord tone. The bass
+     row is treated specially (highlighted for H2 inversions).
+     Justification: no canon class fits stacked noteheads; reusable
+     across 3 of our 4 exercises. */
+  .harmonic-iso-stack {
+    display: flex; flex-direction: column-reverse; gap: 8px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    min-width: 220px;
+  }
+  .harmonic-iso-stack-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(180, 210, 255, 0.08);
+    transition: all 0.25s ease;
+  }
+  .harmonic-iso-stack-row .interval-tag {
+    width: 38px;
+    font-size: 11px; font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+  .harmonic-iso-stack-row .notehead {
+    width: 22px; height: 16px;
+    border-radius: 50%;
+    background: rgba(180, 210, 255, 0.35);
+    box-shadow: 0 0 10px rgba(180, 210, 255, 0.45);
+  }
+  .harmonic-iso-stack-row .note-name {
+    font-size: 13px; font-weight: 600;
+    color: var(--accent-2);
+    min-width: 32px;
+  }
+  .harmonic-iso-stack-row.root {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: inset 0 0 12px rgba(110, 168, 255, 0.18);
+  }
+  .harmonic-iso-stack-row.root .notehead {
+    background: var(--accent);
+    box-shadow: 0 0 14px var(--accent);
+  }
+  .harmonic-iso-stack-row.root .interval-tag,
+  .harmonic-iso-stack-row.root .note-name {
+    color: var(--text);
+  }
+  /* tension row gets a warm hue */
+  .harmonic-iso-stack-row.tension {
+    background: rgba(255, 180, 100, 0.1);
+    border-color: rgba(255, 200, 130, 0.35);
+  }
+  .harmonic-iso-stack-row.tension .notehead {
+    background: rgba(255, 200, 130, 0.7);
+    box-shadow: 0 0 12px rgba(255, 200, 130, 0.6);
+  }
+  .harmonic-iso-stack-row.tension .interval-tag,
+  .harmonic-iso-stack-row.tension .note-name {
+    color: rgba(255, 220, 170, 0.95);
+  }
+  .harmonic-iso-stack-row.bass-highlight {
+    background: rgba(150, 220, 255, 0.18);
+    border-color: rgba(150, 220, 255, 0.5);
+    box-shadow: inset 0 0 14px rgba(150, 220, 255, 0.18);
+  }
+  .harmonic-iso-stack-row.bass-highlight .notehead {
+    background: rgba(150, 220, 255, 0.95);
+    box-shadow: 0 0 14px rgba(150, 220, 255, 0.85);
+  }
+  .harmonic-iso-stack-row.bass-highlight .interval-tag,
+  .harmonic-iso-stack-row.bass-highlight .note-name {
+    color: #e6f5ff;
+  }
+
+  /* ---- H1 — sequence slot row (levels 5-6) ----
+     Boxes that fill as the student answers each chord in the
+     sequence. Mirrors the React `slotRow`/`slotBox` styles. */
+  .harmonic-iso-slot-row {
+    display: flex; gap: 12px;
+    justify-content: center; flex-wrap: wrap;
+  }
+  .harmonic-iso-slot {
+    width: 78px; height: 62px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid var(--glass-border);
+    font-size: 17px; font-weight: 700;
+    color: var(--text-dim);
+    transition: all 0.2s ease;
+  }
+  .harmonic-iso-slot.filled {
+    background: rgba(120, 220, 180, 0.15);
+    border-color: rgba(120, 220, 180, 0.7);
+    color: rgba(190, 250, 220, 0.95);
+    box-shadow: 0 0 14px rgba(120, 220, 180, 0.3);
+  }
+  .harmonic-iso-slot.active {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    color: var(--accent-2);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.5);
+    animation: slotPulse 1.4s ease-in-out infinite alternate;
+  }
+  @keyframes slotPulse {
+    from { box-shadow: 0 0 18px rgba(110, 168, 255, 0.35); }
+    to   { box-shadow: 0 0 28px rgba(110, 168, 255, 0.7); }
+  }
+
+  /* ---- H2 — inversion diagram (small chord ladder + bass label) ----
+     A compact horizontal diagram next to the stack that names the
+     inversion (Root / 1st / 2nd / 3rd) and points to which voice is
+     in the bass. */
+  .harmonic-iso-inv-card {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    min-width: 160px;
+  }
+  .harmonic-iso-inv-label {
+    font-size: 10px; letter-spacing: 1.4px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .harmonic-iso-inv-value {
+    font-size: 22px; font-weight: 800;
+    color: var(--accent-2);
+    text-shadow: 0 0 12px rgba(180, 210, 255, 0.55);
+  }
+  .harmonic-iso-inv-bass {
+    font-size: 12px; color: var(--text-dim);
+  }
+  .harmonic-iso-inv-bass .v {
+    color: rgba(150, 220, 255, 0.95);
+    font-weight: 700;
+    margin-inline-start: 6px;
+  }
+
+  /* ---- H3 — extension ladder graphic ----
+     A vertical column of small pips showing 1-3-5-7-9-11-13. The
+     pips that belong to the current chord type light up. */
+  .harmonic-iso-ext-ladder {
+    display: flex; flex-direction: column-reverse; gap: 6px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    min-width: 90px;
+    align-items: center;
+  }
+  .harmonic-iso-ext-pip {
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+  }
+  .harmonic-iso-ext-pip.on { opacity: 1; }
+  .harmonic-iso-ext-pip .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(180, 210, 255, 0.25);
+    border: 1.5px solid var(--glass-border);
+  }
+  .harmonic-iso-ext-pip.on .dot {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    box-shadow: 0 0 10px rgba(110, 168, 255, 0.7);
+  }
+  .harmonic-iso-ext-pip .num {
+    font-size: 12px; font-weight: 700;
+    color: var(--text-dim);
+    min-width: 22px;
+  }
+  .harmonic-iso-ext-pip.on .num { color: var(--accent-2); }
+
+  /* ---- H4 — tension grid + dot-above-chord visual ----
+     Big square buttons (multi-select) for tensions, mirroring the
+     React `tensionGrid`. */
+  .harmonic-iso-tension-grid {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    justify-content: center;
+    max-width: 540px;
+  }
+  .harmonic-iso-tension-btn {
+    width: 82px; height: 82px;
+    border-radius: 14px;
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    font-size: 22px; font-weight: 800;
+    cursor: pointer; font-family: inherit;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .harmonic-iso-tension-btn:hover {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: rgba(180, 210, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.35);
+  }
+  .harmonic-iso-tension-btn.checked {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    color: var(--text);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.5);
+  }
+  .harmonic-iso-tension-btn.correct {
+    background: rgba(120, 220, 180, 0.28);
+    border-color: rgba(120, 220, 180, 0.8);
+    color: #e8fff4;
+    box-shadow: 0 0 18px rgba(120, 220, 180, 0.45);
+  }
+
+  /* H4 — the tension dot floating above the stacked chord */
+  .harmonic-iso-tension-overlay {
+    position: relative;
+    display: inline-block;
+  }
+  .harmonic-iso-tension-bubble {
+    position: absolute;
+    top: -14px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 200, 130, 0.95);
+    color: #2a1a05;
+    font-size: 12px; font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 999px;
+    box-shadow: 0 0 18px rgba(255, 200, 130, 0.6);
+    white-space: nowrap;
+  }
+  .harmonic-iso-tension-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px; height: 8px;
+    background: rgba(255, 200, 130, 0.95);
+  }
+
+  /* ---- H4 — Submit pill (different from chip-style ans) ---- */
+  .harmonic-iso-submit {
+    background: linear-gradient(135deg, rgba(110, 168, 255, 0.55), rgba(42, 90, 255, 0.45));
+    border: 1.5px solid var(--accent);
+    color: #fff;
+    padding: 14px 38px;
+    border-radius: 999px;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 0 30px rgba(110, 168, 255, 0.55);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .harmonic-iso-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 42px rgba(180, 210, 255, 0.8);
+  }
+
+  /* ---- H4 — three-button play row (Base / With tensions / Compare) ---- */
+  .harmonic-iso-play-row {
+    display: flex; gap: 12px;
+    justify-content: center; flex-wrap: wrap;
+  }
+  .harmonic-iso-play-row .ans-chip {
+    padding: 12px 22px;
+    font-size: 14px;
+  }
+  /* H4 — current chord readout */
+  .harmonic-iso-chord-readout {
+    font-size: 14px; color: var(--text-dim);
+    text-align: center;
+  }
+  .harmonic-iso-chord-readout strong {
+    color: var(--accent-2);
+    font-size: 22px; font-weight: 800;
+    margin: 0 8px;
+    text-shadow: 0 0 12px rgba(180, 210, 255, 0.5);
+  }
+
+  /* ---- standalone preview helpers (only used when opened alone) ---- */
+  .preview-section { position: relative; min-height: 100vh; }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Harmonic Isolated Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>שמיעה מוזיקלית<span>›</span>הרמוניה מבודדת</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     ============================================================ -->
+<script type="application/json" id="views-harmonic-isolated">
+{
+  "harmonic-isolated": {
+    "type": "radial",
+    "breadcrumb": "הרמוניה מבודדת",
+    "parent": "ear-training",
+    "title": "הרמוניה מבודדת",
+    "sub": "4 Exercises",
+    "centerEmoji": "🎹",
+    "renderer": "renderHarmonicIsolatedHub",
+    "satellites": [
+      { "icon": "🎨",  "label": "אופי אקורד", "sub": "H1", "goto": "ex-h1" },
+      { "icon": "🔄",  "label": "היפוך",      "sub": "H2", "goto": "ex-h2" },
+      { "icon": "🔤",  "label": "סוג אקורד",  "sub": "H3", "goto": "ex-h3" },
+      { "icon": "🌶️", "label": "טנשנים",     "sub": "H4", "goto": "ex-h4" }
+    ]
+  },
+  "ex-h1": {
+    "type": "exercise-custom",
+    "renderer": "renderH1",
+    "breadcrumb": "H1 — אופי אקורד",
+    "parent": "harmonic-isolated"
+  },
+  "ex-h2": {
+    "type": "exercise-custom",
+    "renderer": "renderH2",
+    "breadcrumb": "H2 — היפוך",
+    "parent": "harmonic-isolated"
+  },
+  "ex-h3": {
+    "type": "exercise-custom",
+    "renderer": "renderH3",
+    "breadcrumb": "H3 — סוג אקורד",
+    "parent": "harmonic-isolated"
+  },
+  "ex-h4": {
+    "type": "exercise-custom",
+    "renderer": "renderH4",
+    "breadcrumb": "H4 — טנשנים",
+    "parent": "harmonic-isolated"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Level data (mirrors the React components) =====
+  const H1_LEVELS = [
+    { n: 1, label: "שלב 1 — מז'ור / מינור (12 שורשים)", done: true },
+    { n: 2, label: 'שלב 2 — + dim (מוקטן)',            done: true },
+    { n: 3, label: 'שלב 3 — + aug (מוגדל)',            done: false, current: true },
+    { n: 4, label: "שלב 4 — ניואנסי קול (סטרום / ארפג'יו)", done: false },
+    { n: 5, label: 'שלב 5 — רצף 2-3 אקורדים',          done: false, locked: true },
+    { n: 6, label: 'שלב 6 — רצף 4 אקורדים',            done: false, locked: true }
+  ];
+  const H2_LEVELS = [
+    { n: 1, label: "שלב 1 — שורש / היפוך 1 (מז'ור)",                     done: true, current: true },
+    { n: 2, label: "שלב 2 — שורש / היפוך 1 / היפוך 2 (מז'ור)",            done: false },
+    { n: 3, label: 'שלב 3 — מינור גם',                                    done: false },
+    { n: 4, label: 'שלב 4 — אקורדי שביעי, עד היפוך 2',                   done: false },
+    { n: 5, label: 'שלב 5 — אקורדי שביעי, כל ההיפוכים (0-3)',            done: false, locked: true },
+    { n: 6, label: 'שלב 6 — מעורב',                                       done: false, locked: true }
+  ];
+  const H3_LEVELS = [
+    { n: 1, label: "שלב 1 — מז'ור-מינור / שביעי",         done: true },
+    { n: 2, label: "שלב 2 — sus2 / sus4 / מז'ור-מינור",   done: true },
+    { n: 3, label: "שלב 3 — add9 / Maj9 / מז'ור-מינור",   done: false, current: true },
+    { n: 4, label: 'שלב 4 — כל אקורדי שביעי',             done: false },
+    { n: 5, label: 'שלב 5 — הרחבות — 9 / 11 / 13',        done: false, locked: true },
+    { n: 6, label: 'שלב 6 — הכל — בחירה חופשית',          done: false, locked: true }
+  ];
+  const H4_LEVELS = [
+    { n: 1, label: 'שלב 1 — 9 טבעי / ללא 9',         done: true },
+    { n: 2, label: 'שלב 2 — ♭9 vs 9',                done: false, current: true },
+    { n: 3, label: 'שלב 3 — כל ה-9 (9, ♭9, ♯9)',     done: false },
+    { n: 4, label: 'שלב 4 — ♯11 לידי (על Maj7)',     done: false },
+    { n: 5, label: 'שלב 5 — ♭13 / 13 (על dom7)',     done: false, locked: true },
+    { n: 6, label: 'שלב 6 — חבילות שלמות',           done: false, locked: true },
+    { n: 7, label: 'שלב 7 — Upper Structure Triads', done: false, locked: true }
+  ];
+
+  // ===== Generic drawer renderer (copied verbatim from melodic.html) =====
+  function renderLevelsDrawer(exId, exTitle, levels) {
+    const items = levels.map(l => {
+      const classes = ['level-item'];
+      if (l.current) classes.push('active');
+      if (l.done && !l.current) classes.push('completed');
+      if (l.locked) classes.push('locked');
+      const icon = l.locked   ? '🔒'
+                 : l.current  ? '●'
+                 : l.done     ? '✓'
+                 :              '';
+      return `
+        <li class="${classes.join(' ')}" onclick="${l.locked ? '' : `selectLevel('${exId}', ${l.n})`}">
+          <span class="level-item-num">${l.n}</span>
+          <span class="level-item-label">${l.label}</span>
+          <span class="level-item-icon">${icon}</span>
+        </li>`;
+    }).join('');
+    return `
+      <div class="levels-overlay" id="levels-overlay-${exId}" onclick="toggleDrawer('${exId}')"></div>
+      <aside class="levels-drawer" id="levels-drawer-${exId}" role="dialog" aria-label="בחר שלב">
+        <div class="levels-drawer-header">
+          <h3 class="levels-drawer-title">
+            <span class="ex-tag">${exId.toUpperCase()}</span>
+            <span>בחר שלב</span>
+          </h3>
+          <button class="levels-drawer-close" onclick="toggleDrawer('${exId}')" aria-label="סגור">✕</button>
+        </div>
+        <ul class="levels-drawer-list">${items}</ul>
+      </aside>`;
+  }
+
+  function renderLevelsTrigger(exId, currentLabel) {
+    return `
+      <button class="levels-trigger" onclick="toggleDrawer('${exId}')" title="בחר שלב">
+        <span class="hamburger">☰</span>
+        <span>שלבים</span>
+        <span class="current-level">· ${currentLabel}</span>
+      </button>`;
+  }
+
+  // ===== Helper: stacked chord visualizer =====
+  // rows: [{ interval: '5', note: 'G',  type: 'normal' | 'root' | 'tension' | 'bass-highlight' }, ...]
+  // Lowest interval first (e.g. root) — flex column-reverse stacks it visually bottom-up.
+  function renderChordStack(rows) {
+    const html = rows.map(r => `
+      <div class="harmonic-iso-stack-row ${r.type || ''}">
+        <span class="interval-tag">${r.interval}</span>
+        <span class="notehead"></span>
+        <span class="note-name">${r.note}</span>
+      </div>
+    `).join('');
+    return `<div class="harmonic-iso-stack">${html}</div>`;
+  }
+
+  // ===== Harmonic Isolated Hub (radial) =====
+  function renderHarmonicIsolatedHub() {
+    const sats = [
+      { icon: '🎨',  label: 'אופי אקורד', sub: 'H1', goto: 'ex-h1', slot: 1 },
+      { icon: '🔄',  label: 'היפוך',      sub: 'H2', goto: 'ex-h2', slot: 2 },
+      { icon: '🔤',  label: 'סוג אקורד',  sub: 'H3', goto: 'ex-h3', slot: 3 },
+      { icon: '🌶️', label: 'טנשנים',     sub: 'H4', goto: 'ex-h4', slot: 4 }
+    ];
+    const n = sats.length;
+    const satHtml = sats.map((s, i) => {
+      const angle = (i * 360 / n).toFixed(2);
+      return `
+        <div class="satellite s-${s.slot}" style="--angle:${angle}deg" data-angle="${angle}">
+          <div class="label">${s.label}</div>
+          <div class="orb" onclick="navigate('${s.goto}')">${s.icon}</div>
+          <div class="sub-label">${s.sub}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="stage">
+        <div class="constellation" id="cur-const">
+          <svg class="lines" id="cur-lines"></svg>
+          <div class="center-hub">
+            <div class="center-info">
+              <div class="emoji">🎹</div>
+              <h2>הרמוניה מבודדת</h2>
+              <p>4 Exercises</p>
+            </div>
+          </div>
+          ${satHtml}
+        </div>
+      </div>`;
+  }
+
+  // ===== Exercise H1 — אופי אקורד =====
+  // 6 levels. Levels 1-4 = single chord, 5-6 = sequence (slots).
+  // Mocked state: level 3 (major / minor / dim / aug), single chord = G augmented.
+  function renderH1() {
+    const level = H1_LEVELS.find(l => l.current) || H1_LEVELS[0];
+    // Showing G+ (augmented) — quality answers: M / m / dim / aug
+    const stack = renderChordStack([
+      { interval: '1',  note: 'G',  type: 'root' },
+      { interval: '3',  note: 'B'  },
+      { interval: '#5', note: 'D#', type: 'tension' }
+    ]);
+    const qualities = [
+      { id: 'major',      label: "מז'ור" },
+      { id: 'minor',      label: 'מינור' },
+      { id: 'diminished', label: 'מוקטן (dim)', active: true },
+      { id: 'augmented',  label: 'מוגדל (aug)' }
+    ];
+    const chips = qualities.map(q =>
+      `<button class="ans-chip${q.active ? ' active' : ''}">${q.label}</button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('h1', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">H1</div>
+          <h1 class="ex-title">זיהוי אופי אקורד</h1>
+          <div class="ex-progress">שאלה 3 / 10  ·  מהפעם הראשונה: 2  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">איזה אופי שמעת — מז'ור, מינור, מוקטן או מוגדל?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- Unique-to-H1: stacked-notes visualizer showing 1-3-5 of the played chord -->
+        ${stack}
+
+        <div class="ex-answers">${chips}</div>
+
+        <!-- Terminology toggle (Hebrew names vs notation) -->
+        <div class="toggles-row">
+          <button class="pill-toggle active">עברית</button>
+          <button class="pill-toggle">Notation</button>
+        </div>
+
+        <!-- Settings strip: every control found in the React component -->
+        <div class="harmonic-iso-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>תצוגה:</strong> <span class="v">עברית</span></span>
+            <span class="select-pill" style="cursor:default"><strong>נגינה:</strong> <span class="v">סטרום</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">סטרום</button>
+            <button class="pill-toggle">ארפג'יו</button>
+            <button class="pill-toggle">מעורב</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('h1', 'H1 — אופי אקורד', H1_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise H2 — היפוך =====
+  // Mocked: 1st inversion of C major (E in the bass).
+  function renderH2() {
+    const level = H2_LEVELS.find(l => l.current) || H2_LEVELS[0];
+    // C/E (1st inversion) — the 3rd is now in the bass.
+    // Visualized bottom-up: E (bass-highlight), G, C
+    const stack = renderChordStack([
+      { interval: '3 (bass)', note: 'E', type: 'bass-highlight' },
+      { interval: '5',        note: 'G' },
+      { interval: '1',        note: 'C', type: 'root' }
+    ]);
+    const inversions = [
+      { id: '0', label: 'שורש' },
+      { id: '1', label: 'היפוך 1', active: true },
+      { id: '2', label: 'היפוך 2' }
+    ];
+    const chips = inversions.map(i =>
+      `<button class="ans-chip${i.active ? ' active' : ''}">${i.label}</button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('h2', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">H2</div>
+          <h1 class="ex-title">זיהוי היפוך</h1>
+          <div class="ex-progress">שאלה 5 / 10  ·  מהפעם הראשונה: 4  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">איזה תו נמצא בבס — באיזה היפוך נוגן האקורד?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- Unique-to-H2: chord stack with bass-highlight + inversion card -->
+        <div class="control-row" style="gap:24px; align-items:stretch">
+          ${stack}
+          <div class="harmonic-iso-inv-card">
+            <span class="harmonic-iso-inv-label">היפוך</span>
+            <span class="harmonic-iso-inv-value">1st</span>
+            <span class="harmonic-iso-inv-bass">בס:<span class="v">E (3rd)</span></span>
+            <span class="harmonic-iso-inv-bass" style="opacity:0.75">אקורד:<span class="v" style="color:var(--accent-2)">C major</span></span>
+          </div>
+        </div>
+
+        <div class="ex-answers">${chips}</div>
+
+        <div class="harmonic-iso-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>נגינה:</strong> <span class="v">ארפג'יו</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle">סטרום</button>
+            <button class="pill-toggle active">ארפג'יו</button>
+            <button class="pill-toggle">מעורב</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('h2', 'H2 — היפוך', H2_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise H3 — סוג אקורד =====
+  // Mocked: level 3 (add9 / Maj9 / triad). Showing Cadd9.
+  function renderH3() {
+    const level = H3_LEVELS.find(l => l.current) || H3_LEVELS[0];
+    // Cadd9 = C E G + D (the 9). Stack bottom-up: 1, 3, 5, 9
+    const stack = renderChordStack([
+      { interval: '1', note: 'C', type: 'root' },
+      { interval: '3', note: 'E' },
+      { interval: '5', note: 'G' },
+      { interval: '9', note: 'D', type: 'tension' }
+    ]);
+    const types = [
+      { id: 'add9', label: 'add9', active: true },
+      { id: 'maj9', label: 'Maj9' },
+      { id: 'triad', label: 'משולש' }
+    ];
+    const chips = types.map(t =>
+      `<button class="ans-chip${t.active ? ' active' : ''}">${t.label}</button>`
+    ).join('');
+
+    // Extension ladder — 1, 3, 5, 7, 9, 11, 13. For Cadd9: 1,3,5,9 lit.
+    const ext = [
+      { num: '13', on: false },
+      { num: '11', on: false },
+      { num: '9',  on: true  },
+      { num: '7',  on: false },
+      { num: '5',  on: true  },
+      { num: '3',  on: true  },
+      { num: '1',  on: true  }
+    ];
+    const ladder = `
+      <div class="harmonic-iso-ext-ladder">
+        ${ext.map(p => `
+          <div class="harmonic-iso-ext-pip ${p.on ? 'on' : ''}">
+            <span class="num">${p.num}</span>
+            <span class="dot"></span>
+          </div>
+        `).join('')}
+      </div>`;
+
+    return `
+      ${renderLevelsTrigger('h3', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">H3</div>
+          <h1 class="ex-title">זיהוי סוג אקורד</h1>
+          <div class="ex-progress">שאלה 2 / 10  ·  מהפעם הראשונה: 2  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">מהו סוג האקורד — משולש, שביעי, הרחבה?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- Unique-to-H3: stack + extension ladder side-by-side -->
+        <div class="control-row" style="gap:24px; align-items:stretch">
+          ${stack}
+          ${ladder}
+        </div>
+
+        <div class="ex-answers">${chips}</div>
+
+        <!-- Terminology toggle -->
+        <div class="toggles-row">
+          <button class="pill-toggle active">עברית</button>
+          <button class="pill-toggle">Notation</button>
+        </div>
+
+        <!-- ChipSelector for level 6 (answer pool) — visible here so the
+             canon is represented; in the real app this only shows at L6. -->
+        <div class="toggles-row" style="opacity:0.65">
+          <span style="font-size:10px; color:var(--text-dim); letter-spacing:1px; margin-inline-end:6px">בריכת תשובות (שלב 6)</span>
+          <button class="pill-toggle active">m7</button>
+          <button class="pill-toggle active">Maj7</button>
+          <button class="pill-toggle active">dom7</button>
+          <button class="pill-toggle">sus4</button>
+          <button class="pill-toggle active">add9</button>
+        </div>
+
+        <div class="harmonic-iso-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>תצוגה:</strong> <span class="v">עברית</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מעבר:</strong> <span class="v">אוטומטי</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">אוטומטי</button>
+            <button class="pill-toggle">ידני</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('h3', 'H3 — סוג אקורד', H3_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise H4 — טנשנים =====
+  // Mocked: level 2 (♭9 vs 9) on C7. Played chord = C7♭9. Student checked ♭9.
+  function renderH4() {
+    const level = H4_LEVELS.find(l => l.current) || H4_LEVELS[0];
+    // C7♭9 = C E G Bb + Db (the ♭9). Stack bottom-up: 1,3,5,b7
+    const stack = renderChordStack([
+      { interval: '1',  note: 'C',  type: 'root' },
+      { interval: '3',  note: 'E'  },
+      { interval: '5',  note: 'G'  },
+      { interval: '♭7', note: 'B♭' }
+    ]);
+
+    const tensions = [
+      { id: '9',  label: '9' },
+      { id: 'b9', label: '♭9', checked: true, correct: true }
+    ];
+    const tensionBtns = tensions.map(t => {
+      const cls = ['harmonic-iso-tension-btn'];
+      if (t.correct) cls.push('correct');
+      else if (t.checked) cls.push('checked');
+      return `<button class="${cls.join(' ')}">${t.label}</button>`;
+    }).join('');
+
+    return `
+      ${renderLevelsTrigger('h4', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">H4</div>
+          <h1 class="ex-title">זיהוי טנשנים (ג'אז)</h1>
+          <div class="ex-progress">שאלה 4 / 10  ·  מהפעם הראשונה: 3  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">איזה טנשן שומעים מעל האקורד הבסיסי?</p>
+
+        <!-- 3-button play row: base / with tensions / compare -->
+        <div class="harmonic-iso-play-row">
+          <button class="ans-chip">🔊 בסיס</button>
+          <button class="ans-chip active">🔊 עם טנשנים</button>
+          <button class="ans-chip">🔊 השווה</button>
+        </div>
+
+        <div class="harmonic-iso-chord-readout">
+          אקורד: <strong>C7</strong> — אילו טנשנים שומעים?
+        </div>
+
+        <!-- Unique-to-H4: stacked chord with tension bubble floating above -->
+        <div class="harmonic-iso-tension-overlay">
+          <div class="harmonic-iso-tension-bubble">+ ♭9 (D♭)</div>
+          ${stack}
+        </div>
+
+        <!-- Big tension grid (multi-select; mirrors React tensionGrid) -->
+        <div class="harmonic-iso-tension-grid">
+          ${tensionBtns}
+        </div>
+
+        <button class="harmonic-iso-submit">אשר</button>
+
+        <div class="harmonic-iso-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>בסיס:</strong> <span class="v">dom7</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">dom7</button>
+            <button class="pill-toggle">Maj7</button>
+            <button class="pill-toggle">m7</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+          <!-- Level-6 ChipSelector for tension pool (visible here for canon coverage) -->
+          <div class="toggles-row" style="opacity:0.65">
+            <span style="font-size:10px; color:var(--text-dim); letter-spacing:1px; margin-inline-end:6px">בריכת טנשנים (שלב 6)</span>
+            <button class="pill-toggle active">9</button>
+            <button class="pill-toggle active">♭9</button>
+            <button class="pill-toggle active">♯9</button>
+            <button class="pill-toggle active">♯11</button>
+            <button class="pill-toggle">♭13</button>
+            <button class="pill-toggle active">13</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('h4', 'H4 — טנשנים', H4_LEVELS)}
+    `;
+  }
+
+  // ===== Standalone preview: stack all 5 views =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 5  ·  harmonic-isolated hub</div>
+        ${renderHarmonicIsolatedHub()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 2 / 5  ·  ex-h1</div>
+        ${renderH1()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 3 / 5  ·  ex-h2</div>
+        ${renderH2()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 4 / 5  ·  ex-h3</div>
+        ${renderH3()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 5 / 5  ·  ex-h4</div>
+        ${renderH4()}
+      </section>
+    `;
+    requestAnimationFrame(drawConstellationLines);
+  }
+
+  function drawConstellationLines() {
+    const container = document.getElementById('cur-const');
+    const svg = document.getElementById('cur-lines');
+    if (!container || !svg) return;
+    const w = container.clientWidth, h = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.innerHTML = '';
+    const cRect = container.getBoundingClientRect();
+    const cx = w / 2, cy = h / 2;
+    container.querySelectorAll('.satellite .orb').forEach(orb => {
+      const r = orb.getBoundingClientRect();
+      const x = r.left + r.width / 2 - cRect.left;
+      const y = r.top + r.height / 2 - cRect.top;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+      line.setAttribute('x2', x);  line.setAttribute('y2', y);
+      svg.appendChild(line);
+    });
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    const map = { 'harmonic-isolated': 0, 'ex-h1': 1, 'ex-h2': 2, 'ex-h3': 3, 'ex-h4': 4 };
+    const idx = map[id];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function goBack() { history.back(); }
+
+  function toggleDrawer(exId) {
+    const drawer  = document.getElementById(`levels-drawer-${exId}`);
+    const overlay = document.getElementById(`levels-overlay-${exId}`);
+    if (!drawer || !overlay) return;
+    const open = !drawer.classList.contains('open');
+    drawer.classList.toggle('open',  open);
+    overlay.classList.toggle('open', open);
+  }
+  function selectLevel(exId, n) {
+    toggleDrawer(exId);
+    console.log(`[mockup] selectLevel ${exId} → ${n}`);
+  }
+
+  window.addEventListener('resize', drawConstellationLines);
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>

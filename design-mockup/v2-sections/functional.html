@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Functional Fragment — v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CANON BASE — copied verbatim from redesign-v1.html so this
+     fragment opens standalone. Master assembler may strip and
+     replace with its own copy.
+     ============================================================ -->
+<style id="canon-base">
+  :root {
+    --bg-deep:    #050d2a;
+    --bg-mid:     #0a1f5c;
+    --bg-light:   #2a5aff;
+    --accent:     #6ea8ff;
+    --accent-2:   #b8d4ff;
+    --text:       #eaf2ff;
+    --text-dim:   #9fb4d6;
+    --orb-bg:     rgba(255, 255, 255, 0.06);
+    --orb-border: rgba(180, 210, 255, 0.25);
+    --orb-glow:   rgba(110, 168, 255, 0.35);
+    --glass-bg:   rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(180, 210, 255, 0.22);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    min-height: 100%;
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  body {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 60%, #0d2a7a 0%, #050d2a 70%);
+  }
+
+  /* ===== Aurora background ===== */
+  .aurora {
+    position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; will-change: transform;
+  }
+  .blob-1 {
+    width: 50vmax; height: 50vmax;
+    background: radial-gradient(circle, #2a5aff 0%, transparent 70%);
+    top: -10%; left: -10%; animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 45vmax; height: 45vmax;
+    background: radial-gradient(circle, #4b8bff 0%, transparent 70%);
+    bottom: -15%; right: -10%; animation: drift2 28s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 35vmax; height: 35vmax;
+    background: radial-gradient(circle, #6ea8ff 0%, transparent 70%);
+    top: 30%; right: 20%; opacity: 0.35; animation: drift3 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(20vw,10vh) scale(1.15)} 100%{transform:translate(10vw,25vh) scale(0.95)} }
+  @keyframes drift2 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-15vw,-10vh) scale(1.1)} 100%{transform:translate(-25vw,5vh) scale(0.9)} }
+  @keyframes drift3 { 0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20vw,15vh) scale(1.2)} 100%{transform:translate(15vw,-10vh) scale(0.85)} }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 28%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 78% 64%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.5), transparent);
+  }
+
+  /* ===== Top bar ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 12px;
+  }
+  .top-bar .label { opacity: 0.7; letter-spacing: 0.3px; }
+  .top-bar .crumb { color: var(--accent-2); font-weight: 500; }
+  .top-bar .crumb span { opacity: 0.5; margin: 0 6px; }
+
+  /* ===== Back pill ===== */
+  .back-pill {
+    position: fixed; top: 50px; right: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .back-pill:hover { background: rgba(255,255,255,0.16); }
+
+  /* ===== Stage / Constellation ===== */
+  .stage {
+    position: relative; z-index: 1;
+    height: 100vh; width: 100vw;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .constellation {
+    position: relative;
+    width: min(90vmin, 760px);
+    height: min(90vmin, 760px);
+  }
+  .center-hub {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.18), rgba(42, 90, 255, 0.1));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.3);
+    box-shadow:
+      0 0 60px rgba(110, 168, 255, 0.45),
+      inset 0 0 40px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    z-index: 5;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  @keyframes hubPulse {
+    from { box-shadow: 0 0 60px rgba(110, 168, 255, 0.35), inset 0 0 40px rgba(255,255,255,0.05); }
+    to   { box-shadow: 0 0 90px rgba(110, 168, 255, 0.6),  inset 0 0 50px rgba(255,255,255,0.08); }
+  }
+  .center-hub .center-info {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 6%;
+  }
+  .center-hub .center-info .emoji {
+    font-size: clamp(28px, 5vmin, 48px);
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 12px rgba(110,168,255,0.7));
+  }
+  .center-hub .center-info h2 {
+    margin: 0 0 4px 0;
+    font-size: clamp(13px, 2vmin, 20px);
+    font-weight: 700; line-height: 1.15;
+  }
+  .center-hub .center-info p {
+    margin: 0;
+    font-size: clamp(9px, 1.3vmin, 12px);
+    color: var(--text-dim); line-height: 1.3;
+  }
+
+  /* Satellites */
+  .satellite {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 34vmin;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 22vmin; height: 22vmin;
+    pointer-events: none;
+    animation: floatY 6s ease-in-out infinite alternate;
+  }
+  .satellite.s-2 { animation-delay: -1s; }
+  .satellite.s-3 { animation-delay: -2s; }
+  .satellite.s-4 { animation-delay: -3s; }
+  .satellite.s-5 { animation-delay: -4s; }
+  @keyframes floatY {
+    from { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius)*-1)) rotate(calc(var(--angle)*-1)); }
+    to   { transform: translate(-50%,-50%) rotate(var(--angle)) translateY(calc((var(--radius)*-1) - 6px)) rotate(calc(var(--angle)*-1)); }
+  }
+  .satellite .label {
+    position: absolute; left: 50%; bottom: calc(78% + 10px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(11px, 1.7vmin, 15px); font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 0 14px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    animation: labelFloat 4s ease-in-out infinite alternate;
+  }
+  @keyframes labelFloat {
+    from { transform: translateX(-50%) translateY(0); }
+    to   { transform: translateX(-50%) translateY(-4px); }
+  }
+  .satellite .sub-label {
+    position: absolute; left: 50%; top: calc(78% - 4px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: clamp(9px, 1.3vmin, 11px); font-weight: 500;
+    color: var(--accent-2); opacity: 0.85;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    pointer-events: none;
+  }
+  .satellite .orb {
+    position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 78%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 65%),
+      var(--orb-bg);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--orb-border);
+    box-shadow: 0 0 30px var(--orb-glow), inset 0 0 20px rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(28px, 5.5vmin, 52px);
+    cursor: pointer; pointer-events: auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .satellite .orb:hover {
+    transform: translateX(-50%) scale(1.12);
+    box-shadow: 0 0 50px rgba(180, 210, 255, 0.7), inset 0 0 30px rgba(255,255,255,0.1);
+    border-color: rgba(220, 235, 255, 0.7);
+  }
+  .satellite.s-1 .orb { box-shadow: 0 0 30px rgba(255, 180, 100, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-2 .orb { box-shadow: 0 0 30px rgba(255, 120, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-3 .orb { box-shadow: 0 0 30px rgba(150, 220, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-4 .orb { box-shadow: 0 0 30px rgba(120, 255, 180, 0.4),  inset 0 0 20px rgba(255,255,255,0.04); }
+  .satellite.s-5 .orb { box-shadow: 0 0 30px rgba(200, 180, 255, 0.45), inset 0 0 20px rgba(255,255,255,0.04); }
+
+  .lines { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .lines line { stroke: rgba(180, 210, 255, 0.12); stroke-width: 1; stroke-dasharray: 3 5; }
+
+  /* ===== Exercise template ===== */
+  .exercise-stage {
+    position: relative; z-index: 1;
+    min-height: 100vh; width: 100vw;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 80px 20px 110px;
+    gap: 22px;
+  }
+  .ex-header {
+    text-align: center;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+  .ex-code {
+    font-size: 12px; letter-spacing: 1.5px; font-weight: 600;
+    color: var(--accent); opacity: 0.85; text-transform: uppercase;
+  }
+  .ex-title {
+    margin: 0; font-size: clamp(22px, 3.5vmin, 32px); font-weight: 700;
+  }
+  .ex-progress {
+    font-size: 13px; color: var(--text-dim); margin-top: 4px;
+  }
+  .ex-prompt {
+    margin: 0; font-size: clamp(15px, 2vmin, 18px);
+    color: var(--text-dim); max-width: 700px; text-align: center;
+    line-height: 1.5;
+  }
+  .play-pad {
+    width: clamp(110px, 18vmin, 180px); height: clamp(110px, 18vmin, 180px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 70%),
+      linear-gradient(135deg, rgba(110, 168, 255, 0.4), rgba(42, 90, 255, 0.25));
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(180, 210, 255, 0.45);
+    color: #fff;
+    box-shadow: 0 0 60px rgba(110, 168, 255, 0.5), inset 0 0 30px rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(42px, 7vmin, 72px);
+    font-family: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: hubPulse 5s ease-in-out infinite alternate;
+  }
+  .play-pad:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 80px rgba(180, 210, 255, 0.7), inset 0 0 40px rgba(255,255,255,0.15);
+  }
+
+  .ex-answers {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; align-items: center;
+    max-width: 800px;
+  }
+  .ans-chip {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: clamp(13px, 1.7vmin, 16px);
+    font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s ease;
+    min-width: 60px;
+  }
+  .ans-chip:hover {
+    background: rgba(110, 168, 255, 0.2);
+    border-color: rgba(180, 210, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.3);
+  }
+  .ans-chip.active {
+    background: rgba(110, 168, 255, 0.28);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.4);
+  }
+
+  .ex-footer {
+    position: fixed; bottom: 18px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 14px;
+    align-items: center;
+    z-index: 70;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .hint-btn, .skip-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 8px 16px; border-radius: 999px;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+  .hint-btn:hover, .skip-btn:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+  .toggles-row {
+    display: flex; gap: 8px; margin-top: 4px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .pill-toggle {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-family: inherit;
+    cursor: pointer;
+  }
+  .pill-toggle.active { background: rgba(110, 168, 255, 0.25); border-color: var(--accent); color: var(--text); }
+
+  .control-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .select-pill {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-family: inherit;
+    cursor: pointer;
+  }
+  .select-pill .v { color: var(--accent); font-weight: 600; margin-inline-start: 6px; }
+</style>
+
+<!-- ============================================================
+     SECTION STYLES — Functional fragment additions
+     All section-specific classes are prefixed `functional-`.
+     The GLOBAL drawer (`.levels-drawer`, `.levels-trigger`,
+     `.levels-overlay`, `.level-item`) is shared verbatim with the
+     other sections (melodic.html), and the shared settings strip
+     is included under the same `.section-settings-strip` name so
+     every fragment can share it.
+     ============================================================ -->
+<style id="section-functional">
+  /* ---- Global Levels Drawer (shared with every section) ---- */
+  .levels-trigger {
+    position: fixed; top: 50px; left: 18px; z-index: 80;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; backdrop-filter: blur(10px);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: background 0.2s ease;
+  }
+  .levels-trigger:hover { background: rgba(255,255,255,0.16); }
+  .levels-trigger .hamburger {
+    font-size: 15px; line-height: 1;
+    color: var(--accent-2);
+  }
+  .levels-trigger .current-level {
+    color: var(--accent); font-weight: 700;
+  }
+
+  .levels-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5, 13, 42, 0.55);
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .levels-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .levels-drawer {
+    position: fixed; top: 0; bottom: 0; left: 0;
+    width: min(380px, 90vw);
+    z-index: 210;
+    background:
+      linear-gradient(180deg, rgba(13, 42, 122, 0.85), rgba(10, 31, 92, 0.92));
+    border-right: 1.5px solid var(--glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.5),
+                inset -1px 0 0 rgba(180, 210, 255, 0.08);
+    transform: translateX(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex; flex-direction: column;
+    direction: rtl;
+  }
+  .levels-drawer.open { transform: translateX(0); }
+
+  .levels-drawer-header {
+    padding: 18px 20px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(180, 210, 255, 0.12);
+  }
+  .levels-drawer-title {
+    margin: 0;
+    font-size: 17px; font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .levels-drawer-title .ex-tag {
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--accent);
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(110, 168, 255, 0.15);
+    border: 1px solid rgba(110, 168, 255, 0.3);
+  }
+  .levels-drawer-close {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 16px; cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .levels-drawer-close:hover {
+    background: rgba(255,255,255,0.14);
+    color: var(--text);
+  }
+
+  .levels-drawer-list {
+    list-style: none;
+    margin: 0; padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .levels-drawer-list::-webkit-scrollbar { width: 6px; }
+  .levels-drawer-list::-webkit-scrollbar-thumb {
+    background: rgba(180, 210, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  .level-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .level-item:hover {
+    background: rgba(110, 168, 255, 0.1);
+    border-color: rgba(180, 210, 255, 0.2);
+  }
+  .level-item.active {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(110, 168, 255, 0.35),
+                inset 0 0 14px rgba(110, 168, 255, 0.08);
+  }
+  .level-item.locked {
+    opacity: 0.45; cursor: not-allowed;
+  }
+  .level-item.locked:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: transparent;
+  }
+  .level-item-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .level-item.active .level-item-num {
+    background: var(--accent);
+    border-color: var(--accent-2);
+    color: #051030;
+    box-shadow: 0 0 12px rgba(110, 168, 255, 0.7);
+  }
+  .level-item.completed .level-item-num {
+    background: rgba(120, 220, 180, 0.25);
+    border-color: rgba(120, 220, 180, 0.6);
+    color: #e0fff0;
+  }
+  .level-item-label {
+    flex: 1;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+  }
+  .level-item.active .level-item-label { color: var(--accent-2); font-weight: 600; }
+  .level-item-icon {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .level-item.completed .level-item-icon { color: rgba(120, 220, 180, 0.9); }
+  .level-item.locked .level-item-icon { color: var(--text-dim); }
+
+  /* ---- Shared settings strip (mirrored from melodic.html) ----
+     Same visual pattern: a faint dashed divider, then a strip
+     title + 1-2 rows of select-pills and pill-toggles. Used by
+     every functional exercise. */
+  .functional-settings-strip {
+    width: 100%;
+    max-width: 900px;
+    border-top: 1px dashed rgba(180, 210, 255, 0.18);
+    padding-top: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .functional-settings-strip .strip-title {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  /* ---- F0 — Roman-numeral degree wheel ----
+     A 7-position circular dial showing the diatonic degrees in
+     roman numerals around the hub. The current "answer" position
+     glows; chromatic degrees (V/V, ♭VII, ♭VI in level 6) appear
+     as smaller, warm-toned satellites between the diatonic ones.
+     Justification: F0 is single-chord identification; a circular
+     dial frames each degree as a position around the tonic — the
+     same metaphor M1 uses for the degree clock, applied to the
+     harmonic plane. */
+  .functional-degree-wheel {
+    position: relative;
+    width: clamp(240px, 36vmin, 360px);
+    height: clamp(240px, 36vmin, 360px);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(110, 168, 255, 0.08), transparent 70%);
+    border: 1.5px dashed rgba(180, 210, 255, 0.2);
+  }
+  .functional-degree-wheel-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 42%; aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 2px;
+    backdrop-filter: blur(8px);
+  }
+  .functional-degree-wheel-center .tonic-label {
+    font-size: 10px; letter-spacing: 1.2px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .functional-degree-wheel-center .tonic-name {
+    font-size: clamp(22px, 3.6vmin, 30px);
+    font-weight: 800; color: var(--accent-2);
+  }
+  .functional-degree-wheel-center .mode-name {
+    font-size: 11px; color: var(--text-dim); margin-top: 2px;
+  }
+  .functional-degree-spoke {
+    position: absolute; top: 50%; left: 50%;
+    --angle: 0deg; --radius: 42%;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--angle))
+      translateY(calc(var(--radius) * -1))
+      rotate(calc(var(--angle) * -1));
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid var(--glass-border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .functional-degree-spoke:hover {
+    background: rgba(110, 168, 255, 0.15);
+    border-color: var(--accent);
+  }
+  .functional-degree-spoke.active {
+    background: rgba(110, 168, 255, 0.4);
+    border-color: var(--accent-2);
+    color: #fff;
+    box-shadow: 0 0 22px rgba(110, 168, 255, 0.7);
+  }
+  .functional-degree-spoke.chromatic {
+    background: rgba(255, 180, 100, 0.08);
+    border-color: rgba(255, 200, 130, 0.35);
+    color: rgba(255, 220, 170, 0.95);
+    width: 44px; height: 44px;
+    font-size: 12px;
+  }
+  .functional-degree-spoke .chord-hint {
+    font-size: 9px; font-weight: 500;
+    color: var(--text-dim); margin-top: 1px;
+    letter-spacing: 0.3px;
+  }
+  .functional-degree-spoke.active .chord-hint {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* ---- F1 — Cadence chord-sequence visualizer ----
+     A row of 2–3 chord boxes side-by-side showing the cadence
+     that was played (e.g. "V → I" for PAC, "I → IV" for Plagal).
+     Justification: cadence ID is fundamentally about a tiny
+     chord sequence; surfacing the actual sequence (after the
+     answer is revealed, or as a hint) gives the student a
+     visual anchor for the harmonic motion. */
+  .functional-cadence-vis {
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    backdrop-filter: blur(8px);
+  }
+  .functional-cadence-box {
+    min-width: 78px; padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(110, 168, 255, 0.08);
+    border: 1.5px solid rgba(110, 168, 255, 0.25);
+    display: flex; flex-direction: column;
+    align-items: center; gap: 2px;
+  }
+  .functional-cadence-box.resolution {
+    background: rgba(120, 220, 180, 0.12);
+    border-color: rgba(120, 220, 180, 0.4);
+    box-shadow: 0 0 14px rgba(120, 220, 180, 0.25);
+  }
+  .functional-cadence-box .roman {
+    font-size: 20px; font-weight: 800;
+    color: var(--accent-2);
+    letter-spacing: 0.5px;
+  }
+  .functional-cadence-box.resolution .roman {
+    color: rgba(180, 240, 210, 0.95);
+  }
+  .functional-cadence-box .chord-name {
+    font-size: 11px; color: var(--text-dim);
+    letter-spacing: 0.3px;
+  }
+  .functional-cadence-arrow {
+    font-size: 22px; color: var(--accent);
+    opacity: 0.6;
+    line-height: 1;
+  }
+
+  /* ---- F2 — Typed harmonic progression input ----
+     The most distinctive view. The student hears a chord
+     progression and types it back, one slot at a time.
+     - `.functional-prog-input` is the row of slots that fills up
+        left-to-right, with the active slot pulsing.
+     - `.functional-prog-chip-bank` is the bank of degree chips
+        (I, ii, iii, IV, V, vi, vii°) the student picks from.
+        Higher levels grow the bank (+secondary dominants,
+        borrowed chords, ♭VII, ♭VI, jazz 7ths, etc.).
+     Justification: no canon class matches the slot-fill pattern;
+     this exercise is unique in the app for being typing/input
+     rather than single-choice. */
+  .functional-prog-input {
+    display: flex; gap: 12px;
+    justify-content: center; align-items: center;
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+  .functional-prog-slot {
+    width: 78px; height: 78px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px dashed rgba(180, 210, 255, 0.25);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800;
+    color: var(--text-dim);
+    transition: all 0.2s ease;
+  }
+  .functional-prog-slot.empty { color: rgba(159, 180, 214, 0.4); }
+  .functional-prog-slot.filled {
+    background: rgba(120, 220, 180, 0.15);
+    border: 2px solid rgba(120, 220, 180, 0.55);
+    color: rgba(220, 255, 235, 0.98);
+    box-shadow: 0 0 18px rgba(120, 220, 180, 0.25);
+  }
+  .functional-prog-slot.active {
+    background: rgba(110, 168, 255, 0.18);
+    border: 2px solid var(--accent);
+    color: var(--accent-2);
+    box-shadow: 0 0 22px rgba(110, 168, 255, 0.55),
+                inset 0 0 14px rgba(110, 168, 255, 0.12);
+    animation: slotPulse 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes slotPulse {
+    from { box-shadow: 0 0 18px rgba(110, 168, 255, 0.4), inset 0 0 10px rgba(110, 168, 255, 0.1); }
+    to   { box-shadow: 0 0 28px rgba(110, 168, 255, 0.75), inset 0 0 18px rgba(110, 168, 255, 0.2); }
+  }
+  .functional-prog-slot .slot-roman { font-size: 18px; line-height: 1; }
+  .functional-prog-slot .slot-chord {
+    font-size: 10px; font-weight: 500; margin-top: 3px;
+    color: var(--text-dim);
+    letter-spacing: 0.3px;
+  }
+  .functional-prog-slot.filled .slot-chord { color: rgba(180, 240, 210, 0.85); }
+
+  .functional-prog-chip-bank {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center; align-items: center;
+    max-width: 720px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px dashed rgba(180, 210, 255, 0.18);
+    border-radius: 18px;
+  }
+  .functional-prog-chip {
+    min-width: 78px; padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 2px;
+  }
+  .functional-prog-chip:hover {
+    background: rgba(110, 168, 255, 0.18);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(110, 168, 255, 0.3);
+  }
+  .functional-prog-chip.chromatic {
+    background: rgba(255, 180, 100, 0.06);
+    border-color: rgba(255, 200, 130, 0.3);
+  }
+  .functional-prog-chip.chromatic:hover {
+    background: rgba(255, 180, 100, 0.18);
+    border-color: rgba(255, 220, 170, 0.7);
+  }
+  .functional-prog-chip .chip-roman {
+    font-size: 15px; font-weight: 700;
+    color: var(--text);
+  }
+  .functional-prog-chip.chromatic .chip-roman {
+    color: rgba(255, 220, 170, 0.95);
+  }
+  .functional-prog-chip .chip-chord {
+    font-size: 10px; color: var(--text-dim);
+    letter-spacing: 0.3px;
+  }
+
+  .functional-submit-btn {
+    background: linear-gradient(135deg, rgba(110, 168, 255, 0.35), rgba(42, 90, 255, 0.2));
+    border: 1.5px solid var(--accent);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 999px;
+    font-size: 14px; font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 0 24px rgba(110, 168, 255, 0.45);
+    transition: all 0.2s ease;
+  }
+  .functional-submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 34px rgba(180, 210, 255, 0.7);
+  }
+  .functional-submit-btn:disabled {
+    opacity: 0.4; cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* ---- F3 — Rhythmus / harmonic-rhythm grid ----
+     A 2-bar (or 4-bar at higher levels) grid where each beat is
+     a clickable cell. The student marks the cells where a chord
+     change is heard. Filled cells glow; the "play head" pulses
+     across as the question plays.
+     Justification: F3 measures harmonic rhythm — *when* changes
+     occur, not *what* the chord is. A bar/beat grid is the
+     natural visual. No canon class fits. */
+  .functional-rhythm-grid-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    width: 100%; max-width: 640px;
+  }
+  .functional-rhythm-grid-wrap .grid-hint {
+    font-size: 12px; color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  .functional-rhythm-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 12px;
+    direction: ltr; /* music reads left-to-right even in an RTL UI */
+  }
+  .functional-rhythm-cell {
+    aspect-ratio: 1.4 / 1;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid var(--glass-border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 11px; color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+  .functional-rhythm-cell:hover {
+    background: rgba(110, 168, 255, 0.12);
+    border-color: rgba(180, 210, 255, 0.4);
+  }
+  .functional-rhythm-cell.downbeat {
+    border-color: rgba(180, 210, 255, 0.35);
+  }
+  .functional-rhythm-cell.downbeat .beat-num {
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+  .functional-rhythm-cell.change {
+    background: rgba(110, 168, 255, 0.3);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 16px rgba(110, 168, 255, 0.45);
+  }
+  .functional-rhythm-cell.change .chord-on-beat {
+    font-size: 11px; font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.3px;
+  }
+  .functional-rhythm-cell .beat-num {
+    font-size: 10px; letter-spacing: 0.5px;
+  }
+  .functional-rhythm-cell .chord-on-beat {
+    font-size: 13px; font-weight: 700;
+    color: var(--accent-2);
+    margin-top: 1px;
+  }
+  .functional-rhythm-cell.playhead::after {
+    content: '';
+    position: absolute; inset: -3px;
+    border-radius: 11px;
+    border: 2px solid rgba(255, 220, 130, 0.9);
+    box-shadow: 0 0 16px rgba(255, 220, 130, 0.65);
+    pointer-events: none;
+    animation: playheadPulse 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes playheadPulse {
+    from { opacity: 0.7; }
+    to   { opacity: 1; }
+  }
+  .functional-bar-divider {
+    grid-column: 5 / 5;
+    width: 0;
+    border-right: 2px dashed rgba(180, 210, 255, 0.3);
+  }
+
+  /* ---- F4 — Known progression cards ----
+     Distractor cards each showing a progression name + its roman
+     numerals + a real-world example song. The "correct" answer
+     glows. Justification: F4 is recognition of a *named* pattern;
+     each option is richer than a single chip — name, sequence,
+     and a song the student might know. We extend `.ans-chip`
+     with a `functional-prog-card` modifier to keep the canon. */
+  .functional-prog-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    max-width: 760px;
+    width: 100%;
+    padding: 0 12px;
+  }
+  .ans-chip.functional-prog-card {
+    min-width: 0; min-height: 110px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    flex-direction: column;
+    display: inline-flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+  }
+  .ans-chip.functional-prog-card .card-name {
+    font-size: 14px; font-weight: 700;
+    color: var(--text);
+    line-height: 1.25;
+  }
+  .ans-chip.functional-prog-card .card-degrees {
+    font-size: 13px; font-weight: 600;
+    color: var(--accent-2);
+    letter-spacing: 0.5px;
+    direction: ltr;
+  }
+  .ans-chip.functional-prog-card .card-example {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+    font-style: italic;
+  }
+  .ans-chip.functional-prog-card.active .card-name { color: #fff; }
+  .ans-chip.functional-prog-card.active .card-degrees { color: #fff; }
+  .ans-chip.functional-prog-card.active .card-example { color: rgba(255,255,255,0.85); }
+
+  /* ---- standalone preview helpers (only used when opened alone) ---- */
+  .preview-section {
+    position: relative;
+    min-height: 100vh;
+  }
+  .preview-section + .preview-section {
+    border-top: 1px dashed rgba(180, 210, 255, 0.12);
+  }
+  .preview-marker {
+    position: absolute; top: 50px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 75;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--accent-2);
+    border: 1px solid rgba(180, 210, 255, 0.25);
+    padding: 6px 16px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+  }
+</style>
+</head>
+<body>
+
+<!-- aurora + stars + top-bar boilerplate so the fragment opens standalone -->
+<div class="aurora">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="stars"></div>
+
+<div class="top-bar">
+  <span class="label">🎨 Mockup — Functional Fragment</span>
+  <span class="crumb" id="crumb">🏠<span>›</span>שמיעה מוזיקלית<span>›</span>הרמוניה פונקציונלית</span>
+</div>
+<button class="back-pill" id="back-btn" onclick="goBack()">← חזרה</button>
+
+<!-- standalone preview area -->
+<div id="app"></div>
+
+<!-- ============================================================
+     VIEWS BLOB — consumed by the master assembler.
+     ============================================================ -->
+<script type="application/json" id="views-functional">
+{
+  "functional": {
+    "type": "radial",
+    "breadcrumb": "הרמוניה פונקציונלית",
+    "parent": "ear-training",
+    "title": "הרמוניה פונקציונלית",
+    "sub": "5 Exercises",
+    "centerEmoji": "🎼",
+    "satellites": [
+      { "icon": "🔢", "label": "דרגת אקורד",    "sub": "F0", "goto": "ex-f0" },
+      { "icon": "🏁", "label": "קדנצה",          "sub": "F1", "goto": "ex-f1" },
+      { "icon": "📝", "label": "הכתבה הרמונית",  "sub": "F2", "goto": "ex-f2" },
+      { "icon": "⏱️", "label": "ריתמוס",         "sub": "F3", "goto": "ex-f3" },
+      { "icon": "⭐", "label": "מהלך מוכר",      "sub": "F4", "goto": "ex-f4" }
+    ]
+  },
+  "ex-f0": {
+    "type": "exercise-custom",
+    "renderer": "renderF0",
+    "breadcrumb": "F0 — דרגת אקורד",
+    "parent": "functional"
+  },
+  "ex-f1": {
+    "type": "exercise-custom",
+    "renderer": "renderF1",
+    "breadcrumb": "F1 — זיהוי קדנצה",
+    "parent": "functional"
+  },
+  "ex-f2": {
+    "type": "exercise-custom",
+    "renderer": "renderF2",
+    "breadcrumb": "F2 — הכתבה הרמונית",
+    "parent": "functional"
+  },
+  "ex-f3": {
+    "type": "exercise-custom",
+    "renderer": "renderF3",
+    "breadcrumb": "F3 — ריתמוס הרמוני",
+    "parent": "functional"
+  },
+  "ex-f4": {
+    "type": "exercise-custom",
+    "renderer": "renderF4",
+    "breadcrumb": "F4 — מהלך מוכר",
+    "parent": "functional"
+  }
+}
+</script>
+
+<!-- ============================================================
+     RENDERERS
+     ============================================================ -->
+<script>
+  // ===== Level data (mirrors the React components) =====
+  const F0_LEVELS = [
+    { n: 1, label: 'שלב 1 — I / V',                          done: true },
+    { n: 2, label: 'שלב 2 — I / IV / V',                     done: true },
+    { n: 3, label: 'שלב 3 — + ii',                           done: false, current: true },
+    { n: 4, label: "שלב 4 — כל הדיאטוני מז'ור",              done: false },
+    { n: 5, label: 'שלב 5 — כל הדיאטוני מינור',              done: false },
+    { n: 6, label: 'שלב 6 — כרומטיים (V/V, ♭VII, ♭VI)',     done: false, locked: true }
+  ];
+
+  const F1_LEVELS = [
+    { n: 1, label: 'שלב 1 — PAC / HC',                       done: true,  current: true },
+    { n: 2, label: 'שלב 2 — + IAC',                          done: false },
+    { n: 3, label: 'שלב 3 — + Plagal',                       done: false },
+    { n: 4, label: "שלב 4 — + Deceptive (מז'ור)",            done: false, locked: true },
+    { n: 5, label: 'שלב 5 — כל הסוגים — מינור',              done: false, locked: true },
+    { n: 6, label: 'שלב 6 — בתוך פסקה מלאה',                 done: false, locked: true }
+  ];
+
+  const F2_LEVELS = [
+    { n: 1, label: 'שלב 1 — I / V (2 אקורדים)',              done: true },
+    { n: 2, label: 'שלב 2 — I / IV / V (3 אקורדים)',         done: true },
+    { n: 3, label: 'שלב 3 — I / IV / V / vi (4 אקורדים)',    done: false, current: true },
+    { n: 4, label: 'שלב 4 — כל הדיאטוני, רצף 4',             done: false },
+    { n: 5, label: 'שלב 5 — + II7 (secondary dominant)',     done: false },
+    { n: 6, label: 'שלב 6 — + IV מינורי (borrowed)',         done: false, locked: true },
+    { n: 7, label: 'שלב 7 — + ♭VII, ♭VI (Neapolitan)',       done: false, locked: true },
+    { n: 8, label: "שלב 8 — ג'אז: ii-V-I, turnaround",       done: false, locked: true },
+    { n: 9, label: 'שלב 9 — מפתחות שונים',                   done: false, locked: true }
+  ];
+
+  const F3_LEVELS = [
+    { n: 1, label: 'שלב 1 — כן / לא',                        done: true },
+    { n: 2, label: 'שלב 2 — ספירה',                          done: false, current: true },
+    { n: 3, label: 'שלב 3 — מיקום',                          done: false },
+    { n: 4, label: 'שלב 4 — מיפוי מלא',                      done: false },
+    { n: 5, label: 'שלב 5 — האצה',                           done: false, locked: true },
+    { n: 6, label: 'שלב 6 — שיר אמיתי',                      done: false, locked: true }
+  ];
+
+  const F4_LEVELS = [
+    { n: 1, label: 'שלב 1 — שניים בלבד',                     done: true,  current: true },
+    { n: 2, label: 'שלב 2 — פופ/רוק 4',                      done: false },
+    { n: 3, label: 'שלב 3 — 6–8 מהלכים',                     done: false },
+    { n: 4, label: "שלב 4 — ג'אז",                           done: false, locked: true },
+    { n: 5, label: 'שלב 5 — מאגר מלא',                       done: false, locked: true },
+    { n: 6, label: 'שלב 6 — שינוי סגנון',                    done: false, locked: true }
+  ];
+
+  // ===== Generic drawer renderer (verbatim from melodic.html) =====
+  function renderLevelsDrawer(exId, exTitle, levels) {
+    const items = levels.map(l => {
+      const classes = ['level-item'];
+      if (l.current) classes.push('active');
+      if (l.done && !l.current) classes.push('completed');
+      if (l.locked) classes.push('locked');
+      const icon = l.locked   ? '🔒'
+                 : l.current  ? '●'
+                 : l.done     ? '✓'
+                 :              '';
+      return `
+        <li class="${classes.join(' ')}" onclick="${l.locked ? '' : `selectLevel('${exId}', ${l.n})`}">
+          <span class="level-item-num">${l.n}</span>
+          <span class="level-item-label">${l.label}</span>
+          <span class="level-item-icon">${icon}</span>
+        </li>`;
+    }).join('');
+    return `
+      <div class="levels-overlay" id="levels-overlay-${exId}" onclick="toggleDrawer('${exId}')"></div>
+      <aside class="levels-drawer" id="levels-drawer-${exId}" role="dialog" aria-label="בחר שלב">
+        <div class="levels-drawer-header">
+          <h3 class="levels-drawer-title">
+            <span class="ex-tag">${exId.toUpperCase()}</span>
+            <span>בחר שלב</span>
+          </h3>
+          <button class="levels-drawer-close" onclick="toggleDrawer('${exId}')" aria-label="סגור">✕</button>
+        </div>
+        <ul class="levels-drawer-list">${items}</ul>
+      </aside>`;
+  }
+
+  function renderLevelsTrigger(exId, currentLabel) {
+    return `
+      <button class="levels-trigger" onclick="toggleDrawer('${exId}')" title="בחר שלב">
+        <span class="hamburger">☰</span>
+        <span>שלבים</span>
+        <span class="current-level">· ${currentLabel}</span>
+      </button>`;
+  }
+
+  // ===== Functional Hub (radial) =====
+  function renderFunctionalHub() {
+    const sats = [
+      { icon: '🔢', label: 'דרגת אקורד',    sub: 'F0', goto: 'ex-f0', slot: 1 },
+      { icon: '🏁', label: 'קדנצה',         sub: 'F1', goto: 'ex-f1', slot: 2 },
+      { icon: '📝', label: 'הכתבה הרמונית', sub: 'F2', goto: 'ex-f2', slot: 3 },
+      { icon: '⏱️', label: 'ריתמוס',        sub: 'F3', goto: 'ex-f3', slot: 4 },
+      { icon: '⭐', label: 'מהלך מוכר',     sub: 'F4', goto: 'ex-f4', slot: 5 }
+    ];
+    const n = sats.length;
+    const satHtml = sats.map((s, i) => {
+      const angle = (i * 360 / n).toFixed(2);
+      return `
+        <div class="satellite s-${s.slot}" style="--angle:${angle}deg" data-angle="${angle}">
+          <div class="label">${s.label}</div>
+          <div class="orb" onclick="navigate('${s.goto}')">${s.icon}</div>
+          <div class="sub-label">${s.sub}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="stage">
+        <div class="constellation" id="cur-const">
+          <svg class="lines" id="cur-lines"></svg>
+          <div class="center-hub">
+            <div class="center-info">
+              <div class="emoji">🎼</div>
+              <h2>הרמוניה פונקציונלית</h2>
+              <p>5 Exercises</p>
+            </div>
+          </div>
+          ${satHtml}
+        </div>
+      </div>`;
+  }
+
+  // ===== Helper: Roman-numeral degree wheel for F0 =====
+  function renderDegreeWheel(activeDegree, tonic, mode, includeChromatic) {
+    const romanMajor = ['I','ii','iii','IV','V','vi','vii°'];
+    // chord names in C major for the hint text
+    const chordMajor = ['C','Dm','Em','F','G','Am','B°'];
+    // 7 diatonic spokes, evenly distributed around the circle
+    const diatonic = romanMajor.map((r, i) => ({
+      idx: i, roman: r, chord: chordMajor[i], chromatic: false
+    }));
+    let all = diatonic;
+    if (includeChromatic) {
+      // place chromatic spokes between diatonic ones at half-angle offsets
+      const chrom = [
+        { idx: 1.5, roman: 'V/V', chord: 'D7',  chromatic: true },
+        { idx: 4.5, roman: '♭VII', chord: 'B♭', chromatic: true },
+        { idx: 6.5, roman: '♭VI', chord: 'A♭', chromatic: true }
+      ];
+      all = [...diatonic, ...chrom];
+    }
+    const total = 7; // angle math always uses the 7-slot diatonic frame
+    const marks = all.map(d => {
+      const angle = ((d.idx) * 360 / total).toFixed(2);
+      const isActive = d.roman === activeDegree;
+      const cls = ['functional-degree-spoke'];
+      if (isActive)     cls.push('active');
+      if (d.chromatic)  cls.push('chromatic');
+      return `
+        <div class="${cls.join(' ')}" style="--angle:${angle}deg">
+          <span>${d.roman}</span>
+          <span class="chord-hint">${d.chord}</span>
+        </div>`;
+    }).join('');
+    return `
+      <div class="functional-degree-wheel">
+        <div class="functional-degree-wheel-center">
+          <span class="tonic-label">Tonic</span>
+          <span class="tonic-name">${tonic}</span>
+          <span class="mode-name">${mode}</span>
+        </div>
+        ${marks}
+      </div>`;
+  }
+
+  // ===== Exercise F0 — דרגת אקורד =====
+  function renderF0() {
+    const level = F0_LEVELS.find(l => l.current) || F0_LEVELS[0];
+    // Level 3 pool: I / ii / IV / V — the played chord is V
+    const pool = ['I', 'ii', 'IV', 'V'];
+    const highlightedRoman = 'V';
+    const chipBank = pool.map(r =>
+      `<button class="ans-chip${r === highlightedRoman ? ' active' : ''}">${r}</button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('f0', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">F0</div>
+          <h1 class="ex-title">זיהוי דרגת אקורד בודד</h1>
+          <div class="ex-progress">שאלה 4 / 10  ·  מהפעם הראשונה: 3  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">קדנצה ← אקורד — איזו דרגה ניגנה?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        ${renderDegreeWheel(highlightedRoman, 'C', 'Major', false)}
+
+        <div class="ex-answers">${chipBank}</div>
+
+        <!-- DegreeNameToggle (KeySelector lives down in the strip) -->
+        <div class="toggles-row">
+          <button class="pill-toggle active">I IV V</button>
+          <button class="pill-toggle">C F G</button>
+        </div>
+
+        <div class="functional-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מפתח:</strong> <span class="v">C</span></span>
+            <span class="select-pill" style="cursor:default"><strong>רפרנס:</strong> <span class="v">קדנצה</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">קדנצה</button>
+            <button class="pill-toggle">אקורד</button>
+            <button class="pill-toggle">תו</button>
+            <button class="pill-toggle">ללא</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('f0', 'F0 — דרגת אקורד', F0_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise F1 — קדנצה =====
+  function renderF1() {
+    const level = F1_LEVELS.find(l => l.current) || F1_LEVELS[0];
+    // Level 1: PAC vs HC. We show the PAC sequence visualizer.
+    const cadenceOptions = [
+      { id: 'PAC',       label: 'PAC',       hebrew: 'אותנטית מושלמת',  active: true  },
+      { id: 'HC',        label: 'HC',        hebrew: 'חצי קדנצה',        active: false }
+    ];
+    const chips = cadenceOptions.map(o =>
+      `<button class="ans-chip${o.active ? ' active' : ''}">
+         <span style="display:inline-flex; flex-direction:column; align-items:center; gap:2px">
+           <span style="font-weight:800; letter-spacing:1px">${o.label}</span>
+           <span style="font-size:11px; color:var(--text-dim); font-weight:500">${o.hebrew}</span>
+         </span>
+       </button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('f1', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">F1</div>
+          <h1 class="ex-title">זיהוי קדנצה</h1>
+          <div class="ex-progress">שאלה 1 / 10  ·  מהפעם הראשונה: 0  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">איזו קדנצה שמעת בסוף הפסקה?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- Cadence chord-sequence visualizer: V → I for PAC -->
+        <div class="functional-cadence-vis" aria-label="רצף הקדנצה">
+          <div class="functional-cadence-box">
+            <span class="roman">V</span>
+            <span class="chord-name">G</span>
+          </div>
+          <span class="functional-cadence-arrow">←</span>
+          <div class="functional-cadence-box resolution">
+            <span class="roman">I</span>
+            <span class="chord-name">C</span>
+          </div>
+        </div>
+
+        <div class="ex-answers">${chips}</div>
+
+        <div class="functional-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מפתח:</strong> <span class="v">C</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מעבר:</strong> <span class="v">אוטומטי</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">אוטומטי</button>
+            <button class="pill-toggle">ידני</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('f1', 'F1 — קדנצה', F1_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise F2 — הכתבה הרמונית (most distinctive) =====
+  function renderF2() {
+    const level = F2_LEVELS.find(l => l.current) || F2_LEVELS[0];
+    // Level 3 pool: I / IV / V / vi, sequence length 4.
+    // We render the typed-progression input with the first 2 slots filled,
+    // the 3rd slot active (waiting), the 4th slot empty.
+    const slots = [
+      { roman: 'I',  chord: 'C', state: 'filled' },
+      { roman: 'V',  chord: 'G', state: 'filled' },
+      { roman: '?',  chord: '—', state: 'active' },
+      { roman: '?',  chord: '—', state: 'empty'  }
+    ];
+    const slotHtml = slots.map(s => `
+      <div class="functional-prog-slot ${s.state}">
+        <span class="slot-roman">${s.roman}</span>
+        <span class="slot-chord">${s.chord}</span>
+      </div>`).join('');
+
+    // Chip bank for level 3
+    const bank = [
+      { roman: 'I',   chord: 'C',  chromatic: false },
+      { roman: 'ii',  chord: 'Dm', chromatic: false },
+      { roman: 'iii', chord: 'Em', chromatic: false },
+      { roman: 'IV',  chord: 'F',  chromatic: false },
+      { roman: 'V',   chord: 'G',  chromatic: false },
+      { roman: 'vi',  chord: 'Am', chromatic: false },
+      { roman: 'vii°',chord: 'B°', chromatic: false }
+    ];
+    const bankHtml = bank.map(b => `
+      <button class="functional-prog-chip ${b.chromatic ? 'chromatic' : ''}">
+        <span class="chip-roman">${b.roman}</span>
+        <span class="chip-chord">${b.chord}</span>
+      </button>`).join('');
+
+    return `
+      ${renderLevelsTrigger('f2', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">F2</div>
+          <h1 class="ex-title">הכתבה הרמונית</h1>
+          <div class="ex-progress">שאלה 2 / 8  ·  מהפעם הראשונה: 1  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">האזן למהלך — ולחץ על הדרגות בסדר הנכון</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- Typed progression slot row -->
+        <div class="functional-prog-input" aria-label="המהלך שהקלדת עד כה">
+          ${slotHtml}
+        </div>
+
+        <!-- Chip bank -->
+        <div class="functional-prog-chip-bank" aria-label="בריכת אקורדים">
+          ${bankHtml}
+        </div>
+
+        <!-- DegreeNameToggle (I, IV, V ↔ C, F, G) -->
+        <div class="toggles-row">
+          <button class="pill-toggle active">I IV V</button>
+          <button class="pill-toggle">C F G</button>
+        </div>
+
+        <!-- Submit row -->
+        <div class="control-row">
+          <button class="functional-submit-btn">בדוק מהלך ↵</button>
+          <button class="select-pill">נקה שדה</button>
+        </div>
+
+        <div class="functional-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">8</span></span>
+            <span class="select-pill" style="cursor:default"><strong>אורך:</strong> <span class="v">4</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מפתח:</strong> <span class="v">C</span></span>
+            <span class="select-pill" style="cursor:default"><strong>רפרנס:</strong> <span class="v">קדנצה</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">קדנצה</button>
+            <button class="pill-toggle">אקורד</button>
+            <button class="pill-toggle">תו</button>
+            <button class="pill-toggle">ללא</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('f2', 'F2 — הכתבה הרמונית', F2_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise F3 — ריתמוס הרמוני =====
+  function renderF3() {
+    const level = F3_LEVELS.find(l => l.current) || F3_LEVELS[0];
+    // Level 2: how many chord-changes did you hear? — 2 bars × 4 beats = 8 cells
+    // Show a mock grid with two cells highlighted as the played changes;
+    // the playhead is currently on beat 3 of bar 1.
+    const cells = [];
+    for (let m = 0; m < 2; m++) {
+      for (let b = 0; b < 4; b++) {
+        const idx = m * 4 + b;
+        // mock data: changes on idx=0 (downbeat, implicit) and idx=4 (bar 2 downbeat)
+        const isChange = (idx === 0 || idx === 4);
+        const isPlayhead = (idx === 2);
+        const classes = ['functional-rhythm-cell'];
+        if (b === 0) classes.push('downbeat');
+        if (isChange) classes.push('change');
+        if (isPlayhead) classes.push('playhead');
+        const chordLabel = idx === 0 ? 'I' : (idx === 4 ? 'V' : '');
+        cells.push(`
+          <div class="${classes.join(' ')}">
+            <span class="beat-num">${b === 0 ? `Bar ${m+1}` : `· ${b+1}`}</span>
+            ${chordLabel ? `<span class="chord-on-beat">${chordLabel}</span>` : ''}
+          </div>`);
+      }
+    }
+
+    // Answer chips for level 2: "how many changes?"
+    const countOptions = [0, 1, 2, 3];
+    const correctCount = 1; // played changes once (besides the initial chord)
+    const chips = countOptions.map(n =>
+      `<button class="ans-chip${n === correctCount ? ' active' : ''}">${n}</button>`
+    ).join('');
+
+    return `
+      ${renderLevelsTrigger('f3', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">F3</div>
+          <h1 class="ex-title">ריתמוס הרמוני</h1>
+          <div class="ex-progress">שאלה 3 / 10  ·  מהפעם הראשונה: 2  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">כמה שינויי אקורד שמעת בקטע?</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- 2-bar × 4-beat grid -->
+        <div class="functional-rhythm-grid-wrap">
+          <div class="grid-hint">מפת המקצב — בר 1 · בר 2 (4/4)</div>
+          <div class="functional-rhythm-grid">${cells.join('')}</div>
+        </div>
+
+        <p class="ex-prompt" style="font-size:14px; margin-top:-6px">כמה שינויי אקורד שמעת?</p>
+
+        <div class="ex-answers">${chips}</div>
+
+        <div class="functional-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">10</span></span>
+            <span class="select-pill" style="cursor:default"><strong>משקל:</strong> <span class="v">4/4</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">4/4</button>
+            <button class="pill-toggle">3/4</button>
+            <button class="pill-toggle">6/8</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('f3', 'F3 — ריתמוס', F3_LEVELS)}
+    `;
+  }
+
+  // ===== Exercise F4 — מהלך מוכר =====
+  function renderF4() {
+    const level = F4_LEVELS.find(l => l.current) || F4_LEVELS[0];
+    // Level 1: two well-known progressions. Show 4 distractor cards.
+    const options = [
+      {
+        name: 'I–V–vi–IV (פופ קלאסי)',
+        degrees: 'I V vi IV',
+        example: "Let It Be · Someone Like You",
+        active: true
+      },
+      {
+        name: 'I–IV–V (עממי)',
+        degrees: 'I IV V',
+        example: 'La Bamba · Twist and Shout',
+        active: false
+      },
+      {
+        name: 'ii–V–I (ג\'אז)',
+        degrees: 'ii7 V7 IMaj7',
+        example: 'Autumn Leaves',
+        active: false
+      },
+      {
+        name: '12-Bar Blues',
+        degrees: 'I7 IV7 I7 V7',
+        example: 'Sweet Home Chicago',
+        active: false
+      }
+    ];
+    const cards = options.map(o => `
+      <button class="ans-chip functional-prog-card${o.active ? ' active' : ''}">
+        <span class="card-name">${o.name}</span>
+        <span class="card-degrees">${o.degrees}</span>
+        <span class="card-example">${o.example}</span>
+      </button>`).join('');
+
+    return `
+      ${renderLevelsTrigger('f4', `שלב ${level.n}`)}
+      <div class="exercise-stage">
+        <div class="ex-header">
+          <div class="ex-code">F4</div>
+          <h1 class="ex-title">זיהוי מהלך מוכר</h1>
+          <div class="ex-progress">שאלה 1 / 8  ·  מהפעם הראשונה: 0  ·  ${level.label}</div>
+        </div>
+
+        <p class="ex-prompt">איזה מהלך מוכר שמעת? (לחץ ▶ להאזנה חוזרת)</p>
+
+        <button class="play-pad" title="נגן שוב">▶</button>
+
+        <!-- 4 progression cards -->
+        <div class="functional-prog-cards">${cards}</div>
+
+        <!-- DegreeNameToggle: I,IV,V ↔ C,F,G -->
+        <div class="toggles-row">
+          <button class="pill-toggle active">I IV V</button>
+          <button class="pill-toggle">C F G</button>
+        </div>
+
+        <div class="functional-settings-strip">
+          <div class="strip-title">הגדרות תרגיל</div>
+          <div class="control-row">
+            <span class="select-pill" style="cursor:default"><strong>שאלות:</strong> <span class="v">8</span></span>
+            <span class="select-pill" style="cursor:default"><strong>מפתח:</strong> <span class="v">C</span></span>
+            <span class="select-pill" style="cursor:default"><strong>רפרנס:</strong> <span class="v">קדנצה</span></span>
+            <span class="select-pill" style="cursor:default"><strong>כלי:</strong> <span class="v">פסנתר</span></span>
+          </div>
+          <div class="control-row" style="opacity:0.85">
+            <button class="pill-toggle active">קדנצה</button>
+            <button class="pill-toggle">אקורד</button>
+            <button class="pill-toggle">תו</button>
+            <button class="pill-toggle">ללא</button>
+            <span style="opacity:0.4; padding:0 4px">·</span>
+            <button class="pill-toggle active">פסנתר</button>
+            <button class="pill-toggle">גיטרה</button>
+          </div>
+        </div>
+
+        <div class="ex-footer">
+          <button class="hint-btn">💡 רמז</button>
+          <button class="hint-btn">🎼 נגן רפרנס</button>
+          <button class="skip-btn">דלג ⏭</button>
+        </div>
+      </div>
+      ${renderLevelsDrawer('f4', 'F4 — מהלך מוכר', F4_LEVELS)}
+    `;
+  }
+
+  // ===== Standalone preview: stack all 6 views =====
+  function renderStandalonePreview() {
+    document.getElementById('app').innerHTML = `
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 1 / 6  ·  functional hub</div>
+        ${renderFunctionalHub()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 2 / 6  ·  ex-f0</div>
+        ${renderF0()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 3 / 6  ·  ex-f1</div>
+        ${renderF1()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 4 / 6  ·  ex-f2</div>
+        ${renderF2()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 5 / 6  ·  ex-f3</div>
+        ${renderF3()}
+      </section>
+      <section class="preview-section">
+        <div class="preview-marker">VIEW 6 / 6  ·  ex-f4</div>
+        ${renderF4()}
+      </section>
+    `;
+    requestAnimationFrame(drawConstellationLines);
+  }
+
+  function drawConstellationLines() {
+    const container = document.getElementById('cur-const');
+    const svg = document.getElementById('cur-lines');
+    if (!container || !svg) return;
+    const w = container.clientWidth, h = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.innerHTML = '';
+    const cRect = container.getBoundingClientRect();
+    const cx = w / 2, cy = h / 2;
+    container.querySelectorAll('.satellite .orb').forEach(orb => {
+      const r = orb.getBoundingClientRect();
+      const x = r.left + r.width / 2 - cRect.left;
+      const y = r.top + r.height / 2 - cRect.top;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+      line.setAttribute('x2', x);  line.setAttribute('y2', y);
+      svg.appendChild(line);
+    });
+  }
+
+  // ===== Stubs (master assembler will override) =====
+  function navigate(id) {
+    const map = { 'functional': 0, 'ex-f0': 1, 'ex-f1': 2, 'ex-f2': 3, 'ex-f3': 4, 'ex-f4': 5 };
+    const idx = map[id];
+    if (idx != null) {
+      document.querySelectorAll('.preview-section')[idx]
+        ?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+  function goBack() { history.back(); }
+
+  function toggleDrawer(exId) {
+    const drawer  = document.getElementById(`levels-drawer-${exId}`);
+    const overlay = document.getElementById(`levels-overlay-${exId}`);
+    if (!drawer || !overlay) return;
+    const open = !drawer.classList.contains('open');
+    drawer.classList.toggle('open',  open);
+    overlay.classList.toggle('open', open);
+  }
+  function selectLevel(exId, n) {
+    toggleDrawer(exId);
+    console.log(`[mockup] selectLevel ${exId} → ${n}`);
+  }
+
+  window.addEventListener('resize', drawConstellationLines);
+  document.addEventListener('DOMContentLoaded', renderStandalonePreview);
+</script>
+</body>
+</html>
