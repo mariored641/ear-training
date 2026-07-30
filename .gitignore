@@ -59,3 +59,28 @@ Thumbs.db
 
 .vercel
 .env*.local
+
+# Raw Yamaha style source files (local-only; app reads public/styles-native/*.json)
+*.sty
+*.STY
+*.prs
+*.sst
+*.bcs
+
+# Capacitor Android wrapper (not yet part of the tracked build) — revisit later
+/android/
+*.apk
+
+# Duplicate of a separate project (Documents/perfect-pitch-new) — pending manual removal
+/perfect-pitch/
+
+# Deferred / not yet reviewed for commit
+/test-results/
+/tests/
+playwright.config.js
+create-icons*.cjs
+create-icons*.mjs
+create_icons.py
+create-simple-icons.html
+generate-icons.html
+make-icons.html
