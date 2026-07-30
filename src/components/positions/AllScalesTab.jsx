@@ -10,6 +10,7 @@ import {
   detectScale,
 } from '../../constants/allScalesData';
 import { CHROMATIC_SCALE } from '../../constants/positionData';
+import { buildEnharmonicDisplayMap, buildDefaultDisplayMap } from '../../utils/enharmonicUtils';
 import './AllScalesTab.css';
 
 const HIGHLIGHT_PALETTE = ['#FFC107', '#E91E8C', '#00BCD4', '#76FF03', '#FF5722', '#9C27B0'];
@@ -156,6 +157,13 @@ const AllScalesTab = () => {
     return ALL_SCALES_MAP[selectedId] || ALL_CHORDS_MAP[selectedId] || null;
   }, [selectedId]);
 
+  // Enharmonic display map: CHROMATIC_SCALE name → proper display name (Bb, not A#)
+  const noteDisplayMap = useMemo(() => {
+    const base = buildDefaultDisplayMap(selectedRoot);
+    if (!currentItem) return base;
+    return { ...base, ...buildEnharmonicDisplayMap(selectedRoot, currentItem.intervals) };
+  }, [selectedRoot, currentItem]);
+
   const hasRange = fretRangeStart !== null || fretRangeEnd !== null;
 
   return (
@@ -174,6 +182,7 @@ const AllScalesTab = () => {
         onNoteLongPress={handleNoteLongPress}
         onFretClick={handleFretClick}
         onStringClick={handleStringClick}
+        noteDisplayMap={noteDisplayMap}
       />
 
       {/* Controls */}

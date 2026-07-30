@@ -1410,6 +1410,117 @@ body.backing-page-active #root {
 .bp-poly-select option { background: var(--bg-mid); color: var(--text); }
 .bp-poly-select-scale { min-width: 0; }
 
+/* ── Mode selector ── */
+.bp-poly-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.bp-poly-mode-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.bp-poly-mode-btns {
+  display: flex;
+  gap: 4px;
+}
+.bp-poly-mode-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-dim);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.bp-poly-mode-btn.active {
+  background: rgba(110, 168, 255, 0.28);
+  border-color: var(--accent);
+  color: var(--text);
+}
+.bp-poly-mode-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+/* ── Auto mode ── */
+.bp-poly-auto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bp-poly-auto-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.bp-poly-auto-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.bp-poly-apply-btn {
+  background: rgba(110, 168, 255, 0.28);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 5px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+.bp-poly-apply-btn:hover { background: rgba(110, 168, 255, 0.45); }
+.bp-poly-auto-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.bp-poly-auto-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+}
+.bp-poly-auto-type {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 70px;
+}
+.bp-poly-auto-arrow {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.bp-poly-auto-scale {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+/* ── By-type row variant ── */
+.bp-poly-row--type {
+  grid-template-columns: 100px 60px 1fr;
+}
+.bp-poly-type-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
 /* ═══════════════════════════════════════════════════════
    Embedded panels (PresetLibrary + MyProgressions inside Templates popup)
    ═══════════════════════════════════════════════════════ */

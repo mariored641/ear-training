@@ -124,12 +124,13 @@ const ExerciseF2 = () => {
   const [positionIndex, setPositionIndex] = useState(0); // which slot we're filling
   const [slots, setSlots] = useState([]); // filled answers per slot
   const [feedback, setFeedback] = useState(null);
-  const [firstTry, setFirstTry] = useState(0);
   const [posAttempts, setPosAttempts] = useState({});
   const [done, setDone] = useState(false);
   const [selectedBtnId, setSelectedBtnId] = useState(null);
-  const isPlayingRef = useRef(false);
-  const lastProgKeyRef = useRef(null);
+  const isPlayingRef       = useRef(false);
+  const lastProgKeyRef     = useRef(null);
+  const sessionFirstTryRef = useRef(0);
+  const sessionTotalRef    = useRef(0);
 
   const buttons = getButtons(level);
 
@@ -161,7 +162,9 @@ const ExerciseF2 = () => {
   }, [level]);
 
   useEffect(() => {
-    setQuestionIndex(0); setFirstTry(0); setDone(false);
+    sessionFirstTryRef.current = 0;
+    sessionTotalRef.current = 0;
+    setQuestionIndex(0); setDone(false);
     lastProgKeyRef.current = null;
     setTimeout(startQuestion, 100);
   }, [level, numQuestions]);
@@ -206,7 +209,8 @@ const ExerciseF2 = () => {
     setTimeout(() => { setFeedback(null); setSelectedBtnId(null); }, 600);
 
     if (isOk) {
-      if (isFirst) setFirstTry(p => p + 1);
+      sessionTotalRef.current += 1;
+      if (isFirst) sessionFirstTryRef.current += 1;
       const nextPos = positionIndex + 1;
       if (nextPos >= progression.length) {
         setTimeout(() => {
@@ -225,8 +229,8 @@ const ExerciseF2 = () => {
         <EarTrainingHeader exerciseTitle="F2 — הכתבה הרמונית" levels={LEVELS} currentLevel={level}
           onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/functional')} />
-        <SessionSummary total={numQuestions} firstTry={firstTry}
-          onRetry={() => { setQuestionIndex(0); setFirstTry(0); setDone(false); setTimeout(startQuestion, 100); }}
+        <SessionSummary total={sessionTotalRef.current} firstTry={sessionFirstTryRef.current}
+          onRetry={() => { sessionFirstTryRef.current = 0; sessionTotalRef.current = 0; setQuestionIndex(0); setDone(false); setTimeout(startQuestion, 100); }}
           onBack={() => navigate('/category/ear-training/functional')}
           levelLabel={LEVELS.find(l => l.number === level)?.label} />
       </>

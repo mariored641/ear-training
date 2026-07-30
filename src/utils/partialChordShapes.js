@@ -1,4 +1,5 @@
 import { CHROMATIC_SCALE, STRING_TUNING, POSITION_CONFIG } from '../constants/positionData.js';
+import { getChordToneNoteName } from './enharmonicUtils.js';
 
 // ---------------------------------------------------------------------------
 // CAGED partial-chord shapes (legacy — kept for backwards-compat with any
@@ -331,10 +332,9 @@ export function getChordTonesInShape(cagedLetter, root, quality) {
   return result;
 }
 
-// Concrete note name for a chord tone above a root (e.g. ('D','9') → 'E').
+// Concrete note name for a chord tone above a root (e.g. ('G','b3') → 'Bb').
+// Returns a theoretically correct enharmonic spelling (Bb not A#, Eb not D#, etc.)
 export function getNoteNameForTone(root, tone) {
-  const rootIdx = CHROMATIC_SCALE.indexOf(root);
-  const semi = INTERVAL_SEMITONES[tone];
-  if (rootIdx < 0 || semi === undefined) return '';
-  return CHROMATIC_SCALE[(rootIdx + semi) % 12];
+  if (INTERVAL_SEMITONES[tone] === undefined) return '';
+  return getChordToneNoteName(root, tone) || '';
 }

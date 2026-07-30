@@ -87,7 +87,7 @@ const FretboardDisplay = ({
 
   const getNoteLabel = (note) => {
     if (displayMode === 'dots') return '';
-    if (displayMode === 'notes') return note.note;
+    if (displayMode === 'notes') return note.displayNote ?? note.note;
     if (displayMode === 'degrees') return note.scaleDegree;
     return '';
   };
