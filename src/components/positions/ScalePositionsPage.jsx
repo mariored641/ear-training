@@ -38,6 +38,7 @@ const ScalePositionsPage = () => {
   const [showAll, setShowAll] = useState(false);
   const [displayMode, setDisplayMode] = useState('dots');
   const [showPentatonic, setShowPentatonic] = useState(false);
+  const [noteLang, setNoteLang] = useState('latin');
   const [isQuickRefOpen, setIsQuickRefOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('positions');
 
@@ -172,6 +173,8 @@ const ScalePositionsPage = () => {
             onModeChange={setDisplayMode}
             showPentatonic={showPentatonic}
             onPentatonicChange={setShowPentatonic}
+            noteLang={noteLang}
+            onNoteLangChange={setNoteLang}
           />
 
           <FretboardDisplay
@@ -182,6 +185,7 @@ const ScalePositionsPage = () => {
             showPentatonic={showPentatonic}
             selectedType={selectedType}
             selectedRoot={selectedRoot}
+            noteLang={noteLang}
           />
         </div>
       )}
@@ -195,6 +199,8 @@ const ScalePositionsPage = () => {
             onModeChange={setDisplayMode}
             showPentatonic={showPentatonic}
             onPentatonicChange={setShowPentatonic}
+            noteLang={noteLang}
+            onNoteLangChange={setNoteLang}
           />
 
           <ArpeggioOptionsBar
@@ -214,6 +220,7 @@ const ScalePositionsPage = () => {
             selectedRoot={selectedRoot}
             activeArpeggios={activeArpeggios}
             hideRoots={hideRoots}
+            noteLang={noteLang}
           />
         </div>
       )}
