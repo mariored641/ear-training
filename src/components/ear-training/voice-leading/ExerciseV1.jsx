@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
@@ -168,9 +169,14 @@ async function playEmphasis(q) {
 
 const ExerciseV1 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const storageKey = 'ear-training:V1:level';
 
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
+  const exerciseTitle = `V1 — ${t('earTraining.exercises.V1')}`;
+  const localizedLevel = t(`earTraining.levels.V1.${level}`, {
+    defaultValue: LEVELS.find(l => l.number === level)?.label
+  });
   const [instrument, setInstrument]    = useStoredState('ear-training:V1:instrument', 'piano');
   const [reference, setReference]      = useStoredState('ear-training:V1:reference', 'cadence');
   const [numQuestions, setNumQuestions] = useState(10);
@@ -260,20 +266,20 @@ const ExerciseV1 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="V1 — עקיבת קו בס" levels={LEVELS}
+        <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS}
           currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/voice-leading')} />
         <SessionSummary total={numQuestions} firstTry={firstTry}
           onRetry={() => { setQuestionIndex(0); setFirstTry(0); setDone(false); setTimeout(generate, 100); }}
           onBack={() => navigate('/category/ear-training/voice-leading')}
-          levelLabel={LEVELS.find(l => l.number === level)?.label} />
+          levelLabel={localizedLevel} />
       </>
     );
   }
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="V1 — עקיבת קו בס" levels={LEVELS}
+    <div>
+      <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS}
         currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
         onBack={() => navigate('/category/ear-training/voice-leading')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
@@ -281,14 +287,14 @@ const ExerciseV1 = () => {
       {level === 7 ? (
         <div style={{ textAlign:'center', padding:'48px 20px', color:'#888' }}>
           <div style={{ fontSize:40, marginBottom:12 }}>🎸</div>
-          <div style={{ fontSize:17, marginBottom:8 }}>שלב זה כולל שעתוק קו בס מהקלטות.</div>
-          <div style={{ fontSize:14 }}>בקרוב — בינתיים בחר שלב אחר.</div>
+          <div style={{ fontSize:17, marginBottom:8 }}>{t('earTraining.prompts.bassTranscriptionSoon')}</div>
+          <div style={{ fontSize:14 }}>{t('earTraining.prompts.chooseAnotherLevel')}</div>
         </div>
       ) : (
         <>
           <div style={{ display:'flex', gap:12, justifyContent:'center', padding:'16px', flexWrap:'wrap' }}>
-            <button style={playBtn} onClick={() => question && playNormal(question)}>🔊 נגן רצף</button>
-            <button style={playBtn} onClick={() => question && playEmphasis(question)}>🎸 הבלט בס</button>
+            <button style={playBtn} onClick={() => question && playNormal(question)}>🔊 {t('earTraining.controls.playSequence')}</button>
+            <button style={playBtn} onClick={() => question && playEmphasis(question)}>🎸 {t('earTraining.controls.highlightBass')}</button>
           </div>
 
           <div style={optGrid}>
@@ -307,7 +313,7 @@ const ExerciseV1 = () => {
                     ...(ok ? optCorrect : {}),
                     ...(bad ? optWrong : {})
                   }}>
-                  {opt.label}
+                  {t(`earTraining.answerOptions.${opt.id}`, { defaultValue: opt.label })}
                 </button>
               );
             })}
@@ -319,15 +325,15 @@ const ExerciseV1 = () => {
 
       <div style={ctrlRow}>
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
-        <BinaryToggle label="כלי"
-          options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
+        <BinaryToggle label={t('common.instrument')}
+          options={[{ value:'piano', label:t('common.piano') }, { value:'guitar', label:t('common.guitar') }]}
           value={instrument} onChange={handleInstrumentChange} />
-        <BinaryToggle label="רפרנס"
+        <BinaryToggle label={t('common.reference')}
           options={[
-            { value: 'cadence', label: 'קדנצה' },
-            { value: 'chord', label: 'אקורד' },
-            { value: 'note', label: 'תו' },
-            { value: 'none', label: 'ללא' }
+            { value: 'cadence', label: t('common.cadence') },
+            { value: 'chord', label: t('common.chord') },
+            { value: 'note', label: t('common.note') },
+            { value: 'none', label: t('common.none') }
           ]}
           value={reference} onChange={setReference} />
       </div>

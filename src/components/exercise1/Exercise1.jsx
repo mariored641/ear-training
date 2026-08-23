@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from '../common/Header';
 import ProgressBar from '../common/ProgressBar';
 import SettingsPanel from '../common/SettingsPanel';
@@ -16,12 +17,12 @@ import { DEFAULT_EXERCISE1_SETTINGS } from '../../constants/defaults';
 import { REFERENCE_NOTE, NOTES } from '../../constants/notes';
 import './Exercise1.css';
 
-const EX1_LEVELS = [
-  { id: 'regular', label: 'רגיל' },
-  { id: 'custom',  label: 'התאמה אישית' },
-];
-
 const Exercise1 = () => {
+  const { t } = useTranslation();
+  const levels = [
+    { id: 'regular', label: t('legacy.regular') },
+    { id: 'custom', label: t('legacy.custom') },
+  ];
   const [settings, setSettings] = useState(() =>
     Storage.loadSettings(1, DEFAULT_EXERCISE1_SETTINGS)
   );
@@ -181,7 +182,7 @@ const Exercise1 = () => {
         ...prev,
         selectedNote: note,
         isCorrect,
-        statusMessage: 'Correct! ✅',
+        statusMessage: t('legacy.feedback.correct'),
         questionResults: [...prev.questionResults, isFirstTry]
       }));
 
@@ -373,7 +374,7 @@ const Exercise1 = () => {
         totalQuestions={totalQuestions}
         correctFirstTry={correctFirstTry}
         onRestart={handleRestart}
-        itemName="questions"
+        itemName={t('common.questions')}
         category="melodic"
       />
     );
@@ -382,7 +383,7 @@ const Exercise1 = () => {
   return (
     <div className="exercise1">
       <Header
-        title="Exercise 1 - Interval Recognition"
+        title={t('legacy.exercise1Title')}
         showSettings={true}
         showStop={true}
         currentQuestion={sessionState.currentQuestion}
@@ -397,7 +398,7 @@ const Exercise1 = () => {
       />
 
       <LevelStrip
-        levels={EX1_LEVELS}
+        levels={levels}
         activeId={activeLevel}
         onChange={handleLevelChange}
       />
@@ -405,14 +406,14 @@ const Exercise1 = () => {
       <div className="exercise1-content">
         <div className="audio-controls">
           <button className="audio-button" onClick={handlePlayC}>
-            🔊 Play C
+            🔊 {t('legacy.playC')}
           </button>
           <button className="audio-button" onClick={handlePlayNote}>
-            🔊 Play Note
+            🔊 {t('legacy.playNote')}
           </button>
         </div>
 
-        <h3 className="exercise1-question">Which note did you hear?</h3>
+        <h3 className="exercise1-question">{t('legacy.whichNote')}</h3>
 
         {sessionState.statusMessage && (
           <div className="status-message success">
@@ -431,7 +432,7 @@ const Exercise1 = () => {
         {waitingForNext && settings.transition === 'manual' && (
           <div className="next-button-container">
             <button className="btn btn-primary" onClick={handleNext}>
-              Next Question
+              {t('legacy.nextQuestion')}
             </button>
           </div>
         )}
@@ -442,7 +443,7 @@ const Exercise1 = () => {
       <SettingsPanel
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        title="Exercise 1 Settings"
+        title={t('legacy.exerciseSettings', { exercise: '1' })}
       >
         <Exercise1Settings
           settings={settings}

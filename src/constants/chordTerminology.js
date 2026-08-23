@@ -43,8 +43,33 @@ export const CHORD_TYPE_NOTATION = {
   thirteen:    '13',
 };
 
+export const CHORD_TYPE_ENGLISH = {
+  major: 'Major',
+  minor: 'Minor',
+  diminished: 'Diminished',
+  augmented: 'Augmented',
+  triad: 'Major / Minor',
+  seventh: 'Seventh chords',
+  maj7: 'Major 7th',
+  m7: 'Minor 7th',
+  dom7: 'Dominant 7th',
+  halfDim: 'Half diminished',
+  dim7: 'Diminished 7th',
+  sus2: 'sus2',
+  sus4: 'sus4',
+  add9: 'add9',
+  maj9: 'Major 9th',
+  nine: '9',
+  eleven: '11',
+  thirteen: '13',
+};
+
 export const getChordLabel = (id, mode = 'hebrew') => {
-  const map = mode === 'notation' ? CHORD_TYPE_NOTATION : CHORD_TYPE_HEBREW;
+  const map = mode === 'notation'
+    ? CHORD_TYPE_NOTATION
+    : mode === 'english'
+      ? CHORD_TYPE_ENGLISH
+      : CHORD_TYPE_HEBREW;
   return map[id] ?? id;
 };
 

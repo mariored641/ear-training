@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
 
 const LONG_PRESS_MS = 450
@@ -98,13 +99,14 @@ function buildBars(chords, beatsPerBar = 4) {
 
 /** Single chord bar — long-press → edit with full bar context. */
 function ChordBar({ barIdx, chord, chordIndex, isActive, onEdit }) {
+  const { t } = useTranslation()
   const { isPressing, handlers } = useLongPress(() =>
     onEdit({ barIdx, firstChordIndex: chordIndex, barChords: [chord] })
   )
   return (
     <button
       className={`chord-bar-btn${isActive ? ' playing' : ''}${isPressing ? ' long-pressing' : ''}`}
-      title={`Bar ${barIdx + 1}: long-press to edit`}
+      title={t('backing.longPressBar', { number: barIdx + 1 })}
       {...handlers}
     >
       <span className="bar-number">{barIdx + 1}</span>
@@ -144,6 +146,7 @@ export function ChordProgressionEditor({
   onAddBar,
   beatsPerBar = 4,
 }) {
+  const { t } = useTranslation()
   const bars = useMemo(() => buildBars(chords, beatsPerBar), [chords, beatsPerBar])
 
   return (
@@ -181,8 +184,8 @@ export function ChordProgressionEditor({
         <button
           className="chord-bar-add"
           onClick={onAddBar}
-          title="Add a new bar"
-          aria-label="Add bar"
+          title={t('backing.addNewBar')}
+          aria-label={t('backing.addNewBar')}
         >
           +
         </button>

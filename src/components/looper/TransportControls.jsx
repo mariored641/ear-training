@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 function formatTime(seconds) {
   const whole = Math.floor(seconds);
@@ -12,6 +13,7 @@ export default function TransportControls({
   inputLevel,
   actions,
 }) {
+  const { t } = useTranslation();
   const recording = engineState === 'recording';
   const counting = engineState === 'counting-in';
   const busy = recording || counting;
@@ -23,9 +25,9 @@ export default function TransportControls({
   };
 
   return (
-    <section className="looper-transport" aria-label="שליטה בהקלטה ובנגינה">
-      <div className="looper-input-meter" aria-label={`עוצמת כניסה ${Math.round(inputLevel * 100)} אחוז`}>
-        <span>כניסה</span>
+    <section className="looper-transport" aria-label={t('looper.recordingControls')}>
+      <div className="looper-input-meter" aria-label={t('looper.inputLevel', { percent: Math.round(inputLevel * 100) })}>
+        <span>{t('looper.input')}</span>
         <div className="looper-meter-track">
           <i style={{ width: `${Math.round(inputLevel * 100)}%` }} />
         </div>
@@ -36,19 +38,19 @@ export default function TransportControls({
         className={`looper-record-btn ${recording ? 'is-recording' : ''} ${counting ? 'is-counting' : ''}`}
         onClick={record}
         disabled={maxTracksReached && !busy}
-        aria-label={recording ? 'סיום הקלטה' : counting ? 'ביטול ספירה' : 'התחלת הקלטה'}
+        aria-label={recording ? t('looper.stopRecording') : counting ? t('looper.cancelCountIn') : t('looper.startRecording')}
       >
         <span className="looper-record-symbol" aria-hidden="true" />
-        <strong>{recording ? formatTime(recordingElapsed) : counting ? 'מוכן?' : 'REC'}</strong>
-        <small>{recording ? 'לחץ לסיום' : counting ? 'לחץ לביטול' : hasTracks ? 'שכבה חדשה' : 'שכבה ראשונה'}</small>
+        <strong>{recording ? formatTime(recordingElapsed) : counting ? t('looper.ready') : 'REC'}</strong>
+        <small>{recording ? t('looper.tapToStop') : counting ? t('looper.tapToCancel') : hasTracks ? t('looper.newLayer') : t('looper.firstLayer')}</small>
       </button>
 
       <div className="looper-transport-secondary">
         <button type="button" className="ws-ghost-btn" onClick={actions.play} disabled={!hasTracks || busy}>
-          נגן
+          {t('common.play')}
         </button>
         <button type="button" className="ws-ghost-btn" onClick={actions.stop} disabled={!hasTracks && !busy}>
-          עצור
+          {t('common.stop')}
         </button>
       </div>
     </section>

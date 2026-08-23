@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import CategoryCard from '../../common/CategoryCard';
 import {
   QuarterNoteIcon,
@@ -14,68 +15,62 @@ import './EarTrainingHub.css';
 
 const EarTrainingHub = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const subCategories = [
     {
       id: 'melodic',
       icon: <QuarterNoteIcon />,
-      title: 'Melody',
-      titleHebrew: 'מלודיה',
-      description: 'זיהוי דרגות, כיוון תנועה וסולמות',
+      titleKey: 'categories.melodic',
+      descriptionKey: 'earTraining.descriptions.melodic',
       numExercises: 3,
       route: '/category/ear-training/melodic'
     },
     {
       id: 'harmonic-isolated',
       icon: <PianoOctaveIcon />,
-      title: 'Isolated Harmony',
-      titleHebrew: 'הרמוניה מבודדת',
-      description: 'אופי אקורד, היפוך, סוג וטנשנים',
+      titleKey: 'categories.harmonicIsolated',
+      descriptionKey: 'earTraining.descriptions.harmonicIsolated',
       numExercises: 4,
       route: '/category/ear-training/harmonic-isolated'
     },
     {
       id: 'functional',
       icon: <HubRomanIcon />,
-      title: 'Functional Harmony',
-      titleHebrew: 'הרמוניה פונקציונלית',
-      description: 'דרגות, קדנצות, מהלכים והכתבה',
+      titleKey: 'categories.functional',
+      descriptionKey: 'earTraining.descriptions.functional',
       numExercises: 5,
       route: '/category/ear-training/functional'
     },
     {
       id: 'voice-leading',
       icon: <VoicesCrossIcon />,
-      title: 'Voice Leading',
-      titleHebrew: 'תנועת קול',
-      description: 'עקיבה אחר קו בס וקו סופרן',
+      titleKey: 'categories.voiceLeading',
+      descriptionKey: 'earTraining.descriptions.voiceLeading',
       numExercises: 2,
       route: '/category/ear-training/voice-leading'
     },
     {
       id: 'solfege',
       icon: <SingerStaffIcon />,
-      title: 'Solfège',
-      titleHebrew: 'סולפז\'',
-      description: 'שירה מתווים וזיהוי תיווי',
+      titleKey: 'categories.solfege',
+      descriptionKey: 'earTraining.descriptions.solfege',
       numExercises: 2,
       route: '/category/ear-training/solfege'
     },
     {
       id: 'guitar',
       icon: <GuitarPickIcon />,
-      title: 'Guitar',
-      titleHebrew: 'גיטרה',
-      description: 'מיפוי צוואר ושמיעה צבעונית',
+      titleKey: 'categories.guitar',
+      descriptionKey: 'earTraining.descriptions.guitar',
       numExercises: 1,
       route: '/category/ear-training/guitar'
     },
     {
       id: 'reactive',
       icon: <BoltAuraIcon />,
-      title: 'Reactive',
-      titleHebrew: 'שמיעה ריאקטיבית',
-      description: 'בלי לחשוב, בלי לתייג — רק להגיב לאקורד',
+      titleKey: 'categories.reactive',
+      descriptionKey: 'earTraining.descriptions.reactive',
       numExercises: 2,
       route: '/category/ear-training/reactive'
     }
@@ -87,11 +82,11 @@ const EarTrainingHub = () => {
     <div className="et-hub-page">
       <header className="et-hub-header">
         <button onClick={handleBackToHome} className="et-hub-back-btn">
-          ← Back to Home
+          {t('common.backHome')}
         </button>
         <div className="et-hub-title-block">
-          <h1 className="et-hub-title">שמיעה מוזיקלית</h1>
-          <p className="et-hub-subtitle">Musical Ear Training — 19 Exercises Across 7 Sub-Categories</p>
+          <h1 className="et-hub-title">{t('categories.earTraining')}</h1>
+          <p className="et-hub-subtitle">{t('earTraining.hubSubtitle')}</p>
         </div>
       </header>
 
@@ -101,9 +96,8 @@ const EarTrainingHub = () => {
             key={cat.id}
             categoryId={cat.id}
             icon={cat.icon}
-            title={cat.title}
-            titleHebrew={cat.titleHebrew}
-            description={cat.description}
+            title={t(cat.titleKey)}
+            description={t(cat.descriptionKey)}
             numExercises={cat.numExercises}
             onEnter={() => navigate(cat.route)}
           />

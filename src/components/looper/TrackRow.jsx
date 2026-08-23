@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import WaveformCanvas from './WaveformCanvas';
 
 export default function TrackRow({
@@ -9,6 +10,7 @@ export default function TrackRow({
   anySolo,
   actions,
 }) {
+  const { t } = useTranslation();
   const [label, setLabel] = useState(track.label);
 
   useEffect(() => setLabel(track.label), [track.label]);
@@ -19,7 +21,7 @@ export default function TrackRow({
   };
 
   const remove = () => {
-    if (window.confirm(`למחוק את ${track.label}? אפשר לבטל מיד לאחר מכן.`)) {
+    if (window.confirm(t('looper.deleteConfirm', { name: track.label }))) {
       actions.deleteTrack(track.id);
     }
   };
@@ -38,7 +40,7 @@ export default function TrackRow({
           onKeyDown={(event) => {
             if (event.key === 'Enter') event.currentTarget.blur();
           }}
-          aria-label={`שם ${track.label}`}
+          aria-label={t('looper.layerName', { name: track.label })}
         />
         {isRecording && <span className="looper-track-rec-badge">REC</span>}
       </div>
@@ -47,7 +49,7 @@ export default function TrackRow({
         peaks={track.waveformPeaks}
         playbackPosition={playbackPosition}
         active={isTransportActive}
-        label={`צורת הגל של ${track.label}`}
+        label={t('looper.waveform', { name: track.label })}
       />
 
       <div className="looper-track-controls">
@@ -58,7 +60,7 @@ export default function TrackRow({
             onClick={() => actions.setTrackMute(track.id, !track.muted)}
             aria-pressed={track.muted}
           >
-            השתק
+            {t('looper.mute')}
           </button>
           <button
             type="button"
@@ -66,25 +68,25 @@ export default function TrackRow({
             onClick={() => actions.setTrackSolo(track.id, !track.soloed)}
             aria-pressed={track.soloed}
           >
-            סולו
+            {t('looper.solo')}
           </button>
           <button
             type="button"
             className="looper-mini-btn"
             onClick={() => actions.startRecording(track.id)}
             disabled={isRecording}
-            title="הקלט מחדש באותו מקום"
+            title={t('looper.rerecordTitle')}
           >
-            הקלט מחדש
+            {t('looper.rerecord')}
           </button>
           <button type="button" className="looper-mini-btn danger" onClick={remove} disabled={isRecording}>
-            מחק
+            {t('common.delete')}
           </button>
         </div>
 
         <div className="looper-track-sliders">
           <label>
-            <span>עוצמה</span>
+            <span>{t('looper.volume')}</span>
             <input
               type="range"
               min="0"
@@ -92,11 +94,11 @@ export default function TrackRow({
               step="0.01"
               value={track.volume}
               onChange={(event) => actions.setTrackVolume(track.id, event.target.value)}
-              aria-label={`עוצמת ${track.label}`}
+              aria-label={`${t('looper.volume')} ${track.label}`}
             />
           </label>
           <label>
-            <span>צידוד</span>
+            <span>{t('looper.pan')}</span>
             <input
               type="range"
               min="-1"
@@ -104,7 +106,7 @@ export default function TrackRow({
               step="0.02"
               value={track.pan}
               onChange={(event) => actions.setTrackPan(track.id, event.target.value)}
-              aria-label={`צידוד ${track.label}`}
+              aria-label={`${t('looper.pan')} ${track.label}`}
             />
           </label>
         </div>

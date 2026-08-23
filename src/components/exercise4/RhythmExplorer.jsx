@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as Tone from 'tone';
+import { useTranslation } from 'react-i18next';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
   DEFAULT_RHYTHM_EXPLORER,
@@ -15,6 +16,7 @@ import {
 import { getAllPresets, savePreset } from '../../utils/presetManager';
 
 const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet, setSharedSoundSet }, ref) => {
+  const { t } = useTranslation();
   const [beats, setBeats] = useState(DEFAULT_RHYTHM_EXPLORER.beats);
   const [subdivision, setSubdivision] = useState(DEFAULT_RHYTHM_EXPLORER.subdivision);
   const bpm = sharedBpm;
@@ -304,7 +306,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
   // Save current pattern as preset
   const handleSavePreset = async () => {
     if (!presetName.trim()) {
-      setSaveError('Please enter a preset name');
+      setSaveError(t('rhythm.presetNameRequired'));
       return;
     }
 
@@ -333,9 +335,9 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
       setShowSavePresetModal(false);
 
       // Show success message
-      alert(`Preset "${preset.name}" saved successfully!`);
+      alert(t('rhythm.presetSaved', { name: preset.name }));
     } else {
-      setSaveError(result.error || 'Failed to save preset');
+      setSaveError(result.error || t('rhythm.presetSaveFailed'));
     }
   };
 
@@ -439,7 +441,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
           {/* Beats Control */}
           <div className="control-group">
             <div className="beats-control">
-              <div className="beats-display">Beats: {beats}</div>
+              <div className="beats-display">{t('rhythm.beats')}: {beats}</div>
               <input
                 type="range"
                 min="1"
@@ -467,7 +469,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
 
           {/* Subdivision Control */}
           <div className="control-group subdivision-group">
-            <div className="subdivision-label">Subdivision:</div>
+            <div className="subdivision-label">{t('rhythm.subdivision')}:</div>
             <button
               className="control-btn subdivision-trigger"
               onClick={() => setShowSubdivisionModal(true)}
@@ -479,7 +481,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
 
         {/* Time Signature Selector */}
         <div className="time-signature-selector">
-          <div className="control-label">Time Signature</div>
+          <div className="control-label">{t('rhythm.timeSignature')}</div>
           <div className="time-sig-grid">
             {TIME_SIGNATURES.map((sig) => (
               <button
@@ -502,13 +504,13 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
               setShowLoadPresetModal(true);
             }}
           >
-            📋 Load Preset
+            📋 {t('rhythm.loadPreset')}
           </button>
           <button
             className="presets-btn save-btn"
             onClick={() => setShowSavePresetModal(true)}
           >
-            💾 Save Preset
+            💾 {t('rhythm.savePreset')}
           </button>
         </div>
       </div>
@@ -518,7 +520,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
       {showSubdivisionModal && (
         <div className="modal-overlay" onClick={() => setShowSubdivisionModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Subdivisions: {subdivision}</div>
+            <div className="modal-title">{t('rhythm.subdivisions')}: {subdivision}</div>
             <div className="subdivision-options">
               {SUBDIVISIONS.map((sub) => (
                 <button
@@ -542,17 +544,17 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
       {showLoadPresetModal && (
         <div className="modal-overlay" onClick={() => setShowLoadPresetModal(false)}>
           <div className="modal-content presets-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Load Rhythm Preset</div>
+            <div className="modal-title">{t('rhythm.loadRhythmPreset')}</div>
             <div className="presets-list">
               {allPresets.all.length === 0 ? (
                 <div className="no-presets">
-                  No presets available. Create your first preset by clicking "Save Preset"!
+                  {t('rhythm.noPresets')}
                 </div>
               ) : (
                 <>
                   {allPresets.global.length > 0 && (
                     <div className="preset-category">
-                      <div className="preset-category-title">🌍 Global Presets (Everyone)</div>
+                      <div className="preset-category-title">🌍 {t('rhythm.globalPresets')}</div>
                       {allPresets.global.map((preset) => (
                         <button
                           key={preset.id}
@@ -561,7 +563,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                         >
                           <div className="preset-name">{preset.name}</div>
                           <div className="preset-details">
-                            {preset.timeSignature} • {preset.beats} beats • {preset.bpm} BPM
+                            {preset.timeSignature} • {t('rhythm.beatsCount', { count: preset.beats })} • {preset.bpm} BPM
                           </div>
                         </button>
                       ))}
@@ -570,7 +572,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
 
                   {allPresets.local.length > 0 && (
                     <div className="preset-category">
-                      <div className="preset-category-title">💾 My Presets (Local)</div>
+                      <div className="preset-category-title">💾 {t('rhythm.myPresets')}</div>
                       {allPresets.local.map((preset) => (
                         <button
                           key={preset.id}
@@ -579,7 +581,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                         >
                           <div className="preset-name">{preset.name}</div>
                           <div className="preset-details">
-                            {preset.timeSignature} • {preset.beats} beats • {preset.bpm} BPM
+                            {preset.timeSignature} • {t('rhythm.beatsCount', { count: preset.beats })} • {preset.bpm} BPM
                           </div>
                         </button>
                       ))}
@@ -592,7 +594,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
               className="modal-close-btn"
               onClick={() => setShowLoadPresetModal(false)}
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
         </div>
@@ -602,18 +604,18 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
       {showSavePresetModal && (
         <div className="modal-overlay" onClick={() => setShowSavePresetModal(false)}>
           <div className="modal-content save-preset-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Save Rhythm Preset</div>
+            <div className="modal-title">{t('rhythm.saveRhythmPreset')}</div>
 
             <div className="save-preset-form">
               {/* Preset Name */}
               <div className="form-group">
-                <label htmlFor="preset-name">Preset Name:</label>
+                <label htmlFor="preset-name">{t('rhythm.presetName')}:</label>
                 <input
                   id="preset-name"
                   type="text"
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
-                  placeholder="Enter preset name..."
+                  placeholder={t('rhythm.enterPresetName')}
                   className="preset-name-input"
                 />
               </div>
@@ -626,7 +628,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                     checked={!saveAsGlobal}
                     onChange={() => setSaveAsGlobal(false)}
                   />
-                  <span>💾 Save only for me (Local)</span>
+                  <span>💾 {t('rhythm.saveLocal')}</span>
                 </label>
                 <label className="radio-label">
                   <input
@@ -634,20 +636,20 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                     checked={saveAsGlobal}
                     onChange={() => setSaveAsGlobal(true)}
                   />
-                  <span>🌍 Save for everyone (Global)</span>
+                  <span>🌍 {t('rhythm.saveGlobal')}</span>
                 </label>
               </div>
 
               {/* Password (if global) */}
               {saveAsGlobal && (
                 <div className="form-group">
-                  <label htmlFor="global-password">Password (required for global):</label>
+                  <label htmlFor="global-password">{t('rhythm.globalPassword')}:</label>
                   <input
                     id="global-password"
                     type="password"
                     value={globalPassword}
                     onChange={(e) => setGlobalPassword(e.target.value)}
-                    placeholder="Enter password..."
+                    placeholder={t('rhythm.enterPassword')}
                     className="password-input"
                   />
                 </div>
@@ -664,7 +666,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                   className="modal-action-btn save"
                   onClick={handleSavePreset}
                 >
-                  Save
+                  {t('common.save')}
                 </button>
                 <button
                   className="modal-action-btn cancel"
@@ -676,7 +678,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                     setSaveError('');
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>

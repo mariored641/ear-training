@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './earTrainingShared.css';
 
 /**
@@ -12,6 +13,7 @@ import './earTrainingShared.css';
  *   storageKey?: string  (e.g. 'M1_currentLevel')
  */
 const LevelNavigator = ({ levels, currentLevel, onChange, onClose, isOpen, storageKey }) => {
+  const { t } = useTranslation();
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
     if (isOpen) window.addEventListener('keydown', onKey);
@@ -32,8 +34,8 @@ const LevelNavigator = ({ levels, currentLevel, onChange, onClose, isOpen, stora
     <div className="et-level-overlay" onClick={onClose}>
       <div className="et-level-drawer" onClick={(e) => e.stopPropagation()}>
         <div className="et-level-drawer-header">
-          <h3 className="et-level-drawer-title">בחר שלב</h3>
-          <button className="et-level-drawer-close" onClick={onClose} aria-label="סגור">✕</button>
+          <h3 className="et-level-drawer-title">{t('common.selectLevel')}</h3>
+          <button className="et-level-drawer-close" onClick={onClose} aria-label={t('common.close')}>✕</button>
         </div>
         <ul className="et-level-drawer-list">
           {levels.map((lvl) => (
@@ -44,7 +46,7 @@ const LevelNavigator = ({ levels, currentLevel, onChange, onClose, isOpen, stora
             >
               <span className="et-level-drawer-item-num">{lvl.number}</span>
               <span>{lvl.label}</span>
-              {lvl.number === currentLevel && <span style={{ marginRight: 'auto' }}>✓</span>}
+              {lvl.number === currentLevel && <span style={{ marginInlineStart: 'auto' }}>✓</span>}
             </li>
           ))}
         </ul>

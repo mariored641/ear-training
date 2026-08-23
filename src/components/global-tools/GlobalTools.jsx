@@ -15,6 +15,7 @@
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   WrenchIcon,
   TuningForkIcon,
@@ -64,6 +65,7 @@ function computeFanDirection(centerX, centerY) {
 }
 
 export default function GlobalTools() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState(null); // null | 'tuner' | 'metronome'
   const [position, setPosition] = useState(readSavedPosition);
@@ -264,14 +266,14 @@ export default function GlobalTools() {
       <div
         ref={containerRef}
         className={`gt-cluster gt-fan-${fanDirection} ${open ? 'open' : ''} ${dragging ? 'is-dragging' : ''}`}
-        aria-label="כלים גלובליים"
+        aria-label={t('tools.global')}
         style={inlineStyle}
       >
         {/* Main FAB */}
         <button
           type="button"
           className="gt-fab gt-fab-main"
-          aria-label="כלים — החזק כדי להזיז"
+          aria-label={t('tools.drag')}
           aria-expanded={open}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -288,7 +290,7 @@ export default function GlobalTools() {
 
         {/* Metronome background-active badge */}
         {metroBgActive && (
-          <div className="gt-metro-bg-badge" aria-label="מטרונום פועל ברקע">
+          <div className="gt-metro-bg-badge" aria-label={t('tools.metronomeBackground')}>
             <MetronomeIcon />
           </div>
         )}
@@ -297,7 +299,7 @@ export default function GlobalTools() {
         <button
           type="button"
           className={`gt-fab gt-fab-mini gt-mini-tuner ${panel === 'tuner' ? 'is-active' : ''}`}
-          aria-label="טיונר"
+          aria-label={t('tools.tuner')}
           tabIndex={open ? 0 : -1}
           onClick={() => togglePanel('tuner')}
         >
@@ -307,7 +309,7 @@ export default function GlobalTools() {
         <button
           type="button"
           className={`gt-fab gt-fab-mini gt-mini-metro ${panel === 'metronome' ? 'is-active' : ''}`}
-          aria-label="מטרונום"
+          aria-label={t('tools.metronome')}
           tabIndex={open ? 0 : -1}
           onClick={() => togglePanel('metronome')}
         >
@@ -317,7 +319,7 @@ export default function GlobalTools() {
         <button
           type="button"
           className={`gt-fab gt-fab-mini gt-mini-rec ${recording ? 'is-recording' : ''}`}
-          aria-label={recording ? 'עצור הקלטה' : 'הקלטת רעיון'}
+          aria-label={recording ? t('tools.stopRecording') : t('tools.recording')}
           tabIndex={open ? 0 : -1}
           onClick={handleRecorderClick}
         >

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   EarIcon,
   DrumKitIcon,
@@ -12,17 +13,18 @@ import {
 import './HomePage.css';
 
 const SATELLITES = [
-  { Icon: EarIcon,            label: 'שמיעה מוזיקלית', route: '/category/ear-training' },
-  { Icon: DrumKitIcon,        label: 'קצב',           route: '/exercise/4' },
-  { Icon: QuillIcon,          label: 'הכתבה',         route: '/category/dictation' },
-  { Icon: PentatonicBoxIcon,  label: 'פוזיציות',      route: '/positions' },
-  { Icon: BoomboxIcon,        label: 'באקינג טראקס',  route: '/backing-tracks' },
-  { Icon: ProgressionIcon,    label: 'לופר',           route: '/looper' },
-  { Icon: MicrophoneIcon,     label: 'פידבק',         route: '/feedback' },
+  { Icon: EarIcon,            labelKey: 'home.earTraining', route: '/category/ear-training' },
+  { Icon: DrumKitIcon,        labelKey: 'home.rhythm', route: '/exercise/4' },
+  { Icon: QuillIcon,          labelKey: 'home.dictation', route: '/category/dictation' },
+  { Icon: PentatonicBoxIcon,  labelKey: 'home.positions', route: '/positions' },
+  { Icon: BoomboxIcon,        labelKey: 'home.backingTracks', route: '/backing-tracks' },
+  { Icon: ProgressionIcon,    labelKey: 'home.looper', route: '/looper' },
+  { Icon: MicrophoneIcon,     labelKey: 'home.feedback', route: '/feedback' },
 ];
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const constellationRef = useRef(null);
   const svgRef = useRef(null);
 
@@ -78,7 +80,7 @@ const HomePage = () => {
   const n = SATELLITES.length;
 
   return (
-    <div className="home-page-constellation" dir="rtl">
+    <div className="home-page-constellation">
       <div className="aurora">
         <div className="blob blob-1"></div>
         <div className="blob blob-2"></div>
@@ -91,7 +93,7 @@ const HomePage = () => {
           <svg className="lines" ref={svgRef}></svg>
           <div className="center-hub">
             <div className="center-logo">
-              <img src="/logo.png" alt="אלתור בהישג יד" />
+              <img src="/logo.png" alt={t('home.brandAlt')} />
             </div>
           </div>
           {SATELLITES.map((sat, i) => {
@@ -99,14 +101,19 @@ const HomePage = () => {
             const slot = (i % 7) + 1;
             return (
               <div
-                key={sat.label}
+                key={sat.labelKey}
                 className={`satellite s-${slot}`}
                 style={{ '--angle': `${angle}deg` }}
               >
-                <div className="label">{sat.label}</div>
-                <div className="orb" onClick={() => navigate(sat.route)}>
+                <div className="label">{t(sat.labelKey)}</div>
+                <button
+                  type="button"
+                  className="orb"
+                  onClick={() => navigate(sat.route)}
+                  aria-label={t(sat.labelKey)}
+                >
                   <sat.Icon />
-                </div>
+                </button>
               </div>
             );
           })}

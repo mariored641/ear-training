@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './Exercise2Settings.css';
 
 /**
@@ -9,12 +11,13 @@ import './Exercise2Settings.css';
  * @param {Function} props.onReset - Reset exercise handler
  */
 const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
+  const { t, i18n } = useTranslation();
   const handleStringToggle = (stringKey) => {
     const newStrings = { ...settings.strings };
     const selectedCount = Object.values(newStrings).filter(Boolean).length;
 
     if (newStrings[stringKey] && selectedCount <= 1) {
-      alert('You must have at least 1 string selected');
+      alert(t('legacy.atLeastOneString'));
       return;
     }
 
@@ -25,7 +28,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
   return (
     <div className="exercise2-settings">
       <div className="settings-section">
-        <h4 className="settings-section-title">Source:</h4>
+        <h4 className="settings-section-title">{t('legacy.source')}:</h4>
         <label className="radio-label">
           <input
             type="radio"
@@ -36,7 +39,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               onSettingsChange({ ...settings, source: e.target.value })
             }
           />
-          <span>Library (Pre-made melodies)</span>
+          <span>{t('legacy.libraryMelodies')}</span>
         </label>
         <label className="radio-label">
           <input
@@ -48,14 +51,14 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               onSettingsChange({ ...settings, source: e.target.value })
             }
           />
-          <span>Random Generation</span>
+          <span>{t('legacy.randomGeneration')}</span>
         </label>
       </div>
 
       {settings.source === 'random' && (
         <>
           <div className="settings-section">
-            <h4 className="settings-section-title">Number of Notes:</h4>
+            <h4 className="settings-section-title">{t('legacy.numberNotes')}:</h4>
             <input
               type="range"
               min="1"
@@ -69,7 +72,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
           </div>
 
           <div className="settings-section">
-            <h4 className="settings-section-title">Available Notes:</h4>
+            <h4 className="settings-section-title">{t('legacy.availableNotes')}:</h4>
             <div className="notes-grid">
               {Object.keys(settings.availableNotes).map(note => (
                 <label key={note} className="note-checkbox">
@@ -81,7 +84,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
                       const selectedCount = Object.values(newNotes).filter(Boolean).length;
 
                       if (newNotes[note] && selectedCount <= 1) {
-                        alert('You must have at least 1 note selected');
+                        alert(t('legacy.atLeastOneNote'));
                         return;
                       }
 
@@ -89,14 +92,14 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
                       onSettingsChange({ ...settings, availableNotes: newNotes });
                     }}
                   />
-                  <span>{note}</span>
+                  <span className="music-term">{formatNoteName(note, i18n.language)}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div className="settings-section">
-            <h4 className="settings-section-title">Movement Pattern:</h4>
+            <h4 className="settings-section-title">{t('legacy.movementPattern')}:</h4>
             <label className="radio-label">
               <input
                 type="radio"
@@ -107,7 +110,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
                   onSettingsChange({ ...settings, movement: e.target.value })
                 }
               />
-              <span>Mixed (steps and leaps)</span>
+              <span>{t('legacy.mixedStepsLeaps')}</span>
             </label>
             <label className="radio-label">
               <input
@@ -119,7 +122,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
                   onSettingsChange({ ...settings, movement: e.target.value })
                 }
               />
-              <span>Steps only (1-2 semitones)</span>
+              <span>{t('legacy.stepsOnly')}</span>
             </label>
             <label className="radio-label">
               <input
@@ -131,12 +134,12 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
                   onSettingsChange({ ...settings, movement: e.target.value })
                 }
               />
-              <span>Leaps only (&gt;2 semitones)</span>
+              <span>{t('legacy.leapsOnly')}</span>
             </label>
           </div>
 
           <div className="settings-section">
-            <h4 className="settings-section-title">Octave Range:</h4>
+            <h4 className="settings-section-title">{t('legacy.octaveRange')}:</h4>
             <input
               type="range"
               min="1"
@@ -152,10 +155,10 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
       )}
 
       <div className="settings-section">
-        <h4 className="settings-section-title">Fretboard Range:</h4>
+        <h4 className="settings-section-title">{t('legacy.fretboardRange')}:</h4>
         <div className="range-inputs">
           <label>
-            From:
+            {t('legacy.from')}:
             <input
               type="number"
               min="0"
@@ -170,7 +173,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
             />
           </label>
           <label>
-            To:
+            {t('legacy.to')}:
             <input
               type="number"
               min="1"
@@ -188,7 +191,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
       </div>
 
       <div className="settings-section">
-        <h4 className="settings-section-title">Strings:</h4>
+        <h4 className="settings-section-title">{t('legacy.strings')}:</h4>
         <div className="string-checkboxes">
           {Object.keys(settings.strings).map(stringKey => (
             <label key={stringKey} className="string-checkbox">
@@ -197,14 +200,14 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
                 checked={settings.strings[stringKey]}
                 onChange={() => handleStringToggle(stringKey)}
               />
-              <span>{stringKey}</span>
+              <span className="music-term">{formatNoteName(stringKey.toUpperCase(), i18n.language)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="settings-section">
-        <h4 className="settings-section-title">Display:</h4>
+        <h4 className="settings-section-title">{t('legacy.display')}:</h4>
         <label className="checkbox-label">
           <input
             type="checkbox"
@@ -216,7 +219,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               })
             }
           />
-          <span>Show Note Names</span>
+          <span>{t('legacy.showNoteNames')}</span>
         </label>
         <label className="checkbox-label">
           <input
@@ -229,12 +232,12 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               })
             }
           />
-          <span>Show Fret Dots</span>
+          <span>{t('legacy.showFretDots')}</span>
         </label>
       </div>
 
       <div className="settings-section">
-        <h4 className="settings-section-title">Marking Mode:</h4>
+        <h4 className="settings-section-title">{t('legacy.markingMode')}:</h4>
         <label className="radio-label">
           <input
             type="radio"
@@ -245,7 +248,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               onSettingsChange({ ...settings, marking: e.target.value })
             }
           />
-          <span>In Order (must mark 1, 2, 3...)</span>
+          <span>{t('legacy.inOrder')}</span>
         </label>
         <label className="radio-label">
           <input
@@ -257,12 +260,12 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               onSettingsChange({ ...settings, marking: e.target.value })
             }
           />
-          <span>Free (mark in any order)</span>
+          <span>{t('legacy.free')}</span>
         </label>
       </div>
 
       <div className="settings-section">
-        <h4 className="settings-section-title">Number of Questions:</h4>
+        <h4 className="settings-section-title">{t('legacy.numberQuestions')}:</h4>
         <input
           type="range"
           min="5"
@@ -276,7 +279,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
       </div>
 
       <div className="settings-section">
-        <h4 className="settings-section-title">Instrument Sound:</h4>
+        <h4 className="settings-section-title">{t('legacy.instrumentSound')}:</h4>
         <label className="radio-label">
           <input
             type="radio"
@@ -287,7 +290,7 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               onSettingsChange({ ...settings, instrument: e.target.value })
             }
           />
-          <span>Piano</span>
+          <span>{t('legacy.piano')}</span>
         </label>
         <label className="radio-label">
           <input
@@ -299,13 +302,13 @@ const Exercise2Settings = ({ settings, onSettingsChange, onReset }) => {
               onSettingsChange({ ...settings, instrument: e.target.value })
             }
           />
-          <span>Guitar</span>
+          <span>{t('legacy.guitar')}</span>
         </label>
       </div>
 
       <div className="settings-section">
         <button className="settings-button reset-button" onClick={onReset}>
-          Reset Exercise
+          {t('legacy.resetExercise')}
         </button>
       </div>
     </div>

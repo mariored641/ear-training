@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
@@ -38,6 +39,7 @@ function classifyStepLeap(degs) {
 }
 
 const ExerciseV2 = () => {
+  const { t } = useTranslation();
   const [instrument, setInstrument] = useStoredState('ear-training:V2:instrument', 'piano');
   const [advancement, setAdvancement] = useStoredState('ear-training:V2:advancement', 'auto');
   const [reference, setReference] = useStoredState('ear-training:V2:reference', 'cadence');
@@ -58,10 +60,10 @@ const ExerciseV2 = () => {
         id: Date.now(),
         progression: correct,
         options: [
-          { id: 'up',   label: '↑ עולה' },
-          { id: 'down', label: '↓ יורד' },
-          { id: 'same', label: '→ חוזר' },
-          { id: 'mixed', label: '↕ מעורב' }
+          { id: 'up', label: `↑ ${t('earTraining.directions.up')}` },
+          { id: 'down', label: `↓ ${t('earTraining.directions.down')}` },
+          { id: 'same', label: `→ ${t('earTraining.directions.same')}` },
+          { id: 'mixed', label: `↕ ${t('earTraining.directions.mixed')}` }
         ],
         correctId: id
       };
@@ -73,8 +75,8 @@ const ExerciseV2 = () => {
         id: Date.now(),
         progression: correct,
         options: [
-          { id: 'step', label: 'צעד' },
-          { id: 'leap', label: 'קפיצה' }
+          { id: 'step', label: t('earTraining.directions.step') },
+          { id: 'leap', label: t('earTraining.directions.leap') }
         ],
         correctId: id
       };
@@ -102,10 +104,10 @@ const ExerciseV2 = () => {
     return {
       id: Date.now(),
       progression: correct,
-      options: all.map(p => ({ id: p.id, label: 'סופרן: ' + p.sopranoDegrees.join('-') })),
+      options: all.map(p => ({ id: p.id, label: t('earTraining.options.soprano', { degrees: p.sopranoDegrees.join('-') }) })),
       correctId: correct.id
     };
-  }, []);
+  }, [t]);
 
   const onPlay = useCallback(async (q, _level, ctx) => {
     questionRef.current = q;
@@ -154,7 +156,7 @@ const ExerciseV2 = () => {
         fontWeight: 700,
         cursor: 'pointer'
       }}
-    >🔊 הבלט סופרן</button>
+    >🔊 {t('earTraining.controls.highlightSoprano')}</button>
   );
 
   return (

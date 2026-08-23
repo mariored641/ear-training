@@ -1,26 +1,28 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ExerciseCard from '../home/ExerciseCard';
 import './CategoryScreen.css';
 
 const HarmonicCategoryScreen = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const exercises = [
     {
       id: '4a',
       icon: '🎹',
-      title: 'Single Chord Recognition'
+      titleKey: 'legacy.singleChord'
     },
     {
       id: '4b',
       icon: '🎵',
-      title: 'Chord Tone Melodies'
+      titleKey: 'legacy.chordToneMelodies'
     },
     {
       id: '4c',
       icon: '🎸',
-      title: 'Progressions with Bass'
+      titleKey: 'legacy.progressionsBass'
     }
   ];
 
@@ -32,11 +34,10 @@ const HarmonicCategoryScreen = () => {
     <div className="category-screen">
       <header className="category-screen-header">
         <button className="back-button" onClick={handleBackToHome}>
-          ← Back to Home
+          {t('common.backHome')}
         </button>
         <div className="category-screen-title-container">
-          <h1 className="category-screen-title">Harmonic Ear Training</h1>
-          <h2 className="category-screen-title-hebrew">חטיבת שמיעה הרמונית</h2>
+          <h1 className="category-screen-title">{t('categories.harmonicLegacy')}</h1>
         </div>
       </header>
 
@@ -46,7 +47,7 @@ const HarmonicCategoryScreen = () => {
             key={exercise.id}
             exerciseId={exercise.id}
             icon={exercise.icon}
-            title={exercise.title}
+            title={t(exercise.titleKey)}
             isAvailable={true}
           />
         ))}

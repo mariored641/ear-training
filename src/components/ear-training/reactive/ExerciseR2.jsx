@@ -5,7 +5,6 @@ const ExerciseR2 = () => (
   <ReactiveExercise
     mode="random"
     exerciseId="R2"
-    title="R2 — אקראי מלא"
   />
 );
 

@@ -13,6 +13,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as Tone from 'tone';
+import { useTranslation } from 'react-i18next';
 import { generatePattern, computeExpectedOnsets, evaluateOnsets } from '../../utils/rhythmPatternGenerator';
 import rhythmAudio from '../../utils/rhythmTrainingAudio';
 import { RhythmOnsetDetector } from '../../utils/rhythmOnsetDetector';
@@ -32,6 +33,7 @@ const CALIB_BPM   = 80;
 const CALIB_BEATS = 8;
 
 export default function RhythmDictation({ settings, onActiveChange }) {
+  const { t } = useTranslation();
   const { bpm, numBars, level, soundChoice, bassNote, numQuestions } = settings;
 
   const [appState, setAppState]     = useState(S.IDLE);
@@ -426,13 +428,13 @@ export default function RhythmDictation({ settings, onActiveChange }) {
   }[appState] || '';
 
   const phaseLabel = {
-    [S.IDLE]:        'מוכן לתרגול',
-    [S.PLAYING]:     '🎵 הקשב לפטרן...',
-    [S.WAITING]:     '⏱ עכשיו תורך!',
-    [S.RECORDING]:   '🎸 נגן עכשיו!',
-    [S.CALIBRATING]: `⚙ כיול — נגן עם כל פעמה (${CALIB_BEATS} פעמות)`,
-    [S.DONE]:        `סיום! ${stats.correct}/${stats.rounds} (${successRate ?? 0}%)`,
-    [S.RESULT]:      lastResult?.pass ? '✓ כל הכבוד!' : '✗ נסה שוב',
+    [S.IDLE]:        t('rhythm.ready'),
+    [S.PLAYING]:     t('rhythm.listenPattern'),
+    [S.WAITING]:     t('rhythm.yourTurn'),
+    [S.RECORDING]:   t('rhythm.playNow'),
+    [S.CALIBRATING]: t('rhythm.calibrating', { count: CALIB_BEATS }),
+    [S.DONE]:        t('rhythm.finishedScore', { correct: stats.correct, total: stats.rounds, percent: successRate ?? 0 }),
+    [S.RESULT]:      lastResult?.pass ? t('rhythm.wellDone') : t('rhythm.tryAgain'),
   }[appState] || '';
 
   return (
@@ -454,8 +456,8 @@ export default function RhythmDictation({ settings, onActiveChange }) {
         <div className="rt-vu-row">
           <VUMeter level={audioLevel} recording={appState === S.RECORDING} />
           {appState === S.IDLE && (
-            <button className="rt-calib-btn" onClick={handleCalibrate} title="כיול אוטומטי">
-              ⚙ כיול
+            <button className="rt-calib-btn" onClick={handleCalibrate} title={t('rhythm.autoCalibrate')}>
+              ⚙ {t('rhythm.calibrate')}
             </button>
           )}
         </div>
@@ -464,8 +466,13 @@ export default function RhythmDictation({ settings, onActiveChange }) {
         {calibResult && (
           <div className={`rt-calib-result ${calibResult === 'fail' ? 'fail' : 'pass'}`}>
             {calibResult === 'fail'
-              ? '✗ לא זוהו מספיק הקשות — נסה שוב'
-              : `✓ כויל! רגישות: ${calibResult.newFlux} | עיכוב: ${calibResult.newLatency}ms (${calibResult.matched}/${CALIB_BEATS} הלמות)`
+              ? t('rhythm.calibrationFailed')
+              : t('rhythm.calibrationSucceeded', {
+                  sensitivity: calibResult.newFlux,
+                  latency: calibResult.newLatency,
+                  matched: calibResult.matched,
+                  total: CALIB_BEATS
+                })
             }
           </div>
         )}
@@ -473,11 +480,14 @@ export default function RhythmDictation({ settings, onActiveChange }) {
         {/* Exercise result bar */}
         {appState === S.RESULT && lastResult && (
           <div className={`rt-eval-bar ${lastResult.pass ? 'pass' : 'fail'}`}>
-            <span className="ev-title">{lastResult.pass ? '✓ עבר' : '✗ לא עבר'}</span>
+            <span className="ev-title">{lastResult.pass ? t('rhythm.passed') : t('rhythm.notPassed')}</span>
             <span className="ev-detail">
-              {lastResult.matched}/{lastResult.total} הלמות הותאמו
-              ({Math.round(lastResult.matchPct * 100)}%)
-              {lastResult.extraHits > 0 && ` · ${lastResult.extraHits} עודפות`}
+              {t('rhythm.hitsMatched', {
+                matched: lastResult.matched,
+                total: lastResult.total,
+                percent: Math.round(lastResult.matchPct * 100)
+              })}
+              {lastResult.extraHits > 0 && ` · ${t('rhythm.extraHits', { count: lastResult.extraHits })}`}
             </span>
           </div>
         )}
@@ -485,7 +495,7 @@ export default function RhythmDictation({ settings, onActiveChange }) {
         {/* Session stats */}
         {stats.rounds > 0 && appState !== S.CALIBRATING && appState !== S.DONE && (
           <div className="rt-stats">
-            <strong>{stats.correct}</strong>/{stats.rounds} הצלחות
+            {t('rhythm.successes', { correct: stats.correct, total: stats.rounds })}
             {successRate !== null && <> · {successRate}%</>}
           </div>
         )}
@@ -493,29 +503,32 @@ export default function RhythmDictation({ settings, onActiveChange }) {
         {/* Calibration info */}
         {calibration.fluxThreshold !== 8 || calibration.latencyCompMs !== 65 ? (
           <div className="rt-calib-info">
-            ⚙ מכויל: רגישות {calibration.fluxThreshold} | עיכוב {calibration.latencyCompMs}ms
+            {t('rhythm.calibrationInfo', {
+              sensitivity: calibration.fluxThreshold,
+              latency: calibration.latencyCompMs
+            })}
           </div>
         ) : null}
 
         {appState === S.IDLE && (
           <p className="rt-mic-note">
-            🎙 נדרשת גישה למיקרופון. לחץ ⚙ כיול לכיול אוטומטי לפני התרגול.
+            {t('rhythm.microphoneHelp')}
           </p>
         )}
       </div>
 
       <div className="rt-controls">
         {appState === S.CALIBRATING ? (
-          <button className="rt-ctrl-btn stop" onClick={handleCancelCalib}>✕ ביטול</button>
+          <button className="rt-ctrl-btn stop" onClick={handleCancelCalib}>✕ {t('common.cancel')}</button>
         ) : appState === S.DONE ? (
-          <button className="rt-ctrl-btn start" onClick={handleStart}>↺ התחל מחדש</button>
+          <button className="rt-ctrl-btn start" onClick={handleStart}>↺ {t('rhythm.restart')}</button>
         ) : isActive ? (
           <>
-            <button className="rt-ctrl-btn skip" onClick={handleSkip}>↩ דלג</button>
-            <button className="rt-ctrl-btn stop" onClick={handleStop}>■ עצור</button>
+            <button className="rt-ctrl-btn skip" onClick={handleSkip}>↩ {t('rhythm.skip')}</button>
+            <button className="rt-ctrl-btn stop" onClick={handleStop}>■ {t('common.stop')}</button>
           </>
         ) : (
-          <button className="rt-ctrl-btn start" onClick={handleStart}>▶ התחל</button>
+          <button className="rt-ctrl-btn start" onClick={handleStart}>▶ {t('common.start')}</button>
         )}
       </div>
     </>

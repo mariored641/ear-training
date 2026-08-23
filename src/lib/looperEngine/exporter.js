@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import i18n from '../../i18n/index.js';
 
 function writeAscii(view, offset, text) {
   for (let i = 0; i < text.length; i += 1) view.setUint8(offset + i, text.charCodeAt(i));
@@ -44,7 +45,7 @@ export async function renderMix(tracks, duration, excludeTrackIds = []) {
   const eligible = tracks.filter((track) => !track.muted && !excluded.has(track.id));
   const hasSolo = eligible.some((track) => track.soloed);
   const included = hasSolo ? eligible.filter((track) => track.soloed) : eligible;
-  if (!included.length) throw new Error('יש לבחור לפחות שכבה אחת לייצוא.');
+  if (!included.length) throw new Error(i18n.t('looper.selectTrackToExport'));
 
   const sampleRate = Math.min(48000, included[0].audioData?.sampleRate || 44100);
   const rendered = await Tone.Offline(() => {
@@ -64,6 +65,6 @@ export async function renderMix(tracks, duration, excludeTrackIds = []) {
   }, duration, 2, sampleRate);
 
   const audioBuffer = rendered.get();
-  if (!audioBuffer) throw new Error('יצירת קובץ האודיו נכשלה.');
+  if (!audioBuffer) throw new Error(i18n.t('looper.audioCreationFailed'));
   return audioBufferToWav(audioBuffer);
 }

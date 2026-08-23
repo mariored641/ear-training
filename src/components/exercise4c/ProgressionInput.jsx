@@ -1,5 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { MAJOR_CHORDS, MINOR_CHORDS, NOTE_NAMES } from '../../constants/harmonicDefaults';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './ProgressionInput.css';
 
 const ProgressionInput = ({
@@ -12,6 +14,7 @@ const ProgressionInput = ({
   onChordSelect,
   onBassNoteSelect
 }) => {
+  const { t, i18n } = useTranslation();
   const renderChordSection = (chordIndex) => {
     const isActive = chordIndex === currentChordIndex;
     const isCompleted = chordIndex < currentChordIndex;
@@ -30,7 +33,7 @@ const ProgressionInput = ({
     return (
       <div key={chordIndex} className={containerClass}>
         <div className="section-header">
-          <h3>Chord {chordIndex + 1}:</h3>
+          <h3>{t('legacy.chordNumber', { number: chordIndex + 1 })}:</h3>
           {isCompleted && <span className="completed-badge">✓</span>}
           {isLocked && <span className="locked-badge">🔒</span>}
         </div>
@@ -38,7 +41,7 @@ const ProgressionInput = ({
         {/* Chord buttons */}
         <div className="chord-buttons-section">
           <div className="chord-group">
-            <h4>Major:</h4>
+            <h4>{t('legacy.major')}:</h4>
             <div className="chord-grid">
               {MAJOR_CHORDS.filter(c => availableChords[c]).map(chord => {
                 const isSelected = selectedChord === chord;
@@ -53,7 +56,7 @@ const ProgressionInput = ({
                     onClick={() => isActive && onChordSelect(chordIndex, chord)}
                     disabled={isLocked || isCompleted}
                   >
-                    {chord}
+                    <span className="music-term">{formatNoteName(chord, i18n.language)}</span>
                   </button>
                 );
               })}
@@ -61,7 +64,7 @@ const ProgressionInput = ({
           </div>
 
           <div className="chord-group">
-            <h4>Minor:</h4>
+            <h4>{t('legacy.minor')}:</h4>
             <div className="chord-grid">
               {MINOR_CHORDS.filter(c => availableChords[c]).map(chord => {
                 const isSelected = selectedChord === chord;
@@ -76,7 +79,7 @@ const ProgressionInput = ({
                     onClick={() => isActive && onChordSelect(chordIndex, chord)}
                     disabled={isLocked || isCompleted}
                   >
-                    {chord}
+                    <span className="music-term">{formatNoteName(chord, i18n.language)}</span>
                   </button>
                 );
               })}
@@ -87,7 +90,7 @@ const ProgressionInput = ({
         {/* Bass note buttons (only in with inversions mode) */}
         {withInversions && (
           <div className="bass-buttons-section">
-            <h4>Bass Note {chordIndex + 1}:</h4>
+            <h4>{t('legacy.bassNoteNumber', { number: chordIndex + 1 })}:</h4>
             <div className="bass-grid">
               {NOTE_NAMES.map(note => {
                 const isSelected = selectedBass === note;
@@ -102,7 +105,7 @@ const ProgressionInput = ({
                     onClick={() => isBassActive && onBassNoteSelect(chordIndex, note)}
                     disabled={!isBassActive || isCompleted}
                   >
-                    {note}
+                    <span className="music-term">{formatNoteName(note, i18n.language)}</span>
                   </button>
                 );
               })}

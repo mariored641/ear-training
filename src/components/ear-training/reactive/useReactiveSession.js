@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as SFP from '../../../lib/soundfont/SoundFontPlayer';
+import i18n from '../../../i18n';
 import { buildRandomPool, buildDiatonicPool, pickNextChord, pickRandomKey } from './reactiveChordPool';
 import { SOUNDS, REVEAL_WINDOW_SEC } from './reactiveConstants';
 
@@ -158,7 +159,7 @@ export function useReactiveSession({ mode, tier, sound, chordDuration, sessionMi
       try {
         await SFP.init(() => {});
       } catch (e) {
-        setInitError(e?.message || 'שגיאה באתחול הסאונד');
+        setInitError(e?.message || i18n.t('earTraining.reactive.soundInitError'));
         setIsInitializing(false);
         return;
       }

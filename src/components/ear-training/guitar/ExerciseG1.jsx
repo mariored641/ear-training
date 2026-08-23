@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
@@ -59,9 +60,14 @@ function initSession() {
 
 const ExerciseG1 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const storageKey = 'ear-training:G1:level';
 
   const [level, setLevel]               = useState(() => loadStoredLevel(storageKey, 1));
+  const exerciseTitle = `G1 — ${t('earTraining.exercises.G1')}`;
+  const localizedLevel = t(`earTraining.levels.G1.${level}`, {
+    defaultValue: LEVELS.find(l => l.number === level)?.label
+  });
   const [numQuestions, setNumQuestions] = useState(10);
   const [source, setSource]             = useState('random');
   const [notation, setNotation]         = useState('ordered');
@@ -178,20 +184,20 @@ const ExerciseG1 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="G1 — מיפוי צוואר גיטרה"
+        <EarTrainingHeader exerciseTitle={exerciseTitle}
           levels={LEVELS} currentLevel={level} onLevelChange={setLevel}
           storageKey={storageKey} onBack={() => navigate('/category/ear-training/guitar')} />
         <SessionSummary total={sessionTotalRef.current} firstTry={sessionFirstTryRef.current}
           onRetry={() => { sessionFirstTryRef.current = 0; sessionTotalRef.current = 0; setDone(false); setSessionState(initSession()); loadMelody(1); }}
           onBack={() => navigate('/category/ear-training/guitar')}
-          levelLabel={LEVELS.find(l => l.number === level)?.label} />
+          levelLabel={localizedLevel} />
       </>
     );
   }
 
   return (
-    <div className="exercise2" style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="G1 — מיפוי צוואר גיטרה"
+    <div className="exercise2">
+      <EarTrainingHeader exerciseTitle={exerciseTitle}
         levels={LEVELS} currentLevel={level} onLevelChange={setLevel}
         storageKey={storageKey} onBack={() => navigate('/category/ear-training/guitar')}
         progressCurrent={sessionState.currentQuestion - 1} progressTotal={numQuestions}
@@ -201,7 +207,7 @@ const ExerciseG1 = () => {
       <div style={{ textAlign: 'center', padding: '12px 8px 8px' }}>
         <button style={audioBtn}
           onClick={() => { if (melodyRef.current) AudioPlayer.playSequence(melodyRef.current.notes.map(n => n.fullNote), 100); }}>
-          🔊 נגן מנגינה
+          🔊 {t('earTraining.controls.playMelody')}
         </button>
       </div>
 
@@ -236,11 +242,11 @@ const ExerciseG1 = () => {
       {/* Controls row — settings at bottom */}
       <div style={ctrlRow}>
         <QuestionsCounter value={numQuestions} onChange={v => { setNumQuestions(v); }} min={3} max={20} />
-        <BinaryToggle label="מקור"
-          options={[{ value:'random', label:'אקראי' }, { value:'library', label:'ספרייה' }]}
+        <BinaryToggle label={t('common.source')}
+          options={[{ value:'random', label:t('common.random') }, { value:'library', label:t('common.library') }]}
           value={source} onChange={setSource} />
-        <BinaryToggle label="סימון"
-          options={[{ value:'ordered', label:'בסדר' }, { value:'free', label:'חופשי' }]}
+        <BinaryToggle label={t('earTraining.controls.marking')}
+          options={[{ value:'ordered', label:t('common.ordered') }, { value:'free', label:t('common.free') }]}
           value={notation} onChange={setNotation} />
       </div>
     </div>

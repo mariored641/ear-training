@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './DisplayOptionsBar.css';
 
 const DISPLAY_MODES = [
@@ -8,6 +9,7 @@ const DISPLAY_MODES = [
 ];
 
 const DisplayOptionsBar = ({ selectedMode, onModeChange, showPentatonic, onPentatonicChange }) => {
+  const { t } = useTranslation();
   return (
     <div className="display-options-bar">
       {DISPLAY_MODES.map(mode => (
@@ -16,14 +18,14 @@ const DisplayOptionsBar = ({ selectedMode, onModeChange, showPentatonic, onPenta
           className={`display-mode-btn ${selectedMode === mode.value ? 'active' : ''}`}
           onClick={() => onModeChange(mode.value)}
         >
-          {mode.label}
+          {t(`positions.${mode.value === 'dots' ? 'dotsOnly' : mode.value === 'notes' ? 'noteNames' : 'scaleDegrees'}`)}
         </button>
       ))}
       <button
         className={`display-mode-btn pentatonic-btn ${showPentatonic ? 'active' : ''}`}
         onClick={() => onPentatonicChange(!showPentatonic)}
       >
-        Pentatonic
+        {t('positions.pentatonic')}
       </button>
     </div>
   );

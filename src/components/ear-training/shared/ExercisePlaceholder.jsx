@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import '../../category/CategoryScreen.css';
 
 /**
@@ -8,12 +9,13 @@ import '../../category/CategoryScreen.css';
  */
 const ExercisePlaceholder = ({ id, title, titleHebrew, backTo, levelsCount }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="category-screen">
       <header className="category-screen-header">
         <button className="back-button" onClick={() => navigate(backTo)}>
-          ← חזרה
+          {t('common.back')}
         </button>
         <div className="category-screen-title-container">
           <h1 className="category-screen-title">
@@ -35,18 +37,18 @@ const ExercisePlaceholder = ({ id, title, titleHebrew, backTo, levelsCount }) =>
         }}
       >
         <div style={{ fontSize: 64 }}>🚧</div>
-        <h2 style={{ color: 'var(--color-text)', margin: 0 }}>בקרוב</h2>
+        <h2 style={{ color: 'var(--color-text)', margin: 0 }}>{t('common.comingSoon')}</h2>
         <p style={{ color: 'var(--color-text-secondary)', maxWidth: 480, lineHeight: 1.6 }}>
-          התרגיל הזה יבָּנה בפאזה הבאה של פיתוח חטיבת שמיעה מוזיקלית.
+          {t('earTraining.placeholder.body')}
           {levelsCount && (
             <>
               <br />
-              <strong>שלבים מתוכננים:</strong> {levelsCount}
+              <strong>{t('common.plannedLevels')}:</strong> {levelsCount}
             </>
           )}
         </p>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: 14 }}>
-          (ניווט בלבד — Phase 1)
+          ({t('earTraining.placeholder.navigationOnly')})
         </p>
       </div>
     </div>

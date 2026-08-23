@@ -1,27 +1,28 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ExerciseCard from '../../home/ExerciseCard';
 import { TargetIcon, DirectionUpIcon, ScaleAscendingIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const MelodicSubScreen = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const exercises = [
-    { id: 'M1', icon: <TargetIcon />,          title: 'M1 — זיהוי דרגה מלודית', path: '/exercise/M1' },
-    { id: 'M2', icon: <DirectionUpIcon />,     title: 'M2 — כיוון תנועה מלודית', path: '/exercise/M2' },
-    { id: 'M3', icon: <ScaleAscendingIcon />,  title: 'M3 — זיהוי סולם', path: '/exercise/M3' }
+    { id: 'M1', icon: <TargetIcon />, path: '/exercise/M1' },
+    { id: 'M2', icon: <DirectionUpIcon />, path: '/exercise/M2' },
+    { id: 'M3', icon: <ScaleAscendingIcon />, path: '/exercise/M3' }
   ];
 
   return (
     <div className="category-screen">
       <header className="category-screen-header">
         <button className="back-button" onClick={() => navigate('/category/ear-training')}>
-          ← חזרה לשמיעה מוזיקלית
+          {t('categories.backToEarTraining')}
         </button>
         <div className="category-screen-title-container">
-          <h1 className="category-screen-title">Melody (M)</h1>
-          <h2 className="category-screen-title-hebrew">מלודיה</h2>
+          <h1 className="category-screen-title">{t('categories.melodic')} (M)</h1>
         </div>
       </header>
 
@@ -32,7 +33,7 @@ const MelodicSubScreen = () => {
             exerciseId={ex.id}
             path={ex.path}
             icon={ex.icon}
-            title={ex.title}
+            title={`${ex.id} — ${t(`earTraining.exercises.${ex.id}`)}`}
             isAvailable={true}
           />
         ))}

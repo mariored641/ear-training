@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import BinaryToggle from '../shared/BinaryToggle';
 import { useStoredState } from '../shared/useStoredState';
@@ -19,6 +20,7 @@ const TRIAD_MIN = TRIADS.map(r => r + 'm');
 const SEVENTHS = ['CMaj7','Dm7','G7','Am7','FMaj7'];
 
 const ExerciseH2 = () => {
+  const { t } = useTranslation();
   const [instrument, setInstrument] = useStoredState('ear-training:H2:instrument', 'piano');
   const [voicing, setVoicing] = useStoredState('ear-training:H2:voicing', 'arpeggiated');
 
@@ -38,11 +40,16 @@ const ExerciseH2 = () => {
 
     const chord = pool[Math.floor(Math.random() * pool.length)];
     const inversion = Math.floor(Math.random() * (maxInv + 1));
-    const labels = ['שורש', 'היפוך 1', 'היפוך 2', 'היפוך 3'];
+    const labels = [
+      t('earTraining.options.rootPosition'),
+      t('earTraining.options.inversion1'),
+      t('earTraining.options.inversion2'),
+      t('earTraining.options.inversion3'),
+    ];
     const options = Array.from({ length: maxInv + 1 }, (_, i) => ({ id: String(i), label: labels[i] }));
 
     return { id: Date.now(), chord, inversion, options, correctId: String(inversion) };
-  }, []);
+  }, [t]);
 
   const onPlay = useCallback(async (q) => {
     const v = voicing === 'mixed'
@@ -63,11 +70,11 @@ const ExerciseH2 = () => {
       questionKey={(q) => q.chord + '_' + q.inversion}
       extraControls={
         <BinaryToggle
-          label="נגינה"
+          label={t('earTraining.options.playing')}
           options={[
-            { value: 'strummed',    label: 'סטרום' },
-            { value: 'arpeggiated', label: "ארפג'יו" },
-            { value: 'mixed',       label: 'מעורב' },
+            { value: 'strummed',    label: t('earTraining.options.strum') },
+            { value: 'arpeggiated', label: t('earTraining.options.arpeggio') },
+            { value: 'mixed',       label: t('earTraining.options.mixed') },
           ]}
           value={voicing}
           onChange={setVoicing}

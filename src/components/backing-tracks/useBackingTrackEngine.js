@@ -15,6 +15,7 @@ import { parseChordSymbol, PITCH_NAMES, NOTE_PITCHES } from '../../lib/style-eng
 import { getChordData }        from '../../lib/style-engine/YamChordMap'
 import * as SFP                from '../../lib/soundfont/SoundFontPlayer'
 import { getInstrumentMap }    from '../../constants/genreInstrumentMap'
+import i18n                    from '../../i18n'
 
 // ─── Genre Catalog ─────────────────────────────────────────────────────────────
 // 4 categories × 3 sub-styles each
@@ -1408,7 +1409,7 @@ export function useBackingTrackEngine() {
     } catch (err) {
       console.error('[BackingTrackEngine] play error:', err)
       setSfStatus('error')
-      setSfMsg(`שגיאה: ${err.message}`)
+      setSfMsg(i18n.t('backing.playError', { message: err.message }))
     } finally {
       setIsLoading(false)
     }

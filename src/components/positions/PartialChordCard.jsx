@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   STRING_SETS,
   CAGED_ORDER,
@@ -214,6 +215,7 @@ function PartialChordCard({
   onRemove,
   displayMode = 'tones',
 }) {
+  const { t } = useTranslation();
   const { root, quality, cagedIdx, setIdx } = chord;
   const cagedLetter = CAGED_ORDER[cagedIdx];
   const stringSet = STRING_SETS[setIdx] || STRING_SETS[3];
@@ -244,8 +246,8 @@ function PartialChordCard({
         <button
           className="pcc-remove"
           onClick={stopAnd(onRemove)}
-          aria-label="Remove chord"
-          title="Remove"
+          aria-label={t('positions.removeChord')}
+          title={t('common.delete')}
         >
           ×
         </button>
@@ -259,9 +261,9 @@ function PartialChordCard({
       )}
 
       <div className="pcc-nav pcc-nav-caged">
-        <button className="pcc-arrow" onClick={stopAnd(() => onNavCaged(-1))} aria-label="Previous CAGED shape">‹</button>
+        <button className="pcc-arrow" onClick={stopAnd(() => onNavCaged(-1))} aria-label={t('positions.previousCaged')}>‹</button>
         <span className="pcc-nav-label">CAGED: <b>{cagedLetter}</b></span>
-        <button className="pcc-arrow" onClick={stopAnd(() => onNavCaged(1))} aria-label="Next CAGED shape">›</button>
+        <button className="pcc-arrow" onClick={stopAnd(() => onNavCaged(1))} aria-label={t('positions.nextCaged')}>›</button>
       </div>
 
       <Diagram
@@ -273,9 +275,9 @@ function PartialChordCard({
       />
 
       <div className="pcc-nav pcc-nav-set">
-        <button className="pcc-arrow" onClick={stopAnd(() => onNavSet(-1))} aria-label="Previous string set">‹</button>
+        <button className="pcc-arrow" onClick={stopAnd(() => onNavSet(-1))} aria-label={t('positions.previousStrings')}>‹</button>
         <span className="pcc-nav-label">{stringSet.label}</span>
-        <button className="pcc-arrow" onClick={stopAnd(() => onNavSet(1))} aria-label="Next string set">›</button>
+        <button className="pcc-arrow" onClick={stopAnd(() => onNavSet(1))} aria-label={t('positions.nextStrings')}>›</button>
       </div>
 
       <div className="pcc-tones">{toneLine}</div>

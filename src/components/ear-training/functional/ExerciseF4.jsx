@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import { useStoredState } from '../shared/useStoredState';
 import DegreeNameToggle from '../shared/DegreeNameToggle';
@@ -72,9 +73,14 @@ function makeQuestion(level, prevId = null) {
 
 const ExerciseF4 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const storageKey = 'ear-training:F4:level';
 
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
+  const exerciseTitle = `F4 — ${t('earTraining.exercises.F4')}`;
+  const localizedLevel = t(`earTraining.levels.F4.${level}`, {
+    defaultValue: LEVELS.find(l => l.number === level)?.label
+  });
   const [numQuestions, setNumQuestions] = useState(8);
   const [displayMode, setDisplayMode]  = useState('degrees');
   const [key, setKey]                  = useState('C');
@@ -155,20 +161,20 @@ const ExerciseF4 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="F4 — זיהוי מהלך מוכר" levels={LEVELS} currentLevel={level}
+        <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS} currentLevel={level}
           onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/functional')} />
         <SessionSummary total={numQuestions} firstTry={firstTry}
           onRetry={() => { setQuestionIndex(0); setFirstTry(0); setDone(false); nextQuestion(); }}
           onBack={() => navigate('/category/ear-training/functional')}
-          levelLabel={LEVELS.find(l => l.number === level)?.label} />
+          levelLabel={localizedLevel} />
       </>
     );
   }
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="F4 — זיהוי מהלך מוכר" levels={LEVELS} currentLevel={level}
+    <div>
+      <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS} currentLevel={level}
         onLevelChange={setLevel} storageKey={storageKey}
         onBack={() => navigate('/category/ear-training/functional')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
@@ -177,23 +183,23 @@ const ExerciseF4 = () => {
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
         <DegreeNameToggle mode={displayMode} onToggle={setDisplayMode} />
         <KeySelector value={key} onChange={setKey} />
-        <BinaryToggle label="כלי"
-          options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
+        <BinaryToggle label={t('common.instrument')}
+          options={[{ value:'piano', label:t('common.piano') }, { value:'guitar', label:t('common.guitar') }]}
           value={instrument} onChange={setInstrument} />
-        <BinaryToggle label="רפרנס"
+        <BinaryToggle label={t('common.reference')}
           options={[
-            { value: 'cadence', label: 'קדנצה' },
-            { value: 'chord', label: 'אקורד' },
-            { value: 'note', label: 'תו' },
-            { value: 'none', label: 'ללא' }
+            { value: 'cadence', label: t('common.cadence') },
+            { value: 'chord', label: t('common.chord') },
+            { value: 'note', label: t('common.note') },
+            { value: 'none', label: t('common.none') }
           ]}
           value={reference} onChange={setReference} />
-        <button style={playBtn} onClick={() => playProg(question.correct)}>▶ נגן שוב</button>
+        <button style={playBtn} onClick={() => playProg(question.correct)}>{t('earTraining.controls.playAgain')}</button>
       </div>
 
       {level === 6 && (
         <div style={{ textAlign:'center', fontSize:13, color:'#888', padding:'8px 0' }}>
-          שלב זה כולל עיבודים שונים לאותו מהלך — בקרוב
+          {t('earTraining.prompts.arrangementsSoon')}
         </div>
       )}
 
@@ -212,7 +218,9 @@ const ExerciseF4 = () => {
               ...(ok ? optCorrect : {}),
               ...(bad ? optWrong : {}),
             }}>
-              <div style={{ fontWeight:700, fontSize:15 }}>{p.name}</div>
+              <div style={{ fontWeight:700, fontSize:15 }}>
+                {t(`earTraining.knownProgressions.${p.id}`, { defaultValue: p.name })}
+              </div>
               <div style={{ fontSize:12, color: colored ? '#fff' : '#888', marginTop:4 }}>
                 {displayMode === 'degrees' ? p.degrees.join(' ') : chordDisplay?.join(' ')}
               </div>

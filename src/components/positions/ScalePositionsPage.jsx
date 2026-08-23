@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ControlPanel from './ControlPanel';
 import DisplayOptionsBar from './DisplayOptionsBar';
 import ArpeggioOptionsBar from './ArpeggioOptionsBar';
@@ -10,6 +11,7 @@ import PartialChordsTab from './PartialChordsTab';
 import { generateFretboardNotes } from '../../utils/positionCalculations';
 import { ROOT_DISPLAY_NAMES } from '../../utils/enharmonicUtils';
 import './ScalePositionsPage.css';
+import { formatNoteName } from '../../i18n/musicTerms';
 
 const MAX_ACTIVE_ARPEGGIOS = 3;
 
@@ -31,6 +33,7 @@ function loadPartialChordsFromStorage() {
 
 const ScalePositionsPage = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const [selectedRoot, setSelectedRoot] = useState('A');
   const [selectedType, setSelectedType] = useState('minor');
@@ -101,7 +104,7 @@ const ScalePositionsPage = () => {
     }
   }, []);
 
-  const scaleTitle = `${ROOT_DISPLAY_NAMES[selectedRoot] ?? selectedRoot} ${selectedType === 'major' ? 'Major' : 'Minor'}`;
+  const scaleTitle = `${formatNoteName(ROOT_DISPLAY_NAMES[selectedRoot] ?? selectedRoot, i18n.language)} ${t(`common.${selectedType}`)}`;
 
   // Shared fretboard + controls used by both positions and arpeggios tabs
   const sharedControls = (
@@ -123,12 +126,12 @@ const ScalePositionsPage = () => {
       {/* Header */}
       <header className="positions-header">
         <div className="header-left">
-          <button className="back-btn" onClick={() => navigate('/')}>
+          <button className="back-btn" onClick={() => navigate('/')} aria-label={t('common.backHome')}>
             &larr;
           </button>
         </div>
         <div className="header-center">
-          <h1 className="positions-title">Scale Positions</h1>
+          <h1 className="positions-title">{t('positions.title')}</h1>
           <p className="positions-subtitle">{scaleTitle}</p>
         </div>
         <div className="header-right" />
@@ -140,25 +143,25 @@ const ScalePositionsPage = () => {
           className={`tab-btn ${activeTab === 'positions' ? 'active' : ''}`}
           onClick={() => handleTabChange('positions')}
         >
-          Positions
+          {t('positions.tabs.positions')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'arpeggios' ? 'active' : ''}`}
           onClick={() => handleTabChange('arpeggios')}
         >
-          Arpeggios
+          {t('positions.tabs.arpeggios')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'allscales' ? 'active' : ''}`}
           onClick={() => handleTabChange('allscales')}
         >
-          All Scales
+          {t('positions.tabs.allScales')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'partialchords' ? 'active' : ''}`}
           onClick={() => handleTabChange('partialchords')}
         >
-          Partial Chords
+          {t('positions.tabs.partialChords')}
         </button>
       </div>
 

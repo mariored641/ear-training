@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { BackingPlayer } from './BackingPlayer.jsx'
 import './BackingTracksPage.css'
 
 const BackingTracksPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   // Add Aurora body class while this page is mounted
   useEffect(() => {
@@ -23,8 +25,8 @@ const BackingTracksPage = () => {
       <div className="stars" aria-hidden="true" />
 
       <header className="bt-header">
-        <button className="bt-back-btn" onClick={() => navigate('/')}>←</button>
-        <h1 className="bt-title">Backing Tracks</h1>
+        <button className="bt-back-btn" onClick={() => navigate('/')} aria-label={t('common.backHome')}>←</button>
+        <h1 className="bt-title">{t('backing.title')}</h1>
       </header>
       <main className="bt-main">
         <BackingPlayer />

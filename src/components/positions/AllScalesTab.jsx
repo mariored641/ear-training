@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import AllScalesFretboard from './AllScalesFretboard';
 import {
   SCALE_CATEGORIES,
@@ -12,6 +13,7 @@ import {
 import { CHROMATIC_SCALE } from '../../constants/positionData';
 import { buildEnharmonicDisplayMap, buildDefaultDisplayMap } from '../../utils/enharmonicUtils';
 import './AllScalesTab.css';
+import { formatNoteName } from '../../i18n/musicTerms';
 
 const HIGHLIGHT_PALETTE = ['#FFC107', '#E91E8C', '#00BCD4', '#76FF03', '#FF5722', '#9C27B0'];
 const OVERLAY_COLORS    = ['#E91E8C', '#FFC107', '#00BCD4', '#76FF03'];
@@ -28,6 +30,9 @@ function buildSelectorGroups() {
 const SELECTOR_GROUPS = buildSelectorGroups();
 
 const AllScalesTab = () => {
+  const { t, i18n } = useTranslation();
+  const itemName = (item) => t(`positions.musicItems.${item.id}`, { defaultValue: item.name });
+  const categoryName = (category) => t(`positions.musicCategories.${category.id}`, { defaultValue: category.label });
   const [selectedRoot, setSelectedRoot]     = useState('A');
   const [selectedId, setSelectedId]         = useState(null);   // scale or chord id
   const [activeNotes, setActiveNotes]       = useState(new Set()); // pitch class set
@@ -192,32 +197,32 @@ const AllScalesTab = () => {
         <div className="ast-row ast-row-main">
           {/* Root */}
           <div className="ast-group">
-            <label className="ast-label">Root</label>
+            <label className="ast-label">{t('common.root')}</label>
             <select
               className="ast-select ast-select-root"
               value={selectedRoot}
               onChange={e => handleRootChange(e.target.value)}
             >
               {CHROMATIC_SCALE.map(n => (
-                <option key={n} value={n}>{NOTE_DISPLAY_LABELS[n]}</option>
+                <option key={n} value={n}>{formatNoteName(NOTE_DISPLAY_LABELS[n], i18n.language)}</option>
               ))}
             </select>
           </div>
 
           {/* Scale / Chord */}
           <div className="ast-group ast-group-scale">
-            <label className="ast-label">Scale / Chord</label>
+            <label className="ast-label">{t('positions.scaleChord')}</label>
             <select
               className="ast-select ast-select-scale"
               value={selectedId || ''}
               onChange={e => handleScaleChange(e.target.value)}
             >
-              <option value="">— empty —</option>
+              <option value="">— {t('positions.empty')} —</option>
               {SELECTOR_GROUPS.map(group =>
                 group.type === 'sep' ? null : (
-                  <optgroup key={group.id} label={group.label}>
+                  <optgroup key={group.id} label={categoryName(group)}>
                     {group.items.map(item => (
-                      <option key={item.id} value={item.id}>{item.name}</option>
+                      <option key={item.id} value={item.id}>{itemName(item)}</option>
                     ))}
                   </optgroup>
                 )
@@ -227,7 +232,7 @@ const AllScalesTab = () => {
 
           {/* Display mode */}
           <div className="ast-group">
-            <label className="ast-label">Display</label>
+            <label className="ast-label">{t('common.display')}</label>
             <div className="ast-mode-btns">
               {['dots', 'notes', 'degrees'].map(m => (
                 <button
@@ -245,25 +250,27 @@ const AllScalesTab = () => {
         {/* Row 2: Actions — clear notes, clear range, clear colors */}
         <div className="ast-row ast-row-actions">
           <button className="ast-action-btn" onClick={() => { setActiveNotes(new Set()); setSelectedId(null); }}>
-            Clear notes
+            {t('positions.clearNotes')}
           </button>
           {hasRange && (
             <button className="ast-action-btn" onClick={clearRange}>
-              Clear range
+              {t('positions.clearRange')}
             </button>
           )}
           {Object.keys(highlightColors).length > 0 && (
             <button className="ast-action-btn" onClick={() => setHighlightColors({})}>
-              Clear colors
+              {t('positions.clearColors')}
             </button>
           )}
-          <span className="ast-hint">tap note = show/hide · long press = color</span>
+          <span className="ast-hint">{t('positions.tapHint')}</span>
         </div>
 
         {/* Color picker (when long-pressing a note) */}
         {colorPickerNote && (
           <div className="ast-color-picker">
-            <span className="ast-color-label">Color for <strong>{colorPickerNote}</strong>:</span>
+            <span className="ast-color-label">{t('positions.colorFor', {
+              note: formatNoteName(colorPickerNote, i18n.language)
+            })}</span>
             {HIGHLIGHT_PALETTE.map(color => (
               <button
                 key={color}
@@ -275,18 +282,18 @@ const AllScalesTab = () => {
             <button
               className="ast-color-swatch ast-color-off"
               onClick={() => applyHighlight(colorPickerNote, null)}
-              title="Remove color"
+              title={t('positions.removeColor')}
             >✕</button>
-            <button className="ast-color-close" onClick={() => setColorPickerNote(null)}>Done</button>
+            <button className="ast-color-close" onClick={() => setColorPickerNote(null)}>{t('common.done')}</button>
           </div>
         )}
 
         {/* Chord Overlays */}
         <div className="ast-overlays-section">
           <div className="ast-overlays-header">
-            <span className="ast-label">Chord Overlays</span>
+            <span className="ast-label">{t('positions.chordOverlays')}</span>
             {overlays.length < MAX_OVERLAYS && (
-              <button className="ast-add-overlay-btn" onClick={addOverlay}>+ Add</button>
+              <button className="ast-add-overlay-btn" onClick={addOverlay}>+ {t('common.add')}</button>
             )}
           </div>
 
@@ -301,7 +308,7 @@ const AllScalesTab = () => {
                 onChange={e => updateOverlay(ov.id, 'root', e.target.value)}
               >
                 {CHROMATIC_SCALE.map(n => (
-                  <option key={n} value={n}>{NOTE_DISPLAY_LABELS[n]}</option>
+                  <option key={n} value={n}>{formatNoteName(NOTE_DISPLAY_LABELS[n], i18n.language)}</option>
                 ))}
               </select>
 
@@ -312,16 +319,16 @@ const AllScalesTab = () => {
                 onChange={e => updateOverlay(ov.id, 'chordId', e.target.value)}
               >
                 {CHORD_CATEGORIES.map(cat => (
-                  <optgroup key={cat.id} label={cat.label}>
+                  <optgroup key={cat.id} label={categoryName(cat)}>
                     {cat.items.map(item => (
-                      <option key={item.id} value={item.id}>{item.name}</option>
+                      <option key={item.id} value={item.id}>{itemName(item)}</option>
                     ))}
                   </optgroup>
                 ))}
                 {SCALE_CATEGORIES.map(cat => (
-                  <optgroup key={'sc-' + cat.id} label={'Scale: ' + cat.label}>
+                  <optgroup key={'sc-' + cat.id} label={`${t('positions.scale')}: ${categoryName(cat)}`}>
                     {cat.items.map(item => (
-                      <option key={item.id} value={item.id}>{item.name}</option>
+                      <option key={item.id} value={item.id}>{itemName(item)}</option>
                     ))}
                   </optgroup>
                 ))}
@@ -335,7 +342,7 @@ const AllScalesTab = () => {
           ))}
 
           {overlays.length === 0 && (
-            <p className="ast-overlay-hint">Add chord overlays to see colored rings on the fretboard.</p>
+            <p className="ast-overlay-hint">{t('positions.addOverlayHint')}</p>
           )}
         </div>
 

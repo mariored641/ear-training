@@ -11,12 +11,14 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as Tone from 'tone';
+import { useTranslation } from 'react-i18next';
 import { generatePattern } from '../../utils/rhythmPatternGenerator';
 import rhythmAudio from '../../utils/rhythmTrainingAudio';
 
 const S = { IDLE: 'idle', APP: 'app', STUDENT: 'student' };
 
 export default function CallAndResponse({ settings, onActiveChange }) {
+  const { t } = useTranslation();
   const { bpm, numBars, level, soundChoice, bassNote } = settings;
 
   const [appState, setAppState]     = useState(S.IDLE);
@@ -112,9 +114,9 @@ export default function CallAndResponse({ settings, onActiveChange }) {
   }[appState] || '';
 
   const phaseLabel = {
-    [S.IDLE]:    'מוכן לתרגול',
-    [S.APP]:     '🎵 תור האפליקציה...',
-    [S.STUDENT]: '🎸 תורך לנגן!',
+    [S.IDLE]:    t('rhythm.ready'),
+    [S.APP]:     t('rhythm.appTurn'),
+    [S.STUDENT]: t('rhythm.yourTurn'),
   }[appState] || '';
 
   return (
@@ -127,21 +129,21 @@ export default function CallAndResponse({ settings, onActiveChange }) {
 
       {roundCount > 0 && (
         <div className="rt-stats" style={{ marginTop: 8 }}>
-          סבב <strong>{roundCount}</strong>
+          {t('rhythm.round', { count: roundCount })}
         </div>
       )}
 
       {appState === S.IDLE && (
         <p className="rt-mic-note">
-          האפליקציה מנגנת פטרן — הגיב עם גיטרה בסגנון חופשי. לא נדרש מיקרופון.
+          {t('rhythm.callResponseHelp')}
         </p>
       )}
 
       <div className="rt-controls">
         {isActive ? (
-          <button className="rt-ctrl-btn stop" onClick={handleStop}>■ עצור</button>
+          <button className="rt-ctrl-btn stop" onClick={handleStop}>■ {t('common.stop')}</button>
         ) : (
-          <button className="rt-ctrl-btn start" onClick={handleStart}>▶ התחל</button>
+          <button className="rt-ctrl-btn start" onClick={handleStart}>▶ {t('common.start')}</button>
         )}
       </div>
     </>

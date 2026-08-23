@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './FeedbackPage.css';
 
 // ─── Utilities ────────────────────────────────────────────────
@@ -81,6 +82,7 @@ function loadYouTubeApi(onReady) {
 // ─── LevelMeter ───────────────────────────────────────────────
 
 const LevelMeter = ({ stream }) => {
+  const { t } = useTranslation();
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const [showTip, setShowTip] = useState(false);
@@ -125,12 +127,10 @@ const LevelMeter = ({ stream }) => {
   return (
     <div className="fb-meter-wrap">
       <canvas ref={canvasRef} className="fb-meter-canvas" width={160} height={18} />
-      <button className="fb-meter-help" onClick={() => setShowTip(v => !v)} aria-label="עזרה">?</button>
+      <button className="fb-meter-help" onClick={() => setShowTip(v => !v)} aria-label={t('feedback.help')}>?</button>
       {showTip && (
         <div className="fb-meter-tip">
-          נגן כמה אקורדים ובדוק שהבר קופץ גבוה יותר כשאתה מנגן מאשר כשאתה שותק.
-          אם הבר תמיד גבוה גם בלי גיטרה — הנמך את עוצמת הבאקינג.
-          אם הבר בקושי זז — התקרב עם המכשיר או הגבר את הגיטרה.
+          {t('feedback.meterHelp')}
         </div>
       )}
     </div>
@@ -140,6 +140,7 @@ const LevelMeter = ({ stream }) => {
 // ─── CameraPiP ────────────────────────────────────────────────
 
 const CameraPiP = ({ stream, onSwitch, canSwitch, mirrored }) => {
+  const { t } = useTranslation();
   const videoRef = useRef(null);
   const pipRef = useRef(null);
   const drag = useRef(null);
@@ -171,7 +172,7 @@ const CameraPiP = ({ stream, onSwitch, canSwitch, mirrored }) => {
       <video ref={videoRef} className="fb-pip-video" autoPlay playsInline muted
         style={{ transform: mirrored ? 'scaleX(-1)' : 'none' }} />
       {canSwitch && (
-        <button className="fb-pip-switch" onClick={onSwitch} title="החלף מצלמה">🔄</button>
+        <button className="fb-pip-switch" onClick={onSwitch} title={t('feedback.switchCamera')}>🔄</button>
       )}
     </div>
   );
@@ -180,29 +181,30 @@ const CameraPiP = ({ stream, onSwitch, canSwitch, mirrored }) => {
 // ─── ZoomableImage ────────────────────────────────────────────
 
 const ZoomableImage = ({ src }) => {
+  const { t } = useTranslation();
   const imgRef = useRef(null);
-  const t = useRef({ scale: 1, tx: 0, ty: 0 });
+  const transformRef = useRef({ scale: 1, tx: 0, ty: 0 });
   const pinchRef = useRef(null);
   const panRef = useRef(null);
   const lastTapRef = useRef(0);
 
   const apply = () => {
     if (imgRef.current) {
-      const { scale, tx, ty } = t.current;
+      const { scale, tx, ty } = transformRef.current;
       imgRef.current.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
     }
   };
-  const reset = () => { t.current = { scale: 1, tx: 0, ty: 0 }; apply(); };
+  const reset = () => { transformRef.current = { scale: 1, tx: 0, ty: 0 }; apply(); };
 
   const onTouchStart = (e) => {
     if (e.touches.length === 2) {
       e.preventDefault();
       const dx = e.touches[1].clientX - e.touches[0].clientX;
       const dy = e.touches[1].clientY - e.touches[0].clientY;
-      pinchRef.current = { dist: Math.hypot(dx, dy), scale0: t.current.scale };
+      pinchRef.current = { dist: Math.hypot(dx, dy), scale0: transformRef.current.scale };
       panRef.current = null;
     } else if (e.touches.length === 1) {
-      panRef.current = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, tx0: t.current.tx, ty0: t.current.ty };
+      panRef.current = { x0: e.touches[0].clientX, y0: e.touches[0].clientY, tx0: transformRef.current.tx, ty0: transformRef.current.ty };
     }
   };
   const onTouchMove = (e) => {
@@ -211,12 +213,12 @@ const ZoomableImage = ({ src }) => {
       const dx = e.touches[1].clientX - e.touches[0].clientX;
       const dy = e.touches[1].clientY - e.touches[0].clientY;
       const dist = Math.hypot(dx, dy);
-      t.current.scale = Math.max(1, Math.min(6, pinchRef.current.scale0 * (dist / pinchRef.current.dist)));
-      if (t.current.scale <= 1.01) { t.current.tx = 0; t.current.ty = 0; }
+      transformRef.current.scale = Math.max(1, Math.min(6, pinchRef.current.scale0 * (dist / pinchRef.current.dist)));
+      if (transformRef.current.scale <= 1.01) { transformRef.current.tx = 0; transformRef.current.ty = 0; }
       apply();
-    } else if (e.touches.length === 1 && panRef.current && t.current.scale > 1) {
-      t.current.tx = panRef.current.tx0 + (e.touches[0].clientX - panRef.current.x0);
-      t.current.ty = panRef.current.ty0 + (e.touches[0].clientY - panRef.current.y0);
+    } else if (e.touches.length === 1 && panRef.current && transformRef.current.scale > 1) {
+      transformRef.current.tx = panRef.current.tx0 + (e.touches[0].clientX - panRef.current.x0);
+      transformRef.current.ty = panRef.current.ty0 + (e.touches[0].clientY - panRef.current.y0);
       apply();
     }
   };
@@ -231,8 +233,8 @@ const ZoomableImage = ({ src }) => {
   };
   const onWheel = (e) => {
     e.preventDefault();
-    t.current.scale = Math.max(1, Math.min(6, t.current.scale * (e.deltaY < 0 ? 1.1 : 0.9)));
-    if (t.current.scale <= 1.01) { t.current.tx = 0; t.current.ty = 0; }
+    transformRef.current.scale = Math.max(1, Math.min(6, transformRef.current.scale * (e.deltaY < 0 ? 1.1 : 0.9)));
+    if (transformRef.current.scale <= 1.01) { transformRef.current.tx = 0; transformRef.current.ty = 0; }
     apply();
   };
 
@@ -241,7 +243,7 @@ const ZoomableImage = ({ src }) => {
       onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
       onWheel={onWheel} onDoubleClick={reset}>
       <img ref={imgRef} src={src} className="fb-diagram-img" alt="diagram" draggable={false} />
-      <div className="fb-diagram-hint">זום: פינץ׳ / גלגלת • דאבל-טאפ לאיפוס</div>
+      <div className="fb-diagram-hint">{t('feedback.zoomHint')}</div>
     </div>
   );
 };
@@ -249,6 +251,7 @@ const ZoomableImage = ({ src }) => {
 // ─── DiagramViewer ────────────────────────────────────────────
 
 const DiagramViewer = ({ source }) => {
+  const { t } = useTranslation();
   const [blobUrl, setBlobUrl] = useState(null);
   useEffect(() => {
     if (source instanceof File) {
@@ -267,7 +270,7 @@ const DiagramViewer = ({ source }) => {
   if (isImage) return <ZoomableImage src={srcUrl} />;
   return (
     <div className="fb-diagram-viewer">
-      <iframe src={srcUrl} className="fb-diagram-iframe" title="diagram" />
+      <iframe src={srcUrl} className="fb-diagram-iframe" title={t('feedback.diagram')} />
     </div>
   );
 };
@@ -420,6 +423,7 @@ const YouTubePip = ({ youtubeId }) => {
 
 const PrepScreen = ({ onContinue }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -429,32 +433,32 @@ const PrepScreen = ({ onContinue }) => {
 
   const handleContinue = async () => {
     const id = extractYouTubeId(url.trim());
-    if (!id) { setError('נא להזין קישור YouTube תקין'); return; }
+    if (!id) { setError(t('feedback.invalidYoutube')); return; }
     setError(''); setLoading(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: RECORD_AUDIO_CONSTRAINTS });
       const diagramSource = diagramFile || diagramUrl.trim() || null;
       onContinue({ youtubeId: id, stream, diagramSource });
     } catch (err) {
-      let msg = 'שגיאה בגישה למצלמה/מיקרופון.';
+      let msg = t('feedback.mediaError');
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
-        msg = 'הרשאות מצלמה/מיקרופון נדחו. אפשר הרשאות בהגדרות הדפדפן ונסה שוב.';
+        msg = t('feedback.permissionDenied');
       else if (err.name === 'NotFoundError')
-        msg = 'לא נמצאה מצלמה או מיקרופון במכשיר.';
+        msg = t('feedback.deviceNotFound');
       setError(msg); setLoading(false);
     }
   };
 
   return (
     <div className="fb-prep-screen">
-      <button className="fb-nav-back" onClick={() => navigate('/')}>← בית</button>
+      <button className="fb-nav-back" onClick={() => navigate('/')}>← {t('common.backHome')}</button>
       <div className="fb-prep-card">
         <div className="fb-prep-icon">📹</div>
-        <h1 className="fb-prep-title">פידבק</h1>
-        <p className="fb-prep-subtitle">הקלט את עצמך מנגן על גבי באקינג טראק ושלח למישר</p>
+        <h1 className="fb-prep-title">{t('feedback.title')}</h1>
+        <p className="fb-prep-subtitle">{t('feedback.subtitle')}</p>
 
         <div className="fb-field">
-          <label className="fb-label" htmlFor="yt-url">קישור YouTube לבאקינג טראק</label>
+          <label className="fb-label" htmlFor="yt-url">{t('feedback.youtubeLink')}</label>
           <input id="yt-url" className="fb-input" type="url"
             placeholder="https://www.youtube.com/watch?v=..."
             value={url} onChange={e => setUrl(e.target.value)}
@@ -464,36 +468,35 @@ const PrepScreen = ({ onContinue }) => {
 
         <div className="fb-field">
           <label className="fb-label">
-            דיאגרמה <span className="fb-optional">(אופציונלי)</span>
+            {t('feedback.diagram')} <span className="fb-optional">({t('common.optional')})</span>
           </label>
           <div className="fb-tab-row">
             <button className={`fb-tab${diagramTab === 'file' ? ' fb-tab--active' : ''}`}
-              onClick={() => setDiagramTab('file')}>העלה קובץ</button>
+              onClick={() => setDiagramTab('file')}>{t('feedback.uploadFile')}</button>
             <button className={`fb-tab${diagramTab === 'url' ? ' fb-tab--active' : ''}`}
-              onClick={() => setDiagramTab('url')}>קישור</button>
+              onClick={() => setDiagramTab('url')}>{t('feedback.link')}</button>
           </div>
           {diagramTab === 'file' ? (
             <label className={`fb-file-btn${diagramFile ? ' fb-file-btn--done' : ''}`}>
-              {diagramFile ? `✓ ${diagramFile.name}` : '📎 בחר תמונה או PDF'}
+              {diagramFile ? `✓ ${diagramFile.name}` : `📎 ${t('feedback.chooseImagePdf')}`}
               <input type="file" accept="image/*,.pdf" style={{ display: 'none' }}
                 onChange={e => setDiagramFile(e.target.files[0] || null)} />
             </label>
           ) : (
             <input className="fb-input" type="url"
-              placeholder="קישור לתמונה או Google Drive..."
+              placeholder={t('feedback.diagramUrl')}
               value={diagramUrl} onChange={e => setDiagramUrl(e.target.value)} dir="ltr" />
           )}
         </div>
 
         <div className="fb-notice">
-          🔊 וודא שהבאקינג טראק יוצא מהרמקול של המכשיר ולא מאוזניות —
-          המיקרופון צריך לקלוט גם אותו
+          🔊 {t('feedback.speakerNotice')}
         </div>
 
         {error && <div className="fb-error">{error}</div>}
         <button className="fb-continue-btn" onClick={handleContinue}
           disabled={loading || !url.trim()}>
-          {loading ? 'מבקש הרשאות...' : 'המשך →'}
+          {loading ? t('feedback.requestingPermissions') : `${t('feedback.continue')} →`}
         </button>
       </div>
     </div>
@@ -503,6 +506,7 @@ const PrepScreen = ({ onContinue }) => {
 // ─── RecordingScreen ──────────────────────────────────────────
 
 const RecordingScreen = ({ youtubeId, stream: initStream, diagramSource, onFinished, onBack }) => {
+  const { t } = useTranslation();
   const [stream, setStream] = useState(initStream);
   const [facingMode, setFacingMode] = useState('user');
   const [canSwitch, setCanSwitch] = useState(false);
@@ -547,7 +551,7 @@ const RecordingScreen = ({ youtubeId, stream: initStream, diagramSource, onFinis
     const mime = getSupportedMimeType();
     let recorder;
     try { recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
-    catch { try { recorder = new MediaRecorder(stream); } catch (e) { alert('הדפדפן אינו תומך בהקלטת וידאו: ' + e.message); return; } }
+    catch { try { recorder = new MediaRecorder(stream); } catch (e) { alert(t('feedback.videoUnsupported', { message: e.message })); return; } }
     recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     recorder.onstop = () => {
       const finalMime = recorder.mimeType || mime || 'video/webm';
@@ -591,7 +595,7 @@ const RecordingScreen = ({ youtubeId, stream: initStream, diagramSource, onFinis
       ) : (
         <div className="fb-yt-wrapper">
           <div ref={ytDivRef} className="fb-yt-div" />
-          <button className="fb-fullscreen-btn" onClick={goFullscreen} title="מסך מלא">⛶</button>
+          <button className="fb-fullscreen-btn" onClick={goFullscreen} title={t('feedback.fullScreen')}>⛶</button>
         </div>
       )}
 
@@ -604,11 +608,11 @@ const RecordingScreen = ({ youtubeId, stream: initStream, diagramSource, onFinis
       <div className="fb-rec-area">
         <button className={`fb-rec-btn${isRecording ? ' fb-rec-btn--rec' : ''}`}
           onClick={isRecording ? stopRec : startRec}
-          aria-label={isRecording ? 'עצור הקלטה' : 'התחל הקלטה'} />
+          aria-label={isRecording ? t('feedback.stopRecording') : t('feedback.startRecording')} />
       </div>
 
       {!isRecording && (
-        <button className="fb-back-btn" onClick={onBack}>← חזרה</button>
+        <button className="fb-back-btn" onClick={onBack}>{t('common.backArrow')}</button>
       )}
     </div>
   );
@@ -617,6 +621,7 @@ const RecordingScreen = ({ youtubeId, stream: initStream, diagramSource, onFinis
 // ─── PreviewScreen ────────────────────────────────────────────
 
 const PreviewScreen = ({ blob, mimeType, onRecordAgain }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const urlRef = useRef(null);
@@ -633,7 +638,7 @@ const PreviewScreen = ({ blob, mimeType, onRecordAgain }) => {
   const handleShare = async () => {
     const file = new File([blob], `guitar-feedback.${ext}`, { type: mimeType.split(';')[0] });
     if (navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'פידבק לגיטרה' }); return; }
+      try { await navigator.share({ files: [file], title: t('feedback.shareTitle') }); return; }
       catch (e) { if (e.name !== 'AbortError') console.error(e); }
     }
     handleSave();
@@ -648,17 +653,17 @@ const PreviewScreen = ({ blob, mimeType, onRecordAgain }) => {
 
   return (
     <div className="fb-preview-screen">
-      <button className="fb-nav-back" onClick={() => navigate('/')}>← בית</button>
+      <button className="fb-nav-back" onClick={() => navigate('/')}>{t('common.backHome')}</button>
       <div className="fb-preview-card">
-        <h2 className="fb-preview-title">הצגה מקדימה</h2>
+        <h2 className="fb-preview-title">{t('feedback.preview')}</h2>
         <video ref={videoRef} className="fb-preview-video" controls playsInline />
         <div className="fb-preview-actions">
-          <button className="fb-share-btn" onClick={handleShare}>📤 שלח למישר</button>
+          <button className="fb-share-btn" onClick={handleShare}>📤 {t('feedback.send')}</button>
           <button className={`fb-save-btn${saved ? ' fb-save-btn--done' : ''}`}
             onClick={handleSave} disabled={saving}>
-            {saved ? '✓ נשמר למכשיר' : saving ? 'שומר...' : '💾 שמור למכשיר'}
+            {saved ? `✓ ${t('feedback.saved')}` : saving ? t('feedback.saving') : `💾 ${t('feedback.saveDevice')}`}
           </button>
-          <button className="fb-again-btn" onClick={onRecordAgain}>🔄 הקלט שוב</button>
+          <button className="fb-again-btn" onClick={onRecordAgain}>🔄 {t('feedback.recordAgain')}</button>
         </div>
       </div>
     </div>
@@ -668,6 +673,7 @@ const PreviewScreen = ({ blob, mimeType, onRecordAgain }) => {
 // ─── FeedbackPage ─────────────────────────────────────────────
 
 const FeedbackPage = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState('prep');
   const [youtubeId, setYoutubeId] = useState('');
   const [stream, setStream] = useState(null);
@@ -691,7 +697,7 @@ const FeedbackPage = () => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: RECORD_AUDIO_CONSTRAINTS });
       setStream(s); setStep('recording');
-    } catch (e) { alert('לא ניתן לגשת למצלמה: ' + e.message); }
+    } catch (e) { alert(t('feedback.cameraError', { message: e.message })); }
   };
 
   return (

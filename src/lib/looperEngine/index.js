@@ -1,4 +1,5 @@
 import { ToneLooperAdapter } from './toneAdapter';
+import i18n from '../../i18n/index.js';
 import { MicrophoneRecorder, calculateWaveformPeaks } from './recorder';
 import { renderMix } from './exporter';
 import { clearStoredSession, loadLatestSession, saveSession } from './storage';
@@ -212,7 +213,7 @@ class LooperEngine {
     if (this.state === 'counting-in' || this.state === 'recording' || this.finalizing) return;
     const existing = this.session.tracks.find((track) => track.id === trackId);
     if (!existing && this.session.tracks.length >= MAX_TRACKS) {
-      throw new Error(`אפשר להקליט עד ${MAX_TRACKS} שכבות בסשן.`);
+      throw new Error(i18n.t('looper.maxTracks', { count: MAX_TRACKS }));
     }
 
     await this.init({ requestMicrophone: true });
@@ -347,7 +348,7 @@ class LooperEngine {
   }
 
   renameTrack(trackId, label) {
-    const cleanLabel = String(label || '').trim().slice(0, 32) || 'שכבה';
+    const cleanLabel = String(label || '').trim().slice(0, 32) || i18n.t('looper.layer');
     this.#updateTrack(trackId, { label: cleanLabel });
   }
 
@@ -422,9 +423,9 @@ class LooperEngine {
   }
 
   async exportMix({ format = 'wav', excludeTrackIds = [] } = {}) {
-    if (format !== 'wav') throw new Error('בגרסה זו הייצוא זמין בפורמט WAV.');
+    if (format !== 'wav') throw new Error(i18n.t('looper.wavOnly'));
     const duration = this.getLoopDuration();
-    if (!duration) throw new Error('אין שכבות לייצוא.');
+    if (!duration) throw new Error(i18n.t('looper.nothingToExport'));
     return renderMix(this.session.tracks, duration, excludeTrackIds);
   }
 

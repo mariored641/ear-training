@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
@@ -108,9 +109,14 @@ async function playQ(q) {
 
 const ExerciseF3 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const storageKey = 'ear-training:F3:level';
 
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
+  const exerciseTitle = `F3 — ${t('earTraining.exercises.F3')}`;
+  const localizedLevel = t(`earTraining.levels.F3.${level}`, {
+    defaultValue: LEVELS.find(l => l.number === level)?.label
+  });
   const [meter, setMeter]              = useState('4/4');
   const [numQuestions, setNumQuestions] = useState(10);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -180,13 +186,13 @@ const ExerciseF3 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="F3 — ריתמוס הרמוני" levels={LEVELS}
+        <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS}
           currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/functional')} />
         <SessionSummary total={numQuestions} firstTry={firstTry}
           onRetry={() => { setQuestionIndex(0); setFirstTry(0); setDone(false); setTimeout(generate, 100); }}
           onBack={() => navigate('/category/ear-training/functional')}
-          levelLabel={LEVELS.find(l => l.number === level)?.label} />
+          levelLabel={localizedLevel} />
       </>
     );
   }
@@ -196,8 +202,8 @@ const ExerciseF3 = () => {
       return (
         <div style={{ textAlign: 'center', padding: '48px 20px', color: '#888' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🎵</div>
-          <div style={{ fontSize: 17, marginBottom: 8 }}>שלב זה ישתמש בהקלטות אמיתיות של שירים.</div>
-          <div style={{ fontSize: 14 }}>בקרוב — בינתיים בחר שלב אחר.</div>
+          <div style={{ fontSize: 17, marginBottom: 8 }}>{t('earTraining.prompts.songsSoon')}</div>
+          <div style={{ fontSize: 14 }}>{t('earTraining.prompts.chooseAnotherLevel')}</div>
         </div>
       );
     }
@@ -208,9 +214,9 @@ const ExerciseF3 = () => {
       const correctValue = question.hasChange ? 'yes' : 'no';
       return (
         <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-          <div style={questionLabel}>האם שמעת שינוי אקורד?</div>
+          <div style={questionLabel}>{t('earTraining.prompts.heardChordChange')}</div>
           <div style={btnRow}>
-            {[{ v: 'yes', label: 'כן — היה שינוי' }, { v: 'no', label: 'לא — אקורד אחיד' }].map(({ v, label }) => (
+            {[{ v: 'yes', label: t('earTraining.prompts.yesChange') }, { v: 'no', label: t('earTraining.prompts.noChange') }].map(({ v, label }) => (
               <button key={v}
                 disabled={!!simpleAnswered}
                 onClick={() => handleSimpleAnswer(v, correctValue)}
@@ -231,7 +237,7 @@ const ExerciseF3 = () => {
       const correctValue = question.changeCount;
       return (
         <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-          <div style={questionLabel}>כמה שינויי אקורד שמעת?</div>
+          <div style={questionLabel}>{t('earTraining.prompts.howManyChanges')}</div>
           <div style={btnRow}>
             {[0, 1, 2, 3].map(n => (
               <button key={n}
@@ -254,7 +260,7 @@ const ExerciseF3 = () => {
       return (
         <div>
           <div style={{ textAlign: 'center', fontSize: 14, color: '#888', padding: '12px 0 4px' }}>
-            סמן את המיקומים שבהם שמעת שינוי אקורד
+            {t('earTraining.prompts.markChanges')}
           </div>
           <RhythmGrid
             measures={question.numMeasures}
@@ -271,9 +277,9 @@ const ExerciseF3 = () => {
       const correctValue = question.isAccelerating;
       return (
         <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-          <div style={questionLabel}>האם קצב האקורדים מתגבר לקראת הסוף?</div>
+          <div style={questionLabel}>{t('earTraining.prompts.accelerates')}</div>
           <div style={btnRow}>
-            {[{ v: true, label: 'כן — מתגבר' }, { v: false, label: 'לא — אחיד' }].map(({ v, label }) => (
+            {[{ v: true, label: t('earTraining.prompts.yesAccelerates') }, { v: false, label: t('earTraining.prompts.noEven') }].map(({ v, label }) => (
               <button key={String(v)}
                 disabled={!!simpleAnswered}
                 onClick={() => handleSimpleAnswer(v, correctValue)}
@@ -294,15 +300,15 @@ const ExerciseF3 = () => {
   };
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="F3 — ריתמוס הרמוני" levels={LEVELS}
+    <div>
+      <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS}
         currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
         onBack={() => navigate('/category/ear-training/functional')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
       {question && level !== 6 && (
         <div style={{ textAlign:'center', padding:'12px 16px 4px' }}>
-          <button style={playBtn} onClick={() => playQ(question)}>▶ נגן שוב</button>
+          <button style={playBtn} onClick={() => playQ(question)}>{t('earTraining.controls.playAgain')}</button>
         </div>
       )}
 

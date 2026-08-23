@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTools } from './ToolsContext.jsx';
 
 const BPM_MIN = 40;
@@ -12,6 +13,7 @@ const BEATS_MIN = 2;
 const BEATS_MAX = 8;
 
 export default function MetronomePopover() {
+  const { t } = useTranslation();
   const {
     metroBpm, setMetroBpm,
     metroBeatsPerBar, setMetroBeatsPerBar,
@@ -58,7 +60,7 @@ export default function MetronomePopover() {
   };
 
   return (
-    <div className="gt-popover gt-metro" role="dialog" aria-label="מטרונום">
+    <div className="gt-popover gt-metro" role="dialog" aria-label={t('tools.metronome')}>
       <div className="gt-metro-bpm-row">
         <button type="button" className="gt-step-btn" onClick={() => bumpBpm(-1)} aria-label="−1 BPM">−</button>
         <div className="gt-metro-bpm">
@@ -80,7 +82,7 @@ export default function MetronomePopover() {
       />
 
       <div className="gt-metro-dots-row">
-        <button type="button" className="gt-step-btn gt-step-btn-sm" onClick={() => bumpBeats(-1)} aria-label="הורד נקודה">−</button>
+        <button type="button" className="gt-step-btn gt-step-btn-sm" onClick={() => bumpBeats(-1)} aria-label={t('tools.lowerBeat')}>−</button>
         <div className="gt-metro-dots">
           {Array.from({ length: metroBeatsPerBar }).map((_, i) => (
             <div
@@ -89,17 +91,17 @@ export default function MetronomePopover() {
             />
           ))}
         </div>
-        <button type="button" className="gt-step-btn gt-step-btn-sm" onClick={() => bumpBeats(1)} aria-label="הוסף נקודה">+</button>
+        <button type="button" className="gt-step-btn gt-step-btn-sm" onClick={() => bumpBeats(1)} aria-label={t('tools.addBeat')}>+</button>
       </div>
 
       <div className="gt-metro-actions">
-        <button type="button" className="gt-tap-btn" onClick={handleTap}>TAP</button>
+        <button type="button" className="gt-tap-btn" onClick={handleTap}>{t('tools.tap')}</button>
         <button
           type="button"
           className={`gt-startstop-btn ${metroIsRunning ? 'is-on' : ''}`}
           onClick={toggle}
         >
-          {metroIsRunning ? 'עצור' : 'הפעל'}
+          {metroIsRunning ? t('common.stop') : t('common.play')}
         </button>
       </div>
 
@@ -109,7 +111,7 @@ export default function MetronomePopover() {
         onClick={() => setMetroKeepAlive(!metroKeepAlive)}
         aria-pressed={metroKeepAlive}
       >
-        המשך ברקע
+        {t('tools.keepAlive')}
       </button>
     </div>
   );

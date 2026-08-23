@@ -12,7 +12,7 @@
   overflow: hidden;
   color: var(--paper-cream);
   font-family: var(--font-body);
-  direction: rtl;
+  direction: inherit;
 }
 
 /* Body-level styling while home page is mounted.
@@ -257,6 +257,7 @@ body.home-page-active #root {
     radial-gradient(circle at 30% 25%, rgba(255, 220, 160, 0.18), rgba(0, 0, 0, 0) 60%),
     radial-gradient(circle at 50% 50%, var(--wood-mid) 0%, var(--wood-deep) 85%);
   border: 2px solid var(--brass);
+  padding: 0;
   box-shadow:
     0 0 0 1px var(--brass-dark),
     0 0 30px rgba(224, 182, 108, 0.35),

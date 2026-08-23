@@ -1,23 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ExerciseCard from '../../home/ExerciseCard';
 import { TargetIcon, BoltClassicIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const ReactiveSubScreen = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const exercises = [
     {
       id: 'R1',
       icon: <TargetIcon />,
-      title: 'R1 — דיאטוני',
       path: '/exercise/R1',
     },
     {
       id: 'R2',
       icon: <BoltClassicIcon />,
-      title: 'R2 — אקראי מלא',
       path: '/exercise/R2',
     },
   ];
@@ -26,15 +26,12 @@ const ReactiveSubScreen = () => {
     <div className="category-screen">
       <header className="category-screen-header">
         <button className="back-button" onClick={() => navigate('/category/ear-training')}>
-          ← חזרה לשמיעה מוזיקלית
+          {t('categories.backToEarTraining')}
         </button>
         <div className="category-screen-title-container">
-          <h1 className="category-screen-title">Reactive Ear Training (R)</h1>
-          <h2 className="category-screen-title-hebrew">שמיעה ריאקטיבית</h2>
+          <h1 className="category-screen-title">{t('categories.reactive')} (R)</h1>
           <p style={{ color: '#666', marginTop: 8, fontSize: 14, maxWidth: 640 }}>
-            השיטה: לא לזהות, לא לנתח. רק להגיב.
-            האקורד מנוגן sustained, אתה מנסה תווים, מאזין אם הם מתאימים, ומתקן בריאקציה.
-            המטרה — לבנות חיבור ישיר אוזן↔אצבע, מתחת לרמה האנליטית.
+            {t('earTraining.reactiveMethod')}
           </p>
         </div>
       </header>
@@ -46,7 +43,7 @@ const ReactiveSubScreen = () => {
             exerciseId={ex.id}
             path={ex.path}
             icon={ex.icon}
-            title={ex.title}
+            title={`${ex.id} — ${t(`earTraining.exercises.${ex.id}`)}`}
             isAvailable={true}
           />
         ))}

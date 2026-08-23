@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { GUITAR_STRINGS, FRET_DOTS, DOUBLE_DOTS } from '../../constants/notes';
 import { getNoteAtFret } from '../../utils/fretboardCalculations';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './Fretboard.css';
 
 /**
@@ -29,6 +31,7 @@ const Fretboard = ({
   marking = 'inOrder',
   selectedNoteIndex = 0
 }) => {
+  const { i18n } = useTranslation();
   const frets = [];
   for (let i = fretRange.from; i <= fretRange.to; i++) {
     frets.push(i);
@@ -61,7 +64,7 @@ const Fretboard = ({
         <div className="string-labels">
           {activeStrings.map(string => (
             <div key={string.index} className="string-label">
-              {string.name}
+              <span className="music-term">{formatNoteName(string.name.toUpperCase(), i18n.language)}</span>
             </div>
           ))}
         </div>
@@ -92,7 +95,7 @@ const Fretboard = ({
                       </div>
                     )}
                     {showNoteNames && !markedNote && (
-                      <span className="note-name">{noteInfo.note}</span>
+                      <span className="note-name music-term">{formatNoteName(noteInfo.note, i18n.language)}</span>
                     )}
                   </div>
                 );

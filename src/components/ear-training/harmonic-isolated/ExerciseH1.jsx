@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
@@ -80,12 +81,16 @@ async function playQ(q, voicingOverride = null) {
 
 const ExerciseH1 = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const storageKey = 'ear-training:H1:level';
 
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
   const [instrument, setInstrument]    = useStoredState('ear-training:H1:instrument', 'piano');
   const [voicing, setVoicing]          = useState('strummed');
   const [termMode, setTermMode]        = useStoredState('ear-training:H1:termMode', 'hebrew');
+  const displayTermMode = (i18n.resolvedLanguage || i18n.language) === 'en' && termMode === 'hebrew'
+    ? 'english'
+    : termMode;
   const [numQuestions, setNumQuestions] = useState(10);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [question, setQuestion]        = useState(null);
@@ -190,7 +195,7 @@ const ExerciseH1 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="H1 — זיהוי אופי אקורד" levels={LEVELS}
+        <EarTrainingHeader exerciseTitle={`H1 — ${t('earTraining.exercises.H1')}`} levels={LEVELS}
           currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/harmonic-isolated')} />
         <SessionSummary total={numQuestions} firstTry={firstTry}
@@ -202,15 +207,15 @@ const ExerciseH1 = () => {
   }
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="H1 — זיהוי אופי אקורד" levels={LEVELS}
+    <div>
+      <EarTrainingHeader exerciseTitle={`H1 — ${t('earTraining.exercises.H1')}`} levels={LEVELS}
         currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
         onBack={() => navigate('/category/ear-training/harmonic-isolated')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
       <div style={{ textAlign:'center', padding:'12px 16px 4px' }}>
         <button style={playBtn} onClick={() => question && playQ(question, level <= 3 ? 'strummed' : voicing)}>
-          ▶ נגן שוב
+          ▶ {t('common.replay')}
         </button>
       </div>
 
@@ -249,7 +254,7 @@ const ExerciseH1 = () => {
                 ...(isCorrect ? optCorrect : {}),
                 ...(isWrong ? optWrong : {})
               }}>
-              {opt.label}
+              {getChordLabel(opt.id, displayTermMode)}
             </button>
           );
         })}
@@ -259,18 +264,22 @@ const ExerciseH1 = () => {
 
       <div style={ctrlRow}>
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
-        <BinaryToggle label="כלי"
-          options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
+        <BinaryToggle label={t('common.instrument')}
+          options={[{ value:'piano', label:t('common.piano') }, { value:'guitar', label:t('common.guitar') }]}
           value={instrument} onChange={handleInstrumentChange} />
-        <BinaryToggle label="תצוגה"
-          options={TERMINOLOGY_TOGGLE_OPTIONS}
+        <BinaryToggle label={t('common.display')}
+          options={TERMINOLOGY_TOGGLE_OPTIONS.map((option) => (
+            option.value === 'hebrew' && (i18n.resolvedLanguage || i18n.language) === 'en'
+              ? { ...option, label: 'Major' }
+              : option
+          ))}
           value={termMode} onChange={setTermMode} />
         {level >= 4 && (
-          <BinaryToggle label="נגינה"
+          <BinaryToggle label={t('earTraining.options.playing')}
             options={[
-              { value:'strummed',    label:'סטרום' },
-              { value:'arpeggiated', label:'ארפג\'יו' },
-              { value:'mixed',       label:'מעורב' },
+              { value:'strummed', label:t('earTraining.options.strum') },
+              { value:'arpeggiated', label:t('earTraining.options.arpeggio') },
+              { value:'mixed', label:t('earTraining.options.mixed') },
             ]}
             value={voicing} onChange={setVoicing} />
         )}

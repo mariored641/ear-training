@@ -114,9 +114,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['*.png', '*.jpg', '*.svg'],
       manifest: {
-        name: 'Ear Training - אלתור בהישג יד',
-        short_name: 'Ear Training',
-        description: 'Ear Training Application for Music Students',
+        name: 'אלתור בהישג יד — האפליקציה',
+        short_name: 'אלתור בהישג יד',
+        description: 'אימון אוזן וכלי תרגול למוזיקאים · Ear training and practice tools',
         theme_color: '#dfe8f0',
         background_color: '#dfe8f0',
         display: 'standalone',

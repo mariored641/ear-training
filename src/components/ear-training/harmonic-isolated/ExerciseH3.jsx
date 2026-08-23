@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import BinaryToggle from '../shared/BinaryToggle';
 import { useStoredState } from '../shared/useStoredState';
@@ -57,6 +58,7 @@ const LEVEL_OPTIONS = {
 const ROOTS = ['C','D','E','F','G','A'];
 
 const ExerciseH3 = () => {
+  const { t, i18n } = useTranslation();
   const [instrument, setInstrument] = useStoredState('ear-training:H3:instrument', 'piano');
   const [advancement, setAdvancement] = useStoredState('ear-training:H3:advancement', 'auto');
   const [termMode, setTermMode] = useStoredState('ear-training:H3:termMode', 'hebrew');
@@ -66,6 +68,10 @@ const ExerciseH3 = () => {
   useEffect(() => {
     if (harmonicAudioPlayer.setInstrument) harmonicAudioPlayer.setInstrument(instrument);
   }, [instrument]);
+
+  const terminologyMode = (i18n.resolvedLanguage || i18n.language) === 'en' && termMode === 'hebrew'
+    ? 'english'
+    : termMode;
 
   const generateQuestion = useCallback((level, ctx) => {
     const allOptions = LEVEL_OPTIONS[level] || LEVEL_OPTIONS[1];
@@ -80,10 +86,10 @@ const ExerciseH3 = () => {
     return {
       id: Date.now(),
       chord: chordName,
-      options: allOptions.map(o => ({ id: o.id, key: o.key, label: getChordLabel(o.key, termMode) })),
+      options: allOptions.map(o => ({ id: o.id, key: o.key, label: getChordLabel(o.key, terminologyMode) })),
       correctId: correctOpt.id
     };
-  }, [termMode]);
+  }, [terminologyMode]);
 
   const onPlay = useCallback(async (q, level, ctx) => {
     const def = EXTENDED_CHORDS[q.chord];
@@ -94,7 +100,10 @@ const ExerciseH3 = () => {
   }, []);
 
   const showChips = currentLevel === 6;
-  const chipPool = LEVEL_OPTIONS[6].map(o => ({ id: o.id, label: o.label }));
+  const chipPool = LEVEL_OPTIONS[6].map(o => ({
+    id: o.id,
+    label: getChordLabel(o.key, terminologyMode),
+  }));
   const activeChips = chipsByLevel[6] ?? chipPool.map(c => c.id);
 
   const chipsConfig = useMemo(() => {
@@ -127,11 +136,15 @@ const ExerciseH3 = () => {
       chips={chipsConfig}
       onLevelChange={setCurrentLevel}
       questionKey={(q) => q.correctId + '_' + q.chord}
-      getOptionLabel={(opt) => getChordLabel(opt.key || opt.id, termMode)}
+      getOptionLabel={(opt) => getChordLabel(opt.key || opt.id, terminologyMode)}
       extraControls={
         <BinaryToggle
-          label="תצוגה"
-          options={TERMINOLOGY_TOGGLE_OPTIONS}
+          label={t('common.display')}
+          options={TERMINOLOGY_TOGGLE_OPTIONS.map((option) => (
+            option.value === 'hebrew' && (i18n.resolvedLanguage || i18n.language) === 'en'
+              ? { ...option, label: 'Major' }
+              : option
+          ))}
           value={termMode}
           onChange={setTermMode}
         />

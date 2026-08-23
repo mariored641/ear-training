@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import AllScalesFretboard from '../positions/AllScalesFretboard';
 import {
   SCALE_CATEGORIES,
@@ -9,6 +10,7 @@ import { parseChordSymbol, PITCH_NAMES, getChordData } from '../../lib/style-eng
 import { chordDisplayName, prettifyChord } from './useBackingTrackEngine';
 import { ChordPreviewStrip } from './ChordPreviewStrip';
 import './LiveFretboard.css';
+import { formatNoteName } from '../../i18n/musicTerms';
 
 // PITCH_NAMES uses flats (Eb, Ab, Bb); CHROMATIC_SCALE uses sharps — normalize
 const ENHARMONIC = { 'Eb': 'D#', 'Ab': 'G#', 'Bb': 'A#', 'Db': 'C#', 'Gb': 'F#' };
@@ -33,6 +35,8 @@ export default function LiveFretboard({
   onPolyscaleChange,
   onOpenPolyscale,
 }) {
+  const { t, i18n } = useTranslation();
+  const scaleName = (item) => t(`positions.musicItems.${item?.id}`, { defaultValue: item?.name ?? '' });
   const [isOpenInternal, setIsOpenInternal] = useState(false);
   const isOpen = embedded ? true : (isOpenProp !== undefined ? isOpenProp : isOpenInternal);
   const handleToggle = onToggle || (() => setIsOpenInternal(p => !p));
@@ -155,7 +159,7 @@ export default function LiveFretboard({
       {!embedded && (
         <button className="lf-toggle-btn" onClick={handleToggle}>
           <span className="lf-toggle-icon">🎸</span>
-          Live Fretboard
+          {t('backing.fretboard')}
           <span className="lf-toggle-arrow">{isOpen ? '▲' : '▼'}</span>
         </button>
       )}
@@ -168,10 +172,10 @@ export default function LiveFretboard({
             <span className="lf-chord-now">
               {prettifyChord(isPlaying ? (currentChordSymbol ?? '…') : (displaySymbol ?? '—'))}
             </span>
-            {!isPlaying && <span className="lf-stopped-badge">stopped</span>}
+            {!isPlaying && <span className="lf-stopped-badge">{t('backing.stopped')}</span>}
             {scaleId && (
               <span className="lf-scale-badge">
-                {selectedRoot} {ALL_SCALES_MAP[scaleId]?.name}
+                {formatNoteName(selectedRoot, i18n.language)} {scaleName(ALL_SCALES_MAP[scaleId])}
               </span>
             )}
           </div>
@@ -204,7 +208,7 @@ export default function LiveFretboard({
 
             {/* Display mode */}
             <div className="lf-ctrl-group">
-              <span className="lf-ctrl-label">Display</span>
+              <span className="lf-ctrl-label">{t('common.display')}</span>
               <div className="lf-mode-btns">
                 {[['dots', '●'], ['notes', 'A'], ['degrees', '1']].map(([m, lbl]) => (
                   <button
@@ -220,29 +224,29 @@ export default function LiveFretboard({
             {!polyscaleEnabled && (
               <>
                 <div className="lf-ctrl-group">
-                  <span className="lf-ctrl-label">Root</span>
+                  <span className="lf-ctrl-label">{t('common.root')}</span>
                   <select
                     className="lf-select lf-select-root"
                     value={globalRoot}
                     onChange={e => setGlobalRoot(e.target.value)}
                   >
-                    <option value="auto">Auto</option>
-                    {CHROMATIC.map(n => <option key={n} value={n}>{n}</option>)}
+                    <option value="auto">{t('common.auto')}</option>
+                    {CHROMATIC.map(n => <option key={n} value={n}>{formatNoteName(n, i18n.language)}</option>)}
                   </select>
                 </div>
 
                 <div className="lf-ctrl-group lf-ctrl-scale">
-                  <span className="lf-ctrl-label">Scale</span>
+                  <span className="lf-ctrl-label">{t('positions.scale')}</span>
                   <select
                     className="lf-select"
                     value={globalScaleId || ''}
                     onChange={e => setGlobalScaleId(e.target.value || null)}
                   >
-                    <option value="">— none —</option>
+                    <option value="">— {t('common.none')} —</option>
                     {SCALE_CATEGORIES.map(cat => (
-                      <optgroup key={cat.id} label={cat.label}>
+                      <optgroup key={cat.id} label={t(`positions.musicCategories.${cat.id}`, { defaultValue: cat.label })}>
                         {cat.items.map(item => (
-                          <option key={item.id} value={item.id}>{item.name}</option>
+                          <option key={item.id} value={item.id}>{scaleName(item)}</option>
                         ))}
                       </optgroup>
                     ))}
@@ -261,15 +265,15 @@ export default function LiveFretboard({
                   setPolyscaleEnabled(p => !p);
                 }
               }}
-              title="Assign a different scale/root to each chord"
+              title={t('backing.scalePerChord')}
             >
-              Polyscale {polyscaleEnabled ? '●' : ''}
+              {t('backing.polyscale')} {polyscaleEnabled ? '●' : ''}
             </button>
 
             {/* Clear fret range */}
             {hasRange && (
               <button className="lf-action-btn" onClick={clearRange}>
-                Clear range
+                {t('positions.clearRange')}
               </button>
             )}
 
@@ -279,7 +283,7 @@ export default function LiveFretboard({
           {polyscaleEnabled && !embedded && (
             <div className="lf-polyscale">
               <div className="lf-polyscale-header">
-                <span className="lf-ctrl-label">Scale per chord</span>
+                <span className="lf-ctrl-label">{t('backing.scalePerChord')}</span>
               </div>
               <div className="lf-polyscale-rows">
                 {(chords || []).map((chord, i) => {
@@ -297,8 +301,8 @@ export default function LiveFretboard({
                         value={entry.root ?? 'auto'}
                         onChange={e => setPolyField(i, 'root', e.target.value)}
                       >
-                        <option value="auto">Auto</option>
-                        {CHROMATIC.map(n => <option key={n} value={n}>{n}</option>)}
+                        <option value="auto">{t('common.auto')}</option>
+                        {CHROMATIC.map(n => <option key={n} value={n}>{formatNoteName(n, i18n.language)}</option>)}
                       </select>
 
                       {/* Scale per chord */}
@@ -307,11 +311,11 @@ export default function LiveFretboard({
                         value={entry.scaleId || ''}
                         onChange={e => setPolyField(i, 'scaleId', e.target.value)}
                       >
-                        <option value="">— none —</option>
+                        <option value="">— {t('common.none')} —</option>
                         {SCALE_CATEGORIES.map(cat => (
-                          <optgroup key={cat.id} label={cat.label}>
+                          <optgroup key={cat.id} label={t(`positions.musicCategories.${cat.id}`, { defaultValue: cat.label })}>
                             {cat.items.map(item => (
-                              <option key={item.id} value={item.id}>{item.name}</option>
+                              <option key={item.id} value={item.id}>{scaleName(item)}</option>
                             ))}
                           </optgroup>
                         ))}

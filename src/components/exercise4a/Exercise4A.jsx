@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HarmonicAudioPlayer from '../../utils/HarmonicAudioPlayer';
 import Header from '../common/Header';
 import ChordButtons from './ChordButtons';
@@ -12,13 +13,13 @@ import {
 } from '../../constants/harmonicDefaults';
 import './Exercise4A.css';
 
-const EX4A_LEVELS = [
-  { id: 'regular', label: 'רגיל' },
-  { id: 'custom',  label: 'התאמה אישית' },
-];
-
 const Exercise4A = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const levels = [
+    { id: 'regular', label: t('legacy.regular') },
+    { id: 'custom', label: t('legacy.custom') },
+  ];
   const isMountedRef = useRef(true);
   const isPlayingRef = useRef(false);
   const currentQuestionAttemptsRef = useRef(0);
@@ -163,7 +164,7 @@ const Exercise4A = () => {
     if (chord === correctChord) {
       // Correct answer!
       setIsCorrect(true);
-      setFeedbackMessage('Correct! ✅');
+      setFeedbackMessage('correct');
 
       // Record if first try
       const isFirstTry = currentQuestionAttemptsRef.current === 1;
@@ -182,13 +183,13 @@ const Exercise4A = () => {
         if (settings.transition === 'auto') {
           setCurrentQuestion(currentQuestion + 1);
         } else {
-          setFeedbackMessage('Correct! ✅ Click Next to continue');
+          setFeedbackMessage('correctNext');
         }
       }
     } else {
       // Incorrect answer
       setIsCorrect(false);
-      setFeedbackMessage('Try again');
+      setFeedbackMessage('tryAgain');
 
       // Flash red and reset
       await delay(500);
@@ -277,28 +278,28 @@ const Exercise4A = () => {
     return (
       <div className="exercise-container">
         <div className="summary-screen">
-          <h1 className="summary-title">Completed! 🎉</h1>
+          <h1 className="summary-title">{t('legacy.completed')}</h1>
 
           <div className="summary-content">
-            <h2>Single Chord Recognition</h2>
+            <h2>{t('legacy.singleChord')}</h2>
 
             <div className="summary-stats">
-              <p>Completed {settings.numQuestions} questions</p>
-              <p className="stat-highlight">{correctFirstTry} correct on first try</p>
+              <p>{t('legacy.completedQuestions', { count: settings.numQuestions })}</p>
+              <p className="stat-highlight">{t('legacy.correctFirstTry', { count: correctFirstTry })}</p>
               {neededMoreAttempts > 0 && (
-                <p>{neededMoreAttempts} required additional attempts</p>
+                <p>{t('legacy.requiredAttempts', { count: neededMoreAttempts })}</p>
               )}
             </div>
 
             <div className="summary-buttons">
               <button className="summary-btn primary" onClick={handleReset}>
-                Practice Again
+                {t('legacy.practiceAgain')}
               </button>
               <button className="summary-btn secondary" onClick={() => navigate('/category/harmonic')}>
-                Back to Category
+                {t('legacy.backToCategory')}
               </button>
               <button className="summary-btn secondary" onClick={() => navigate('/')}>
-                Back to Home
+                {t('legacy.backToHome')}
               </button>
             </div>
           </div>
@@ -312,7 +313,7 @@ const Exercise4A = () => {
   return (
     <div className="exercise-container exercise4a">
       <Header
-        title="Exercise 4A: Single Chord Recognition"
+        title={t('legacy.exercise4ATitle')}
         showSettings={true}
         showStop={true}
         onSettingsClick={() => setIsSettingsOpen(true)}
@@ -321,14 +322,14 @@ const Exercise4A = () => {
 
       {/* Progress bar */}
       <div className="progress-container">
-        <div className="progress-text">Question {currentQuestion}/{settings.numQuestions}</div>
+        <div className="progress-text">{t('legacy.questionProgress', { current: currentQuestion, total: settings.numQuestions })}</div>
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
 
       <LevelStrip
-        levels={EX4A_LEVELS}
+        levels={levels}
         activeId={activeLevel}
         onChange={handleLevelChange}
       />
@@ -336,19 +337,19 @@ const Exercise4A = () => {
       {/* Playback buttons */}
       <div className="playback-controls">
         <button className="play-btn" onClick={handlePlayC}>
-          🔊 Play C
+          🔊 {t('legacy.playC')}
         </button>
         <button className="play-btn primary" onClick={handlePlayChord}>
-          🔊 Play Chord
+          🔊 {t('legacy.playChord')}
         </button>
       </div>
 
       {/* Question */}
       <div className="question-section">
-        <h2>Which chord did you hear?</h2>
+        <h2>{t('legacy.whichChord')}?</h2>
         {feedbackMessage && (
           <div className={`feedback-message ${isCorrect ? 'correct' : 'incorrect'}`}>
-            {feedbackMessage}
+            {t(`legacy.feedback.${feedbackMessage}`)}
           </div>
         )}
       </div>
@@ -365,7 +366,7 @@ const Exercise4A = () => {
       {settings.transition === 'manual' && isCorrect && currentQuestion < settings.numQuestions && (
         <div className="next-button-container">
           <button className="next-btn" onClick={handleNext}>
-            Next →
+            {t('legacy.next')}
           </button>
         </div>
       )}

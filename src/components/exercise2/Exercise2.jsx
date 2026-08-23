@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from '../common/Header';
 import ProgressBar from '../common/ProgressBar';
 import SettingsPanel from '../common/SettingsPanel';
@@ -18,12 +19,12 @@ import { checkNotePosition } from '../../utils/fretboardCalculations';
 import { DEFAULT_EXERCISE2_SETTINGS } from '../../constants/defaults';
 import './Exercise2.css';
 
-const EX2_LEVELS = [
-  { id: 'regular', label: 'רגיל' },
-  { id: 'custom',  label: 'התאמה אישית' },
-];
-
 const Exercise2 = () => {
+  const { t } = useTranslation();
+  const levels = [
+    { id: 'regular', label: t('legacy.regular') },
+    { id: 'custom', label: t('legacy.custom') },
+  ];
   const [settings, setSettings] = useState(() =>
     Storage.loadSettings(2, DEFAULT_EXERCISE2_SETTINGS)
   );
@@ -376,7 +377,7 @@ const Exercise2 = () => {
         totalQuestions={sessionState.totalNotes}
         correctFirstTry={sessionState.correctFirstTry}
         onRestart={handleRestart}
-        itemName="notes"
+        itemName={t('common.notes')}
         category="melodic"
       />
     );
@@ -385,7 +386,7 @@ const Exercise2 = () => {
   return (
     <div className="exercise2">
       <Header
-        title="Exercise 2 - Fretboard Mapping"
+        title={t('legacy.exercise2Title')}
         showSettings={true}
         showStop={true}
         currentQuestion={sessionState.currentQuestion}
@@ -400,7 +401,7 @@ const Exercise2 = () => {
       />
 
       <LevelStrip
-        levels={EX2_LEVELS}
+        levels={levels}
         activeId={activeLevel}
         onChange={handleLevelChange}
       />
@@ -408,7 +409,7 @@ const Exercise2 = () => {
       <div className="exercise2-content">
         <div className="audio-controls">
           <button className="audio-button" onClick={handlePlayMelody}>
-            🔊 Play Melody
+            🔊 {t('legacy.playMelody')}
           </button>
         </div>
 
@@ -450,7 +451,7 @@ const Exercise2 = () => {
       <SettingsPanel
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        title="Exercise 2 Settings"
+        title={t('legacy.exerciseSettings', { exercise: '2' })}
       >
         <Exercise2Settings
           settings={settings}

@@ -1,5 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GENRE_CATALOG } from './useBackingTrackEngine'
+import { formatNoteName } from '../../i18n/musicTerms'
 import './MyProgressions.css'
 
 // ─── localStorage helpers ────────────────────────────────────────────────────
@@ -27,6 +29,7 @@ for (const cat of GENRE_CATALOG) {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function MyProgressions({ currentState, onLoadProgression, embedded = false }) {
+  const { t, i18n } = useTranslation()
   const [isOpen,       setIsOpen]       = useState(embedded)
   const [isSaving,     setIsSaving]     = useState(false)
   const [saveName,     setSaveName]     = useState('')
@@ -64,7 +67,7 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
   const handleDelete = useCallback((id, e) => {
     e.stopPropagation()
     const prog = progressions.find(p => p.id === id)
-    if (!window.confirm(`למחוק את "${prog?.name}"?`)) return
+    if (!window.confirm(t('backing.deleteProgression', { name: prog?.name }))) return
 
     const updated = progressions.filter(p => p.id !== id)
     saveProgressions(updated)
@@ -84,8 +87,8 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
   }, [])
 
   // ── Display helpers ─────────────────────────────────────────────────────────
-  const keyLabel = (prog) => `${prog.key.root}${prog.key.type === 'minor' ? 'm' : ''}`
-  const genreLabel = (genreId) => GENRE_LABELS[genreId] || genreId
+  const keyLabel = (prog) => `${formatNoteName(prog.key.root, i18n.language)}${prog.key.type === 'minor' ? 'm' : ''}`
+  const genreLabel = (genreId) => t(`backing.styles.${genreId}`, { defaultValue: GENRE_LABELS[genreId] || genreId })
 
   return (
     <>
@@ -94,9 +97,9 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
         <button
           className={`my-prog-toggle ${isOpen ? 'open' : ''}`}
           onClick={() => setIsOpen(o => !o)}
-          title="המהלכים שלי"
+          title={t('backing.myProgressions')}
         >
-          💾 שלי {isOpen ? '▲' : '▼'}
+          💾 {t('backing.my')} {isOpen ? '▲' : '▼'}
         </button>
       )}
 
@@ -106,10 +109,10 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
 
           {/* Header */}
           <div className="my-prog-header">
-            <span className="my-prog-title">המהלכים שלי</span>
+            <span className="my-prog-title">{t('backing.myProgressions')}</span>
             {!isSaving && (
               <button className="my-prog-save-btn" onClick={openSaveDialog}>
-                + שמור מהלך נוכחי
+                + {t('backing.saveCurrent')}
               </button>
             )}
           </div>
@@ -121,7 +124,7 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
                 ref={inputRef}
                 className="my-prog-save-input"
                 type="text"
-                placeholder="שם המהלך…"
+                placeholder={t('backing.progressionName')}
                 value={saveName}
                 onChange={e => setSaveName(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleSave() }}
@@ -130,11 +133,11 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
                 className="my-prog-confirm-btn"
                 onClick={handleSave}
                 disabled={!saveName.trim()}
-              >שמור</button>
+              >{t('common.save')}</button>
               <button
                 className="my-prog-cancel-btn"
                 onClick={() => { setIsSaving(false); setSaveName('') }}
-              >ביטול</button>
+              >{t('common.cancel')}</button>
             </div>
           )}
 
@@ -149,19 +152,19 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
                 <div className="my-prog-item-info">
                   <span className="my-prog-item-title">{prog.name}</span>
                   <span className="my-prog-item-meta">
-                    {keyLabel(prog)} · {prog.tempo}♩ · {genreLabel(prog.genre)} · {prog.barCount} bars
+                    {keyLabel(prog)} · {prog.tempo}♩ · {genreLabel(prog.genre)} · {t('common.bars', { count: prog.barCount })}
                   </span>
                 </div>
                 <button
                   className="my-prog-delete-btn"
                   onClick={e => handleDelete(prog.id, e)}
-                  title="מחק"
+                  title={t('common.delete')}
                 >🗑️</button>
               </div>
             ))}
             {progressions.length === 0 && (
               <div className="my-prog-empty">
-                אין מהלכים שמורים עדיין
+                {t('backing.noSaved')}
               </div>
             )}
           </div>

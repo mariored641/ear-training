@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './ExerciseCard.css';
 
 const ExerciseCard = ({
@@ -11,20 +12,23 @@ const ExerciseCard = ({
   practiceMethods,
   onStart
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="exercise-card">
       <div className="exercise-card-header">
         <h2 className="exercise-title">
           {icon} {title}
         </h2>
-        <h3 className="exercise-title-hebrew">{titleHebrew}</h3>
+        {titleHebrew && titleHebrew !== title && (
+          <h3 className="exercise-title-hebrew">{titleHebrew}</h3>
+        )}
       </div>
 
       <p className="exercise-description">{description}</p>
 
       {pedagogicalGoals && pedagogicalGoals.length > 0 && (
         <div className="exercise-section">
-          <h4 className="exercise-section-title">Pedagogical Goals:</h4>
+          <h4 className="exercise-section-title">{t('legacy.pedagogicalGoals')}:</h4>
           <ul className="exercise-list">
             {pedagogicalGoals.map((goal, index) => (
               <li key={index}>{goal}</li>
@@ -35,7 +39,7 @@ const ExerciseCard = ({
 
       {practiceMethods && practiceMethods.length > 0 && (
         <div className="exercise-section">
-          <h4 className="exercise-section-title">Practice Methods:</h4>
+          <h4 className="exercise-section-title">{t('legacy.practiceMethods')}:</h4>
           <ul className="exercise-list">
             {practiceMethods.map((method, index) => (
               <li key={index}>{method}</li>
@@ -45,7 +49,7 @@ const ExerciseCard = ({
       )}
 
       <button className="exercise-start-btn" onClick={onStart}>
-        Start Practice
+        {t('legacy.startPractice')}
       </button>
     </div>
   );

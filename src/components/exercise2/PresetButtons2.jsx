@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './PresetButtons2.css';
 
 const PRESETS = [
@@ -131,9 +133,10 @@ const PRESETS = [
 ];
 
 const PresetButtons2 = ({ onPresetSelect }) => {
+  const { t, i18n } = useTranslation();
   return (
     <div className="preset-buttons-container-2">
-      <h4 className="preset-title-2">Quick Start Presets:</h4>
+      <h4 className="preset-title-2">{t('legacy.quickStartPresets')}:</h4>
       <div className="preset-buttons-grid-2">
         {PRESETS.map(preset => (
           <button
@@ -141,7 +144,11 @@ const PresetButtons2 = ({ onPresetSelect }) => {
             className="preset-btn-2"
             onClick={() => onPresetSelect(preset)}
           >
-            {preset.name}
+            <span className="music-term">
+              {preset.name.startsWith('G') && preset.name.length > 1
+                ? preset.name
+                : formatNoteName(preset.name, i18n.language)}
+            </span>
           </button>
         ))}
       </div>

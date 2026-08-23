@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SCALE_CATEGORIES, ALL_SCALES_MAP } from '../../constants/allScalesData'
 import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
 import { parseChordSymbol, CHORD_DATA } from '../../lib/style-engine/YamChordMap.js'
+import { formatNoteName } from '../../i18n/musicTerms'
 
 const CHROMATIC = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
 const defaultEntry = () => ({ scaleId: null, root: 'auto' })
@@ -37,17 +39,18 @@ function buildAutoMap(chords) {
 }
 
 function ScaleSelect({ value, onChange }) {
+  const { t } = useTranslation()
   return (
     <select
       className="bp-poly-select bp-poly-select-scale"
       value={value || ''}
       onChange={e => onChange(e.target.value || null)}
     >
-      <option value="">— none —</option>
+      <option value="">— {t('common.none')} —</option>
       {SCALE_CATEGORIES.map(cat => (
-        <optgroup key={cat.id} label={cat.label}>
+        <optgroup key={cat.id} label={t(`positions.musicCategories.${cat.id}`, { defaultValue: cat.label })}>
           {cat.items.map(item => (
-            <option key={item.id} value={item.id}>{item.name}</option>
+            <option key={item.id} value={item.id}>{t(`positions.musicItems.${item.id}`, { defaultValue: item.name })}</option>
           ))}
         </optgroup>
       ))}
@@ -64,6 +67,7 @@ export function PolyscalePopup({
   onPolyscaleChange,
   onClose,
 }) {
+  const { t, i18n } = useTranslation()
   const [assignMode, setAssignMode] = useState('auto')
 
   // ── Per-chord helpers ──────────────────────────────────────────────────
@@ -91,7 +95,7 @@ export function PolyscalePopup({
         const data = CHORD_DATA[typeName]
         const scaleId = data ? (YAMSCALE_TO_ID[data.scale] ?? null) : null
         const scaleName = scaleId ? (ALL_SCALES_MAP[scaleId]?.name ?? scaleId) : '—'
-        seen.set(typeName, { typeName, scaleName })
+        seen.set(typeName, { typeName, scaleName, scaleId })
       }
     })
     return Array.from(seen.values())
@@ -125,7 +129,7 @@ export function PolyscalePopup({
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className="bp-popup bp-popup--polyscale">
-      <div className="bp-popup-title">Polyscale — Scale per chord</div>
+      <div className="bp-popup-title">{t('backing.polyscale')}</div>
 
       <div className="bp-poly-toolbar">
         <label className="bp-poly-master">
@@ -134,19 +138,19 @@ export function PolyscalePopup({
             checked={!!polyscaleEnabled}
             onChange={e => onPolyscaleChange({ enabled: e.target.checked, map: polyscaleMap })}
           />
-          <span>Enable polyscale</span>
+          <span>{t('backing.enablePolyscale')}</span>
         </label>
-        <button className="bp-poly-close" onClick={onClose}>Done</button>
+        <button className="bp-poly-close" onClick={onClose}>{t('common.done')}</button>
       </div>
 
       {/* ── Assignment mode selector ── */}
       <div className="bp-poly-mode-bar">
-        <span className="bp-poly-mode-label">Assign by:</span>
+        <span className="bp-poly-mode-label">{t('backing.assignBy')}:</span>
         <div className="bp-poly-mode-btns">
           {[
-            { id: 'auto',      label: 'Auto' },
-            { id: 'by-type',   label: 'By Type' },
-            { id: 'per-chord', label: 'Per Chord' },
+            { id: 'auto',      label: t('common.auto') },
+            { id: 'by-type',   label: t('backing.byType') },
+            { id: 'per-chord', label: t('backing.perChord') },
           ].map(m => (
             <button
               key={m.id}
@@ -164,18 +168,18 @@ export function PolyscalePopup({
         <div className="bp-poly-auto">
           <div className="bp-poly-auto-header">
             <span className="bp-poly-auto-desc">
-              Assigns scales by chord function (jazz defaults)
+              {t('backing.autoScaleHelp')}
             </span>
             <button className="bp-poly-apply-btn" onClick={applyAuto}>
-              Apply
+              {t('backing.apply')}
             </button>
           </div>
           <div className="bp-poly-auto-preview">
-            {autoPreview.map(({ typeName, scaleName }) => (
+            {autoPreview.map(({ typeName, scaleName, scaleId }) => (
               <div key={typeName} className="bp-poly-auto-row">
                 <span className="bp-poly-auto-type">{typeName}</span>
                 <span className="bp-poly-auto-arrow">→</span>
-                <span className="bp-poly-auto-scale">{scaleName}</span>
+                <span className="bp-poly-auto-scale">{scaleId ? t(`positions.musicItems.${scaleId}`, { defaultValue: scaleName }) : scaleName}</span>
               </div>
             ))}
           </div>
@@ -189,7 +193,7 @@ export function PolyscalePopup({
             <div key={typeName} className="bp-poly-row bp-poly-row--type">
               <span className="bp-poly-chord">{typeName}</span>
               <span className="bp-poly-type-count">
-                {bars.length} bar{bars.length !== 1 ? 's' : ''}
+                {t('common.bars', { count: bars.length })}
               </span>
               <ScaleSelect
                 value={getTypeScale(typeName)}
@@ -215,8 +219,8 @@ export function PolyscalePopup({
                   value={entry.root ?? 'auto'}
                   onChange={e => setEntry(i, 'root', e.target.value)}
                 >
-                  <option value="auto">Auto</option>
-                  {CHROMATIC.map(n => <option key={n} value={n}>{n}</option>)}
+                  <option value="auto">{t('common.auto')}</option>
+                  {CHROMATIC.map(n => <option key={n} value={n}>{formatNoteName(n, i18n.language)}</option>)}
                 </select>
                 <ScaleSelect
                   value={entry.scaleId}

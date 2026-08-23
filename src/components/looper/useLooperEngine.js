@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { audioEngine } from '../../lib/looperEngine';
+import i18n from '../../i18n';
 
 export default function useLooperEngine() {
   const [snapshot, setSnapshot] = useState(() => audioEngine.getSnapshot());
@@ -48,7 +49,7 @@ export default function useLooperEngine() {
       setError('');
       return await operation();
     } catch (operationError) {
-      setError(operationError?.message || 'הפעולה לא הצליחה.');
+      setError(operationError?.message || i18n.t('looper.operationFailed'));
       return undefined;
     }
   }, []);
@@ -76,7 +77,7 @@ export default function useLooperEngine() {
         setError('');
         return await audioEngine.exportMix(options);
       } catch (exportError) {
-        setError(exportError?.message || 'הייצוא לא הצליח.');
+        setError(exportError?.message || i18n.t('looper.exportFailed'));
         throw exportError;
       }
     },

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './ExerciseCard.css';
 
 /**
@@ -19,6 +20,7 @@ const ExerciseCard = ({
   isAvailable = true
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleStart = () => {
     if (isAvailable) {
@@ -42,7 +44,7 @@ const ExerciseCard = ({
     >
       <div className="exercise-card-icon">{icon}</div>
       <h3 className="exercise-card-title">{title}</h3>
-      {!isAvailable && <div className="exercise-card-badge">Coming Soon</div>}
+      {!isAvailable && <div className="exercise-card-badge">{t('common.comingSoon')}</div>}
     </button>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import './PresetLibrary.css'
 
 // ─── localStorage helpers ────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ const LIBRARIES = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function PresetLibrary({ onLoadPreset, embedded = false }) {
+  const { t } = useTranslation()
   const [isOpen,        setIsOpen]       = useState(embedded)
   const [activeLib,     setActiveLib]    = useState(LIBRARIES[0].id)
   const [songs,         setSongs]        = useState([])
@@ -55,7 +57,7 @@ export function PresetLibrary({ onLoadPreset, embedded = false }) {
       cacheRef.current[libId] = data
       setSongs(data)
     } catch (err) {
-      setLoadError(`לא ניתן לטעון: ${err.message}`)
+      setLoadError(t('backing.loadError', { message: err.message }))
     } finally {
       setIsLoading(false)
     }
@@ -106,7 +108,7 @@ export function PresetLibrary({ onLoadPreset, embedded = false }) {
   }
 
   const tsWarning = (ts) => {
-    if (ts === '5/4' || ts === '7/4') return '⚠️ ' + ts + ' — ינוגן ב-4/4'
+    if (ts === '5/4' || ts === '7/4') return t('backing.unsupportedMeter', { meter: ts })
     return null
   }
 
@@ -117,9 +119,9 @@ export function PresetLibrary({ onLoadPreset, embedded = false }) {
         <button
           className={`preset-lib-toggle ${isOpen ? 'open' : ''}`}
           onClick={() => setIsOpen(o => !o)}
-          title="ספריית פריסטים"
+          title={t('backing.library')}
         >
-          📚 Standards {isOpen ? '▲' : '▼'}
+          📚 {t('backing.standards')} {isOpen ? '▲' : '▼'}
         </button>
       )}
 
@@ -135,7 +137,7 @@ export function PresetLibrary({ onLoadPreset, embedded = false }) {
                 className={`lib-tab ${activeLib === lib.id ? 'active' : ''}`}
                 onClick={() => setActiveLib(lib.id)}
               >
-                {lib.icon} {lib.label}
+                {lib.icon} {t('backing.standards')}
               </button>
             ))}
           </div>
@@ -146,22 +148,22 @@ export function PresetLibrary({ onLoadPreset, embedded = false }) {
               ref={searchRef}
               className="lib-search"
               type="text"
-              placeholder="חיפוש שם / מלחין…"
+              placeholder={t('backing.search')}
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
             <button
               className={`lib-filter-btn ${activeFilter === 'favorites' ? 'active' : ''}`}
               onClick={() => setActiveFilter(f => f === 'favorites' ? 'all' : 'favorites')}
-              title="הצג מועדפים בלבד"
+              title={t('backing.favoritesOnly')}
             >⭐ {favorites.length}</button>
           </div>
 
           {/* Status */}
-          {isLoading && <div className="lib-status">⏳ טוען ספריה…</div>}
+          {isLoading && <div className="lib-status">⏳ {t('backing.loadingLibrary')}</div>}
           {loadError && <div className="lib-status lib-status--error">{loadError}</div>}
           {!isLoading && !loadError && (
-            <div className="lib-count">{filtered.length} שירים</div>
+            <div className="lib-count">{t('common.songs', { count: filtered.length })}</div>
           )}
 
           {/* Song list */}
@@ -177,7 +179,7 @@ export function PresetLibrary({ onLoadPreset, embedded = false }) {
                   <button
                     className={`lib-fav-btn ${isFav ? 'starred' : ''}`}
                     onClick={e => toggleFavorite(song.title, e)}
-                    title={isFav ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+                    title={isFav ? t('backing.removeFavorite') : t('backing.addFavorite')}
                   >★</button>
                   <div className="lib-item-info">
                     <span className="lib-item-title">{song.title}</span>
@@ -197,7 +199,7 @@ export function PresetLibrary({ onLoadPreset, embedded = false }) {
             })}
             {!isLoading && filtered.length === 0 && (
               <div className="lib-empty">
-                {activeFilter === 'favorites' ? 'אין מועדפים עדיין' : 'לא נמצאו תוצאות'}
+                {activeFilter === 'favorites' ? t('backing.noFavorites') : t('backing.noResults')}
               </div>
             )}
           </div>

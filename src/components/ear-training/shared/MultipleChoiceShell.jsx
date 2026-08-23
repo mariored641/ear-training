@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from './EarTrainingHeader';
 import FeedbackOverlay from './FeedbackOverlay';
 import SessionSummary from './SessionSummary';
@@ -49,15 +50,22 @@ const MultipleChoiceShell = ({
   chips,
   extraControls,
   renderPrompt,
-  replayLabel = '▶ נגן שוב',
+  replayLabel,
   onLevelChange,
   questionKey,
   getOptionLabel
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const localizedTitle = t(`earTraining.exercises.${id}`, { defaultValue: titleHebrew });
+  const localizedReplayLabel = replayLabel || t('earTraining.controls.playAgain');
   const storageKey = `ear-training:${id}:level`;
   const numQKey = `ear-training:${id}:numQuestions`;
   const [level, setLevelInternal] = useState(() => loadStoredLevel(storageKey, defaultLevel));
+  const currentLevelLabel = levels.find(l => l.number === level)?.label;
+  const localizedLevelLabel = t(`earTraining.levels.${id}.${level}`, {
+    defaultValue: currentLevelLabel
+  });
   const setLevel = (n) => { setLevelInternal(n); onLevelChange?.(n); };
   useEffect(() => { onLevelChange?.(level); /* eslint-disable-next-line */ }, []);
   const [numQuestions, setNumQuestionsState] = useState(() => {
@@ -238,7 +246,7 @@ const MultipleChoiceShell = ({
     return (
       <div>
         <EarTrainingHeader
-          exerciseTitle={`${id} — ${titleHebrew}`}
+          exerciseTitle={`${id} — ${localizedTitle}`}
           levels={levels}
           currentLevel={level}
           onLevelChange={setLevel}
@@ -255,16 +263,16 @@ const MultipleChoiceShell = ({
             startQuestion();
           }}
           onBack={() => navigate(backTo)}
-          levelLabel={levels.find(l => l.number === level)?.label}
+          levelLabel={localizedLevelLabel}
         />
       </div>
     );
   }
 
   return (
-    <div className="et-mc-shell" style={{ direction: 'rtl' }}>
+    <div className="et-mc-shell">
       <EarTrainingHeader
-        exerciseTitle={`${id} — ${titleHebrew}`}
+        exerciseTitle={`${id} — ${localizedTitle}`}
         levels={levels}
         currentLevel={level}
         onLevelChange={setLevel}
@@ -279,7 +287,7 @@ const MultipleChoiceShell = ({
         : (question?.prompt && <div style={promptStyle}>{question.prompt}</div>)}
 
       <div style={{ textAlign: 'center', marginTop: 16 }}>
-        <button onClick={handleReplay} style={replayBtnStyle}>{replayLabel}</button>
+        <button onClick={handleReplay} style={replayBtnStyle}>{localizedReplayLabel}</button>
       </div>
 
       <div className="et-mc-options" style={optionsStyle}>
@@ -309,7 +317,7 @@ const MultipleChoiceShell = ({
 
       {showNextButton && (
         <div style={{ textAlign: 'center', marginTop: 24 }}>
-          <button onClick={goToNext} style={nextBtnStyle}>הבא ←</button>
+          <button onClick={goToNext} style={nextBtnStyle}>{t('common.next')}</button>
         </div>
       )}
 
@@ -319,10 +327,10 @@ const MultipleChoiceShell = ({
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={30} />
         {instrument && (
           <BinaryToggle
-            label="כלי"
+            label={t('common.instrument')}
             options={[
-              { value: 'piano', label: 'פסנתר' },
-              { value: 'guitar', label: 'גיטרה' }
+              { value: 'piano', label: t('common.piano') },
+              { value: 'guitar', label: t('common.guitar') }
             ]}
             value={instrument.value}
             onChange={instrument.onChange}
@@ -330,12 +338,12 @@ const MultipleChoiceShell = ({
         )}
         {reference && (
           <BinaryToggle
-            label="רפרנס"
+            label={t('common.reference')}
             options={[
-              { value: 'cadence', label: 'קדנצה' },
-              { value: 'chord', label: 'אקורד' },
-              { value: 'note', label: 'תו' },
-              { value: 'none', label: 'ללא' }
+              { value: 'cadence', label: t('common.cadence') },
+              { value: 'chord', label: t('common.chord') },
+              { value: 'note', label: t('common.note') },
+              { value: 'none', label: t('common.none') }
             ]}
             value={reference.value}
             onChange={reference.onChange}
@@ -343,10 +351,10 @@ const MultipleChoiceShell = ({
         )}
         {advancement && (
           <BinaryToggle
-            label="מעבר"
+            label={t('common.advancement')}
             options={[
-              { value: 'auto', label: 'אוטומטי' },
-              { value: 'manual', label: 'ידני' }
+              { value: 'auto', label: t('common.automatic') },
+              { value: 'manual', label: t('common.manual') }
             ]}
             value={advancement.value}
             onChange={advancement.onChange}

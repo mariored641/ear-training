@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import { useStoredState } from '../shared/useStoredState';
 import audioPlayer from '../../../utils/AudioPlayer';
@@ -39,6 +40,7 @@ const POOL_BY_LEVEL = {
 const TONICS = ['C', 'D', 'E', 'F', 'G', 'A'];
 
 const ExerciseM3 = () => {
+  const { t } = useTranslation();
   const [instrument, setInstrument] = useStoredState('ear-training:M3:instrument', 'piano');
   const [advancement, setAdvancement] = useStoredState('ear-training:M3:advancement', 'auto');
   const [reference, setReference] = useStoredState('ear-training:M3:reference', 'note');
@@ -60,10 +62,10 @@ const ExerciseM3 = () => {
       id: Date.now(),
       scaleName: correct,
       tonic,
-      options: all.map(s => ({ id: s, label: SCALE_HEBREW_NAMES[s] || s })),
+      options: all.map(s => ({ id: s, label: t(`music.scales.${s}`, { defaultValue: SCALE_HEBREW_NAMES[s] || s }) })),
       correctId: correct
     };
-  }, []);
+  }, [t]);
 
   const onPlay = useCallback(async (q, _level, ctx) => {
     const ref = ctx?.reference ?? reference;
@@ -92,7 +94,7 @@ const ExerciseM3 = () => {
   const chipsConfig = useMemo(() => {
     if (!showChips) return undefined;
     return {
-      items: chipPool.map(s => ({ id: s, label: SCALE_HEBREW_NAMES[s] || s })),
+      items: chipPool.map(s => ({ id: s, label: t(`music.scales.${s}`, { defaultValue: SCALE_HEBREW_NAMES[s] || s }) })),
       activeIds: activeChips,
       onToggle: (id) => {
         setChipsByLevel(prev => {
@@ -104,7 +106,7 @@ const ExerciseM3 = () => {
       minActive: currentLevel === 9 ? 3 : 2
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showChips, currentLevel, JSON.stringify(activeChips), JSON.stringify(chipPool)]);
+  }, [showChips, currentLevel, t, JSON.stringify(activeChips), JSON.stringify(chipPool)]);
 
   return (
     <MultipleChoiceShell

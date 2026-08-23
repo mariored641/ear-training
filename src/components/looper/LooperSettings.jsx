@@ -1,11 +1,13 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function LooperSettings({ session, onClose, actions }) {
+  const { t } = useTranslation();
   const timingLocked = session.tracks.length > 0;
   const signature = session.timeSignature.join('/');
 
   const reset = async () => {
-    if (!window.confirm('לפתוח סשן חדש? כל השכבות הנוכחיות יימחקו מהמכשיר.')) return;
+    if (!window.confirm(t('looper.newSessionConfirm'))) return;
     await actions.resetSession();
     onClose();
   };
@@ -17,15 +19,15 @@ export default function LooperSettings({ session, onClose, actions }) {
       <section className="looper-modal" role="dialog" aria-modal="true" aria-labelledby="looper-settings-title">
         <header>
           <div>
-            <h2 id="looper-settings-title">הגדרות לופר</h2>
-            <p>קבע את הגריד לפני ההקלטה הראשונה</p>
+            <h2 id="looper-settings-title">{t('looper.settingsTitle')}</h2>
+            <p>{t('looper.settingsHelp')}</p>
           </div>
-          <button type="button" className="looper-modal-close" onClick={onClose} aria-label="סגירת הגדרות">×</button>
+          <button type="button" className="looper-modal-close" onClick={onClose} aria-label={t('common.close')}>×</button>
         </header>
 
         <div className="looper-settings-grid">
           <label>
-            <span>משקל</span>
+            <span>{t('looper.timeSignature')}</span>
             <select
               className="ws-control"
               value={signature}
@@ -42,20 +44,20 @@ export default function LooperSettings({ session, onClose, actions }) {
           </label>
 
           <label>
-            <span>ספירה לפני הקלטה</span>
+            <span>{t('looper.countIn')}</span>
             <select
               className="ws-control"
               value={session.countInBars}
               onChange={(event) => actions.setCountInBars(event.target.value)}
             >
-              <option value="0">ללא ספירה</option>
-              <option value="1">תיבה אחת</option>
-              <option value="2">שתי תיבות</option>
+              <option value="0">{t('looper.noCountIn')}</option>
+              <option value="1">{t('looper.oneBar')}</option>
+              <option value="2">{t('looper.twoBars')}</option>
             </select>
           </label>
 
           <label className="looper-click-volume">
-            <span>עוצמת קליק</span>
+            <span>{t('looper.clickVolume')}</span>
             <input
               type="range"
               min="0"
@@ -70,16 +72,16 @@ export default function LooperSettings({ session, onClose, actions }) {
 
         {timingLocked && (
           <p className="looper-settings-note">
-            ה־BPM והמשקל נעולים אחרי ההקלטה הראשונה כדי לשמור על סנכרון מדויק בין השכבות.
+            {t('looper.lockedHelp')}
           </p>
         )}
         <p className="looper-headphones-note">
-          מומלץ לעבוד עם אוזניות: הקליק נשמע בזמן ההקלטה, אך אינו נכנס למיקס הדיגיטלי.
+          {t('looper.headphonesHelp')}
         </p>
 
         <footer>
-          <button type="button" className="looper-reset-btn" onClick={reset}>סשן חדש</button>
-          <button type="button" className="workshop-brass-btn" onClick={onClose}>סיום</button>
+          <button type="button" className="looper-reset-btn" onClick={reset}>{t('looper.newSession')}</button>
+          <button type="button" className="workshop-brass-btn" onClick={onClose}>{t('common.done')}</button>
         </footer>
       </section>
     </div>

@@ -10,6 +10,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import RhythmDictation from './RhythmDictation';
 import CallAndResponse from './CallAndResponse';
 import rhythmAudio from '../../utils/rhythmTrainingAudio';
@@ -23,6 +24,7 @@ import {
   BPM_MAX,
 } from '../../constants/rhythmTrainingDefaults';
 import './RhythmTraining.css';
+import { formatNoteName } from '../../i18n/musicTerms';
 
 const TABS = [
   { id: 'dictation',    label: 'Rhythm Dictation', sub: 'הכתבה קצבית' },
@@ -45,13 +47,9 @@ const LEVEL_DESCRIPTIONS = [
 
 const NUM_BARS_LABELS = { 1: 'תיבה 1', 2: '2 תיבות', 4: '4 תיבות' };
 
-const RT_LEVEL_STRIP = [
-  ...LEVEL_DESCRIPTIONS.map(({ level, label }) => ({ id: String(level), label })),
-  { id: 'custom', label: 'התאמה אישית' },
-];
-
 export default function RhythmTraining() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('dictation');
   const [settings, setSettings] = useState(DEFAULT_RHYTHM_TRAINING_SETTINGS);
   const [exerciseActive, setExerciseActive] = useState(false);
@@ -94,11 +92,10 @@ export default function RhythmTraining() {
       {/* ── Header ─────────────────────────────────────────────── */}
       <header className="rt-header">
         <div className="rt-header-left">
-          <button className="rt-back-btn" onClick={handleBack}>←</button>
+          <button className="rt-back-btn" onClick={handleBack} aria-label={t('common.backHome')}>←</button>
         </div>
         <div className="rt-header-center">
-          <h1 className="rt-title">🥁 Rhythm Training</h1>
-          <p className="rt-subtitle">אימון קצב</p>
+          <h1 className="rt-title">🥁 {t('rhythm.title')}</h1>
         </div>
         <div className="rt-header-right" />
       </header>
@@ -111,8 +108,7 @@ export default function RhythmTraining() {
             className={`rt-tab ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => handleTabChange(tab.id)}
           >
-            <span className="rt-tab-name">{tab.label}</span>
-            <span className="rt-tab-sub">{tab.sub}</span>
+            <span className="rt-tab-name">{t(`rhythm.${tab.id === 'dictation' ? 'dictation' : 'callResponse'}`)}</span>
           </button>
         ))}
       </div>
@@ -121,7 +117,10 @@ export default function RhythmTraining() {
       <div className="rt-content">
 
         <LevelStrip
-          levels={RT_LEVEL_STRIP}
+          levels={[
+            ...LEVEL_DESCRIPTIONS.map(({ level }) => ({ id: String(level), label: t('common.level', { level }) })),
+            { id: 'custom', label: t('rhythm.custom') },
+          ]}
           activeId={activeLevel}
           onChange={handleLevelChange}
           disabled={exerciseActive}
@@ -158,6 +157,7 @@ export default function RhythmTraining() {
 const NUM_QUESTIONS_OPTIONS = [5, 10, 20, 0]; // 0 = unlimited
 
 function SettingsPanel({ settings, updateSetting, exerciseActive }) {
+  const { t, i18n } = useTranslation();
   const { bpm, numBars, level, soundChoice, bassNote, numQuestions } = settings;
 
   // Per-field disable: `numBars` and `level` have no clean mid-bar interrupt
@@ -171,7 +171,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
 
       {/* Tempo — live */}
       <div className="rt-field">
-        <span className="rt-label">טמפו</span>
+        <span className="rt-label">{t('rhythm.tempo')}</span>
         <div className="rt-slider-row">
           <input
             type="range"
@@ -188,7 +188,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
 
       {/* Number of bars — queued (locked during session) */}
       <div className="rt-field">
-        <span className="rt-label">מספר תיבות</span>
+        <span className="rt-label">{t('rhythm.numberOfBars')}</span>
         <div className="rt-btn-group">
           {NUM_BARS_OPTIONS.map(n => (
             <button
@@ -197,7 +197,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
               onClick={() => updateSetting('numBars', n)}
               disabled={lockStructural}
             >
-              {NUM_BARS_LABELS[n] || n}
+              {t('common.bars', { count: n, defaultValue: NUM_BARS_LABELS[n] || n })}
             </button>
           ))}
         </div>
@@ -205,17 +205,17 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
 
       {/* Difficulty level — queued (locked during session) */}
       <div className="rt-field">
-        <span className="rt-label">רמת קושי</span>
+        <span className="rt-label">{t('rhythm.difficulty')}</span>
         <div className="rt-level-grid">
-          {LEVEL_DESCRIPTIONS.map(({ level: l, label, desc }) => (
+          {LEVEL_DESCRIPTIONS.map(({ level: l, desc }) => (
             <button
               key={l}
               className={`rt-level-bar ${level === l ? 'active' : ''}`}
               onClick={() => updateSetting('level', l)}
               disabled={lockStructural}
             >
-              <span className="rt-level-bar-name">{label}</span>
-              <span className="rt-level-bar-desc">{desc}</span>
+              <span className="rt-level-bar-name">{t('common.level', { level: l })}</span>
+              <span className="rt-level-bar-desc">{t(`rhythm.levelDescriptions.${l}`, { defaultValue: desc })}</span>
             </button>
           ))}
         </div>
@@ -223,7 +223,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
 
       {/* Sound choice — live */}
       <div className="rt-field">
-        <span className="rt-label">צליל פטרן</span>
+        <span className="rt-label">{t('rhythm.patternSound')}</span>
         <div className="rt-btn-group">
           {['woodblock', 'bass', 'drums'].map(s => (
             <button
@@ -231,7 +231,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
               className={`rt-opt-btn ${soundChoice === s ? 'active' : ''}`}
               onClick={() => updateSetting('soundChoice', s)}
             >
-              {{ woodblock: 'Woodblock', bass: 'Bass', drums: 'Drums' }[s]}
+              {t(`rhythm.sounds.${s}`)}
             </button>
           ))}
         </div>
@@ -240,7 +240,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
       {/* Bass note selector (only for bass sound) — live */}
       {soundChoice === 'bass' && (
         <div className="rt-field">
-          <span className="rt-label">תו בסיס</span>
+          <span className="rt-label">{t('rhythm.baseNote')}</span>
           <div className="rt-note-row">
             {CHROMATIC_NOTES_SHARP.map(n => (
               <button
@@ -248,7 +248,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
                 className={`rt-note-btn ${bassNote === n ? 'active' : ''}`}
                 onClick={() => updateSetting('bassNote', n)}
               >
-                {n}
+                {formatNoteName(n, i18n.language)}
               </button>
             ))}
           </div>
@@ -257,7 +257,7 @@ function SettingsPanel({ settings, updateSetting, exerciseActive }) {
 
       {/* Number of questions — live (conflict triggers summary) */}
       <div className="rt-field">
-        <span className="rt-label">מספר שאלות</span>
+        <span className="rt-label">{t('rhythm.numberOfQuestions')}</span>
         <div className="rt-btn-group">
           {NUM_QUESTIONS_OPTIONS.map(n => (
             <button

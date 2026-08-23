@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './ArpeggioOptionsBar.css';
 
 export const ARPEGGIOS = [
@@ -12,9 +13,10 @@ export const ARPEGGIOS = [
 ];
 
 const ArpeggioOptionsBar = ({ activeArpeggios, onArpeggioToggle, hideRoots, onHideRootsChange }) => {
+  const { t } = useTranslation();
   return (
     <div className="arpeggio-options-bar">
-      <span className="arpeggio-label">Arpeggios:</span>
+      <span className="arpeggio-label">{t('positions.tabs.arpeggios')}:</span>
       <div className="arpeggio-buttons">
         {ARPEGGIOS.map((arp) => {
           const isActive = activeArpeggios.includes(arp.id);
@@ -32,7 +34,7 @@ const ArpeggioOptionsBar = ({ activeArpeggios, onArpeggioToggle, hideRoots, onHi
                 color: arp.color,
               }}
               onClick={() => onArpeggioToggle(arp.id)}
-              title={`${arp.label} chord`}
+              title={`${arp.label} ${t('common.chord')}`}
             >
               {arp.label}
             </button>
@@ -43,9 +45,9 @@ const ArpeggioOptionsBar = ({ activeArpeggios, onArpeggioToggle, hideRoots, onHi
         <button
           className={`hide-roots-btn ${hideRoots ? 'active' : ''}`}
           onClick={() => onHideRootsChange(!hideRoots)}
-          title="Show/hide root note colors"
+          title={t('positions.toggleRoots')}
         >
-          Roots
+          {t('positions.roots')}
         </button>
         {activeArpeggios.length > 0 && (
           <button

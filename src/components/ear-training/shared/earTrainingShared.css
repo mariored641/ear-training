@@ -16,7 +16,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  direction: rtl;
+  direction: inherit;
   color: var(--paper-cream);
   font-family: var(--font-body);
 }
@@ -87,14 +87,14 @@
   background: var(--glass-bg-strong);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-left: 1px solid var(--brass-dark);
+  border-inline-start: 1px solid var(--brass-dark);
   color: var(--paper-cream);
   width: 360px;
   max-width: 90vw;
   height: 100%;
   padding: 24px;
   box-shadow: -8px 0 32px rgba(0, 0, 0, 0.6);
-  direction: rtl;
+  direction: inherit;
   display: flex;
   flex-direction: column;
 }
@@ -173,7 +173,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  direction: rtl;
+  direction: inherit;
 }
 .et-chip {
   padding: 6px 14px;

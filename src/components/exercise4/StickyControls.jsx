@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
   BPM_MIN,
@@ -16,6 +17,7 @@ const StickyControls = ({
   soundSet,
   setSoundSet
 }) => {
+  const { t } = useTranslation();
   const [isStuck, setIsStuck] = useState(false);
   const [showBPMModal, setShowBPMModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -75,13 +77,13 @@ const StickyControls = ({
         {/* Playback Buttons */}
         <div className="playback-buttons">
           <button className="action-btn secondary tap-btn" onClick={onTap}>
-            👆<span> Tap</span>
+            👆<span> {t('tools.tap')}</span>
           </button>
           <button className="action-btn primary play-btn" onClick={onPlayStop}>
-            {isPlaying ? '⏸️' : '▶️'}<span> {isPlaying ? 'Pause' : 'Play'}</span>
+            {isPlaying ? '⏸️' : '▶️'}<span> {isPlaying ? t('rhythm.pause') : t('common.play')}</span>
           </button>
           <button className="action-btn secondary clear-btn" onClick={onClear}>
-            🔄<span> Clear</span>
+            🔄<span> {t('common.clear')}</span>
           </button>
         </div>
 
@@ -90,14 +92,14 @@ const StickyControls = ({
           <button
             className={`sound-btn ${soundSet === 'classicClick' ? 'active' : ''}`}
             onClick={() => handleSoundSetChange('classicClick')}
-            title="Classic Click"
+            title={t('rhythm.classicClick')}
           >
             🔘
           </button>
           <button
             className={`sound-btn ${soundSet === 'drumKit' ? 'active' : ''}`}
             onClick={() => handleSoundSetChange('drumKit')}
-            title="Drum Kit"
+            title={t('rhythm.drumKit')}
           >
             🥁
           </button>
@@ -188,7 +190,7 @@ const StickyControls = ({
               className="modal-done-btn"
               onClick={() => setShowBPMModal(false)}
             >
-              ✓ Done
+              ✓ {t('common.done')}
             </button>
           </div>
         </div>

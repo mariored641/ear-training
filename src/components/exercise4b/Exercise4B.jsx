@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HarmonicAudioPlayer from '../../utils/HarmonicAudioPlayer';
 import Header from '../common/Header';
 import Settings4BPanel from './Settings4BPanel';
@@ -12,14 +13,15 @@ import {
   getChordTones
 } from '../../constants/harmonicDefaults';
 import './Exercise4B.css';
-
-const EX4B_LEVELS = [
-  { id: 'regular', label: 'רגיל' },
-  { id: 'custom',  label: 'התאמה אישית' },
-];
+import { formatNoteName } from '../../i18n/musicTerms.js';
 
 const Exercise4B = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const levels = [
+    { id: 'regular', label: t('legacy.regular') },
+    { id: 'custom', label: t('legacy.custom') },
+  ];
   const isMountedRef = useRef(true);
 
   // Settings
@@ -326,14 +328,14 @@ const Exercise4B = () => {
   };
 
   const handleMelodyComplete = async () => {
-    setFeedbackMessage('Excellent! 🎉');
+    setFeedbackMessage('excellent');
     await delay(1500);
 
     if (currentQuestion >= settings.numQuestions) {
       setIsComplete(true);
     } else {
       // Always manual transition for this exercise
-      setFeedbackMessage('Complete! Click Next to continue');
+      setFeedbackMessage('completeNext');
     }
   };
 
@@ -415,28 +417,28 @@ const Exercise4B = () => {
     return (
       <div className="exercise-container">
         <div className="summary-screen">
-          <h1 className="summary-title">Completed! 🎉</h1>
+          <h1 className="summary-title">{t('legacy.completed')}</h1>
 
           <div className="summary-content">
-            <h2>Chord Tone Melodies</h2>
+            <h2>{t('legacy.chordToneMelodies')}</h2>
 
             <div className="summary-stats">
-              <p>Completed {settings.numQuestions} melodies</p>
-              <p className="stat-highlight">{correctFirstTry} notes correct on first try</p>
+              <p>{t('legacy.completedMelodies', { count: settings.numQuestions })}</p>
+              <p className="stat-highlight">{t('legacy.notesCorrectFirstTry', { count: correctFirstTry })}</p>
               {notesRequiringMoreAttempts > 0 && (
-                <p>{notesRequiringMoreAttempts} notes required additional attempts</p>
+                <p>{t('legacy.notesRequiredAttempts', { count: notesRequiringMoreAttempts })}</p>
               )}
             </div>
 
             <div className="summary-buttons">
               <button className="summary-btn primary" onClick={handleReset}>
-                Practice Again
+                {t('legacy.practiceAgain')}
               </button>
               <button className="summary-btn secondary" onClick={() => navigate('/category/harmonic')}>
-                Back to Category
+                {t('legacy.backToCategory')}
               </button>
               <button className="summary-btn secondary" onClick={() => navigate('/')}>
-                Back to Home
+                {t('legacy.backToHome')}
               </button>
             </div>
           </div>
@@ -450,7 +452,7 @@ const Exercise4B = () => {
   return (
     <div className="exercise-container exercise4b">
       <Header
-        title="Exercise 4B: Chord Tone Melodies"
+        title={t('legacy.exercise4BTitle')}
         showSettings={true}
         showStop={true}
         onSettingsClick={() => setIsSettingsOpen(true)}
@@ -459,14 +461,14 @@ const Exercise4B = () => {
 
       {/* Progress bar */}
       <div className="progress-container">
-        <div className="progress-text">Question {currentQuestion}/{settings.numQuestions}</div>
+        <div className="progress-text">{t('legacy.questionProgress', { current: currentQuestion, total: settings.numQuestions })}</div>
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
 
       <LevelStrip
-        levels={EX4B_LEVELS}
+        levels={levels}
         activeId={activeLevel}
         onChange={handleLevelChange}
       />
@@ -478,7 +480,7 @@ const Exercise4B = () => {
           onClick={handlePlayMelody}
           disabled={isPlayingMelody}
         >
-          🔊 {isPlayingMelody ? 'Playing...' : 'Play Melody'}
+          🔊 {isPlayingMelody ? t('legacy.playing') : t('legacy.playMelody')}
         </button>
       </div>
 
@@ -486,25 +488,25 @@ const Exercise4B = () => {
       {currentMelody && (
         <>
           <div className="progression-display">
-            <span className="progression-label">Progression:</span>
+            <span className="progression-label">{t('legacy.progression')}:</span>
             {currentMelody.progression.map((chord, idx) => (
               <span key={idx} className="chord-badge">
-                {chord}
+                <span className="music-term">{formatNoteName(chord, i18n.language)}</span>
                 {idx < currentMelody.progression.length - 1 && ' → '}
               </span>
             ))}
           </div>
 
           {feedbackMessage && (
-            <div className={`feedback-message ${feedbackMessage.includes('Excellent') ? 'success' : ''}`}>
-              {feedbackMessage}
+            <div className={`feedback-message ${feedbackMessage === 'excellent' ? 'success' : ''}`}>
+              {t(`legacy.feedback.${feedbackMessage}`)}
             </div>
           )}
 
           {/* CHORD TONE TABLE - Main UI */}
           <div className="chord-tone-table-container">
             <div className="table-instructions">
-              Numbers ①②③④⑤⑥⑦⑧⑨⑩⑪⑫ show the actual order of notes in melody
+              {t('legacy.tableInstructions')}
             </div>
 
             <table className="chord-tone-table">
@@ -521,9 +523,9 @@ const Exercise4B = () => {
                           <div className="chord-name-row">
                             {status === 'completed' && <span className="status-icon green">🟢 ✓</span>}
                             {status === 'active' && <span className="status-icon blue">🔵 ●</span>}
-                            <span className="chord-name">{chordName}</span>
+                            <span className="chord-name music-term">{formatNoteName(chordName, i18n.language)}</span>
                           </div>
-                          <div className="note-count">{numNotes} note{numNotes > 1 ? 's' : ''}</div>
+                          <div className="note-count">{t('legacy.noteCount', { count: numNotes })}</div>
                         </div>
                       </th>
                     );
@@ -535,7 +537,7 @@ const Exercise4B = () => {
                     const chordTones = getChordTones(chordName);
                     return (
                       <td key={chordIndex} className="available-tones">
-                        {chordTones.join(' ')}
+                        {chordTones.map((tone) => formatNoteName(tone, i18n.language)).join(' · ')}
                       </td>
                     );
                   })}
@@ -578,7 +580,7 @@ const Exercise4B = () => {
                                   onClick={() => handleNoteClick(chordIndex, rowIndex, tone)}
                                   disabled={isCorrect}
                                 >
-                                  {tone}
+                                  <span className="music-term">{formatNoteName(tone, i18n.language)}</span>
                                   {isThisNoteCorrect && (
                                     <span className="number-badge">
                                       {getCircledNumber(position)}
@@ -600,10 +602,10 @@ const Exercise4B = () => {
       )}
 
       {/* Next button - always shown when melody is complete */}
-      {feedbackMessage.includes('Next') && (
+      {feedbackMessage === 'completeNext' && (
         <div className="next-button-container">
           <button className="next-btn" onClick={handleNext}>
-            Next →
+            {t('legacy.next')}
           </button>
         </div>
       )}

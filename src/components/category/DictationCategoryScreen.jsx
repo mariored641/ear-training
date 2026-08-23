@@ -1,22 +1,24 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ExerciseCard from '../home/ExerciseCard';
 import './CategoryScreen.css';
 
 const DictationCategoryScreen = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const exercises = [
     {
       id: 'rhythm-dictation',
       path: '/rhythm-training',
       icon: '🎯',
-      title: 'Rhythmic Dictation'
+      titleKey: 'dictation.rhythmic'
     },
     {
       id: 3,
       icon: '🎼',
-      title: 'Melodic Dictation'
+      titleKey: 'dictation.melodic'
     }
   ];
 
@@ -28,11 +30,10 @@ const DictationCategoryScreen = () => {
     <div className="category-screen">
       <header className="category-screen-header">
         <button className="back-button" onClick={handleBackToHome}>
-          ← Back to Home
+          {t('common.backHome')}
         </button>
         <div className="category-screen-title-container">
-          <h1 className="category-screen-title">Dictation</h1>
-          <h2 className="category-screen-title-hebrew">חטיבת הכתבה</h2>
+          <h1 className="category-screen-title">{t('dictation.title')}</h1>
         </div>
       </header>
 
@@ -43,7 +44,7 @@ const DictationCategoryScreen = () => {
             exerciseId={exercise.id}
             path={exercise.path}
             icon={exercise.icon}
-            title={exercise.title}
+            title={t(exercise.titleKey)}
             isAvailable={true}
           />
         ))}

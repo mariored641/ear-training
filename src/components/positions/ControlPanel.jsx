@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { CHROMATIC_SCALE } from '../../constants/positionData';
 import './ControlPanel.css';
+import { formatNoteName } from '../../i18n/musicTerms';
 
 const POSITION_NAMES = ['C', 'A', 'G', 'E', 'D'];
 
@@ -21,6 +23,7 @@ const ControlPanel = ({
   onShowAllChange,
   onQuickRefClick,
 }) => {
+  const { t, i18n } = useTranslation();
   const handlePositionToggle = (posName) => {
     if (selectedPositions.includes(posName)) {
       onPositionsChange(selectedPositions.filter(p => p !== posName));
@@ -34,44 +37,44 @@ const ControlPanel = ({
       {/* Row 1: Root + Scale Type + Quick Ref */}
       <div className="control-row">
         <div className="control-group">
-          <label className="control-label">Root:</label>
+          <label className="control-label">{t('common.root')}:</label>
           <select
             className="root-select"
             value={selectedRoot}
             onChange={(e) => onRootChange(e.target.value)}
           >
             {CHROMATIC_SCALE.map(note => (
-              <option key={note} value={note}>{NOTE_DISPLAY_LABELS[note]}</option>
+              <option key={note} value={note}>{formatNoteName(NOTE_DISPLAY_LABELS[note], i18n.language)}</option>
             ))}
           </select>
         </div>
 
         <div className="control-group">
-          <label className="control-label">Type:</label>
+          <label className="control-label">{t('common.type')}:</label>
           <div className="scale-type-buttons">
             <button
               className={`type-btn ${selectedType === 'major' ? 'active' : ''}`}
               onClick={() => onTypeChange('major')}
             >
-              Major
+              {t('common.major')}
             </button>
             <button
               className={`type-btn ${selectedType === 'minor' ? 'active' : ''}`}
               onClick={() => onTypeChange('minor')}
             >
-              Minor
+              {t('common.minor')}
             </button>
           </div>
         </div>
 
-        <button className="quick-ref-btn" onClick={onQuickRefClick} title="Quick Reference">
-          <span role="img" aria-label="Quick Reference">&#128203;</span>
+        <button className="quick-ref-btn" onClick={onQuickRefClick} title={t('positions.quickReference')}>
+          <span role="img" aria-label={t('positions.quickReference')}>&#128203;</span>
         </button>
       </div>
 
       {/* Row 2: Position buttons */}
       <div className="control-row">
-        <label className="control-label">Positions:</label>
+        <label className="control-label">{t('positions.positions')}:</label>
         <div className="position-buttons">
           {POSITION_NAMES.map(name => (
             <button
@@ -93,7 +96,7 @@ const ControlPanel = ({
             checked={showAll}
             onChange={(e) => onShowAllChange(e.target.checked)}
           />
-          <span className="toggle-label">Show All Positions</span>
+          <span className="toggle-label">{t('positions.showAll')}</span>
         </label>
       </div>
     </div>

@@ -7,6 +7,7 @@
  */
 
 import React, { createContext, useContext, useRef, useState, useCallback, useEffect } from 'react';
+import i18n from '../../i18n/index.js';
 import { useMicrophone } from './useMicrophone.js';
 import { AudioMetronome } from '../../lib/audio/AudioMetronome.js';
 
@@ -152,7 +153,7 @@ export function ToolsProvider({ children }) {
         mic.release();
       };
       rec.onerror = (ev) => {
-        setError(ev?.error?.message || 'Recording error');
+        setError(ev?.error?.message || i18n.t('tools.recordingError'));
         setRecordingState('idle');
         mic.release();
       };
@@ -161,7 +162,7 @@ export function ToolsProvider({ children }) {
       rec.start(250);
       setRecordingState('recording');
     } catch (err) {
-      setError(err?.message || 'Microphone access denied');
+      setError(err?.message || i18n.t('tools.microphoneDenied'));
       setRecordingState('idle');
     }
   }, [recordingState, mic]);

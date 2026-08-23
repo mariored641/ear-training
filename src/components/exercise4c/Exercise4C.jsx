@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HarmonicAudioPlayer from '../../utils/HarmonicAudioPlayer';
 import Header from '../common/Header';
 import ChordButtons4C from './ChordButtons4C';
@@ -14,13 +15,13 @@ import {
 } from '../../constants/harmonicDefaults';
 import './Exercise4C.css';
 
-const EX4C_LEVELS = [
-  { id: 'regular', label: 'רגיל' },
-  { id: 'custom',  label: 'התאמה אישית' },
-];
-
 const Exercise4C = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const levels = [
+    { id: 'regular', label: t('legacy.regular') },
+    { id: 'custom', label: t('legacy.custom') },
+  ];
   const isMountedRef = useRef(true);
 
   // Settings
@@ -221,7 +222,7 @@ const Exercise4C = () => {
       // Move to next position or finish
       if (currentPositionIndex === currentProgression.length - 1) {
         // Progression complete!
-        setFeedbackMessage('Excellent! 🎉');
+        setFeedbackMessage('excellent');
         await delay(1000);
 
         if (currentQuestion >= settings.numQuestions) {
@@ -230,7 +231,7 @@ const Exercise4C = () => {
           if (settings.transition === 'auto') {
             setCurrentQuestion(currentQuestion + 1);
           } else {
-            setFeedbackMessage('Complete! Click Next to continue');
+            setFeedbackMessage('completeNext');
           }
         }
       } else {
@@ -239,7 +240,7 @@ const Exercise4C = () => {
       }
     } else {
       // INCORRECT
-      setFeedbackMessage('Try again');
+      setFeedbackMessage('tryAgain');
       await delay(500);
       setFeedbackMessage('');
     }
@@ -320,38 +321,38 @@ const Exercise4C = () => {
     return (
       <div className="exercise-container">
         <div className="summary-screen">
-          <h1 className="summary-title">Completed! 🎉</h1>
+          <h1 className="summary-title">{t('legacy.completed')}</h1>
 
           <div className="summary-content">
-            <h2>Progressions with Bass</h2>
-            <h3>{settings.inversions === 'with' ? '(With Inversions)' : '(Without Inversions)'}</h3>
+            <h2>{t('legacy.progressionsBass')}</h2>
+            <h3>({settings.inversions === 'with' ? t('legacy.withInversions') : t('legacy.withoutInversions')})</h3>
 
             <div className="summary-stats">
-              <p>Completed {settings.numQuestions} progressions</p>
+              <p>{t('legacy.completedProgressions', { count: settings.numQuestions })}</p>
               {settings.inversions === 'with' && (
                 <>
-                  <p>Total identifications: {totalIdentifications}</p>
-                  <p className="stat-small">({Math.floor(totalIdentifications / 2)} chords + {Math.ceil(totalIdentifications / 2)} bass notes)</p>
+                  <p>{t('legacy.totalIdentifications', { count: totalIdentifications })}</p>
+                  <p className="stat-small">{t('legacy.chordsAndBass', { chords: Math.floor(totalIdentifications / 2), bass: Math.ceil(totalIdentifications / 2) })}</p>
                 </>
               )}
               {settings.inversions === 'no' && (
-                <p>Total chords: {totalIdentifications}</p>
+                <p>{t('legacy.totalChords', { count: totalIdentifications })}</p>
               )}
-              <p className="stat-highlight">{correctFirstTry} correct on first try</p>
+              <p className="stat-highlight">{t('legacy.correctFirstTry', { count: correctFirstTry })}</p>
               {neededHelp > 0 && (
-                <p>{neededHelp} required additional attempts</p>
+                <p>{t('legacy.requiredAttempts', { count: neededHelp })}</p>
               )}
             </div>
 
             <div className="summary-buttons">
               <button className="summary-btn primary" onClick={handleReset}>
-                Practice Again
+                {t('legacy.practiceAgain')}
               </button>
               <button className="summary-btn secondary" onClick={() => navigate('/category/harmonic')}>
-                Back to Category
+                {t('legacy.backToCategory')}
               </button>
               <button className="summary-btn secondary" onClick={() => navigate('/')}>
-                Back to Home
+                {t('legacy.backToHome')}
               </button>
             </div>
           </div>
@@ -365,7 +366,7 @@ const Exercise4C = () => {
   return (
     <div className="exercise-container exercise4c">
       <Header
-        title="Exercise 4C: Progressions with Bass"
+        title={t('legacy.exercise4CTitle')}
         showSettings={true}
         showStop={true}
         onSettingsClick={() => setIsSettingsOpen(true)}
@@ -374,14 +375,14 @@ const Exercise4C = () => {
 
       {/* Progress bar */}
       <div className="progress-container">
-        <div className="progress-text">Question {currentQuestion}/{settings.numQuestions}</div>
+        <div className="progress-text">{t('legacy.questionProgress', { current: currentQuestion, total: settings.numQuestions })}</div>
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
 
       <LevelStrip
-        levels={EX4C_LEVELS}
+        levels={levels}
         activeId={activeLevel}
         onChange={handleLevelChange}
       />
@@ -389,22 +390,22 @@ const Exercise4C = () => {
       {/* Playback buttons */}
       <div className="playback-controls">
         <button className="play-btn primary" onClick={handlePlayProgression}>
-          🔊 Play Progression
+          🔊 {t('legacy.playProgression')}
         </button>
       </div>
 
       {/* Question */}
       <div className="question-section">
-        <h2>Identify the chord progression:</h2>
+        <h2>{t('legacy.identifyProgression')}:</h2>
         <p className="progression-hint">
-          Progression length: {settings.progressionLength} chords
+          {t('legacy.progressionLengthValue', { count: settings.progressionLength })}
           {currentPositionIndex < settings.progressionLength && (
-            <span> • Identifying chord {currentPositionIndex + 1}/{settings.progressionLength}</span>
+            <span> • {t('legacy.identifyingChord', { current: currentPositionIndex + 1, total: settings.progressionLength })}</span>
           )}
         </p>
         {feedbackMessage && (
-          <div className={`feedback-message ${feedbackMessage.includes('Try') ? 'incorrect' : 'correct'}`}>
-            {feedbackMessage}
+          <div className={`feedback-message ${feedbackMessage === 'tryAgain' ? 'incorrect' : 'correct'}`}>
+            {t(`legacy.feedback.${feedbackMessage}`)}
           </div>
         )}
       </div>
@@ -417,10 +418,10 @@ const Exercise4C = () => {
       />
 
       {/* Next button for manual transition */}
-      {settings.transition === 'manual' && feedbackMessage.includes('Next') && (
+      {settings.transition === 'manual' && feedbackMessage === 'completeNext' && (
         <div className="next-button-container">
           <button className="next-btn" onClick={handleNext}>
-            Next →
+            {t('legacy.next')}
           </button>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function defaultFileName() {
   const now = new Date();
@@ -9,6 +10,7 @@ function defaultFileName() {
   return `looper-session-${date}-${time}.wav`;
 }
 export default function ExportDialog({ tracks, onClose, exportMix }) {
+  const { t } = useTranslation();
   const defaults = useMemo(() => tracks.filter((track) => !track.muted).map((track) => track.id), [tracks]);
   const [selectedIds, setSelectedIds] = useState(defaults);
   const [fileName, setFileName] = useState(defaultFileName);
@@ -51,10 +53,10 @@ export default function ExportDialog({ tracks, onClose, exportMix }) {
       <section className="looper-modal looper-export-modal" role="dialog" aria-modal="true" aria-labelledby="looper-export-title">
         <header>
           <div>
-            <h2 id="looper-export-title">ייצוא המיקס</h2>
-            <p>בחר אילו שכבות ייכנסו לקובץ WAV</p>
+            <h2 id="looper-export-title">{t('looper.exportTitle')}</h2>
+            <p>{t('looper.exportHelp')}</p>
           </div>
-          <button type="button" className="looper-modal-close" onClick={onClose} disabled={exporting} aria-label="סגירת ייצוא">×</button>
+          <button type="button" className="looper-modal-close" onClick={onClose} disabled={exporting} aria-label={t('common.close')}>×</button>
         </header>
 
         <div className="looper-export-tracks">
@@ -67,13 +69,13 @@ export default function ExportDialog({ tracks, onClose, exportMix }) {
                 disabled={exporting}
               />
               <span>{track.label}</span>
-              <small>{track.muted ? 'מושתקת כרגע' : `${Math.round(track.volume * 100)}%`}</small>
+              <small>{track.muted ? t('looper.mutedNow') : `${Math.round(track.volume * 100)}%`}</small>
             </label>
           ))}
         </div>
 
         <label className="looper-file-name">
-          <span>שם הקובץ</span>
+          <span>{t('looper.fileName')}</span>
           <input
             className="ws-control"
             value={fileName}
@@ -84,14 +86,14 @@ export default function ExportDialog({ tracks, onClose, exportMix }) {
         </label>
 
         <footer>
-          <button type="button" className="ws-ghost-btn" onClick={onClose} disabled={exporting}>ביטול</button>
+          <button type="button" className="ws-ghost-btn" onClick={onClose} disabled={exporting}>{t('common.cancel')}</button>
           <button
             type="button"
             className="workshop-brass-btn looper-export-confirm"
             onClick={download}
             disabled={!selectedIds.length || exporting}
           >
-            {exporting ? <><i className="looper-spinner" /> מכין קובץ...</> : 'הורד WAV'}
+            {exporting ? <><i className="looper-spinner" /> {t('looper.preparingFile')}</> : t('looper.downloadWav')}
           </button>
         </footer>
       </section>

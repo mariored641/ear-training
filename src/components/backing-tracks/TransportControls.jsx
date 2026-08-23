@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 const LOOP_OPTIONS = [
   { value: 0, label: '∞' },
@@ -8,6 +9,7 @@ const LOOP_OPTIONS = [
 ]
 
 export function TransportControls({ isPlaying, isLoading, tempo, maxLoops, currentBar, barCount, onPlay, onStop, onTempoChange, onMaxLoopsChange }) {
+  const { t } = useTranslation()
   return (
     <div className="transport-controls">
       <div className="transport-left">
@@ -18,7 +20,7 @@ export function TransportControls({ isPlaying, isLoading, tempo, maxLoops, curre
         >
           {isLoading ? '⏳' : isPlaying ? '⏹' : '▶'}
         </button>
-        {isLoading && <span className="loading-text">Loading sounds…</span>}
+        {isLoading && <span className="loading-text">{t('common.loadingSounds')}</span>}
       </div>
 
       <div className="transport-center">
@@ -38,7 +40,7 @@ export function TransportControls({ isPlaying, isLoading, tempo, maxLoops, curre
 
       <div className="transport-right">
         <div className="loop-selector">
-          <span className="loop-label">Loop:</span>
+          <span className="loop-label">{t('backing.loops')}:</span>
           {LOOP_OPTIONS.map(opt => (
             <button
               key={opt.value}
@@ -50,7 +52,7 @@ export function TransportControls({ isPlaying, isLoading, tempo, maxLoops, curre
           ))}
         </div>
         {isPlaying && (
-          <span className="bar-indicator">Bar {currentBar + 1}/{barCount}</span>
+          <span className="bar-indicator">{t('backing.currentBar', { current: currentBar + 1, total: barCount })}</span>
         )}
       </div>
     </div>

@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GENRE_CATALOG } from './useBackingTrackEngine'
 import { GENRE_ICON_MAP } from '../icons/AppIcons'
 
 export function GenreSelector({ genre, onGenreChange }) {
+  const { t } = useTranslation()
   const [openCategory, setOpenCategory] = useState(null)
   const containerRef = useRef(null)
 
@@ -23,7 +25,9 @@ export function GenreSelector({ genre, onGenreChange }) {
         const isCatActive = activeCategory === cat.category
         const isOpen      = openCategory === cat.category
         const activeSub   = cat.subtypes.find(s => s.id === genre) ?? cat.subtypes[0]
-        const shownLabel  = isCatActive ? activeSub.label : cat.subtypes[0].label
+        const shownLabel  = t(`backing.styles.${isCatActive ? activeSub.id : cat.subtypes[0].id}`, {
+          defaultValue: isCatActive ? activeSub.label : cat.subtypes[0].label
+        })
 
         return (
           <div key={cat.category} className="genre-item">
@@ -41,7 +45,7 @@ export function GenreSelector({ genre, onGenreChange }) {
                   {(() => { const I = GENRE_ICON_MAP[cat.category]; return I ? <I /> : cat.icon })()}
                 </span>
                 <div className="genre-text">
-                  <span className="genre-label">{cat.label}</span>
+                  <span className="genre-label">{t(`backing.genreCategories.${cat.category}`, { defaultValue: cat.label })}</span>
                   <span className="genre-sub">{shownLabel}</span>
                 </div>
               </button>
@@ -53,7 +57,7 @@ export function GenreSelector({ genre, onGenreChange }) {
                   e.stopPropagation()
                   setOpenCategory(isOpen ? null : cat.category)
                 }}
-                title="בחר סגנון"
+                title={t('backing.selectStyle')}
               >
                 ▾
               </button>
@@ -71,7 +75,7 @@ export function GenreSelector({ genre, onGenreChange }) {
                       setOpenCategory(null)
                     }}
                   >
-                    <span className="genre-dropdown-label">{sub.label}</span>
+                    <span className="genre-dropdown-label">{t(`backing.styles.${sub.id}`, { defaultValue: sub.label })}</span>
                     {sub.bpm && <span className="genre-dropdown-bpm">{sub.bpm}</span>}
                   </button>
                 ))}

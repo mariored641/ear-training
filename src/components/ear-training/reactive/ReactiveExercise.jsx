@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import { loadStoredLevel } from '../shared/LevelNavigator';
 import '../shared/earTrainingShared.css';
@@ -15,6 +16,7 @@ import {
 } from './reactiveConstants';
 import { useReactiveSession } from './useReactiveSession';
 import './ReactiveExercise.css';
+import { formatNoteName } from '../../../i18n/musicTerms';
 
 function formatTime(sec) {
   if (sec == null) return '∞';
@@ -29,8 +31,10 @@ function formatTime(sec) {
  * @param {string} exerciseId   For storage key ("R1" / "R2")
  * @param {string} title        Hebrew title shown in header
  */
-const ReactiveExercise = ({ mode, exerciseId, title }) => {
+const ReactiveExercise = ({ mode, exerciseId }) => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const title = `${exerciseId} — ${t(`earTraining.exercises.${exerciseId}`)}`;
   const storageKey = `${exerciseId}_currentLevel`;
   const tiers = tiersForMode(mode);
 
@@ -87,26 +91,30 @@ const ReactiveExercise = ({ mode, exerciseId, title }) => {
 
       <div className="reactive-body">
         <div className="reactive-session-bar">
-          <span className="reactive-session-timer" aria-label="זמן סשן שנותר">
+          <span className="reactive-session-timer" aria-label={t('earTraining.reactive.timeLeft')}>
             ⏱ {formatTime(session.sessionTimeLeft)}
           </span>
           {mode === 'diatonic' && session.activeKey && session.isPlaying && (
             <span className="reactive-key-active">
-              סולם פעיל: <strong>{session.activeKey}</strong>
+              {t('earTraining.reactive.activeKey')}: <strong>{formatNoteName(session.activeKey, i18n.language)}</strong>
             </span>
           )}
         </div>
 
         {mode === 'diatonic' && (
           <div className="reactive-key-row">
-            <label>סולם:</label>
+            <label>{t('earTraining.reactive.key')}:</label>
             <select
               value={diatonicKey}
               onChange={(e) => setDiatonicKey(e.target.value)}
               disabled={session.isPlaying}
             >
               {DIATONIC_KEYS.map(k => (
-                <option key={k.value} value={k.value}>{k.label}</option>
+                <option key={k.value} value={k.value}>
+                  {k.value === 'random'
+                    ? t('earTraining.reactive.randomKey')
+                    : `${formatNoteName(k.value, i18n.language)} ${t('common.major')}`}
+                </option>
               ))}
             </select>
           </div>
@@ -117,10 +125,10 @@ const ReactiveExercise = ({ mode, exerciseId, title }) => {
             className={`reactive-play-btn ${session.isPlaying ? 'playing' : ''}`}
             onClick={handlePlayClick}
             disabled={session.isInitializing}
-            aria-label={session.isPlaying ? 'עצור' : 'נגן'}
+            aria-label={session.isPlaying ? t('common.stop') : t('common.play')}
           >
             {session.isInitializing ? (
-              <span className="reactive-play-label">טוען...</span>
+              <span className="reactive-play-label">{t('common.loading')}</span>
             ) : session.isPlaying ? (
               <span className="reactive-play-label">⏸<br/>STOP</span>
             ) : (
@@ -134,8 +142,8 @@ const ReactiveExercise = ({ mode, exerciseId, title }) => {
 
           {session.sessionEnded && (
             <div className="reactive-session-end">
-              <h2>🎉 הסשן הסתיים</h2>
-              <p>עברו {sessionMinutes} דקות של תרגול ריאקטיבי. הצוואר זוכר.</p>
+              <h2>🎉 {t('earTraining.reactive.sessionEnded')}</h2>
+              <p>{t('earTraining.reactive.sessionEndedBody', { count: sessionMinutes })}</p>
             </div>
           )}
         </div>
@@ -145,11 +153,11 @@ const ReactiveExercise = ({ mode, exerciseId, title }) => {
             className={`reactive-reveal-btn ${session.revealBlink && !session.revealShown ? 'blink' : ''} ${session.revealShown ? 'shown' : ''}`}
             onClick={session.revealNow}
             disabled={!session.isPlaying || !session.currentChord}
-            aria-label="גלה את האקורד"
+            aria-label={t('earTraining.reactive.revealChord')}
           >
             {session.revealShown && session.currentChord
               ? <span className="reactive-reveal-symbol">{session.currentChord.displaySymbol}</span>
-              : <span>👁 גלה</span>}
+              : <span>👁 {t('earTraining.reactive.reveal')}</span>}
           </button>
 
           <label className="reactive-auto-toggle">
@@ -158,42 +166,46 @@ const ReactiveExercise = ({ mode, exerciseId, title }) => {
               checked={session.autoReveal}
               onChange={(e) => session.setAutoReveal(e.target.checked)}
             />
-            <span>🔁 חשיפה אוטומטית ב-5 שניות אחרונות</span>
+            <span>🔁 {t('earTraining.reactive.autoReveal')}</span>
           </label>
         </div>
 
         <div className="reactive-controls-row">
           <div className="reactive-control">
-            <label>סאונד:</label>
+            <label>{t('earTraining.reactive.sound')}:</label>
             <select value={sound} onChange={(e) => setSound(e.target.value)} disabled={session.isPlaying}>
               {SOUNDS.map(s => (
-                <option key={s.id} value={s.id}>{s.label}</option>
+                <option key={s.id} value={s.id}>{t(`earTraining.reactive.sounds.${s.id}`, { defaultValue: s.label })}</option>
               ))}
             </select>
           </div>
 
           <div className="reactive-control">
-            <label>משך אקורד:</label>
+            <label>{t('earTraining.reactive.chordDuration')}:</label>
             <select
               value={chordDuration}
               onChange={(e) => setChordDuration(Number(e.target.value))}
               disabled={session.isPlaying}
             >
               {CHORD_DURATIONS.map(d => (
-                <option key={d} value={d}>{d} שניות</option>
+                <option key={d} value={d}>{t('earTraining.reactive.seconds', { count: d })}</option>
               ))}
             </select>
           </div>
 
           <div className="reactive-control">
-            <label>אורך סשן:</label>
+            <label>{t('earTraining.reactive.sessionLength')}:</label>
             <select
               value={sessionMinutes}
               onChange={(e) => setSessionMinutes(Number(e.target.value))}
               disabled={session.isPlaying}
             >
               {SESSION_DURATIONS.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+                <option key={s.value} value={s.value}>
+                  {s.value === 0
+                    ? t('earTraining.reactive.unlimited')
+                    : t('earTraining.reactive.minutes', { count: s.value })}
+                </option>
               ))}
             </select>
           </div>

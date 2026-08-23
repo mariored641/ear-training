@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MAJOR_CHORDS, MINOR_CHORDS, NOTE_NAMES } from '../../constants/harmonicDefaults';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import '../exercise4a/Settings4APanel.css'; // Reuse 4A styles
 
 const Settings4CPanel = ({
@@ -9,6 +11,7 @@ const Settings4CPanel = ({
   onClose,
   onReset
 }) => {
+  const { t, i18n } = useTranslation();
   const [localSettings, setLocalSettings] = useState(settings);
 
   const handleChange = (key, value) => {
@@ -23,7 +26,7 @@ const Settings4CPanel = ({
     // Check if at least 2 chords are selected
     const selectedCount = Object.values(newChords).filter(v => v).length;
     if (selectedCount < 2 && !newChords[chord]) {
-      alert('You must select at least 2 chords');
+      alert(t('legacy.atLeastTwoChords'));
       return;
     }
 
@@ -73,17 +76,17 @@ const Settings4CPanel = ({
       <div className="settings-overlay" onClick={onClose}></div>
       <div className="settings-panel settings4c-panel">
         <div className="settings-header">
-          <h2>Settings</h2>
-          <button className="close-btn" onClick={onClose}>✕</button>
+          <h2>{t('legacy.settings')}</h2>
+          <button className="close-btn" onClick={onClose} aria-label={t('common.close')}>✕</button>
         </div>
 
         <div className="settings-content">
           {/* Available Chords */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Available Chords:</h3>
+            <h3 className="settings-section-title">{t('legacy.availableChords')}:</h3>
 
             <div className="chord-selection-section">
-              <h4>Major:</h4>
+              <h4>{t('legacy.major')}:</h4>
               <div className="chord-checkbox-grid">
                 {MAJOR_CHORDS.map(chord => (
                   <label key={chord} className="chord-checkbox">
@@ -92,14 +95,14 @@ const Settings4CPanel = ({
                       checked={localSettings.availableChords[chord]}
                       onChange={() => handleChordToggle(chord)}
                     />
-                    <span>{chord}</span>
+                    <span className="music-term">{formatNoteName(chord, i18n.language)}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div className="chord-selection-section">
-              <h4>Minor:</h4>
+              <h4>{t('legacy.minor')}:</h4>
               <div className="chord-checkbox-grid">
                 {MINOR_CHORDS.map(chord => (
                   <label key={chord} className="chord-checkbox">
@@ -108,7 +111,7 @@ const Settings4CPanel = ({
                       checked={localSettings.availableChords[chord]}
                       onChange={() => handleChordToggle(chord)}
                     />
-                    <span>{chord}</span>
+                    <span className="music-term">{formatNoteName(chord, i18n.language)}</span>
                   </label>
                 ))}
               </div>
@@ -116,20 +119,20 @@ const Settings4CPanel = ({
 
             <div className="quick-select-buttons">
               <button className="quick-select-btn" onClick={handleSelectCMajorScale}>
-                C Major Scale
+                {t('legacy.cMajorScale')}
               </button>
               <button className="quick-select-btn" onClick={handleSelectCMinorScale}>
-                C Minor Scale
+                {t('legacy.cMinorScale')}
               </button>
               <button className="quick-select-btn" onClick={handleClearAll}>
-                Clear All
+                {t('legacy.clearAll')}
               </button>
             </div>
           </div>
 
           {/* Progression Length */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Progression Length:</h3>
+            <h3 className="settings-section-title">{t('legacy.progressionLength')}:</h3>
             <input
               type="number"
               min="2"
@@ -142,7 +145,7 @@ const Settings4CPanel = ({
 
           {/* Start Chord Mode */}
           <div className="settings-section">
-            <h3 className="settings-section-title">First Chord in Progression:</h3>
+            <h3 className="settings-section-title">{t('legacy.firstChord')}:</h3>
             <div className="radio-group">
               <label className="radio-label">
                 <input
@@ -150,7 +153,7 @@ const Settings4CPanel = ({
                   checked={localSettings.startChordMode === 'free'}
                   onChange={() => handleChange('startChordMode', 'free')}
                 />
-                <span>Random</span>
+                <span>{t('legacy.random')}</span>
               </label>
               <label className="radio-label">
                 <input
@@ -158,7 +161,7 @@ const Settings4CPanel = ({
                   checked={localSettings.startChordMode === 'fixed'}
                   onChange={() => handleChange('startChordMode', 'fixed')}
                 />
-                <span>Always start with:</span>
+                <span>{t('legacy.alwaysStartWith')}:</span>
               </label>
             </div>
           </div>
@@ -166,17 +169,17 @@ const Settings4CPanel = ({
           {/* Start Chord Selection (only visible if Fixed mode) */}
           {localSettings.startChordMode === 'fixed' && (
             <div className="settings-section">
-              <h3 className="settings-section-title">Start with chord:</h3>
+              <h3 className="settings-section-title">{t('legacy.startWithChord')}:</h3>
               <select
                 value={localSettings.startChord}
                 onChange={(e) => handleChange('startChord', e.target.value)}
                 className="select-input"
               >
                 {MAJOR_CHORDS.map(chord => (
-                  <option key={chord} value={chord}>{chord} Major</option>
+                  <option key={chord} value={chord}>{formatNoteName(chord, i18n.language)} {t('legacy.major')}</option>
                 ))}
                 {MINOR_CHORDS.map(chord => (
-                  <option key={chord} value={chord}>{chord}</option>
+                  <option key={chord} value={chord}>{formatNoteName(chord, i18n.language)}</option>
                 ))}
               </select>
             </div>
@@ -184,7 +187,7 @@ const Settings4CPanel = ({
 
           {/* Inversions */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Inversions:</h3>
+            <h3 className="settings-section-title">{t('legacy.inversions')}:</h3>
             <div className="radio-group">
               <label className="radio-label">
                 <input
@@ -192,7 +195,7 @@ const Settings4CPanel = ({
                   checked={localSettings.inversions === 'no'}
                   onChange={() => handleChange('inversions', 'no')}
                 />
-                <span>No Inversions</span>
+                <span>{t('legacy.noInversions')}</span>
               </label>
               <label className="radio-label">
                 <input
@@ -200,14 +203,14 @@ const Settings4CPanel = ({
                   checked={localSettings.inversions === 'with'}
                   onChange={() => handleChange('inversions', 'with')}
                 />
-                <span>With Inversions</span>
+                <span>{t('legacy.withInversions')}</span>
               </label>
             </div>
           </div>
 
           {/* Instrument */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Instrument:</h3>
+            <h3 className="settings-section-title">{t('legacy.instrument')}:</h3>
             <div className="radio-group">
               <label className="radio-label">
                 <input
@@ -215,7 +218,7 @@ const Settings4CPanel = ({
                   checked={localSettings.instrument === 'piano'}
                   onChange={() => handleChange('instrument', 'piano')}
                 />
-                <span>Piano</span>
+                <span>{t('legacy.piano')}</span>
               </label>
               <label className="radio-label">
                 <input
@@ -223,14 +226,14 @@ const Settings4CPanel = ({
                   checked={localSettings.instrument === 'guitar'}
                   onChange={() => handleChange('instrument', 'guitar')}
                 />
-                <span>Guitar</span>
+                <span>{t('legacy.guitar')}</span>
               </label>
             </div>
           </div>
 
           {/* Voicing */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Voicing:</h3>
+            <h3 className="settings-section-title">{t('legacy.voicing')}:</h3>
             <div className="radio-group">
               <label className="radio-label">
                 <input
@@ -238,7 +241,7 @@ const Settings4CPanel = ({
                   checked={localSettings.voicing === 'strummed'}
                   onChange={() => handleChange('voicing', 'strummed')}
                 />
-                <span>Strummed</span>
+                <span>{t('legacy.strummed')}</span>
               </label>
               <label className="radio-label">
                 <input
@@ -246,7 +249,7 @@ const Settings4CPanel = ({
                   checked={localSettings.voicing === 'arpeggiated'}
                   onChange={() => handleChange('voicing', 'arpeggiated')}
                 />
-                <span>Arpeggiated</span>
+                <span>{t('legacy.arpeggiated')}</span>
               </label>
               <label className="radio-label">
                 <input
@@ -254,14 +257,14 @@ const Settings4CPanel = ({
                   checked={localSettings.voicing === 'mixed'}
                   onChange={() => handleChange('voicing', 'mixed')}
                 />
-                <span>Mixed</span>
+                <span>{t('legacy.mixed')}</span>
               </label>
             </div>
           </div>
 
           {/* Transition */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Transition:</h3>
+            <h3 className="settings-section-title">{t('legacy.transition')}:</h3>
             <div className="radio-group">
               <label className="radio-label">
                 <input
@@ -269,7 +272,7 @@ const Settings4CPanel = ({
                   checked={localSettings.transition === 'auto'}
                   onChange={() => handleChange('transition', 'auto')}
                 />
-                <span>Auto</span>
+                <span>{t('legacy.auto')}</span>
               </label>
               <label className="radio-label">
                 <input
@@ -277,14 +280,14 @@ const Settings4CPanel = ({
                   checked={localSettings.transition === 'manual'}
                   onChange={() => handleChange('transition', 'manual')}
                 />
-                <span>Manual</span>
+                <span>{t('legacy.manual')}</span>
               </label>
             </div>
           </div>
 
           {/* Number of Questions */}
           <div className="settings-section">
-            <h3 className="settings-section-title">Questions:</h3>
+            <h3 className="settings-section-title">{t('legacy.questions')}:</h3>
             <input
               type="number"
               min="5"
@@ -298,7 +301,7 @@ const Settings4CPanel = ({
           {/* Reset Button */}
           <div className="settings-section">
             <button className="reset-btn" onClick={onReset}>
-              Reset Exercise
+              {t('legacy.resetExercise')}
             </button>
           </div>
         </div>

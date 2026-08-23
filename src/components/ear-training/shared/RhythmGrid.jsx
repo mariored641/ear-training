@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Interactive rhythm grid for F3 — harmonic rhythm.
@@ -20,6 +21,7 @@ const RhythmGrid = ({
   resetKey,
   onConfirm
 }) => {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState(new Set());
   const [submitted, setSubmitted] = useState(false);
 
@@ -72,7 +74,7 @@ const RhythmGrid = ({
     <div style={{ padding: 16, maxWidth: 720, margin: '0 auto' }}>
       {Array.from({ length: measures }).map((_, m) => (
         <div key={m} style={rowStyle}>
-          <div style={measureLabelStyle}>טקט {m + 1}</div>
+          <div style={measureLabelStyle}>{t('common.measure', { number: m + 1 })}</div>
           <div style={cellsStyle}>
             {Array.from({ length: subdivisions }).map((_, b) => {
               const key = `${m}:${b}`;
@@ -92,14 +94,14 @@ const RhythmGrid = ({
       ))}
       <div style={{ textAlign: 'center', marginTop: 16 }}>
         <button onClick={handleConfirm} disabled={submitted} style={confirmBtnStyle}>
-          בדוק
+          {t('common.check')}
         </button>
       </div>
     </div>
   );
 };
 
-const rowStyle = { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, direction: 'rtl' };
+const rowStyle = { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 };
 const measureLabelStyle = { minWidth: 60, fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary, #666)' };
 const cellsStyle = { display: 'flex', gap: 4, flex: 1 };
 const cellStyle = {

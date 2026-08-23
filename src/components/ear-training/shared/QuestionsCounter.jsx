@@ -1,21 +1,24 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './earTrainingShared.css';
 
 /**
  * Compact [-] N [+] counter.
  * Props: { value, onChange, min=3, max=30, label='שאלות' }
  */
-const QuestionsCounter = ({ value, onChange, min = 3, max = 30, label = 'שאלות' }) => {
+const QuestionsCounter = ({ value, onChange, min = 3, max = 30, label }) => {
+  const { t } = useTranslation();
+  const displayLabel = label || t('common.questions');
   const clamp = (n) => Math.max(min, Math.min(max, n));
   return (
-    <div className="et-counter" aria-label={label}>
-      <span className="et-counter-label">{label}:</span>
+    <div className="et-counter" aria-label={displayLabel}>
+      <span className="et-counter-label">{displayLabel}:</span>
       <button
         type="button"
         className="et-counter-btn"
         onClick={() => onChange?.(clamp(value - 1))}
         disabled={value <= min}
-        aria-label="הפחת"
+        aria-label={t('common.decrease')}
       >
         −
       </button>
@@ -25,7 +28,7 @@ const QuestionsCounter = ({ value, onChange, min = 3, max = 30, label = 'שאל�
         className="et-counter-btn"
         onClick={() => onChange?.(clamp(value + 1))}
         disabled={value >= max}
-        aria-label="הוסף"
+        aria-label={t('common.increase')}
       >
         +
       </button>

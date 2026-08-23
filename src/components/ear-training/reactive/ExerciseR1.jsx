@@ -5,7 +5,6 @@ const ExerciseR1 = () => (
   <ReactiveExercise
     mode="diatonic"
     exerciseId="R1"
-    title="R1 — דיאטוני"
   />
 );
 

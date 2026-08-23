@@ -1,21 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ExerciseCard from '../home/ExerciseCard';
 import './CategoryScreen.css';
 
 const MelodicCategoryScreen = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const exercises = [
     {
       id: 1,
       icon: '🎵',
-      title: 'Interval Recognition'
+      titleKey: 'legacy.intervalRecognition'
     },
     {
       id: 2,
       icon: '🎸',
-      title: 'Fretboard Mapping'
+      titleKey: 'legacy.fretboardMapping'
     }
   ];
 
@@ -27,11 +29,10 @@ const MelodicCategoryScreen = () => {
     <div className="category-screen">
       <header className="category-screen-header">
         <button className="back-button" onClick={handleBackToHome}>
-          ← Back to Home
+          {t('common.backHome')}
         </button>
         <div className="category-screen-title-container">
-          <h1 className="category-screen-title">Melodic Ear Training</h1>
-          <h2 className="category-screen-title-hebrew">חטיבת שמיעה מלודית</h2>
+          <h1 className="category-screen-title">{t('categories.melodicLegacy')}</h1>
         </div>
       </header>
 
@@ -41,7 +42,7 @@ const MelodicCategoryScreen = () => {
             key={exercise.id}
             exerciseId={exercise.id}
             icon={exercise.icon}
-            title={exercise.title}
+            title={t(exercise.titleKey)}
             isAvailable={true}
           />
         ))}

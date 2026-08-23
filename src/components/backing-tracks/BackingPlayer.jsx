@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useBackingTrackEngine, GENRE_CATALOG } from './useBackingTrackEngine.js'
 import { ChordProgressionEditor } from './ChordProgressionEditor.jsx'
 import { ChordPickerModal }       from './ChordPickerModal.jsx'
@@ -9,6 +10,7 @@ import { MyProgressions }         from './MyProgressions.jsx'
 import { ChordPreviewStrip }      from './ChordPreviewStrip.jsx'
 import { PolyscalePopup }         from './PolyscalePopup.jsx'
 import { PentatonicBoxIcon, GENRE_ICON_MAP } from '../icons/AppIcons'
+import { formatNoteName } from '../../i18n/musicTerms'
 
 const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
 
@@ -16,9 +18,10 @@ const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
    Popup: Tempo
    ═══════════════════════════════════════════════════════ */
 function TempoPopup({ tempo, onTempoChange }) {
+  const { t } = useTranslation()
   return (
     <div className="bp-popup">
-      <div className="bp-popup-title">Tempo</div>
+      <div className="bp-popup-title">{t('backing.tempo')}</div>
       <div className="bp-popup-big-value">{tempo}</div>
       <div className="bp-popup-actions">
         <button className="bp-popup-round-btn" onClick={() => onTempoChange(Math.min(300, tempo + 1))}>+</button>
@@ -38,9 +41,10 @@ function TempoPopup({ tempo, onTempoChange }) {
    Popup: Repeats
    ═══════════════════════════════════════════════════════ */
 function RepeatsPopup({ maxLoops, onMaxLoopsChange }) {
+  const { t } = useTranslation()
   return (
     <div className="bp-popup">
-      <div className="bp-popup-title">Repeats</div>
+      <div className="bp-popup-title">{t('backing.repeats')}</div>
       <div className="bp-popup-big-value">{maxLoops === 0 ? '∞' : maxLoops}</div>
       <div className="bp-popup-actions">
         <button className="bp-popup-round-btn" onClick={() => onMaxLoopsChange(maxLoops + 1)}>+</button>
@@ -60,16 +64,17 @@ function RepeatsPopup({ maxLoops, onMaxLoopsChange }) {
    Popup: Transposition
    ═══════════════════════════════════════════════════════ */
 function TranspositionPopup({ selectedKey, onKeyChange }) {
+  const { t, i18n } = useTranslation()
   return (
     <div className="bp-popup bp-popup--transposition">
-      <div className="bp-popup-title">Transposition</div>
+      <div className="bp-popup-title">{t('backing.transposition')}</div>
       <div className="bp-transpose-grid">
         {TRANSPOSE_GRID.map(k => (
           <button
             key={k}
             className={`bp-transpose-key${selectedKey.root === k ? ' active' : ''}`}
             onClick={() => onKeyChange(k, selectedKey.type)}
-          >{k}</button>
+          >{formatNoteName(k, i18n.language)}</button>
         ))}
       </div>
     </div>
@@ -80,9 +85,10 @@ function TranspositionPopup({ selectedKey, onKeyChange }) {
    Popup: Genre / Style Selector
    ═══════════════════════════════════════════════════════ */
 function GenrePopup({ genre, onGenreChange, onClose }) {
+  const { t } = useTranslation()
   return (
     <div className="bp-popup bp-popup--genre">
-      <div className="bp-popup-title">Style</div>
+      <div className="bp-popup-title">{t('backing.style')}</div>
       <div className="bp-genre-list">
         {GENRE_CATALOG.map(cat => {
           const CatIcon = GENRE_ICON_MAP[cat.category]
@@ -92,7 +98,7 @@ function GenrePopup({ genre, onGenreChange, onClose }) {
               {CatIcon
                 ? <CatIcon style={{ width: '14px', height: '14px', display: 'inline-block', verticalAlign: 'middle', marginRight: '5px' }} />
                 : cat.icon + ' '}
-              {cat.label}
+              {t(`backing.genreCategories.${cat.category}`, { defaultValue: cat.label })}
             </div>
             <div className="bp-genre-items">
               {cat.subtypes.map(sub => (
@@ -101,7 +107,7 @@ function GenrePopup({ genre, onGenreChange, onClose }) {
                   className={`bp-genre-item${genre === sub.id ? ' active' : ''}`}
                   onClick={() => { onGenreChange(sub.id); onClose() }}
                 >
-                  <span>{sub.label}</span>
+                  <span>{t(`backing.styles.${sub.id}`, { defaultValue: sub.label })}</span>
                   {sub.bpm && <span className="bp-genre-bpm">{sub.bpm}</span>}
                 </button>
               ))}
@@ -118,9 +124,10 @@ function GenrePopup({ genre, onGenreChange, onClose }) {
    Popup: Mixer
    ═══════════════════════════════════════════════════════ */
 function MixerPopup({ style, activePart, volumes, onVolumeChange }) {
+  const { t } = useTranslation()
   return (
     <div className="bp-popup">
-      <div className="bp-popup-title">Mixer</div>
+      <div className="bp-popup-title">{t('backing.mixer')}</div>
       <Mixer style={style} activePart={activePart} volumes={volumes} onVolumeChange={onVolumeChange} />
     </div>
   )
@@ -130,6 +137,7 @@ function MixerPopup({ style, activePart, volumes, onVolumeChange }) {
    Popup: Templates (PresetLibrary + MyProgressions with 2 tabs)
    ═══════════════════════════════════════════════════════ */
 function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression }) {
+  const { t } = useTranslation()
   const [tab, setTab] = useState('standards')
   return (
     <div className="bp-popup bp-templates">
@@ -137,11 +145,11 @@ function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression }) {
         <button
           className={`bp-templates-tab${tab === 'standards' ? ' active' : ''}`}
           onClick={() => setTab('standards')}
-        >📚 Jazz Standards</button>
+        >📚 {t('backing.standards')}</button>
         <button
           className={`bp-templates-tab${tab === 'mine' ? ' active' : ''}`}
           onClick={() => setTab('mine')}
-        >💾 My Progressions</button>
+        >💾 {t('backing.myProgressions')}</button>
       </div>
       <div className="bp-templates-body">
         {tab === 'standards' && (
@@ -163,18 +171,19 @@ function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression }) {
    Popup: Practice
    ═══════════════════════════════════════════════════════ */
 function PracticePopup({ config, onConfigChange }) {
+  const { t } = useTranslation()
   const update = (field, value) => onConfigChange({ ...config, [field]: value })
 
   return (
     <div className="bp-popup bp-popup--practice">
-      <div className="bp-popup-title">Practice</div>
+      <div className="bp-popup-title">{t('backing.practice')}</div>
 
       {/* Tempo practice */}
       <div className="bp-practice-section">
         <div className="bp-practice-header">
-          <span className="bp-practice-label">Practice Tempo</span>
+          <span className="bp-practice-label">{t('backing.practiceTempo')}</span>
           <span className="bp-practice-status">
-            {config.tempoEnabled ? `+${config.tempoAmount} bpm / ${config.tempoEvery} loop${config.tempoEvery > 1 ? 's' : ''}` : 'Off'}
+            {config.tempoEnabled ? `+${config.tempoAmount} BPM / ${t('backing.loopsCount', { count: config.tempoEvery })}` : t('common.off')}
           </span>
         </div>
         <div className="bp-practice-controls">
@@ -187,16 +196,16 @@ function PracticePopup({ config, onConfigChange }) {
           {config.tempoEnabled && (
             <div className="bp-practice-settings">
               <div className="bp-stepper-row">
-                <span className="bp-stepper-label">Every</span>
+                <span className="bp-stepper-label">{t('backing.every')}</span>
                 <div className="bp-stepper">
                   <button onClick={() => update('tempoEvery', Math.max(1, config.tempoEvery - 1))}>−</button>
                   <span>{config.tempoEvery}</span>
                   <button onClick={() => update('tempoEvery', config.tempoEvery + 1)}>+</button>
                 </div>
-                <span className="bp-stepper-unit">loops</span>
+                <span className="bp-stepper-unit">{t('backing.loops')}</span>
               </div>
               <div className="bp-stepper-row">
-                <span className="bp-stepper-label">Add</span>
+                <span className="bp-stepper-label">{t('backing.add')}</span>
                 <div className="bp-stepper">
                   <button onClick={() => update('tempoAmount', Math.max(1, config.tempoAmount - 1))}>−</button>
                   <span>{config.tempoAmount}</span>
@@ -212,9 +221,9 @@ function PracticePopup({ config, onConfigChange }) {
       {/* Transposition practice */}
       <div className="bp-practice-section">
         <div className="bp-practice-header">
-          <span className="bp-practice-label">Practice Transposition</span>
+          <span className="bp-practice-label">{t('backing.practiceTransposition')}</span>
           <span className="bp-practice-status">
-            {config.transposeEnabled ? `+${config.transposeSemitones} st / ${config.transposeEvery} loop${config.transposeEvery > 1 ? 's' : ''}` : 'Off'}
+            {config.transposeEnabled ? `+${config.transposeSemitones} st / ${t('backing.loopsCount', { count: config.transposeEvery })}` : t('common.off')}
           </span>
         </div>
         <div className="bp-practice-controls">
@@ -227,22 +236,22 @@ function PracticePopup({ config, onConfigChange }) {
           {config.transposeEnabled && (
             <div className="bp-practice-settings">
               <div className="bp-stepper-row">
-                <span className="bp-stepper-label">Every</span>
+                <span className="bp-stepper-label">{t('backing.every')}</span>
                 <div className="bp-stepper">
                   <button onClick={() => update('transposeEvery', Math.max(1, config.transposeEvery - 1))}>−</button>
                   <span>{config.transposeEvery}</span>
                   <button onClick={() => update('transposeEvery', config.transposeEvery + 1)}>+</button>
                 </div>
-                <span className="bp-stepper-unit">loops</span>
+                <span className="bp-stepper-unit">{t('backing.loops')}</span>
               </div>
               <div className="bp-stepper-row">
-                <span className="bp-stepper-label">Transpose</span>
+                <span className="bp-stepper-label">{t('backing.transpose')}</span>
                 <div className="bp-stepper">
                   <button onClick={() => update('transposeSemitones', Math.max(1, config.transposeSemitones - 1))}>−</button>
                   <span>{config.transposeSemitones}</span>
                   <button onClick={() => update('transposeSemitones', config.transposeSemitones + 1)}>+</button>
                 </div>
-                <span className="bp-stepper-unit">semitones</span>
+                <span className="bp-stepper-unit">{t('backing.semitones')}</span>
               </div>
             </div>
           )}
@@ -256,6 +265,7 @@ function PracticePopup({ config, onConfigChange }) {
    BackingPlayer — main component
    ═══════════════════════════════════════════════════════ */
 export function BackingPlayer({ hideFretboard = false } = {}) {
+  const { t, i18n } = useTranslation()
   const {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
@@ -378,10 +388,10 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
   const styleName = useMemo(() => {
     for (const cat of GENRE_CATALOG) {
       const sub = cat.subtypes.find(s => s.id === genre)
-      if (sub) return sub.label
+      if (sub) return t(`backing.styles.${sub.id}`, { defaultValue: sub.label })
     }
-    return 'Select Style'
-  }, [genre])
+    return t('backing.selectStyle')
+  }, [genre, t])
 
   const ActiveGenreIcon = useMemo(() => {
     const cat = GENRE_CATALOG.find(c => c.subtypes.some(s => s.id === genre))
@@ -409,7 +419,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
 
       {/* ── SF2 Status (floating overlay at top of chord layer) ── */}
       {sfStatus === 'loading' && (
-        <div className="bp-status-bar">⏳ {sfMsg || 'Loading SoundFont…'}</div>
+        <div className="bp-status-bar">⏳ {sfMsg || t('backing.loadingSoundFont')}</div>
       )}
       {sfStatus === 'error' && (
         <div className="bp-status-bar bp-status-bar--error">⚠️ {sfMsg}</div>
@@ -426,8 +436,8 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
             </div>
             <div className="bp-current-chord">{currentChordSymbol ?? '…'}</div>
             <div className="bp-bar-count">
-              Bar {currentBar + 1}/{barCount}
-              {maxLoops > 0 && <> · Loop {loopCount}/{maxLoops}</>}
+              {t('backing.currentBar', { current: currentBar + 1, total: barCount })}
+              {maxLoops > 0 && <> · {t('backing.currentLoop', { current: loopCount, total: maxLoops })}</>}
             </div>
           </div>
         )}
@@ -525,7 +535,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
             className={`bp-info-btn${activePopup === 'transposition' ? ' active' : ''}`}
             onClick={() => togglePopup('transposition')}
           >
-            {selectedKey.root}
+            {formatNoteName(selectedKey.root, i18n.language)}
           </button>
           <button
             className={`bp-info-btn${activePopup === 'repeats' ? ' active' : ''}`}
@@ -555,7 +565,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           <button
             className={`bp-tab${activePopup === 'practice' ? ' active' : ''}${practiceActive ? ' has-indicator' : ''}`}
             onClick={() => togglePopup('practice')}
-            title="Practice"
+            title={t('backing.practice')}
           >
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
               <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
@@ -564,7 +574,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           <button
             className={`bp-tab${activePopup === 'mixer' ? ' active' : ''}`}
             onClick={() => togglePopup('mixer')}
-            title="Mixer"
+            title={t('backing.mixer')}
           >
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
               <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
@@ -575,7 +585,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
             className={`bp-tab bp-tab--play${isPlaying ? ' playing' : ''}`}
             onClick={handlePlayStop}
             disabled={isLoading}
-            title={isPlaying ? 'Stop' : 'Play'}
+            title={isPlaying ? t('common.stop') : t('common.play')}
           >
             {isLoading ? (
               <span className="bp-tab-loading">⏳</span>
@@ -593,7 +603,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
             <button
               className={`bp-tab${activePopup === 'fretboard' ? ' active' : ''}`}
               onClick={() => togglePopup('fretboard')}
-              title="צוואר"
+              title={t('backing.fretboard')}
             >
               <PentatonicBoxIcon className="bp-tab-icon" />
             </button>
@@ -601,7 +611,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           <button
             className={`bp-tab${activePopup === 'templates' ? ' active' : ''}`}
             onClick={() => togglePopup('templates')}
-            title="רצפי אקורדים"
+            title={t('backing.templates')}
           >
             <svg viewBox="0 0 24 24" className="bp-tab-icon">
               <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h7v5h5v11z"/>

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
@@ -10,6 +11,7 @@ import { loadStoredLevel } from '../shared/LevelNavigator';
 import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import '../shared/earTrainingShared.css';
+import { formatNoteName } from '../../../i18n/musicTerms';
 
 const PC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 
@@ -101,6 +103,8 @@ const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
 const ExerciseM1 = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage || i18n.language;
   const storageKey = 'ear-training:M1:level';
 
   const [level, setLevelRaw] = useState(() => loadStoredLevel(storageKey, 1));
@@ -251,7 +255,7 @@ const ExerciseM1 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="M1 — זיהוי דרגה מלודית"
+        <EarTrainingHeader exerciseTitle={`M1 — ${t('earTraining.exercises.M1')}`}
           levels={LEVELS} currentLevel={level} onLevelChange={setLevel}
           storageKey={storageKey} onBack={() => navigate('/category/ear-training/melodic')} />
         <SessionSummary total={numQuestions} firstTry={firstTry}
@@ -262,24 +266,24 @@ const ExerciseM1 = () => {
     );
   }
 
-  const refLabel = effectiveRef === 'cadence' ? 'קדנצה ← תו — איזו דרגה?'
-    : effectiveRef === 'chord'   ? 'אקורד ← תו — איזו דרגה?'
-    : effectiveRef === 'note'    ? 'תו טוניקה ← תו — איזו דרגה?'
-    : 'תו — איזו דרגה? (ללא רפרנס)';
+  const refLabel = effectiveRef === 'cadence' ? t('earTraining.prompts.degreeAfterCadence')
+    : effectiveRef === 'chord' ? t('earTraining.prompts.degreeAfterChord')
+    : effectiveRef === 'note' ? t('earTraining.prompts.degreeAfterTonic')
+    : t('earTraining.prompts.degreeNoReference');
 
   // Sort descending so RTL flex renders ascending left-to-right
   const displayNotes = [...activeNotes].sort((a, b) => b - a);
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="M1 — זיהוי דרגה מלודית"
+    <div>
+      <EarTrainingHeader exerciseTitle={`M1 — ${t('earTraining.exercises.M1')}`}
         levels={LEVELS} currentLevel={level} onLevelChange={setLevel}
         storageKey={storageKey} onBack={() => navigate('/category/ear-training/melodic')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
       <div style={{ textAlign:'center', padding:'12px 16px 4px' }}>
         <button onClick={() => !playing && correctNote && playQuestion(correctNote)} disabled={playing} style={replayBtn}>
-          {playing ? '🔊' : '▶'} נגן שוב
+          {playing ? '🔊' : '▶'} {t('common.replay')}
         </button>
       </div>
 
@@ -290,7 +294,7 @@ const ExerciseM1 = () => {
       <div style={noteGrid}>
         {displayNotes.map(iv => {
           const noteName = PC[(PC.indexOf(cfg.tonic) + iv) % 12];
-          const label = displayMode === 'names' ? noteName : degreeLabel(iv, cfg.scale);
+          const label = displayMode === 'names' ? formatNoteName(noteName, language) : degreeLabel(iv, cfg.scale);
           const isSelected = selected === iv;
           return (
             <button key={iv} onClick={() => handleSelect(iv)}
@@ -310,13 +314,13 @@ const ExerciseM1 = () => {
 
       <div style={ctrlRow}>
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} />
-        <BinaryToggle label="רפרנס"
-          options={[{value:'cadence',label:'קדנצה'},{value:'chord',label:'אקורד'},{value:'note',label:'תו'},{value:'none',label:'ללא'}]}
+        <BinaryToggle label={t('common.reference')}
+          options={[{value:'cadence',label:t('common.cadence')},{value:'chord',label:t('common.chord')},{value:'note',label:t('common.note')},{value:'none',label:t('common.none')}]}
           value={effectiveRef} onChange={handleReferenceChange} />
-        <BinaryToggle label="כלי"
-          options={[{value:'piano',label:'פסנתר'},{value:'guitar',label:'גיטרה'}]}
+        <BinaryToggle label={t('common.instrument')}
+          options={[{value:'piano',label:t('common.piano')},{value:'guitar',label:t('common.guitar')}]}
           value={instrument} onChange={handleInstrumentChange} />
-        <BinaryToggle label="תצוגה"
+        <BinaryToggle label={t('common.display')}
           options={[{value:'degrees',label:'I II III'},{value:'names',label:'C D E'}]}
           value={displayMode} onChange={setDisplayMode} />
       </div>

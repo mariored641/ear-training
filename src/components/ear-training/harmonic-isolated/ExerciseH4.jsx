@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import FeedbackOverlay from '../shared/FeedbackOverlay';
 import SessionSummary from '../shared/SessionSummary';
@@ -66,9 +67,14 @@ function chordName(root, baseType) {
 
 const ExerciseH4 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const storageKey = 'ear-training:H4:level';
+  const exerciseTitle = `H4 — ${t('earTraining.exercises.H4')}`;
 
   const [level, setLevel]           = useState(() => loadStoredLevel(storageKey, 1));
+  const localizedLevel = t(`earTraining.levels.H4.${level}`, {
+    defaultValue: LEVELS.find(l => l.number === level)?.label
+  });
   const [numQuestions, setNumQuestions] = useState(10);
   const [instrument, setInstrument] = useState(
     () => localStorage.getItem('ear-training:H4:instrument') || 'piano'
@@ -207,33 +213,33 @@ const ExerciseH4 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="H4 — זיהוי טנשנים (ג'אז)" levels={LEVELS} currentLevel={level}
+        <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS} currentLevel={level}
           onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/harmonic-isolated')} />
         <SessionSummary total={numQuestions} firstTry={firstTry}
           onRetry={() => { setQuestionIndex(0); setFirstTry(0); setDone(false); setTimeout(generateAndPlay, 100); }}
           onBack={() => navigate('/category/ear-training/harmonic-isolated')}
-          levelLabel={LEVELS.find(l => l.number === level)?.label} />
+          levelLabel={localizedLevel} />
       </>
     );
   }
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="H4 — זיהוי טנשנים (ג'אז)" levels={LEVELS} currentLevel={level}
+    <div>
+      <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS} currentLevel={level}
         onLevelChange={setLevel} storageKey={storageKey}
         onBack={() => navigate('/category/ear-training/harmonic-isolated')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
       {/* Play buttons */}
       <div style={{ display:'flex', gap:12, justifyContent:'center', padding:'16px', flexWrap:'wrap' }}>
-        <button style={playBtn} onClick={playBase}>🔊 בסיס</button>
-        <button style={playBtn} onClick={playWithTensions}>🔊 עם טנשנים</button>
-        <button style={playBtn} onClick={playCompare}>🔊 השווה</button>
+        <button style={playBtn} onClick={playBase}>🔊 {t('earTraining.controls.baseChord')}</button>
+        <button style={playBtn} onClick={playWithTensions}>🔊 {t('earTraining.controls.withTensions')}</button>
+        <button style={playBtn} onClick={playCompare}>🔊 {t('earTraining.controls.compare')}</button>
       </div>
 
       <div style={{ textAlign:'center', color:'#888', margin:'8px 0', fontSize:14 }}>
-        אקורד: <strong style={{ color:'#222', fontSize:16 }}>{currentChord}</strong> — אילו טנשנים שומעים?
+        {t('common.chord')}: <strong className="chord-symbol" style={{ color:'#222', fontSize:16 }}>{currentChord}</strong> — {t('earTraining.prompts.whichTensions')}
       </div>
 
       <div style={tensionGrid}>
@@ -259,7 +265,7 @@ const ExerciseH4 = () => {
 
       {!submitted && (
         <div style={{ textAlign:'center', marginTop:24 }}>
-          <button style={submitBtn} onClick={handleSubmit}>אשר</button>
+          <button style={submitBtn} onClick={handleSubmit}>{t('common.confirm')}</button>
         </div>
       )}
 
@@ -267,11 +273,11 @@ const ExerciseH4 = () => {
 
       <div style={ctrlRow}>
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
-        <BinaryToggle label="בסיס"
+        <BinaryToggle label={t('earTraining.controls.baseChord')}
           options={[{value:'dom7',label:'dom7'},{value:'Maj7',label:'Maj7'},{value:'m7',label:'m7'}]}
           value={userBaseType} onChange={setUserBaseType} />
-        <BinaryToggle label="כלי"
-          options={[{value:'piano',label:'פסנתר'},{value:'guitar',label:'גיטרה'}]}
+        <BinaryToggle label={t('common.instrument')}
+          options={[{value:'piano',label:t('common.piano')},{value:'guitar',label:t('common.guitar')}]}
           value={instrument} onChange={handleInstrumentChange} />
       </div>
 

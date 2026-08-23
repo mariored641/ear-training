@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './earTrainingShared.css';
 
 /**
@@ -16,9 +17,10 @@ const MultiSelectAnswer = ({
   options,
   correctIds,
   onConfirm,
-  confirmLabel = 'אשר',
+  confirmLabel,
   resetKey
 }) => {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState([]);
   const [submitted, setSubmitted] = useState(false);
 
@@ -73,7 +75,7 @@ const MultiSelectAnswer = ({
           disabled={submitted || selected.length === 0}
           style={confirmBtnStyle}
         >
-          {confirmLabel}
+          {confirmLabel || t('common.confirm')}
         </button>
       </div>
     </div>

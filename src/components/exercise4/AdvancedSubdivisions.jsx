@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import * as Tone from 'tone';
+import { useTranslation } from 'react-i18next';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
   DEFAULT_ADVANCED,
@@ -14,6 +15,7 @@ import {
 import { getAllPresets, savePreset } from '../../utils/presetManager';
 
 const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
+  const { t } = useTranslation();
   const [beats, setBeats] = useState([]);
   const bpm = sharedBpm;
   const setBpm = setSharedBpm;
@@ -261,7 +263,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
   // Save current pattern as preset
   const handleSavePreset = async () => {
     if (!presetName.trim()) {
-      setSaveError('Please enter a preset name');
+      setSaveError(t('rhythm.presetNameRequired'));
       return;
     }
 
@@ -291,9 +293,9 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       setShowSavePresetModal(false);
 
       // Show success message
-      alert(`Preset "${preset.name}" saved successfully!`);
+      alert(t('rhythm.presetSaved', { name: preset.name }));
     } else {
-      setSaveError(result.error || 'Failed to save preset');
+      setSaveError(result.error || t('rhythm.presetSaveFailed'));
     }
   };
 
@@ -308,19 +310,19 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       {/* Header with Add Beat and Total */}
       <div className="advanced-header">
         <button className="add-beat-btn" onClick={addBeat}>
-          + Add Beat
+          + {t('rhythm.addBeat')}
         </button>
         <button className="presets-btn-inline" onClick={() => {
           loadAllPresets();
           setShowLoadPresetModal(true);
         }}>
-          📋 Load Preset
+          📋 {t('rhythm.loadPreset')}
         </button>
         <button className="presets-btn-inline save-btn" onClick={() => setShowSavePresetModal(true)}>
-          💾 Save Preset
+          💾 {t('rhythm.savePreset')}
         </button>
         <div className="total-beats-header">
-          Total: {getTotalBeats()} beats
+          {t('rhythm.totalBeats', { count: getTotalBeats() })}
         </div>
       </div>
 
@@ -331,13 +333,13 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
             {/* Card Header */}
             <div className="beat-card-header">
               <span className="note-icon-header">{getNoteIcon(beat.length)}</span>
-              <span className="beat-label">Beat {beatIndex + 1}</span>
+              <span className="beat-label">{t('rhythm.beat', { number: beatIndex + 1 })}</span>
             </div>
 
             {/* Card Controls */}
             <div className="beat-card-controls">
               <div className="control-group">
-                <label>Length:</label>
+                <label>{t('earTraining.controls.length')}:</label>
                 <input
                   type="number"
                   min="0.25"
@@ -347,11 +349,11 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                   onChange={(e) => updateLength(beatIndex, e.target.value)}
                   className="length-input"
                 />
-                <span className="unit">beats</span>
+                <span className="unit">{t('rhythm.beats')}</span>
               </div>
 
               <div className="control-group">
-                <label>Division:</label>
+                <label>{t('rhythm.division')}:</label>
                 <select
                   value={beat.division}
                   onChange={(e) => updateDivision(beatIndex, parseInt(e.target.value))}
@@ -386,7 +388,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                 onClick={() => deleteBeat(beatIndex)}
                 disabled={beats.length === 1}
               >
-                🗑️ Delete
+                🗑️ {t('common.delete')}
               </button>
             </div>
           </div>
@@ -397,17 +399,17 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       {showLoadPresetModal && (
         <div className="modal-overlay" onClick={() => setShowLoadPresetModal(false)}>
           <div className="modal-content presets-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Load Advanced Subdivision Preset</div>
+            <div className="modal-title">{t('rhythm.loadAdvancedPreset')}</div>
             <div className="presets-list">
               {allPresets.all.length === 0 ? (
                 <div className="no-presets">
-                  No presets available. Create your first preset by clicking "Save Preset"!
+                  {t('rhythm.noPresets')}
                 </div>
               ) : (
                 <>
                   {allPresets.global.length > 0 && (
                     <div className="preset-category">
-                      <div className="preset-category-title">🌍 Global Presets (Everyone)</div>
+                      <div className="preset-category-title">🌍 {t('rhythm.globalPresets')}</div>
                       {allPresets.global.map((preset) => (
                         <button
                           key={preset.id}
@@ -416,7 +418,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                         >
                           <div className="preset-name">{preset.name}</div>
                           <div className="preset-details">
-                            {preset.beats.length} beats • {preset.bpm} BPM
+                            {t('rhythm.beatsCount', { count: preset.beats.length })} • {preset.bpm} BPM
                           </div>
                         </button>
                       ))}
@@ -425,7 +427,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
 
                   {allPresets.local.length > 0 && (
                     <div className="preset-category">
-                      <div className="preset-category-title">💾 My Presets (Local)</div>
+                      <div className="preset-category-title">💾 {t('rhythm.myPresets')}</div>
                       {allPresets.local.map((preset) => (
                         <button
                           key={preset.id}
@@ -434,7 +436,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                         >
                           <div className="preset-name">{preset.name}</div>
                           <div className="preset-details">
-                            {preset.beats.length} beats • {preset.bpm} BPM
+                            {t('rhythm.beatsCount', { count: preset.beats.length })} • {preset.bpm} BPM
                           </div>
                         </button>
                       ))}
@@ -447,7 +449,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
               className="modal-close-btn"
               onClick={() => setShowLoadPresetModal(false)}
             >
-              Close
+              {t('common.close')}
             </button>
           </div>
         </div>
@@ -457,18 +459,18 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
       {showSavePresetModal && (
         <div className="modal-overlay" onClick={() => setShowSavePresetModal(false)}>
           <div className="modal-content save-preset-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Save Advanced Subdivision Preset</div>
+            <div className="modal-title">{t('rhythm.saveAdvancedPreset')}</div>
 
             <div className="save-preset-form">
               {/* Preset Name */}
               <div className="form-group">
-                <label htmlFor="preset-name-adv">Preset Name:</label>
+                <label htmlFor="preset-name-adv">{t('rhythm.presetName')}:</label>
                 <input
                   id="preset-name-adv"
                   type="text"
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
-                  placeholder="Enter preset name..."
+                  placeholder={t('rhythm.enterPresetName')}
                   className="preset-name-input"
                 />
               </div>
@@ -481,7 +483,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                     checked={!saveAsGlobal}
                     onChange={() => setSaveAsGlobal(false)}
                   />
-                  <span>💾 Save only for me (Local)</span>
+                  <span>💾 {t('rhythm.saveLocal')}</span>
                 </label>
                 <label className="radio-label">
                   <input
@@ -489,20 +491,20 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                     checked={saveAsGlobal}
                     onChange={() => setSaveAsGlobal(true)}
                   />
-                  <span>🌍 Save for everyone (Global)</span>
+                  <span>🌍 {t('rhythm.saveGlobal')}</span>
                 </label>
               </div>
 
               {/* Password (if global) */}
               {saveAsGlobal && (
                 <div className="form-group">
-                  <label htmlFor="global-password-adv">Password (required for global):</label>
+                  <label htmlFor="global-password-adv">{t('rhythm.globalPassword')}:</label>
                   <input
                     id="global-password-adv"
                     type="password"
                     value={globalPassword}
                     onChange={(e) => setGlobalPassword(e.target.value)}
-                    placeholder="Enter password..."
+                    placeholder={t('rhythm.enterPassword')}
                     className="password-input"
                   />
                 </div>
@@ -519,7 +521,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                   className="modal-action-btn save"
                   onClick={handleSavePreset}
                 >
-                  Save
+                  {t('common.save')}
                 </button>
                 <button
                   className="modal-action-btn cancel"
@@ -531,7 +533,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                     setSaveError('');
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>

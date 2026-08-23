@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CHORD_QUALITIES, QUALITY_FAMILIES } from '../../utils/partialChordShapes';
 import './QualityPickerModal.css';
 
 function QualityPickerModal({ value, onSelect, onClose }) {
+  const { t } = useTranslation();
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Escape') onClose();
@@ -22,13 +24,13 @@ function QualityPickerModal({ value, onSelect, onClose }) {
     <div className="qpm-overlay" onClick={onClose}>
       <div className="qpm-content" onClick={(e) => e.stopPropagation()}>
         <div className="qpm-header">
-          <span>Pick a chord quality</span>
-          <button className="qpm-close" onClick={onClose} aria-label="Close">×</button>
+          <span>{t('positions.pickQuality')}</span>
+          <button className="qpm-close" onClick={onClose} aria-label={t('common.close')}>×</button>
         </div>
 
         {byFamily.map((fam) => (
           <div className="qpm-family" key={fam.id}>
-            <div className="qpm-family-label">{fam.label}</div>
+            <div className="qpm-family-label">{t(`positions.qualityFamilies.${fam.id}`, { defaultValue: fam.label })}</div>
             <div className="qpm-grid">
               {fam.items.map(({ id, label, intervals }) => (
                 <button

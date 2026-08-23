@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './NoteIndicator.css';
 
 /**
@@ -9,11 +10,12 @@ import './NoteIndicator.css';
  * @param {Array} props.markedNotes - Array of marked notes
  */
 const NoteIndicator = ({ totalNotes, currentNoteIndex, markedNotes }) => {
+  const { t } = useTranslation();
   const notes = Array.from({ length: totalNotes }, (_, i) => i);
 
   return (
     <div className="note-indicator">
-      <p className="note-indicator-text">Find the notes on the fretboard:</p>
+      <p className="note-indicator-text">{t('legacy.findNotes')}:</p>
       <div className="note-indicator-grid">
         {notes.map(index => {
           const isMarked = markedNotes.some(note =>
@@ -28,7 +30,7 @@ const NoteIndicator = ({ totalNotes, currentNoteIndex, markedNotes }) => {
                 isMarked ? 'marked' : ''
               }`}
             >
-              <span className="note-label">Note {index + 1}/{totalNotes}:</span>
+              <span className="note-label">{t('legacy.noteNumber', { current: index + 1, total: totalNotes })}:</span>
               <span className="note-status">{isMarked ? '✓' : '●'}</span>
             </div>
           );

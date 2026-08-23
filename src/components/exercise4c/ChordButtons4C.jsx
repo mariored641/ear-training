@@ -1,5 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { MAJOR_CHORDS, MINOR_CHORDS } from '../../constants/harmonicDefaults';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './ChordButtons4C.css';
 
 const ChordButtons4C = ({
@@ -7,6 +9,7 @@ const ChordButtons4C = ({
   markedChords, // Array of { chord, positionNumbers: [1, 2, 3...] }
   onChordSelect
 }) => {
+  const { t, i18n } = useTranslation();
   const renderChordButton = (chord) => {
     const isAvailable = availableChords[chord];
     const markedChord = markedChords.find(m => m.chord === chord);
@@ -27,7 +30,7 @@ const ChordButtons4C = ({
         onClick={() => isAvailable && onChordSelect(chord)}
         disabled={!isAvailable}
       >
-        {chord}
+        <span className="music-term">{formatNoteName(chord, i18n.language)}</span>
         {isMarked && (
           <div className="position-numbers">
             {markedChord.positionNumbers.map((num, idx) => (
@@ -43,7 +46,7 @@ const ChordButtons4C = ({
     <div className="chord-buttons-container-4c">
       {/* Major Chords — chromatic order, fills left-to-right then wraps */}
       <div className="chord-section-4c">
-        <h3 className="section-title-4c">Major Chords:</h3>
+        <h3 className="section-title-4c">{t('legacy.majorChords')}:</h3>
         <div className="chord-grid-4c">
           {MAJOR_CHORDS.map(renderChordButton)}
         </div>
@@ -51,7 +54,7 @@ const ChordButtons4C = ({
 
       {/* Minor Chords */}
       <div className="chord-section-4c">
-        <h3 className="section-title-4c">Minor Chords:</h3>
+        <h3 className="section-title-4c">{t('legacy.minorChords')}:</h3>
         <div className="chord-grid-4c">
           {MINOR_CHORDS.map(renderChordButton)}
         </div>

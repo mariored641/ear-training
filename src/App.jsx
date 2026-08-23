@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HomePage from './components/home/HomePage';
 import GrainOverlay from './components/common/GrainOverlay';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import LanguageSwitcher from './components/common/LanguageSwitcher';
 import { ToolsProvider } from './components/global-tools/ToolsContext';
 import GlobalTools from './components/global-tools/GlobalTools';
 import { prefetchBuffer } from './lib/soundfont/SoundFontPlayer';
+import { directionForLanguage } from './i18n';
 
 // Lazy load category screens
 const MelodicCategoryScreen = React.lazy(() => import('./components/category/MelodicCategoryScreen'));
@@ -81,6 +84,18 @@ const BackingTracksTestPage = React.lazy(() => import('./components/backing-trac
 const Sf2LabPage            = React.lazy(() => import('./components/sf2-lab/Sf2LabPage'));
 
 function App() {
+  const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    const language = i18n.resolvedLanguage || i18n.language || 'he';
+    document.documentElement.lang = language;
+    document.documentElement.dir = directionForLanguage(language);
+    document.documentElement.dataset.language = language;
+    document.title = t('meta.title');
+    document.querySelector('meta[name="description"]')
+      ?.setAttribute('content', t('meta.description'));
+  }, [i18n.language, i18n.resolvedLanguage, t]);
+
   useEffect(() => {
     const hasIdleCallback = typeof window.requestIdleCallback === 'function'
     const id = hasIdleCallback
@@ -97,7 +112,8 @@ function App() {
     <Router>
       <ToolsProvider>
         <GrainOverlay />
-        <React.Suspense fallback={<div className="container">Loading...</div>}>
+        <LanguageSwitcher />
+        <React.Suspense fallback={<div className="container">{t('common.loading')}</div>}>
           <Routes>
           <Route path="/" element={<HomePage />} />
 

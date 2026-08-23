@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import DegreeNameToggle from '../shared/DegreeNameToggle';
 import KeySelector from '../shared/KeySelector';
@@ -110,8 +111,13 @@ function resolveChord(name) {
 // ── Component ──────────────────────────────────────────────────────────────
 const ExerciseF2 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const storageKey = 'ear-training:F2:level';
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
+  const exerciseTitle = `F2 — ${t('earTraining.exercises.F2')}`;
+  const localizedLevel = t(`earTraining.levels.F2.${level}`, {
+    defaultValue: LEVELS.find(l => l.number === level)?.label
+  });
   const [numQuestions, setNumQuestions] = useState(8);
   const [displayMode, setDisplayMode]  = useState('degrees');
   const [key, setKey]                  = useState('C');
@@ -226,26 +232,26 @@ const ExerciseF2 = () => {
   if (done) {
     return (
       <>
-        <EarTrainingHeader exerciseTitle="F2 — הכתבה הרמונית" levels={LEVELS} currentLevel={level}
+        <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS} currentLevel={level}
           onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/functional')} />
         <SessionSummary total={sessionTotalRef.current} firstTry={sessionFirstTryRef.current}
           onRetry={() => { sessionFirstTryRef.current = 0; sessionTotalRef.current = 0; setQuestionIndex(0); setDone(false); setTimeout(startQuestion, 100); }}
           onBack={() => navigate('/category/ear-training/functional')}
-          levelLabel={LEVELS.find(l => l.number === level)?.label} />
+          levelLabel={localizedLevel} />
       </>
     );
   }
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="F2 — הכתבה הרמונית" levels={LEVELS} currentLevel={level}
+    <div>
+      <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS} currentLevel={level}
         onLevelChange={setLevel} storageKey={storageKey}
         onBack={() => navigate('/category/ear-training/functional')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
       <div style={{ textAlign:'center', padding:'12px 16px 4px' }}>
-        <button style={playBtn} onClick={() => progression && playProg(progression)}>▶ נגן שוב</button>
+        <button style={playBtn} onClick={() => progression && playProg(progression)}>{t('earTraining.controls.playAgain')}</button>
       </div>
 
       {/* Progression slots */}
@@ -300,18 +306,18 @@ const ExerciseF2 = () => {
 
       <div style={ctrlRow}>
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
-        <QuestionsCounter label="אורך" value={seqLength} onChange={setSeqLength} min={2} max={6} />
+        <QuestionsCounter label={t('earTraining.controls.length')} value={seqLength} onChange={setSeqLength} min={2} max={6} />
         <DegreeNameToggle mode={displayMode} onToggle={setDisplayMode} />
         <KeySelector value={key} onChange={setKey} />
-        <BinaryToggle label="כלי"
-          options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
+        <BinaryToggle label={t('common.instrument')}
+          options={[{ value:'piano', label:t('common.piano') }, { value:'guitar', label:t('common.guitar') }]}
           value={instrument} onChange={handleInstrumentChange} />
-        <BinaryToggle label="רפרנס"
+        <BinaryToggle label={t('common.reference')}
           options={[
-            { value: 'cadence', label: 'קדנצה' },
-            { value: 'chord', label: 'אקורד' },
-            { value: 'note', label: 'תו' },
-            { value: 'none', label: 'ללא' }
+            { value: 'cadence', label: t('common.cadence') },
+            { value: 'chord', label: t('common.chord') },
+            { value: 'note', label: t('common.note') },
+            { value: 'none', label: t('common.none') }
           ]}
           value={reference} onChange={setReference} />
       </div>

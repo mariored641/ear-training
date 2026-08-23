@@ -1,3 +1,5 @@
+import i18n from '../../i18n/index.js';
+
 /**
  * @typedef {Object} LooperTrack
  * @property {string} id
@@ -47,7 +49,7 @@ export function createTrack(id, order, label) {
   return {
     id,
     order,
-    label: label || `שכבה ${order + 1}`,
+    label: label || i18n.t('looper.defaultLayer', { number: order + 1 }),
     audioData: null,
     volume: 0.8,
     pan: 0,

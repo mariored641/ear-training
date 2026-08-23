@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '../../i18n';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -32,8 +33,8 @@ class ErrorBoundary extends React.Component {
           textAlign: 'center',
           color: '#f3e9d2',
         }}>
-          <p>משהו השתבש. נסה לרענן את הדף.</p>
-          <button onClick={this.handleReload}>רענן</button>
+          <p>{i18n.language === 'he' ? 'משהו השתבש. נסה לרענן את הדף.' : 'Something went wrong. Try refreshing the page.'}</p>
+          <button onClick={this.handleReload}>{i18n.language === 'he' ? 'רענן' : 'Refresh'}</button>
         </div>
       );
     }

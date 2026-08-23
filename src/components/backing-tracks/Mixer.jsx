@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ACCTYPE_TO_CHANNEL_KEY } from './useBackingTrackEngine.js'
 
 const ALL_CHANNELS = [
@@ -16,6 +17,7 @@ const ALL_CHANNELS = [
  * אם אין סגנון טעון, נופל חזרה ל-4 הכלים הקלאסיים (piano/bass/guitar/drums).
  */
 export function Mixer({ style, activePart, volumes, onVolumeChange }) {
+  const { t } = useTranslation()
   const visibleChannels = useMemo(() => {
     if (!style) return ALL_CHANNELS.filter(c => c.key !== 'pad' && c.key !== 'melody')
 
@@ -34,14 +36,14 @@ export function Mixer({ style, activePart, volumes, onVolumeChange }) {
   }, [style, activePart])
 
   if (visibleChannels.length === 0) {
-    return <div className="mixer mixer--empty">No instruments in this style.</div>
+    return <div className="mixer mixer--empty">{t('backing.noInstruments')}</div>
   }
 
   return (
     <div className="mixer">
       {visibleChannels.map(ch => (
         <label key={ch.key} className="mixer-channel">
-          <span className="mixer-channel-label">{ch.label}</span>
+          <span className="mixer-channel-label">{t(`backing.instruments.${ch.key}`, { defaultValue: ch.label })}</span>
           <input
             type="range"
             min="0"

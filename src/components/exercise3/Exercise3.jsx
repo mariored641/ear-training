@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import * as Tone from 'tone';
 import AudioPlayer from '../../utils/AudioPlayer';
 import { PitchDetector, frequencyToNote } from '../../utils/PitchDetector';
@@ -10,6 +11,7 @@ import {
 import Storage from '../../utils/Storage';
 import LevelStrip from '../common/LevelStrip';
 import './Exercise3.css';
+import { formatNoteName } from '../../i18n/musicTerms';
 
 // ── App states ─────────────────────────────────────────────────────────────────
 const S = { IDLE: 'idle', COUNTIN: 'countin', PLAYING: 'playing', LISTENING: 'listening', RESULT: 'result' };
@@ -31,6 +33,7 @@ const HOLD_FRAMES = 20;
 // ══════════════════════════════════════════════════════════════════════════════
 export default function Exercise3() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   // ── Settings (persisted) ───────────────────────────────────────────────────
   const [settings, setSettings] = useState(() =>
@@ -409,11 +412,10 @@ export default function Exercise3() {
       {/* ── Header ──────────────────────────────────────────────────── */}
       <header className="ex3-header">
         <div className="ex3-header-left">
-          <button className="ex3-back-btn" onClick={() => { handleStop(); navigate('/category/melodic'); }}>←</button>
+          <button className="ex3-back-btn" aria-label={t('common.back')} onClick={() => { handleStop(); navigate('/category/melodic'); }}>←</button>
         </div>
         <div className="ex3-header-center">
-          <h1 className="ex3-title">🎵 Melodic Dictation</h1>
-          <p className="ex3-subtitle">הכתבה מלודית</p>
+          <h1 className="ex3-title">🎵 {t('dictation.melodic')}</h1>
         </div>
         <div className="ex3-header-right">
           {stats.rounds > 0 && (
@@ -428,7 +430,10 @@ export default function Exercise3() {
       <main className="ex3-main">
 
         <LevelStrip
-          levels={EX3_LEVELS}
+          levels={[
+            ...[1, 2, 3, 4].map(level => ({ id: String(level), label: t('common.level', { level }) })),
+            { id: 'custom', label: t('rhythm.custom') }
+          ]}
           activeId={activeLevel}
           onChange={handleLevelChange}
           disabled={appState !== S.IDLE}
@@ -441,12 +446,12 @@ export default function Exercise3() {
 
           {/* Phase label */}
           <div className={phaseCls}>
-            {appState === S.IDLE      && 'מוכן לתרגול'}
+            {appState === S.IDLE      && t('rhythm.ready')}
             {appState === S.COUNTIN   && (countInBeat > 0 ? `${countInBeat}...` : '...')}
-            {appState === S.PLAYING   && '🎵 הקשב...'}
-            {appState === S.LISTENING && '🎸 תורך לנגן!'}
-            {appState === S.RESULT && lastRoundOk === true  && '✓ כל הכבוד!'}
-            {appState === S.RESULT && lastRoundOk === false && '✗ נסה שוב'}
+            {appState === S.PLAYING   && t('dictation.listen')}
+            {appState === S.LISTENING && t('rhythm.yourTurn')}
+            {appState === S.RESULT && lastRoundOk === true  && t('rhythm.wellDone')}
+            {appState === S.RESULT && lastRoundOk === false && t('rhythm.tryAgain')}
           </div>
 
           {/* Beat / note dots */}
@@ -464,7 +469,9 @@ export default function Exercise3() {
               else if (isCur && appState === S.LISTENING)      cls += ' cur-listen';
 
               // Note names are ONLY revealed in the RESULT phase
-              const label = (appState === S.RESULT && note) ? note.noteName : '♩';
+              const label = (appState === S.RESULT && note)
+                ? formatNoteName(note.noteName, i18n.language)
+                : '♩';
 
               return (
                 <div key={i} className={cls}>
@@ -484,11 +491,11 @@ export default function Exercise3() {
                 : ''
             }`}>
               <span className="ex3-pitch-note">
-                {detectedNote ? detectedNote.noteName : '—'}
+                {detectedNote ? formatNoteName(detectedNote.noteName, i18n.language) : '—'}
               </span>
               {detectedNote && (
                 <span className="ex3-pitch-detail">
-                  {detectedNote.fullNote}
+                  {formatNoteName(detectedNote.fullNote, i18n.language)}
                   <span className="ex3-pitch-cents">
                     {detectedNote.cents > 0 ? '+' : ''}{detectedNote.cents}¢
                   </span>
@@ -514,20 +521,20 @@ export default function Exercise3() {
           {/* Row 1: Tonic + Scale */}
           <div className="ex3-row2">
             <div className="ex3-field">
-              <label className="ex3-field-label">תוניקה:</label>
+              <label className="ex3-field-label">{t('dictation.tonic')}:</label>
               <select className="ex3-select" value={settings.root}
                 onChange={e => updateSetting('root', e.target.value)}
                 disabled={isActive}>
-                {CHROMATIC_NOTES.map(n => <option key={n} value={n}>{n}</option>)}
+                {CHROMATIC_NOTES.map(n => <option key={n} value={n}>{formatNoteName(n, i18n.language)}</option>)}
               </select>
             </div>
             <div className="ex3-field ex3-field-wide">
-              <label className="ex3-field-label">סוג סולם:</label>
+              <label className="ex3-field-label">{t('dictation.scaleType')}:</label>
               <select className="ex3-select" value={settings.scale}
                 onChange={e => updateSetting('scale', e.target.value)}
                 disabled={isActive}>
                 {Object.entries(SCALES).map(([k, v]) =>
-                  <option key={k} value={k}>{v.name}</option>
+                  <option key={k} value={k}>{t(`dictation.scales.${k}`, { defaultValue: v.name })}</option>
                 )}
               </select>
             </div>
@@ -535,12 +542,12 @@ export default function Exercise3() {
 
           {/* Row 2: Difficulty */}
           <div className="ex3-field">
-            <label className="ex3-field-label">רמת קושי:</label>
+            <label className="ex3-field-label">{t('rhythm.difficulty')}:</label>
             <select className="ex3-select" value={settings.difficulty}
               onChange={e => updateSetting('difficulty', parseInt(e.target.value))}
               disabled={isActive}>
               {DIFFICULTY_LEVELS.map(d =>
-                <option key={d.value} value={d.value}>{d.label}</option>
+                <option key={d.value} value={d.value}>{t(`dictation.difficulty.${d.value}`, { defaultValue: d.label })}</option>
               )}
             </select>
           </div>
@@ -548,7 +555,7 @@ export default function Exercise3() {
           {/* Row 3: Notes + Instrument + Tempo */}
           <div className="ex3-row3">
             <div className="ex3-field">
-              <label className="ex3-field-label">מס׳ תווים:</label>
+              <label className="ex3-field-label">{t('dictation.numberOfNotes')}:</label>
               <div className="ex3-stepper">
                 <button className="ex3-step-btn"
                   onClick={() => updateSetting('sequenceLength', Math.max(2, settings.sequenceLength - 1))}
@@ -561,7 +568,7 @@ export default function Exercise3() {
             </div>
 
             <div className="ex3-field">
-              <label className="ex3-field-label">ניסיונות לפני דילוג:</label>
+              <label className="ex3-field-label">{t('dictation.attemptsBeforeSkip')}:</label>
               <div className="ex3-stepper">
                 <button className="ex3-step-btn"
                   onClick={() => updateSetting('maxAttempts', Math.max(1, settings.maxAttempts - 1))}
@@ -574,9 +581,9 @@ export default function Exercise3() {
             </div>
 
             <div className="ex3-field">
-              <label className="ex3-field-label">סאונד:</label>
+              <label className="ex3-field-label">{t('earTraining.reactive.sound')}:</label>
               <div className="ex3-seg">
-                {[{ v: 'piano', l: 'פסנתר' }, { v: 'guitar', l: 'גיטרה' }].map(o => (
+                {[{ v: 'piano', l: t('common.piano') }, { v: 'guitar', l: t('common.guitar') }].map(o => (
                   <button key={o.v}
                     className={`ex3-seg-btn ${settings.instrument === o.v ? 'active' : ''}`}
                     onClick={() => updateSetting('instrument', o.v)}
@@ -586,7 +593,7 @@ export default function Exercise3() {
             </div>
 
             <div className="ex3-field ex3-field-tempo">
-              <label className="ex3-field-label">טמפו: <strong>{settings.tempo} BPM</strong></label>
+              <label className="ex3-field-label">{t('rhythm.tempo')}: <strong>{settings.tempo} BPM</strong></label>
               <input type="range" min={40} max={160} step={5}
                 value={settings.tempo} className="ex3-slider"
                 onChange={e => updateSetting('tempo', parseInt(e.target.value))}
@@ -601,10 +608,10 @@ export default function Exercise3() {
             disabled={micStatus === 'requesting'}
           >
             🎙{' '}
-            {micStatus === 'off'        && 'אפשר מיקרופון'}
-            {micStatus === 'requesting' && 'מבקש גישה...'}
-            {micStatus === 'active'     && 'מיקרופון מחובר ✓  —  לחץ לניתוק'}
-            {micStatus === 'error'      && '⚠ שגיאה — לחץ לנסות שוב'}
+            {micStatus === 'off'        && t('dictation.enableMicrophone')}
+            {micStatus === 'requesting' && t('dictation.requestingAccess')}
+            {micStatus === 'active'     && t('dictation.microphoneConnected')}
+            {micStatus === 'error'      && t('dictation.microphoneError')}
           </button>
 
           {/* Note buttons: visible during listen phase (button mode) */}
@@ -613,7 +620,7 @@ export default function Exercise3() {
               {CHROMATIC_NOTES.map(n => (
                 <button key={n} className="ex3-note-btn"
                   onClick={() => handleNoteButtonClick(n)}>
-                  {n}
+                  {formatNoteName(n, i18n.language)}
                 </button>
               ))}
             </div>
@@ -628,20 +635,20 @@ export default function Exercise3() {
           {isActive ? (
             <>
               <button className="ex3-ctrl-btn skip" onClick={handleSkip}>
-                ↩ דלג
+                ↩ {t('rhythm.skip')}
               </button>
               <button className="ex3-ctrl-btn stop" onClick={handleStop}>
-                ■ עצור
+                ■ {t('common.stop')}
               </button>
             </>
           ) : (
             <>
               <button className="ex3-ctrl-btn back"
                 onClick={() => navigate('/category/melodic')}>
-                ← חזרה
+                ← {t('common.back')}
               </button>
               <button className="ex3-ctrl-btn start" onClick={handleStart}>
-                ▶ נגן <span className="ex3-space-hint">(Space)</span>
+                ▶ {t('common.play')} <span className="ex3-space-hint">(Space)</span>
               </button>
             </>
           )}

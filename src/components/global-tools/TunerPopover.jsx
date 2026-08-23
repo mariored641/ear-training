@@ -6,10 +6,12 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PitchDetector } from 'pitchy';
 import { useMicrophone } from './useMicrophone.js';
 import { useTools } from './ToolsContext.jsx';
 import { analyzeChromatic, analyzeGuitar } from './pitch.js';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 
 const FFT_SIZE = 2048;
 const CLARITY_THRESHOLD = 0.9;
@@ -18,6 +20,7 @@ const HZ_MAX = 1320;
 const EMA_ALPHA = 0.25;
 
 export default function TunerPopover() {
+  const { t, i18n } = useTranslation();
   const mic = useMicrophone();
   const { getAudioContext } = useTools();
   const [mode, setMode] = useState('chromatic'); // 'chromatic' | 'guitar'
@@ -80,7 +83,7 @@ export default function TunerPopover() {
         };
         rafRef.current = requestAnimationFrame(tick);
       } catch (err) {
-        setPermError(err?.message || 'אין הרשאה למיקרופון');
+        setPermError(err?.message || t('tools.microphoneDenied'));
       }
     })();
 
@@ -95,26 +98,26 @@ export default function TunerPopover() {
       bufRef.current = null;
       if (acquired) mic.release();
     };
-  }, [mic, getAudioContext, mode]);
+  }, [mic, getAudioContext, mode, t]);
 
   const inTune = reading && Math.abs(reading.cents) <= 5;
   const cents = reading?.cents ?? 0;
   const needlePct = Math.max(-50, Math.min(50, cents)) + 50; // 0..100
 
   return (
-    <div className="gt-popover gt-tuner" role="dialog" aria-label="טיונר">
+    <div className="gt-popover gt-tuner" role="dialog" aria-label={t('tools.tuner')}>
       <div className="gt-popover-head">
         <div className="gt-mode-toggle" role="tablist">
           <button
             type="button"
             className={`gt-mode-btn ${mode === 'chromatic' ? 'active' : ''}`}
             onClick={() => setMode('chromatic')}
-          >כרומטי</button>
+          >{t('tools.chromatic')}</button>
           <button
             type="button"
             className={`gt-mode-btn ${mode === 'guitar' ? 'active' : ''}`}
             onClick={() => setMode('guitar')}
-          >גיטרה</button>
+          >{t('tools.guitar')}</button>
         </div>
       </div>
 
@@ -125,7 +128,7 @@ export default function TunerPopover() {
           <div className={`gt-tuner-note ${inTune ? 'in-tune' : ''}`}>
             {reading ? (
               <>
-                <span className="gt-note-name">{reading.name}</span>
+                <span className="gt-note-name music-term">{formatNoteName(reading.name, i18n.language)}</span>
                 <span className="gt-note-octave">{reading.octave}</span>
               </>
             ) : (

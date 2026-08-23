@@ -1,26 +1,27 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ExerciseCard from '../../home/ExerciseCard';
 import { BassLineIcon, SopranoLineIcon } from '../../icons/AppIcons';
 import '../../category/CategoryScreen.css';
 
 const VoiceLeadingSubScreen = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const exercises = [
-    { id: 'V1', icon: <BassLineIcon />,    title: 'V1 — עקיבת קו בס', path: '/exercise/V1' },
-    { id: 'V2', icon: <SopranoLineIcon />, title: 'V2 — עקיבת קו סופרן', path: '/exercise/V2' }
+    { id: 'V1', icon: <BassLineIcon />, path: '/exercise/V1' },
+    { id: 'V2', icon: <SopranoLineIcon />, path: '/exercise/V2' }
   ];
 
   return (
     <div className="category-screen">
       <header className="category-screen-header">
         <button className="back-button" onClick={() => navigate('/category/ear-training')}>
-          ← חזרה לשמיעה מוזיקלית
+          {t('categories.backToEarTraining')}
         </button>
         <div className="category-screen-title-container">
-          <h1 className="category-screen-title">Voice Leading (V)</h1>
-          <h2 className="category-screen-title-hebrew">תנועת קול</h2>
+          <h1 className="category-screen-title">{t('categories.voiceLeading')} (V)</h1>
         </div>
       </header>
 
@@ -31,7 +32,7 @@ const VoiceLeadingSubScreen = () => {
             exerciseId={ex.id}
             path={ex.path}
             icon={ex.icon}
-            title={ex.title}
+            title={`${ex.id} — ${t(`earTraining.exercises.${ex.id}`)}`}
             isAvailable={true}
           />
         ))}

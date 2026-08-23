@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import Header from '../common/Header';
 import RhythmExplorer from './RhythmExplorer';
@@ -10,6 +11,7 @@ import './Exercise4.css';
 
 const Exercise4 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('rhythmExplorer');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -96,7 +98,7 @@ const Exercise4 = () => {
   return (
     <div className="exercise4-container">
       <Header
-        title="Rhythm Training"
+        title={t('rhythm.title')}
         showStop={true}
         onStopClick={handleStop}
         onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -108,19 +110,19 @@ const Exercise4 = () => {
           className={`tab-button ${activeTab === 'rhythmExplorer' ? 'active' : ''}`}
           onClick={() => handleTabChange('rhythmExplorer')}
         >
-          Rhythm Explorer
+          {t('rhythm.explorer')}
         </button>
         <button
           className={`tab-button ${activeTab === 'polyrhythm' ? 'active' : ''}`}
           onClick={() => handleTabChange('polyrhythm')}
         >
-          Polyrhythm
+          {t('rhythm.polyrhythm')}
         </button>
         <button
           className={`tab-button ${activeTab === 'advanced' ? 'active' : ''}`}
           onClick={() => handleTabChange('advanced')}
         >
-          Advanced Subdivisions
+          {t('rhythm.advanced')}
         </button>
       </div>
 

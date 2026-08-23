@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import PartialChordCard from './PartialChordCard';
 import QualityPickerModal from './QualityPickerModal';
 import {
@@ -12,6 +13,7 @@ import {
   findBestShapeForFret,
 } from '../../utils/partialChordShapes';
 import './PartialChordsTab.css';
+import { formatNoteName } from '../../i18n/musicTerms';
 
 const ROOT_OPTIONS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const WIDTH_OPTIONS = [3, 4, 5, 6];
@@ -51,6 +53,7 @@ function setIdxForWidth(currentSetIdx, newWidth) {
 }
 
 function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiveIdxChange }) {
+  const { t, i18n } = useTranslation();
   const [builderRoot, setBuilderRoot] = useState('A');
   const [builderQuality, setBuilderQuality] = useState('minor');
   const [displayMode, setDisplayMode] = useState('tones');
@@ -121,27 +124,27 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
   }, [progression, width, updateChord]);
 
   const moreBtnLabel = isBasicTriad(builderQuality)
-    ? 'More…'
-    : (CHORD_QUALITIES[builderQuality]?.label || 'More…');
+    ? t('positions.more')
+    : (CHORD_QUALITIES[builderQuality]?.label || t('positions.more'));
 
   return (
     <div className="pct-root">
       <div className="pct-builder">
         <div className="pct-group">
-          <label className="pct-label">Root</label>
+          <label className="pct-label">{t('common.root')}</label>
           <select
             className="pct-select"
             value={builderRoot}
             onChange={(e) => setBuilderRoot(e.target.value)}
           >
             {ROOT_OPTIONS.map((r) => (
-              <option key={r} value={r}>{r}</option>
+              <option key={r} value={r}>{formatNoteName(r, i18n.language)}</option>
             ))}
           </select>
         </div>
 
         <div className="pct-group">
-          <label className="pct-label">Quality</label>
+          <label className="pct-label">{t('positions.quality')}</label>
           <div className="pct-quality-toggle">
             <button
               className={`pct-quality-btn ${builderQuality === 'major' ? 'active' : ''}`}
@@ -158,20 +161,20 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
             <button
               className={`pct-quality-btn pct-more-btn ${!isBasicTriad(builderQuality) ? 'active' : ''}`}
               onClick={() => setIsQualityModalOpen(true)}
-              title="Choose extended quality"
+              title={t('positions.chooseQuality')}
             >
               {moreBtnLabel}
             </button>
           </div>
         </div>
 
-        <button className="pct-add-btn" onClick={handleAdd}>+ Add</button>
+        <button className="pct-add-btn" onClick={handleAdd}>+ {t('common.add')}</button>
         <button className="pct-clear-btn" onClick={handleClear} disabled={progression.length === 0}>
-          Clear
+          {t('common.clear')}
         </button>
 
         <div className="pct-group pct-fret-group">
-          <label className="pct-label">Position — <b className="pct-fret-val">{targetFret}fr</b></label>
+          <label className="pct-label">{t('positions.positionFret', { fret: targetFret })}</label>
           <input
             type="range"
             className="pct-fret-slider"
@@ -182,14 +185,14 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
         </div>
 
         <div className="pct-group">
-          <label className="pct-label">Strings</label>
+          <label className="pct-label">{t('positions.strings')}</label>
           <div className="pct-width-toggle">
             {WIDTH_OPTIONS.map((w) => (
               <button
                 key={w}
                 className={`pct-width-btn ${width === w ? 'active' : ''}`}
                 onClick={() => handleWidthChange(w)}
-                title={`${w} strings`}
+                title={t('positions.stringCount', { count: w })}
               >
                 {w}
               </button>
@@ -198,7 +201,7 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
         </div>
 
         <div className="pct-group pct-display-group">
-          <label className="pct-label">Show</label>
+          <label className="pct-label">{t('positions.show')}</label>
           <div className="pct-display-toggle">
             {DISPLAY_MODES.map((m) => (
               <button
@@ -206,7 +209,7 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
                 className={`pct-display-btn ${displayMode === m.id ? 'active' : ''}`}
                 onClick={() => setDisplayMode(m.id)}
               >
-                {m.label}
+                {t(`positions.${m.id}`)}
               </button>
             ))}
           </div>
@@ -229,7 +232,7 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
 
       {progression.length === 0 ? (
         <div className="pct-empty">
-          Pick a root and quality, then press <b>+ Add</b> to start a progression.
+          {t('positions.partialEmpty')}
         </div>
       ) : (
         <div className="pct-cards">

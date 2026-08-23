@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { MAX_TRACKS } from '../../lib/looperEngine';
 import ExportDialog from './ExportDialog';
 import LooperSettings from './LooperSettings';
@@ -10,6 +11,7 @@ import './LooperPage.css';
 
 export default function LooperPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const {
     session,
     engineState,
@@ -37,7 +39,7 @@ export default function LooperPage() {
   const beatCount = session.timeSignature[0];
 
   return (
-    <div className="looper-page ws-page" dir="rtl">
+    <div className="looper-page ws-page">
       <div className="ws-aurora" aria-hidden="true">
         <span className="ws-blob ws-blob-1" />
         <span className="ws-blob ws-blob-2" />
@@ -46,18 +48,20 @@ export default function LooperPage() {
       <div className="ws-stars" aria-hidden="true" />
 
       <header className="ws-page-header looper-header">
-        <button type="button" className="ws-back-btn" onClick={() => navigate('/')} aria-label="חזרה לעמוד הבית">→</button>
+        <button type="button" className="ws-back-btn" onClick={() => navigate('/')} aria-label={t('common.backHome')}>
+          {i18n.dir() === 'rtl' ? '→' : '←'}
+        </button>
         <div className="looper-title-block">
-          <h1 className="ws-page-title">לופר</h1>
-          <p className="ws-page-subtitle">בנה שכבות, נגן מעליהן, ושמור את הרעיון</p>
+          <h1 className="ws-page-title">{t('looper.title')}</h1>
+          <p className="ws-page-subtitle">{t('looper.subtitle')}</p>
         </div>
         <button type="button" className="ws-ghost-btn looper-settings-btn" onClick={() => setSettingsOpen(true)}>
-          הגדרות
+          {t('common.settings')}
         </button>
       </header>
 
       <main className="looper-main">
-        <section className="looper-tempo-panel workshop-panel" aria-label="מטרונום">
+        <section className="looper-tempo-panel workshop-panel" aria-label={t('tools.metronome')}>
           <div className="looper-tempo-controls">
             <label className="looper-bpm-field">
               <span>BPM</span>
@@ -76,12 +80,12 @@ export default function LooperPage() {
               />
             </label>
             <button type="button" className="looper-tap-btn" onClick={actions.tapTempo} disabled={hasTracks || busy}>
-              Tap Tempo
+              {t('looper.tapTempo')}
             </button>
             <span className="looper-signature">{session.timeSignature.join('/')}</span>
           </div>
 
-          <div className="looper-beat-row" aria-label={`פעימה ${currentBeat + 1} מתוך ${beatCount}`}>
+          <div className="looper-beat-row" aria-label={t('looper.beatProgress', { current: currentBeat + 1, total: beatCount })}>
             {Array.from({ length: beatCount }, (_, index) => (
               <i key={index} className={`${index === currentBeat ? 'active' : ''} ${index === 0 ? 'accent' : ''}`} />
             ))}
@@ -89,9 +93,9 @@ export default function LooperPage() {
 
           {hasTracks && (
             <div className="looper-loop-meta">
-              <span>{session.loopLengthBars} תיבות</span>
-              <span>{session.tracks.length}/{MAX_TRACKS} שכבות</span>
-              <span>נשמר אוטומטית</span>
+              <span>{t('common.bars', { count: session.loopLengthBars })}</span>
+              <span>{t('looper.layerProgress', { current: session.tracks.length, total: MAX_TRACKS })}</span>
+              <span>{t('looper.autoSaved')}</span>
             </div>
           )}
         </section>
@@ -99,7 +103,7 @@ export default function LooperPage() {
         {engineState === 'counting-in' && (
           <div className="looper-countdown" role="status" aria-live="assertive">
             <span>{Math.max(1, currentBeat + 1)}</span>
-            <small>ספירה לפני הקלטה</small>
+            <small>{t('looper.countIn')}</small>
           </div>
         )}
 
@@ -113,7 +117,7 @@ export default function LooperPage() {
         />
 
         {hasTracks && (
-          <section className="looper-tracks" aria-label="שכבות מוקלטות">
+          <section className="looper-tracks" aria-label={t('looper.recordedLayers')}>
             {session.tracks.map((track) => (
               <TrackRow
                 key={track.id}
@@ -127,10 +131,10 @@ export default function LooperPage() {
             ))}
             {!maxTracksReached ? (
               <button type="button" className="looper-add-track" onClick={() => actions.startRecording()} disabled={busy}>
-                <span>＋</span> הוסף שכבה
+                <span>＋</span> {t('looper.addLayer')}
               </button>
             ) : (
-              <p className="looper-max-note">הגעת למקסימום של {MAX_TRACKS} שכבות במובייל.</p>
+              <p className="looper-max-note">{t('looper.maxLayers', { count: MAX_TRACKS })}</p>
             )}
           </section>
         )}
@@ -138,17 +142,17 @@ export default function LooperPage() {
 
       <footer className="looper-action-bar workshop-leather-bar">
         <button type="button" className="ws-ghost-btn" onClick={actions.undoLast} disabled={!canUndo || busy}>
-          בטל אחרון
+          {t('looper.undo')}
         </button>
         <button type="button" className="workshop-brass-btn" onClick={() => setExportOpen(true)} disabled={!hasTracks || busy}>
-          ייצוא WAV
+          {t('looper.exportWav')}
         </button>
       </footer>
 
       {error && (
         <div className="looper-error" role="alert">
           <span>{error}</span>
-          <button type="button" onClick={actions.clearError} aria-label="סגירת הודעת שגיאה">×</button>
+          <button type="button" onClick={actions.clearError} aria-label={t('common.close')}>×</button>
         </div>
       )}
 

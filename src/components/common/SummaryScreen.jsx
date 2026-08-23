@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './SummaryScreen.css';
 
 /**
@@ -19,42 +20,43 @@ const SummaryScreen = ({
   category = null
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const neededMoreAttempts = totalQuestions - correctFirstTry;
 
   return (
     <div className="summary-screen">
       <div className="summary-card">
-        <h2 className="summary-title">Completed! 🎉</h2>
+        <h2 className="summary-title">{t('common.completed')}</h2>
 
         <div className="summary-stats">
           <p className="summary-stat">
-            Completed {totalQuestions} {itemName}
+            {t('common.completedItems', { count: totalQuestions, item: itemName })}
           </p>
           <p className="summary-stat success">
-            {correctFirstTry} correct on first try
+            {t('common.correctFirstTry', { count: correctFirstTry })}
           </p>
           <p className="summary-stat">
-            {neededMoreAttempts} required additional attempts
+            {t('common.additionalAttempts', { count: neededMoreAttempts })}
           </p>
         </div>
 
         <div className="summary-actions">
           <button className="summary-button primary" onClick={onRestart}>
-            Practice Again
+            {t('common.practiceAgain')}
           </button>
           {category && (
             <button
               className="summary-button secondary"
               onClick={() => navigate(`/category/${category}`)}
             >
-              Back to Category
+              {t('common.backCategory')}
             </button>
           )}
           <button
             className="summary-button secondary"
             onClick={() => navigate('/')}
           >
-            Back to Home
+            {t('common.backHome')}
           </button>
         </div>
       </div>

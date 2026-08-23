@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './ChordSectionDisplay.css';
 
 const ChordSectionDisplay = ({
@@ -13,13 +15,14 @@ const ChordSectionDisplay = ({
   currentNoteInChord,
   onNoteSelect
 }) => {
+  const { t, i18n } = useTranslation();
   const renderNoteButtons = (noteIndex) => {
     const isCurrentNote = isActive && noteIndex === currentNoteInChord;
     const isIdentified = identifiedNotes.some(n => n.noteIndex === noteIndex);
 
     return (
       <div key={noteIndex} className="note-row">
-        <span className="note-label">Note {noteIndex + 1}:</span>
+        <span className="note-label">{t('legacy.noteAria', { note: noteIndex + 1 })}:</span>
         <div className="note-buttons">
           {chordTones.map(tone => {
             const isSelected = isIdentified && identifiedNotes.find(n => n.noteIndex === noteIndex);
@@ -39,7 +42,7 @@ const ChordSectionDisplay = ({
                 onClick={() => isCurrentNote && onNoteSelect(noteIndex, tone)}
                 disabled={isLocked || isCompleted || !isCurrentNote}
               >
-                {tone}
+                <span className="music-term">{formatNoteName(tone, i18n.language)}</span>
                 {isSelected && <span className="number-indicator">①</span>}
               </button>
             );
@@ -58,15 +61,15 @@ const ChordSectionDisplay = ({
     <div className={containerClass}>
       <div className="chord-section-header">
         <h3 className="chord-name">
-          {chord} ({numNotes} note{numNotes > 1 ? 's' : ''})
-          {isActive && ' ← Currently Active'}
+          <span className="music-term">{formatNoteName(chord, i18n.language)}</span> ({t('legacy.noteCount', { count: numNotes })})
+          {isActive && ` ← ${t('legacy.currentlyActive')}`}
           {isLocked && ' 🔒'}
         </h3>
-        {isCompleted && <span className="completed-badge">✓ Completed</span>}
+        {isCompleted && <span className="completed-badge">✓ {t('legacy.completedStatus')}</span>}
       </div>
 
       <div className="available-tones">
-        Available: {chordTones.join(', ')}
+        {t('legacy.available')}: {chordTones.map((tone) => formatNoteName(tone, i18n.language)).join(', ')}
       </div>
 
       <div className="notes-container">

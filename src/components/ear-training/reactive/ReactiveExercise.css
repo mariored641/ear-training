@@ -5,7 +5,7 @@
   background: transparent;
   color: var(--paper-cream);
   font-family: var(--font-body);
-  direction: rtl;
+  direction: inherit;
   display: flex;
   flex-direction: column;
   position: relative;

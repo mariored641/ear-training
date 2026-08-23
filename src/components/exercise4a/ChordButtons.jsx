@@ -1,5 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { MAJOR_CHORDS, MINOR_CHORDS } from '../../constants/harmonicDefaults';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './ChordButtons.css';
 
 const ChordButtons = ({
@@ -8,6 +10,7 @@ const ChordButtons = ({
   isCorrect,
   onChordSelect
 }) => {
+  const { t, i18n } = useTranslation();
   const renderChordButton = (chord) => {
     const isAvailable = availableChords[chord];
     const isSelected = selectedChord === chord;
@@ -33,7 +36,7 @@ const ChordButtons = ({
         onClick={() => isAvailable && onChordSelect(chord)}
         disabled={!isAvailable || isCorrect === true}
       >
-        {chord}
+        <span className="music-term">{formatNoteName(chord, i18n.language)}</span>
       </button>
     );
   };
@@ -42,7 +45,7 @@ const ChordButtons = ({
     <div className="chord-buttons-container">
       {/* Major Chords — chromatic order, fills left-to-right then wraps */}
       <div className="chord-section">
-        <h3 className="section-title">Major Chords:</h3>
+        <h3 className="section-title">{t('legacy.majorChords')}:</h3>
         <div className="chord-grid">
           {MAJOR_CHORDS.map(renderChordButton)}
         </div>
@@ -50,7 +53,7 @@ const ChordButtons = ({
 
       {/* Minor Chords */}
       <div className="chord-section">
-        <h3 className="section-title">Minor Chords:</h3>
+        <h3 className="section-title">{t('legacy.minorChords')}:</h3>
         <div className="chord-grid">
           {MINOR_CHORDS.map(renderChordButton)}
         </div>

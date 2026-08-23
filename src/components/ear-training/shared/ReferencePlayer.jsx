@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import audioPlayer from '../../../utils/AudioPlayer';
 import { CHORD_DEFINITIONS, EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
@@ -24,9 +25,10 @@ const ReferencePlayer = ({
   mode = 'major',
   instrument = 'piano',
   cadenceType = 'PAC',
-  label = 'רפרנס',
+  label,
   showSelector = false
 }) => {
+  const { t } = useTranslation();
   const [playing, setPlaying] = useState(false);
 
   const handlePlay = async () => {
@@ -65,11 +67,11 @@ const ReferencePlayer = ({
     <div className="et-reference">
       {showSelector && onTypeChange && (
         <TernaryToggle
-          label={label}
+          label={label || t('common.reference')}
           options={[
-            { value: 'cadence', label: 'קדנצה' },
-            { value: 'chord', label: 'אקורד' },
-            { value: 'note', label: 'תו' }
+            { value: 'cadence', label: t('common.cadence') },
+            { value: 'chord', label: t('common.chord') },
+            { value: 'note', label: t('common.note') }
           ]}
           value={type}
           onChange={onTypeChange}
@@ -80,9 +82,9 @@ const ReferencePlayer = ({
         className="et-reference-btn"
         onClick={handlePlay}
         disabled={playing}
-        aria-label="נגן רפרנס"
+        aria-label={t('earTraining.controls.playReference')}
       >
-        {playing ? '🔊' : '▶'} נגן רפרנס
+        {playing ? '🔊' : '▶'} {t('earTraining.controls.playReference')}
       </button>
     </div>
   );

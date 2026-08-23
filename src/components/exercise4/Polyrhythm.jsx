@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as Tone from 'tone';
+import { useTranslation } from 'react-i18next';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
   DEFAULT_POLYRHYTHM,
@@ -11,6 +12,7 @@ import {
 } from '../../constants/exercise4Defaults';
 
 const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
+  const { t } = useTranslation();
   const [topCount, setTopCount] = useState(DEFAULT_POLYRHYTHM.top.count);
   const [bottomCount, setBottomCount] = useState(DEFAULT_POLYRHYTHM.bottom.count);
   const [topCells, setTopCells] = useState([]);
@@ -216,11 +218,11 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
         {/* Top Header */}
         <div className="header-row">
           <div className="row-label-mobile">
-            Top:
+            {t('rhythm.top')}:
             <button
               className={`row-level-btn poly-cell-${topCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('top')}
-              title="Click to change all cells in this row to the same level"
+              title={t('rhythm.changeWholeRow')}
               style={{ marginLeft: '8px' }}
             />
           </div>
@@ -244,11 +246,11 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
         {/* Bottom Header */}
         <div className="header-row">
           <div className="row-label-mobile">
-            Bottom:
+            {t('rhythm.bottom')}:
             <button
               className={`row-level-btn poly-cell-${bottomCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('bottom')}
-              title="Click to change all cells in this row to the same level"
+              title={t('rhythm.changeWholeRow')}
               style={{ marginLeft: '8px' }}
             />
           </div>
@@ -275,11 +277,11 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
         {/* Top Row */}
         <div className="polyrhythm-row">
           <div className="row-label-container">
-            <div className="row-label">Top:</div>
+            <div className="row-label">{t('rhythm.top')}:</div>
             <button
               className={`row-level-btn poly-cell-${topCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('top')}
-              title="Click to change all cells in this row to the same level"
+              title={t('rhythm.changeWholeRow')}
             />
           </div>
           <div className="row-cells-container">
@@ -315,11 +317,11 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
         {/* Bottom Row */}
         <div className="polyrhythm-row">
           <div className="row-label-container">
-            <div className="row-label">Bottom:</div>
+            <div className="row-label">{t('rhythm.bottom')}:</div>
             <button
               className={`row-level-btn poly-cell-${bottomCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('bottom')}
-              title="Click to change all cells in this row to the same level"
+              title={t('rhythm.changeWholeRow')}
             />
           </div>
           <div className="row-cells-container">
@@ -360,7 +362,7 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
 
       {/* Polyrhythm Presets */}
       <div className="preset-section">
-        <div className="control-label">Polyrhythm Presets</div>
+        <div className="control-label">{t('rhythm.polyrhythmPresets')}</div>
         <div className="preset-buttons">
           {POLYRHYTHM_PRESETS.map((preset) => (
             <button

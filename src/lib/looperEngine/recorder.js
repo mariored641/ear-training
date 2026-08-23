@@ -1,3 +1,5 @@
+import i18n from '../../i18n/index.js';
+
 const WORKLET_BATCH_SIZE = 1024;
 const LOOP_FADE_SECONDS = 0.005;
 const CAPTURE_PROCESSOR_NAME = `looper-capture-${Math.random().toString(36).slice(2)}`;
@@ -63,12 +65,12 @@ registerProcessor('${CAPTURE_PROCESSOR_NAME}', LooperCaptureProcessor);
 
 function microphoneError(error) {
   if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
-    return new Error('נדרשת הרשאת מיקרופון כדי להקליט שכבות.');
+    return new Error(i18n.t('looper.microphoneRequired'));
   }
   if (error?.name === 'NotFoundError') {
-    return new Error('לא נמצא מיקרופון זמין במכשיר.');
+    return new Error(i18n.t('looper.microphoneNotFound'));
   }
-  return new Error(error?.message || 'לא ניתן לפתוח את המיקרופון.');
+  return new Error(error?.message || i18n.t('looper.microphoneOpenFailed'));
 }
 
 function pickRecordingMime() {
@@ -124,7 +126,7 @@ export class MicrophoneRecorder {
   async open() {
     if (this.stream?.active) return;
     if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error('הדפדפן הזה אינו תומך בהקלטת מיקרופון.');
+      throw new Error(i18n.t('looper.recordingUnsupported'));
     }
 
     try {
@@ -169,14 +171,14 @@ export class MicrophoneRecorder {
     }
 
     if (typeof MediaRecorder === 'undefined') {
-      throw new Error('הדפדפן הזה אינו תומך במנוע ההקלטה הנדרש.');
+      throw new Error(i18n.t('looper.recordingEngineUnsupported'));
     }
     this.mode = 'media-recorder';
   }
 
   begin(startTime) {
-    if (!this.mode) throw new Error('המיקרופון עדיין לא מוכן.');
-    if (this.capture) throw new Error('כבר מתבצעת הקלטה.');
+    if (!this.mode) throw new Error(i18n.t('looper.microphoneNotReady'));
+    if (this.capture) throw new Error(i18n.t('looper.alreadyRecording'));
     this.capture = {
       startTime,
       stopTime: null,
@@ -226,7 +228,7 @@ export class MicrophoneRecorder {
 
   async stopAt(endTime, targetDurationSeconds) {
     const capture = this.capture;
-    if (!capture) throw new Error('אין הקלטה פעילה.');
+    if (!capture) throw new Error(i18n.t('looper.noActiveRecording'));
     capture.stopTime = Math.max(capture.startTime, endTime);
 
     if (this.mode === 'media-recorder') {

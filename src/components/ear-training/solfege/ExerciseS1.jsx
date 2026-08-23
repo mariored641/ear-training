@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import EarTrainingHeader from '../shared/EarTrainingHeader';
 import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
@@ -50,9 +51,14 @@ function pickMelody(level) {
 
 const ExerciseS1 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const storageKey = 'ear-training:S1:level';
 
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
+  const exerciseTitle = `S1 — ${t('earTraining.exercises.S1')}`;
+  const localizedLevel = t(`earTraining.levels.S1.${level}`, {
+    defaultValue: LEVELS.find(l => l.number === level)?.label
+  });
   const [instrument, setInstrument]    = useStoredState('ear-training:S1:instrument', 'piano');
   const [numQuestions, setNumQuestions] = useState(10);
   const [melody, setMelody]            = useState(() => pickMelody(1));
@@ -96,27 +102,27 @@ const ExerciseS1 = () => {
   if (done) {
     return (
       <div>
-        <EarTrainingHeader exerciseTitle="S1 — שירה מתוך תווים" levels={LEVELS}
+        <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS}
           currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
           onBack={() => navigate('/category/ear-training/solfege')} />
         <SessionSummary total={numQuestions} firstTry={firstTry}
           onRetry={() => { setQuestionIndex(0); setFirstTry(0); setDone(false); setMelody(pickMelody(level)); }}
           onBack={() => navigate('/category/ear-training/solfege')}
-          levelLabel={LEVELS.find(l => l.number === level)?.label} />
+          levelLabel={localizedLevel} />
       </div>
     );
   }
 
   return (
-    <div style={{ direction: 'rtl' }}>
-      <EarTrainingHeader exerciseTitle="S1 — שירה מתוך תווים" levels={LEVELS}
+    <div>
+      <EarTrainingHeader exerciseTitle={exerciseTitle} levels={LEVELS}
         currentLevel={level} onLevelChange={setLevel} storageKey={storageKey}
         onBack={() => navigate('/category/ear-training/solfege')}
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
       <div style={{ textAlign:'center', padding:'24px 16px' }}>
         <h2 style={{ fontSize:18, fontWeight:600, marginBottom:20, color:'var(--color-text,#222)' }}>
-          שיר את המנגינה הבאה:
+          {t('earTraining.prompts.singMelody')}
         </h2>
 
         <div style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
@@ -124,17 +130,17 @@ const ExerciseS1 = () => {
         </div>
 
         <div style={{ display:'flex', gap:12, justifyContent:'center', marginBottom:24, flexWrap:'wrap' }}>
-          <button onClick={playCadence} style={btn}>🎵 נגן קדנצה</button>
-          <button onClick={playMelody} style={btn}>▶ נגן מנגינה</button>
+          <button onClick={playCadence} style={btn}>🎵 {t('earTraining.controls.playCadence')}</button>
+          <button onClick={playMelody} style={btn}>▶ {t('earTraining.controls.playMelody')}</button>
         </div>
 
-        <p style={{ color:'#666', marginBottom:16, fontSize:15 }}>אחרי שירה, דרג את עצמך:</p>
+        <p style={{ color:'#666', marginBottom:16, fontSize:15 }}>{t('earTraining.prompts.selfRate')}</p>
         <div style={{ display:'flex', gap:12, justifyContent:'center' }}>
           <button onClick={() => handleSelfRate(true)} style={{ ...btn, background:'#2dbb5b', borderColor:'#2dbb5b' }}>
-            ✓ צדקתי
+            {t('earTraining.prompts.gotIt')}
           </button>
           <button onClick={() => handleSelfRate(false)} style={{ ...btn, background:'#fff', color:'#e74c3c', borderColor:'#e74c3c' }}>
-            ✗ טעיתי
+            {t('earTraining.prompts.missedIt')}
           </button>
         </div>
       </div>
@@ -143,8 +149,8 @@ const ExerciseS1 = () => {
 
       <div style={ctrlRow}>
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={20} />
-        <BinaryToggle label="כלי"
-          options={[{ value:'piano', label:'פסנתר' }, { value:'guitar', label:'גיטרה' }]}
+        <BinaryToggle label={t('common.instrument')}
+          options={[{ value:'piano', label:t('common.piano') }, { value:'guitar', label:t('common.guitar') }]}
           value={instrument} onChange={handleInstrumentChange} />
       </div>
     </div>

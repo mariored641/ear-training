@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './SettingsPanel.css';
 
 /**
@@ -9,17 +10,18 @@ import './SettingsPanel.css';
  * @param {string} props.title - Panel title
  * @param {React.ReactNode} props.children - Panel content
  */
-const SettingsPanel = ({ isOpen, onClose, title = 'Settings', children }) => {
+const SettingsPanel = ({ isOpen, onClose, title, children }) => {
+  const { t } = useTranslation();
   return (
     <>
       {isOpen && <div className="settings-overlay" onClick={onClose} />}
       <div className={`settings-panel ${isOpen ? 'open' : ''}`}>
         <div className="settings-header">
-          <h3 className="settings-title">{title}</h3>
+          <h3 className="settings-title">{title || t('common.settings')}</h3>
           <button
             className="settings-close"
             onClick={onClose}
-            aria-label="Close settings"
+            aria-label={t('common.close')}
           >
             ✕
           </button>

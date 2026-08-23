@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './Header.css';
 
 /**
@@ -21,6 +22,7 @@ const Header = ({
   onSettingsClick,
   onStopClick
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="header">
       <div className="header-left">
@@ -28,7 +30,7 @@ const Header = ({
           <button
             className="header-button"
             onClick={onSettingsClick}
-            aria-label="Settings"
+            aria-label={t('common.settings')}
           >
             ⚙️
           </button>
@@ -37,9 +39,9 @@ const Header = ({
           <button
             className="header-button stop-button"
             onClick={onStopClick}
-            aria-label="Stop"
+            aria-label={t('common.stop')}
           >
-            ✕ Stop
+            ✕ {t('common.stop')}
           </button>
         )}
       </div>
@@ -51,7 +53,7 @@ const Header = ({
       <div className="header-right">
         {currentQuestion !== null && totalQuestions !== null && (
           <span className="question-counter">
-            Question {currentQuestion}/{totalQuestions}
+            {t('common.questionProgress', { current: currentQuestion, total: totalQuestions })}
           </span>
         )}
       </div>

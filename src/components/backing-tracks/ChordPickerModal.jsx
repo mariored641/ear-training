@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
+import { formatNoteName } from '../../i18n/musicTerms'
 
 const NOTE_ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -69,6 +71,7 @@ function SplitMeasureIcon() {
 
 /* ── Single chord editor section ── */
 function ChordEditor({ label, state, onPreview }) {
+  const { t, i18n } = useTranslation()
   const { root, setRoot, quality, setQuality, extensions, toggleExt,
           slashOn, setSlashOn, bassNote, setBassNote, build } = state
 
@@ -78,11 +81,11 @@ function ChordEditor({ label, state, onPreview }) {
 
       {/* Root */}
       <section className="picker-section">
-        <h4>Root</h4>
+        <h4>{t('common.root')}</h4>
         <div className="root-grid">
           {NOTE_ROOTS.map(r => (
             <button key={r} className={`root-btn${root === r ? ' active' : ''}`} onClick={() => setRoot(r)}>
-              {r}
+              {formatNoteName(r, i18n.language)}
             </button>
           ))}
         </div>
@@ -90,13 +93,13 @@ function ChordEditor({ label, state, onPreview }) {
 
       {/* Quality */}
       <section className="picker-section">
-        <h4>Quality</h4>
+        <h4>{t('positions.quality')}</h4>
         <div className="quality-grid">
           {QUALITIES.map(q => (
             <label key={q.value} className="quality-radio">
               <input type="radio" name={`quality-${label}`} value={q.value}
                 checked={quality === q.value} onChange={() => setQuality(q.value)} />
-              <span>{q.label}</span>
+              <span>{t(`backing.qualities.${q.value}`, { defaultValue: q.label })}</span>
             </label>
           ))}
         </div>
@@ -104,7 +107,7 @@ function ChordEditor({ label, state, onPreview }) {
 
       {/* Extensions */}
       <section className="picker-section">
-        <h4>Extensions</h4>
+        <h4>{t('backing.extensions')}</h4>
         <div className="extensions-grid">
           {EXTENSIONS.map(ext => (
             <label key={ext} className="ext-checkbox">
@@ -119,12 +122,12 @@ function ChordEditor({ label, state, onPreview }) {
       <section className="picker-section slash-section">
         <label className="slash-toggle">
           <input type="checkbox" checked={slashOn} onChange={e => setSlashOn(e.target.checked)} />
-          <span>Slash chord</span>
+          <span>{t('backing.slashChord')}</span>
         </label>
         {slashOn && (
           <select className="bass-note-select" value={bassNote} onChange={e => setBassNote(e.target.value)}>
-            <option value="">— bass note —</option>
-            {NOTE_ROOTS.map(r => <option key={r} value={r}>{r}</option>)}
+            <option value="">— {t('backing.bassNote')} —</option>
+            {NOTE_ROOTS.map(r => <option key={r} value={r}>{formatNoteName(r, i18n.language)}</option>)}
           </select>
         )}
       </section>
@@ -132,7 +135,7 @@ function ChordEditor({ label, state, onPreview }) {
       {/* Preview */}
       <div className="chord-preview">
         <span className="chord-preview-name">♪ {prettifyChord(chordDisplayName(build()))}</span>
-        <button className="preview-btn" onClick={() => onPreview(build())}>🔊 שמע</button>
+        <button className="preview-btn" onClick={() => onPreview(build())}>🔊 {t('backing.preview')}</button>
       </div>
     </div>
   )
@@ -140,6 +143,7 @@ function ChordEditor({ label, state, onPreview }) {
 
 /* ── Main modal ── */
 export function ChordPickerModal({ isOpen, barInfo, onConfirm, onClose, onPreview, onDeleteBar }) {
+  const { t } = useTranslation()
   const chord1State = useChordState(barInfo?.barChords?.[0])
   const chord2State = useChordState(barInfo?.barChords?.[1])
 
@@ -174,8 +178,8 @@ export function ChordPickerModal({ isOpen, barInfo, onConfirm, onClose, onPrevie
 
         {/* Header */}
         <div className="modal-header">
-          <h3>{isNewBar ? 'New Bar' : `Edit Bar ${barIdx + 1}`}</h3>
-          <button className="modal-close-btn" onClick={onClose}>✕</button>
+          <h3>{isNewBar ? t('backing.newBar') : t('backing.editBar', { number: barIdx + 1 })}</h3>
+          <button className="modal-close-btn" onClick={onClose} aria-label={t('common.close')}>✕</button>
         </div>
 
         {/* Bar-type toggle */}
@@ -183,18 +187,18 @@ export function ChordPickerModal({ isOpen, barInfo, onConfirm, onClose, onPrevie
           <button
             className={`cpm-bar-type-btn${barType === 'whole' ? ' active' : ''}`}
             onClick={() => setBarType('whole')}
-            title="Whole bar — one chord"
+            title={t('backing.wholeBarHelp')}
           >
             <WholeMeasureIcon />
-            <span>תיבה שלמה</span>
+            <span>{t('backing.wholeBar')}</span>
           </button>
           <button
             className={`cpm-bar-type-btn${barType === 'split' ? ' active' : ''}`}
             onClick={() => setBarType('split')}
-            title="Split bar — two chords"
+            title={t('backing.splitBarHelp')}
           >
             <SplitMeasureIcon />
-            <span>2 חצאים</span>
+            <span>{t('backing.twoHalves')}</span>
           </button>
         </div>
 
@@ -203,19 +207,19 @@ export function ChordPickerModal({ isOpen, barInfo, onConfirm, onClose, onPrevie
           <ChordEditor state={chord1State} onPreview={onPreview} />
         ) : (
           <div className="cpm-split-editors">
-            <ChordEditor label="חצי ראשון" state={chord1State} onPreview={onPreview} />
+            <ChordEditor label={t('backing.firstHalf')} state={chord1State} onPreview={onPreview} />
             <div className="cpm-split-divider" />
-            <ChordEditor label="חצי שני" state={chord2State} onPreview={onPreview} />
+            <ChordEditor label={t('backing.secondHalf')} state={chord2State} onPreview={onPreview} />
           </div>
         )}
 
         {/* Actions */}
         <div className="modal-actions">
           {onDeleteBar && !isNewBar && (
-            <button className="delete-bar-btn" onClick={onDeleteBar}>🗑 מחק תיבה</button>
+            <button className="delete-bar-btn" onClick={onDeleteBar}>🗑 {t('backing.deleteBar')}</button>
           )}
-          <button className="cancel-btn" onClick={onClose}>ביטול</button>
-          <button className="confirm-btn" onClick={confirm}>✓ אישור</button>
+          <button className="cancel-btn" onClick={onClose}>{t('common.cancel')}</button>
+          <button className="confirm-btn" onClick={confirm}>✓ {t('common.confirm')}</button>
         </div>
 
       </div>

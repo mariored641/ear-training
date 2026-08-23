@@ -16,6 +16,7 @@
 
 import { Synthesizer, AudioWorkletNodeSynthesizer } from 'js-synthesizer'
 import { getDefaultLibrary } from './SoundFontRegistry'
+import i18n from '../../i18n/index.js'
 
 const FLUIDSYNTH_SCRIPT_URL = '/libfluidsynth-2.4.6.js'
 
@@ -153,17 +154,17 @@ async function fetchSoundFontBuffer(libraryConfig, onProgress) {
   if (!libraryConfig?.url) {
     throw new Error(`SoundFont library "${libraryConfig?.id || '?'}" has no URL configured`)
   }
-  onProgress?.('בודק cache...', 5)
+  onProgress?.(i18n.t('soundfont.checkingCache'), 5)
   let buffer = await getFromCache(libraryConfig.cacheKey)
   if (buffer) {
-    onProgress?.('טוען SoundFont מ-cache...', 80)
+    onProgress?.(i18n.t('soundfont.loadingFromCache'), 80)
     return buffer
   }
-  onProgress?.('מוריד SoundFont...', 5)
+  onProgress?.(i18n.t('soundfont.downloading'), 5)
   buffer = await fetchWithProgress(libraryConfig.url, (pct, loaded, total) => {
     const mb = Math.round(loaded / 1024 / 1024)
     const totalMb = Math.round(total / 1024 / 1024)
-    onProgress?.(`מוריד SoundFont... ${mb}/${totalMb} MB`, 5 + Math.round(pct * 0.88))
+    onProgress?.(i18n.t('soundfont.downloadingProgress', { loaded: mb, total: totalMb }), 5 + Math.round(pct * 0.88))
   })
   // שמירה ב-cache ברקע — לא מחכים לה
   saveToCache(libraryConfig.cacheKey, buffer)
@@ -208,7 +209,7 @@ export async function init(onProgress, libraryConfig) {
   _initPromise = (async () => {
     try {
       // 1. טעינת FluidSynth JS
-      onProgress?.('טוען מנוע סינתזה...', 2)
+      onProgress?.(i18n.t('soundfont.loadingSynth'), 2)
       await loadFluidSynthScript()
       await Synthesizer.waitForWasmInitialized()
 
@@ -226,7 +227,7 @@ export async function init(onProgress, libraryConfig) {
 
       // 3. Try AudioWorklet first (synthesis off main thread = no crackling)
       try {
-        onProgress?.('טוען AudioWorklet...', 3)
+        onProgress?.(i18n.t('soundfont.loadingWorklet'), 3)
         await _audioCtx.audioWorklet.addModule(FLUIDSYNTH_SCRIPT_URL)
         await _audioCtx.audioWorklet.addModule('/js-synthesizer.worklet.min.js')
 
@@ -255,14 +256,14 @@ export async function init(onProgress, libraryConfig) {
       // 5. טעינת SF2 — מ-cache אם יש, אחרת הורדה ושמירה
       const sf2Buffer = await fetchSoundFontBuffer(library, onProgress)
 
-      onProgress?.('מאתחל instruments...', 95)
+      onProgress?.(i18n.t('soundfont.initializingInstruments'), 95)
       _sfontId = await _synth.loadSFont(sf2Buffer)
       _currentLibrary = library
 
       // 6. הגדרת channels ראשוניים
       applyDefaultPrograms()
 
-      onProgress?.('מוכן!', 100)
+      onProgress?.(i18n.t('soundfont.ready'), 100)
       return { sfontId: _sfontId, library }
     } catch (err) {
       _initPromise = null
@@ -299,7 +300,7 @@ export async function swapSoundFont(libraryConfig, onProgress) {
     await _initPromise
 
     if (_currentLibrary?.id === libraryConfig.id) {
-      onProgress?.('כבר טעון', 100)
+      onProgress?.(i18n.t('soundfont.alreadyLoaded'), 100)
       return { library: _currentLibrary }
     }
 
@@ -321,13 +322,13 @@ export async function swapSoundFont(libraryConfig, onProgress) {
     // טעינת ה-buffer החדש
     const buffer = await fetchSoundFontBuffer(libraryConfig, onProgress)
 
-    onProgress?.('מאתחל instruments...', 95)
+    onProgress?.(i18n.t('soundfont.initializingInstruments'), 95)
     _sfontId = await _synth.loadSFont(buffer)
     _currentLibrary = libraryConfig
 
     applyDefaultPrograms()
 
-    onProgress?.('מוכן!', 100)
+    onProgress?.(i18n.t('soundfont.ready'), 100)
     return { library: _currentLibrary }
   })()
 

@@ -17,6 +17,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html[lang='he'] body {
+  direction: rtl;
+  font-family: 'Heebo', var(--font-family);
+}
+
+html[lang='en'] body {
+  direction: ltr;
+}
+
+/* Music notation, chord symbols, URLs and fretboards keep their physical order. */
+.music-ltr,
+.chord-symbol,
+.note-symbol,
+input[type='url'],
+input[type='email'] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 #root {
   min-height: 100vh;
 }

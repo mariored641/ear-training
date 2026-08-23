@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './NoteSelector.css';
 
 /**
@@ -15,6 +16,7 @@ const NoteSelector = ({
   onNoteSelect,
   markedNotes
 }) => {
+  const { t } = useTranslation();
   const notes = Array.from({ length: totalNotes }, (_, i) => i);
 
   const isMarked = (index) => {
@@ -23,7 +25,7 @@ const NoteSelector = ({
 
   return (
     <div className="note-selector">
-      <p className="note-selector-text">Select which note to mark:</p>
+      <p className="note-selector-text">{t('legacy.selectNoteToMark')}:</p>
       <div className="note-selector-buttons">
         {notes.map(index => (
           <button

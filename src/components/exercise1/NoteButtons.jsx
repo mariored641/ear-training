@@ -1,5 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { NOTES } from '../../constants/notes';
+import { formatNoteName } from '../../i18n/musicTerms.js';
 import './NoteButtons.css';
 
 /**
@@ -18,6 +20,7 @@ const NoteButtons = ({
   onNoteSelect,
   disabled = false
 }) => {
+  const { t, i18n } = useTranslation();
   const getButtonClass = (note) => {
     let className = 'note-button';
 
@@ -45,9 +48,9 @@ const NoteButtons = ({
             className={getButtonClass(note)}
             onClick={() => onNoteSelect(note)}
             disabled={disabled || !availableNotes[note]}
-            aria-label={`Note ${note}`}
+            aria-label={t('legacy.noteAria', { note: formatNoteName(note, i18n.language) })}
           >
-            {note}
+            <span className="music-term">{formatNoteName(note, i18n.language)}</span>
           </button>
         ))}
       </div>

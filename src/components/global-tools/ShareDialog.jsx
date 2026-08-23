@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTools } from './ToolsContext.jsx';
 
 function timestamp() {
@@ -13,6 +14,7 @@ function timestamp() {
 }
 
 export default function ShareDialog() {
+  const { t } = useTranslation();
   const { lastResult, clearResult } = useTools();
   const [shareError, setShareError] = useState(null);
 
@@ -25,14 +27,14 @@ export default function ShareDialog() {
     try {
       const file = new File([lastResult.blob], filename, { type: lastResult.mime });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'רעיון מוסיקלי' });
+        await navigator.share({ files: [file], title: t('tools.shareTitle') });
       } else {
         triggerDownload();
       }
     } catch (err) {
       // user-cancel is fine; only show if it's a real error
       if (err?.name !== 'AbortError') {
-        setShareError('השיתוף נכשל — נסה להוריד במקום');
+        setShareError(t('tools.shareFailed'));
       }
     }
   };
@@ -49,21 +51,21 @@ export default function ShareDialog() {
   return (
     <>
       <div className="gt-dialog-backdrop" onClick={clearResult} />
-      <div className="gt-share-dialog" role="dialog" aria-label="שיתוף הקלטה">
+      <div className="gt-share-dialog" role="dialog" aria-label={t('tools.shareRecording')}>
         <div className="gt-share-title">
-          רעיון נשמר · {lastResult.durationSec}s
+          {t('tools.savedIdea', { seconds: lastResult.durationSec })}
         </div>
         <audio controls src={lastResult.url} className="gt-share-audio" />
         {shareError && <div className="gt-popover-error">{shareError}</div>}
         <div className="gt-share-actions">
           <button type="button" className="gt-share-btn gt-share-btn-primary" onClick={handleShare}>
-            שלח
+            {t('tools.share')}
           </button>
           <button type="button" className="gt-share-btn" onClick={triggerDownload}>
-            הורד
+            {t('tools.download')}
           </button>
           <button type="button" className="gt-share-btn gt-share-btn-ghost" onClick={clearResult}>
-            סגור
+            {t('common.close')}
           </button>
         </div>
       </div>

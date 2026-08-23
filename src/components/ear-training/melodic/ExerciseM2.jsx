@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
 import { useStoredState } from '../shared/useStoredState';
 import audioPlayer from '../../../utils/AudioPlayer';
@@ -26,7 +27,7 @@ function randMidi(min = 56, max = 72) {
   return min + Math.floor(Math.random() * (max - min));
 }
 
-function generateForLevel(level) {
+function generateForLevel(level, t) {
   if (level === 1) {
     // 2 notes — up / down / same
     const start = randMidi();
@@ -40,9 +41,9 @@ function generateForLevel(level) {
       id: Date.now(),
       notes: [midiToNote(start), midiToNote(next)],
       options: [
-        { id: 'up',   label: '↑ עולה' },
-        { id: 'down', label: '↓ יורד' },
-        { id: 'same', label: '→ חוזר' }
+        { id: 'up',   label: `↑ ${t('earTraining.directions.up')}` },
+        { id: 'down', label: `↓ ${t('earTraining.directions.down')}` },
+        { id: 'same', label: `→ ${t('earTraining.directions.same')}` }
       ],
       correctId: id
     };
@@ -68,9 +69,9 @@ function generateForLevel(level) {
       id: Date.now(),
       notes: [midiToNote(start), midiToNote(n2), midiToNote(n3)],
       options: [
-        { id: 'up',   label: '↑ עולה' },
-        { id: 'down', label: '↓ יורד' },
-        { id: 'same', label: '→ חוזר' }
+        { id: 'up',   label: `↑ ${t('earTraining.directions.up')}` },
+        { id: 'down', label: `↓ ${t('earTraining.directions.down')}` },
+        { id: 'same', label: `→ ${t('earTraining.directions.same')}` }
       ],
       correctId: id
     };
@@ -87,8 +88,8 @@ function generateForLevel(level) {
       id: Date.now(),
       notes: [midiToNote(start), midiToNote(start + dir * interval)],
       options: [
-        { id: 'step', label: 'צעד' },
-        { id: 'leap', label: 'קפיצה' }
+        { id: 'step', label: t('earTraining.directions.step') },
+        { id: 'leap', label: t('earTraining.directions.leap') }
       ],
       correctId: choice
     };
@@ -98,9 +99,9 @@ function generateForLevel(level) {
     // leap size: small (3rd, 3-4 semis), medium (4th-5th, 5-7 semis), large (6th+, 8+ semis)
     const start = randMidi(56, 70);
     const sizes = [
-      { id: 'small',  label: 'קטנה (3rd)',         range: [3, 4] },
-      { id: 'medium', label: 'בינונית (4-5th)',    range: [5, 7] },
-      { id: 'large',  label: 'גדולה (6th+)',       range: [8, 12] }
+      { id: 'small',  label: t('earTraining.options.small'), range: [3, 4] },
+      { id: 'medium', label: t('earTraining.options.medium'), range: [5, 7] },
+      { id: 'large',  label: t('earTraining.options.large'), range: [8, 12] }
     ];
     const pick = sizes[Math.floor(Math.random() * 3)];
     const dir = Math.random() > 0.5 ? 1 : -1;
@@ -138,22 +139,23 @@ function generateForLevel(level) {
     id: Date.now(),
     notes: notes.map(midiToNote),
     options: [
-      { id: 'rising',  label: '↑ עולה' },
-      { id: 'falling', label: '↓ יורד' },
-      { id: 'arch',    label: '⌒ קשת' },
-      { id: 'wavy',    label: '〰 גלי' }
+      { id: 'rising',  label: `↑ ${t('earTraining.options.rising')}` },
+      { id: 'falling', label: `↓ ${t('earTraining.options.falling')}` },
+      { id: 'arch',    label: `⌒ ${t('earTraining.options.arch')}` },
+      { id: 'wavy',    label: `〰 ${t('earTraining.options.wavy')}` }
     ],
     correctId: choice
   };
 }
 
 const ExerciseM2 = () => {
+  const { t } = useTranslation();
   const [instrument, setInstrument] = useStoredState('ear-training:M2:instrument', 'piano');
   const [advancement, setAdvancement] = useStoredState('ear-training:M2:advancement', 'auto');
 
   useEffect(() => { audioPlayer.setInstrument(instrument); }, [instrument]);
 
-  const generateQuestion = useCallback((level) => generateForLevel(level), []);
+  const generateQuestion = useCallback((level) => generateForLevel(level, t), [t]);
 
   const onPlay = useCallback(async (q) => {
     await audioPlayer.playSequence(q.notes, 110);
