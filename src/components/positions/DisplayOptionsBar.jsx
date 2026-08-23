@@ -8,7 +8,14 @@ const DISPLAY_MODES = [
   { value: 'degrees', label: 'Scale Degrees' },
 ];
 
-const DisplayOptionsBar = ({ selectedMode, onModeChange, showPentatonic, onPentatonicChange }) => {
+const DisplayOptionsBar = ({
+  selectedMode,
+  onModeChange,
+  showPentatonic,
+  onPentatonicChange,
+  noteLang = 'latin',
+  onNoteLangChange,
+}) => {
   const { t } = useTranslation();
   return (
     <div className="display-options-bar">
@@ -27,6 +34,22 @@ const DisplayOptionsBar = ({ selectedMode, onModeChange, showPentatonic, onPenta
       >
         {t('positions.pentatonic')}
       </button>
+      {selectedMode === 'notes' && onNoteLangChange && (
+        <div className="note-lang-toggle">
+          <button
+            className={`display-mode-btn note-lang-btn ${noteLang === 'latin' ? 'active' : ''}`}
+            onClick={() => onNoteLangChange('latin')}
+          >
+            A B C
+          </button>
+          <button
+            className={`display-mode-btn note-lang-btn ${noteLang === 'hebrew' ? 'active' : ''}`}
+            onClick={() => onNoteLangChange('hebrew')}
+          >
+            דו רה מי
+          </button>
+        </div>
+      )}
     </div>
   );
 };

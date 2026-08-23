@@ -3,6 +3,7 @@ import { FRETBOARD_CONFIG, STRING_TUNING } from '../../constants/positionData';
 import { getArpeggioNoteSet } from '../../utils/positionCalculations';
 import { ARPEGGIOS } from './ArpeggioOptionsBar';
 import { drawRosewoodBackground, drawWoodGrain } from '../../utils/woodGrain';
+import { toHebrewNoteName } from '../../utils/hebrewNoteNames';
 import './FretboardDisplay.css';
 
 // One-time procedural wood-grain texture for the fretboard surface.
@@ -59,6 +60,7 @@ const FretboardDisplay = ({
   activeArpeggios = [],
   selectedRoot,
   hideRoots = false,
+  noteLang = 'latin',
 }) => {
   const { frets, positionMarkers, doubleMarkers } = FRETBOARD_CONFIG;
 
@@ -87,7 +89,10 @@ const FretboardDisplay = ({
 
   const getNoteLabel = (note) => {
     if (displayMode === 'dots') return '';
-    if (displayMode === 'notes') return note.displayNote ?? note.note;
+    if (displayMode === 'notes') {
+      const latinName = note.displayNote ?? note.note;
+      return noteLang === 'hebrew' ? toHebrewNoteName(latinName) : latinName;
+    }
     if (displayMode === 'degrees') return note.scaleDegree;
     return '';
   };
@@ -100,6 +105,7 @@ const FretboardDisplay = ({
 
     if (showAll && note.isHighlighted) classes.push('highlighted');
     if (displayMode === 'dots') classes.push('dot-only');
+    if (displayMode === 'notes' && noteLang === 'hebrew') classes.push('note-hebrew');
 
     if (showPentatonic && PENTATONIC_DEGREES[selectedType]?.includes(note.scaleDegree)) {
       classes.push('pentatonic');

@@ -285,6 +285,15 @@
   font-size: 0 !important;
 }
 
+.asf-note.note-hebrew {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.asf-note.note-hebrew.root {
+  font-size: 11px;
+}
+
 /* Chord-overlay note not in the active scale */
 .asf-note.chord-only {
   background-color: transparent;

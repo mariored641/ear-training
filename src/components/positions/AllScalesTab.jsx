@@ -37,6 +37,7 @@ const AllScalesTab = () => {
   const [selectedId, setSelectedId]         = useState(null);   // scale or chord id
   const [activeNotes, setActiveNotes]       = useState(new Set()); // pitch class set
   const [displayMode, setDisplayMode]       = useState('notes');
+  const [noteLang, setNoteLang]             = useState('latin');
   const [highlightColors, setHighlightColors] = useState({});    // { noteName: colorHex }
   const [colorPickerNote, setColorPickerNote] = useState(null);
   const [fretRangeStart, setFretRangeStart] = useState(null);
@@ -188,6 +189,7 @@ const AllScalesTab = () => {
         onFretClick={handleFretClick}
         onStringClick={handleStringClick}
         noteDisplayMap={noteDisplayMap}
+        noteLang={noteLang}
       />
 
       {/* Controls */}
@@ -245,6 +247,27 @@ const AllScalesTab = () => {
               ))}
             </div>
           </div>
+
+          {/* Note name language (only relevant in "notes" display mode) */}
+          {displayMode === 'notes' && (
+            <div className="ast-group">
+              <label className="ast-label">שמות</label>
+              <div className="ast-mode-btns">
+                <button
+                  className={`ast-mode-btn wide${noteLang === 'latin' ? ' active' : ''}`}
+                  onClick={() => setNoteLang('latin')}
+                >
+                  A B C
+                </button>
+                <button
+                  className={`ast-mode-btn wide${noteLang === 'hebrew' ? ' active' : ''}`}
+                  onClick={() => setNoteLang('hebrew')}
+                >
+                  דו רה מי
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Row 2: Actions — clear notes, clear range, clear colors */}

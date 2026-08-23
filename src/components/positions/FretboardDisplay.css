@@ -247,6 +247,16 @@
   font-size: 0;
 }
 
+.fretboard-note.note-hebrew {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.fretboard-note.note-hebrew.major-root,
+.fretboard-note.note-hebrew.minor-root {
+  font-size: 11px;
+}
+
 /* Pentatonic highlight — bright brass halo + soft pulse so the 5-note
    skeleton pops out from the full scale at a glance. */
 @keyframes pentatonic-pulse {

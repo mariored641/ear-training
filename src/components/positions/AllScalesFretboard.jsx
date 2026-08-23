@@ -2,6 +2,7 @@ import React, { useRef, useCallback, useMemo } from 'react';
 import { CHROMATIC_SCALE, STRING_TUNING, FRETBOARD_CONFIG } from '../../constants/positionData';
 import { INTERVAL_NAMES } from '../../constants/allScalesData';
 import { drawRosewoodBackground, drawWoodGrain } from '../../utils/woodGrain';
+import { toHebrewNoteName } from '../../utils/hebrewNoteNames';
 import './AllScalesFretboard.css';
 
 const { frets, positionMarkers, doubleMarkers } = FRETBOARD_CONFIG;
@@ -54,6 +55,7 @@ const AllScalesFretboard = ({
   markedCells,         // Map<`${stringNum}-${fret}`, { label: string, color?: string }> | null
   disableInactiveStringClicks,  // boolean — dimmed strings not clickable
   noteDisplayMap,      // { [chromaticName]: displayName } — enharmonic display names
+  noteLang = 'latin',  // 'latin' | 'hebrew'
 }) => {
   const timers = useRef({});
   const longPressed = useRef({});
@@ -128,7 +130,10 @@ const AllScalesFretboard = ({
   // Get note label based on display mode
   const getLabel = useCallback((noteName) => {
     if (displayMode === 'dots') return '';
-    if (displayMode === 'notes') return noteDisplayMap?.[noteName] ?? noteName;
+    if (displayMode === 'notes') {
+      const latinName = noteDisplayMap?.[noteName] ?? noteName;
+      return noteLang === 'hebrew' ? toHebrewNoteName(latinName) : latinName;
+    }
     if (displayMode === 'degrees') {
       const rootIdx = CHROMATIC_SCALE.indexOf(selectedRoot);
       const noteIdx = CHROMATIC_SCALE.indexOf(noteName);
@@ -136,7 +141,7 @@ const AllScalesFretboard = ({
       return INTERVAL_NAMES[semitones] ?? '?';
     }
     return '';
-  }, [displayMode, selectedRoot, noteDisplayMap]);
+  }, [displayMode, selectedRoot, noteDisplayMap, noteLang]);
 
   // Build chord ring shadows for a note
   const getChordRingStyle = useCallback((noteName) => {
@@ -179,6 +184,7 @@ const AllScalesFretboard = ({
       marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
       highlightColor && !marked ? 'highlighted' : '',
       displayMode === 'dots' && !marked ? 'dot-mode' : '',
+      displayMode === 'notes' && noteLang === 'hebrew' ? 'note-hebrew' : '',
     ].filter(Boolean).join(' ');
 
     const noteStyle = marked
@@ -228,6 +234,7 @@ const AllScalesFretboard = ({
       marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
       highlightColor && !marked ? 'highlighted' : '',
       displayMode === 'dots' && !marked ? 'dot-mode' : '',
+      displayMode === 'notes' && noteLang === 'hebrew' ? 'note-hebrew' : '',
     ].filter(Boolean).join(' ');
 
     const noteStyle = marked
