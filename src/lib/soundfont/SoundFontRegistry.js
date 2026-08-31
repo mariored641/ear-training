@@ -19,6 +19,7 @@ export const SOUNDFONT_LIBRARIES = [
     name: 'JJazzLab',
     size: '~70MB',
     url: import.meta.env.VITE_SF2_URL_JJAZZLAB || import.meta.env.VITE_SF2_URL || JJAZZLAB_FALLBACK,
+    fallbackUrl: JJAZZLAB_FALLBACK,
     cacheKey: 'sf2-jjazzlab-v1',
     notes: 'הברירת מחדל הנוכחית של האפליקציה. כיוון לג׳אז.',
   },

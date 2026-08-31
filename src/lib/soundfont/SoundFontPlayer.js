@@ -161,11 +161,22 @@ async function fetchSoundFontBuffer(libraryConfig, onProgress) {
     return buffer
   }
   onProgress?.(i18n.t('soundfont.downloading'), 5)
-  buffer = await fetchWithProgress(libraryConfig.url, (pct, loaded, total) => {
+  const onDownloadProgress = (pct, loaded, total) => {
     const mb = Math.round(loaded / 1024 / 1024)
     const totalMb = Math.round(total / 1024 / 1024)
     onProgress?.(i18n.t('soundfont.downloadingProgress', { loaded: mb, total: totalMb }), 5 + Math.round(pct * 0.88))
-  })
+  }
+  try {
+    buffer = await fetchWithProgress(libraryConfig.url, onDownloadProgress)
+  } catch (err) {
+    // ה-URL המוגדר נכשל (למשל: קובץ שנמחק מה-Blob store) — ניפול חזרה למקור המגובה ב-GitHub Releases
+    if (libraryConfig.fallbackUrl && libraryConfig.fallbackUrl !== libraryConfig.url) {
+      console.warn(`[SFP] Primary SF2 URL failed (${err.message}), retrying with fallback`)
+      buffer = await fetchWithProgress(libraryConfig.fallbackUrl, onDownloadProgress)
+    } else {
+      throw err
+    }
+  }
   // שמירה ב-cache ברקע — לא מחכים לה
   saveToCache(libraryConfig.cacheKey, buffer)
   return buffer
