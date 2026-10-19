@@ -10,6 +10,7 @@ import {
   BPM_MAX,
   TEMPO_MARKINGS
 } from '../../constants/exercise4Defaults';
+import CellIcon from './CellIcon';
 
 const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const { t } = useTranslation();
@@ -220,11 +221,13 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
           <div className="row-label-mobile">
             {t('rhythm.top')}:
             <button
-              className={`row-level-btn poly-cell-${topCells[0] || CELL_STATES.NORMAL}`}
+              className={`row-level-btn rc rc-${topCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('top')}
               title={t('rhythm.changeWholeRow')}
               style={{ marginLeft: '8px' }}
-            />
+            >
+              <CellIcon state={topCells[0] || CELL_STATES.NORMAL} />
+            </button>
           </div>
           <div className="row-controls-mobile">
             <button
@@ -248,11 +251,13 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
           <div className="row-label-mobile">
             {t('rhythm.bottom')}:
             <button
-              className={`row-level-btn poly-cell-${bottomCells[0] || CELL_STATES.NORMAL}`}
+              className={`row-level-btn rc rc-${bottomCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('bottom')}
               title={t('rhythm.changeWholeRow')}
               style={{ marginLeft: '8px' }}
-            />
+            >
+              <CellIcon state={bottomCells[0] || CELL_STATES.NORMAL} />
+            </button>
           </div>
           <div className="row-controls-mobile">
             <button
@@ -279,22 +284,26 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
           <div className="row-label-container">
             <div className="row-label">{t('rhythm.top')}:</div>
             <button
-              className={`row-level-btn poly-cell-${topCells[0] || CELL_STATES.NORMAL}`}
+              className={`row-level-btn rc rc-${topCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('top')}
               title={t('rhythm.changeWholeRow')}
-            />
+            >
+              <CellIcon state={topCells[0] || CELL_STATES.NORMAL} />
+            </button>
           </div>
           <div className="row-cells-container">
             <div className="row-cells">
               {topCells.map((cellState, index) => (
                 <div
                   key={index}
-                  className={`poly-cell poly-cell-${cellState} ${
+                  className={`poly-cell rc rc-${cellState} ${
                     currentTopCell === index ? 'playing' : ''
                   }`}
                   style={{ width: getTopCellWidth() }}
                   onClick={() => toggleCell('top', index)}
-                />
+                >
+                  <CellIcon state={cellState} />
+                </div>
               ))}
             </div>
           </div>
@@ -319,22 +328,26 @@ const Polyrhythm = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSh
           <div className="row-label-container">
             <div className="row-label">{t('rhythm.bottom')}:</div>
             <button
-              className={`row-level-btn poly-cell-${bottomCells[0] || CELL_STATES.NORMAL}`}
+              className={`row-level-btn rc rc-${bottomCells[0] || CELL_STATES.NORMAL}`}
               onClick={() => setRowLevel('bottom')}
               title={t('rhythm.changeWholeRow')}
-            />
+            >
+              <CellIcon state={bottomCells[0] || CELL_STATES.NORMAL} />
+            </button>
           </div>
           <div className="row-cells-container">
             <div className="row-cells">
               {bottomCells.map((cellState, index) => (
                 <div
                   key={index}
-                  className={`poly-cell poly-cell-${cellState} ${
+                  className={`poly-cell rc rc-${cellState} ${
                     currentBottomCell === index ? 'playing' : ''
                   }`}
                   style={{ width: getBottomCellWidth() }}
                   onClick={() => toggleCell('bottom', index)}
-                />
+                >
+                  <CellIcon state={cellState} />
+                </div>
               ))}
             </div>
           </div>

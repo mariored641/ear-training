@@ -13,6 +13,7 @@ import {
   PRESET_TYPES
 } from '../../constants/exercise4Defaults';
 import { getAllPresets, savePreset } from '../../utils/presetManager';
+import CellIcon from './CellIcon';
 
 const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const { t } = useTranslation();
@@ -373,11 +374,13 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
               {beat.cells.map((cellState, cellIndex) => (
                 <div
                   key={cellIndex}
-                  className={`cell cell-${cellState} ${
+                  className={`cell rc rc-${cellState} ${
                     currentBeat === beatIndex && currentCell === cellIndex ? 'playing' : ''
                   }`}
                   onClick={() => toggleCell(beatIndex, cellIndex)}
-                />
+                >
+                  <CellIcon state={cellState} />
+                </div>
               ))}
             </div>
 

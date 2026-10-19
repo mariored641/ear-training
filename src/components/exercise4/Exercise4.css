@@ -507,31 +507,6 @@
   border: 2px solid transparent;
 }
 
-/* Cell States - Using both class and attribute selectors for maximum specificity */
-.beat-cell.beat-cell-accent,
-.beat-cell[data-state="accent"] {
-  background-color: var(--brass-dark) !important;
-  border-color: transparent !important;
-}
-
-.beat-cell.beat-cell-normal,
-.beat-cell[data-state="normal"] {
-  background-color: var(--brass) !important;
-  border-color: transparent !important;
-}
-
-.beat-cell.beat-cell-soft,
-.beat-cell[data-state="soft"] {
-  background-color: var(--brass-bright) !important;
-  border-color: transparent !important;
-}
-
-.beat-cell.beat-cell-mute,
-.beat-cell[data-state="mute"] {
-  background-color: var(--color-bg) !important;
-  border-color: var(--border-color) !important;
-}
-
 /* Hover and Playing states - don't override background-color! */
 .beat-cell:hover {
   transform: scale(1.05);
@@ -542,6 +517,91 @@
   box-shadow: 0 0 20px rgba(224, 182, 108, 0.85) !important;
   transform: scale(1.15) !important;
   border-color: var(--color-primary) !important;
+}
+
+/* ========================================
+   SHARED CELL STATES (all Rhythm tabs)
+   accent = bass drum, normal = snare, soft = hi-hat, mute = rest
+   ======================================== */
+
+.rc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.rc.rc-accent {
+  background-color: var(--brass-dark);
+  border-color: transparent;
+  color: var(--paper-cream);
+}
+
+.rc.rc-normal {
+  background-color: var(--brass);
+  border-color: transparent;
+  color: var(--wood-deep);
+}
+
+.rc.rc-soft {
+  background-color: var(--brass-bright);
+  border-color: transparent;
+  color: var(--wood-deep);
+}
+
+.rc.rc-mute {
+  background-color: var(--wood-deep);
+  border: 2px dashed var(--brass-dark);
+  color: var(--paper-dark);
+}
+
+.rc-icon {
+  display: inline-flex;
+  width: 55%;
+  max-width: 34px;
+  min-width: 14px;
+  pointer-events: none;
+}
+
+.rc-icon svg {
+  width: 100%;
+  height: auto;
+  max-height: 70%;
+}
+
+.rc.row-level-btn {
+  padding: 0;
+}
+
+/* Legend shown under the tabs */
+.cell-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  padding: 6px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--paper-aged);
+  border-bottom: 1px solid var(--brass-dark);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.cell-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cell-legend-swatch {
+  width: 26px;
+  height: 22px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+
+.cell-legend-swatch .rc-icon {
+  width: 16px;
+  min-width: 0;
 }
 
 /* Controls Section */
@@ -1232,23 +1292,6 @@
   border: 2px solid transparent;
 }
 
-.poly-cell.poly-cell-accent {
-  background-color: var(--brass-dark);
-}
-
-.poly-cell.poly-cell-normal {
-  background-color: var(--brass);
-}
-
-.poly-cell.poly-cell-soft {
-  background-color: var(--brass-bright);
-}
-
-.poly-cell.poly-cell-mute {
-  background-color: var(--color-bg-secondary);
-  border-color: var(--border-color);
-}
-
 .poly-cell:hover {
   transform: scale(1.05);
   box-shadow: 0 0 8px rgba(224, 182, 108, 0.4);
@@ -1481,23 +1524,6 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
-}
-
-.cell.cell-accent {
-  background-color: var(--brass);
-}
-
-.cell.cell-normal {
-  background-color: var(--brass-glow);
-}
-
-.cell.cell-soft {
-  background-color: var(--brass-bright);
-}
-
-.cell.cell-mute {
-  background-color: var(--brass-dark);
-  border-color: #ccc;
 }
 
 .cell:hover {

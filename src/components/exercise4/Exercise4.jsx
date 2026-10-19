@@ -7,7 +7,15 @@ import RhythmExplorer from './RhythmExplorer';
 import Polyrhythm from './Polyrhythm';
 import AdvancedSubdivisions from './AdvancedSubdivisions';
 import StickyControls from './StickyControls';
+import CellIcon from './CellIcon';
 import './Exercise4.css';
+
+const CELL_LEGEND = [
+  ['accent', 'rhythm.cellBass'],
+  ['normal', 'rhythm.cellSnare'],
+  ['soft', 'rhythm.cellHihat'],
+  ['mute', 'rhythm.cellRest']
+];
 
 const Exercise4 = () => {
   const navigate = useNavigate();
@@ -137,6 +145,18 @@ const Exercise4 = () => {
         soundSet={sharedSoundSet}
         setSoundSet={setSharedSoundSet}
       />
+
+      {/* Cell legend - same colors/icons in every tab */}
+      <div className="cell-legend">
+        {CELL_LEGEND.map(([state, key]) => (
+          <span key={state} className="cell-legend-item">
+            <span className={`cell-legend-swatch rc rc-${state}`}>
+              <CellIcon state={state} />
+            </span>
+            {t(key)}
+          </span>
+        ))}
+      </div>
 
       {/* Tab Content */}
       <div className="tab-content">

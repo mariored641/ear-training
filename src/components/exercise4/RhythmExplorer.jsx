@@ -14,6 +14,7 @@ import {
   PRESET_TYPES
 } from '../../constants/exercise4Defaults';
 import { getAllPresets, savePreset } from '../../utils/presetManager';
+import CellIcon from './CellIcon';
 
 const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet, setSharedSoundSet }, ref) => {
   const { t } = useTranslation();
@@ -421,12 +422,14 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                 {beat.map((cellState, cellIndex) => (
                   <div
                     key={cellIndex}
-                    className={`beat-cell beat-cell-${cellState} ${
+                    className={`beat-cell rc rc-${cellState} ${
                       currentCell.beat === beatIndex && currentCell.cell === cellIndex ? 'playing' : ''
                     }`}
                     data-state={cellState}
                     onClick={() => toggleCell(beatIndex, cellIndex)}
-                  />
+                  >
+                    <CellIcon state={cellState} />
+                  </div>
                 ))}
               </div>
             </div>
