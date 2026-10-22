@@ -632,6 +632,10 @@ const en = {
     },
   },
   rhythm: {
+    row: 'Row {{number}}',
+    addRow: 'Add row',
+    removeRow: 'Remove row {{number}}',
+    playbackError: 'Could not start audio. Try again or choose another sound.',
     title: 'Rhythm Training',
     explorer: 'Rhythm Explorer',
     polyrhythm: 'Polyrhythm',

@@ -465,6 +465,10 @@ const he = {
     },
   },
   rhythm: {
+    row: 'שורה {{number}}',
+    addRow: 'הוסף שורה',
+    removeRow: 'הסר שורה {{number}}',
+    playbackError: 'לא ניתן להפעיל את הצליל. נסה שוב או בחר צליל אחר.',
     title: 'אימון קצב',
     explorer: 'חוקר קצב',
     polyrhythm: 'פוליריתם',

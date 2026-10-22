@@ -1,20 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
-import * as Tone from 'tone';
+import React, { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
 import {
   DEFAULT_RHYTHM_EXPLORER,
-  DEFAULT_EXERCISE4_SETTINGS,
   CELL_STATES,
   SUBDIVISIONS,
   TIME_SIGNATURES,
-  BPM_MIN,
-  BPM_MAX,
-  TEMPO_MARKINGS,
   PRESET_TYPES
 } from '../../constants/exercise4Defaults';
 import { getAllPresets, savePreset } from '../../utils/presetManager';
 import CellIcon from './CellIcon';
+import useRhythmPlayback from './useRhythmPlayback';
+import { sequentialPattern } from '../../utils/rhythm/patterns';
 
 const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet, setSharedSoundSet }, ref) => {
   const { t } = useTranslation();
@@ -26,7 +23,6 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
   const [grid, setGrid] = useState([]);
   const isPlaying = sharedIsPlaying;
   const setIsPlaying = setSharedIsPlaying;
-  const [currentCell, setCurrentCell] = useState({ beat: -1, cell: -1 });
   const [showSubdivisionModal, setShowSubdivisionModal] = useState(false);
   const [showLoadPresetModal, setShowLoadPresetModal] = useState(false);
   const [showSavePresetModal, setShowSavePresetModal] = useState(false);
@@ -37,31 +33,14 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
   const [saveError, setSaveError] = useState('');
   const soundSet = sharedSoundSet;
   const setSoundSet = setSharedSoundSet;
-  const [tapTimes, setTapTimes] = useState([]);
 
-  // Ref to track current position in the loop
-  const currentPositionRef = useRef({ beat: 0, cell: 0 });
-  const scheduleIdRef = useRef(null);
+  const pattern = useMemo(() => sequentialPattern(grid.map(cells => ({ length: 1, cells }))), [grid]);
+  const { currentCells, playbackError, handlePlayStop } = useRhythmPlayback(pattern, bpm, soundSet, isPlaying, setIsPlaying);
 
   // Initialize grid
   useEffect(() => {
     initializeGrid();
   }, [beats, subdivision]);
-
-  // Live updates - restart playback with current position preserved
-  useEffect(() => {
-    if (isPlaying) {
-      // Calculate where we are in the current loop
-      const currentBeat = currentCell.beat >= 0 ? currentCell.beat : 0;
-      const currentCellIndex = currentCell.cell >= 0 ? currentCell.cell : 0;
-
-      // Restart playback from current position
-      RhythmAudioPlayer.stop();
-      Tone.Transport.cancel();
-      playPatternFromPosition(currentBeat, currentCellIndex);
-    }
-  }, [grid, bpm, subdivision]);
-
 
   const initializeGrid = () => {
     setGrid(prevGrid => {
@@ -107,113 +86,12 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
     });
   };
 
-  // Play/Stop
-  const handlePlayStop = async () => {
-    if (isPlaying) {
-      RhythmAudioPlayer.stop();
-      setIsPlaying(false);
-      setCurrentCell({ beat: -1, cell: -1 });
-    } else {
-      await RhythmAudioPlayer.init();
-      playPattern();
-      setIsPlaying(true);
-    }
-  };
-
-  const playPatternFromPosition = useCallback((startBeat = 0, startCell = 0) => {
-    Tone.Transport.bpm.value = bpm;
-
-    const beatDuration = 60 / bpm;
-    const cellDuration = beatDuration / subdivision;
-
-    let time = 0;
-
-    // Create flat array of all cells with their metadata
-    const allCells = [];
-    grid.forEach((beat, beatIndex) => {
-      beat.forEach((cellState, cellIndex) => {
-        allCells.push({
-          beatIndex,
-          cellIndex,
-          cellState,
-          isBeatStart: cellIndex === 0
-        });
-      });
-    });
-
-    if (allCells.length === 0) return;
-
-    // Find starting position index
-    const startIndex = allCells.findIndex(
-      cell => cell.beatIndex === startBeat && cell.cellIndex === startCell
-    );
-    const actualStartIndex = startIndex >= 0 ? startIndex : 0;
-
-    // Schedule from current position to end, then from beginning
-    // This creates a seamless loop starting from current position
-    const reorderedCells = [
-      ...allCells.slice(actualStartIndex),
-      ...allCells.slice(0, actualStartIndex)
-    ];
-
-    reorderedCells.forEach((cell) => {
-      Tone.Transport.schedule((scheduleTime) => {
-        RhythmAudioPlayer.playCell(cell.cellState, scheduleTime, cell.isBeatStart);
-
-        setCurrentCell({ beat: cell.beatIndex, cell: cell.cellIndex });
-        currentPositionRef.current = { beat: cell.beatIndex, cell: cell.cellIndex };
-
-        setTimeout(() => {
-          setCurrentCell({ beat: -1, cell: -1 });
-        }, cellDuration * 1000 * 0.5);
-      }, time);
-
-      time += cellDuration;
-    });
-
-    // Set up looping
-    const loopDuration = time;
-    Tone.Transport.loop = true;
-    Tone.Transport.loopEnd = loopDuration;
-    Tone.Transport.start();
-  }, [grid, bpm, subdivision]);
-
-  const playPattern = useCallback(() => {
-    Tone.Transport.cancel();
-    playPatternFromPosition(0, 0);
-  }, [playPatternFromPosition]);
-
   // Clear grid - reset to 4/4
   const handleClear = () => {
     setBeats(4);
     setSubdivision(1);
     setTimeSignature('4/4');
     setBpm(90);
-  };
-
-  // Tap tempo
-  const handleTap = () => {
-    const now = Date.now();
-    const newTapTimes = [...tapTimes, now].slice(-4); // Keep last 4 taps
-    setTapTimes(newTapTimes);
-
-    if (newTapTimes.length >= 2) {
-      const intervals = [];
-      for (let i = 1; i < newTapTimes.length; i++) {
-        intervals.push(newTapTimes[i] - newTapTimes[i - 1]);
-      }
-      const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
-      const newBpm = Math.round(60000 / avgInterval);
-
-      if (newBpm >= BPM_MIN && newBpm <= BPM_MAX) {
-        setBpm(newBpm);
-      }
-    }
-
-    // Reset if too much time passed
-    setTimeout(() => {
-      setTapTimes(prev => prev.filter(t => Date.now() - t < 3000));
-    }, 3000);
   };
 
   // Get time signature preset configuration
@@ -286,7 +164,6 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
     if (isPlaying) {
       RhythmAudioPlayer.stop();
       setIsPlaying(false);
-      setCurrentCell({ beat: -1, cell: -1 });
     }
 
     // Apply preset settings
@@ -388,16 +265,6 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
     }
   };
 
-  // Get tempo marking
-  const getTempoMarking = () => {
-    for (const marking of TEMPO_MARKINGS) {
-      if (bpm >= marking.min && bpm <= marking.max) {
-        return marking.name;
-      }
-    }
-    return 'Andante';
-  };
-
   // Get subdivision icon
   const getSubdivisionIcon = () => {
     const sub = SUBDIVISIONS.find(s => s.value === subdivision);
@@ -412,6 +279,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
 
   return (
     <div className="rhythm-explorer">
+      {playbackError && <p role="alert">{t('rhythm.playbackError')}</p>}
       {/* Left Panel - Beat Grid */}
       <div className="rhythm-left-panel">
         <div className="beat-grid">
@@ -423,7 +291,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
                   <div
                     key={cellIndex}
                     className={`beat-cell rc rc-${cellState} ${
-                      currentCell.beat === beatIndex && currentCell.cell === cellIndex ? 'playing' : ''
+                      currentCells[beatIndex] === cellIndex ? 'playing' : ''
                     }`}
                     data-state={cellState}
                     onClick={() => toggleCell(beatIndex, cellIndex)}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import RhythmAudioPlayer from '../../utils/RhythmAudioPlayer';
+import { clampTempo } from '../../utils/rhythm/patterns';
 import {
   BPM_MIN,
   BPM_MAX,
@@ -62,13 +62,12 @@ const StickyControls = ({
   };
 
   const handleBPMChange = (newBpm) => {
-    const value = Math.max(BPM_MIN, Math.min(BPM_MAX, parseInt(newBpm) || 90));
+    const value = clampTempo(newBpm);
     setBpm(value);
   };
 
-  const handleSoundSetChange = async (newSoundSet) => {
+  const handleSoundSetChange = (newSoundSet) => {
     setSoundSet(newSoundSet);
-    await RhythmAudioPlayer.setSoundSet(newSoundSet);
   };
 
   return (

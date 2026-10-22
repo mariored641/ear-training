@@ -8,6 +8,7 @@ import Polyrhythm from './Polyrhythm';
 import AdvancedSubdivisions from './AdvancedSubdivisions';
 import StickyControls from './StickyControls';
 import CellIcon from './CellIcon';
+import { clampTempo, tapTempo } from '../../utils/rhythm/patterns';
 import './Exercise4.css';
 
 const CELL_LEGEND = [
@@ -24,7 +25,8 @@ const Exercise4 = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Shared playback state
-  const [sharedBpm, setSharedBpm] = useState(90);
+  const [sharedBpm, setBpm] = useState(90);
+  const setSharedBpm = value => setBpm(clampTempo(value));
   const [sharedIsPlaying, setSharedIsPlaying] = useState(false);
   const [sharedSoundSet, setSharedSoundSet] = useState('classicClick');
   const [tapTimes, setTapTimes] = useState([]);
@@ -49,7 +51,7 @@ const Exercise4 = () => {
   // Cleanup on unmount - stop playback when leaving page
   useEffect(() => {
     return () => {
-      RhythmAudioPlayer.stop();
+      RhythmAudioPlayer.dispose();
     };
   }, []);
 
@@ -81,26 +83,9 @@ const Exercise4 = () => {
   };
 
   const handleTap = () => {
-    const now = Date.now();
-    const newTapTimes = [...tapTimes, now].slice(-4);
-    setTapTimes(newTapTimes);
-
-    if (newTapTimes.length >= 2) {
-      const intervals = [];
-      for (let i = 1; i < newTapTimes.length; i++) {
-        intervals.push(newTapTimes[i] - newTapTimes[i - 1]);
-      }
-      const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
-      const newBpm = Math.round(60000 / avgInterval);
-
-      if (newBpm >= 40 && newBpm <= 240) {
-        setSharedBpm(newBpm);
-      }
-    }
-
-    setTimeout(() => {
-      setTapTimes(prev => prev.filter(t => Date.now() - t < 3000));
-    }, 3000);
+    const result = tapTempo(tapTimes, Date.now());
+    setTapTimes(result.taps);
+    if (result.bpm !== null) setSharedBpm(result.bpm);
   };
 
   return (

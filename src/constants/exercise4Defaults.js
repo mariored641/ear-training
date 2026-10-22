@@ -70,12 +70,12 @@ export const POLYRHYTHM_PRESETS = [
 ];
 
 // BPM ranges and tempo markings
-export const BPM_MIN = 40;
+export const BPM_MIN = 1;
 export const BPM_MAX = 240;
 export const BPM_DEFAULT = 90;
 
 export const TEMPO_MARKINGS = [
-  { min: 40, max: 60, name: 'Largo' },
+  { min: 1, max: 65, name: 'Largo' },
   { min: 66, max: 76, name: 'Adagio' },
   { min: 76, max: 108, name: 'Andante' },
   { min: 108, max: 120, name: 'Moderato' },

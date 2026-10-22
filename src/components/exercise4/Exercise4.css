@@ -1747,3 +1747,7 @@
     height: 35px;
   }
 }
+
+/* Many polyrhythm rows: let the ratio wrap and dim the disabled remove button. */
+.polyrhythm .control-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ratio-display { overflow-wrap: anywhere; }

@@ -1,166 +1,74 @@
 import * as Tone from 'tone';
+import { RhythmScheduler } from './rhythm/RhythmScheduler.js';
+import { RhythmVoices } from './rhythm/RhythmVoices.js';
 
-/**
- * Audio player for Exercise 4 - Rhythm Training
- * Handles rhythm playback with different sound sets
- */
 class RhythmAudioPlayer {
   constructor() {
-    this.initialized = false;
+    this.buffers = {};
     this.soundSet = 'classicClick';
-    this.sounds = {};
-    this.isPlaying = false;
+    this.generation = 0;
   }
 
-  async init() {
-    if (this.initialized) return;
-
+  async init(soundSet = this.soundSet) {
+    const generation = this.generation;
     await Tone.start();
-    await this.loadSounds(this.soundSet);
-    this.initialized = true;
-  }
-
-  /**
-   * Load sounds based on sound set
-   * @param {string} soundSet - 'classicClick' | 'drumKit' | 'woodblock' | 'electronicBeep'
-   */
-  async loadSounds(soundSet) {
-    this.soundSet = soundSet;
-
-    // Dispose old sounds
-    Object.values(this.sounds).forEach(sound => {
-      if (sound && sound.dispose) sound.dispose();
-    });
-    this.sounds = {};
-
-    switch (soundSet) {
-      case 'classicClick':
-        // Simple click sound with different volumes
-        this.sounds.accent = new Tone.MembraneSynth({
-          pitchDecay: 0.01,
-          octaves: 2,
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
-        }).toDestination();
-        this.sounds.accent.volume.value = 0;
-
-        this.sounds.normal = new Tone.MembraneSynth({
-          pitchDecay: 0.01,
-          octaves: 2,
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
-        }).toDestination();
-        this.sounds.normal.volume.value = -5;
-
-        this.sounds.soft = new Tone.MembraneSynth({
-          pitchDecay: 0.01,
-          octaves: 2,
-          oscillator: { type: 'sine' },
-          envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
-        }).toDestination();
-        this.sounds.soft.volume.value = -12;
-        break;
-
-      case 'drumKit':
-        // Real drum samples - using CDN hosted samples
-        try {
-          // Kick drum for accent
-          this.sounds.accent = new Tone.Player({
-            url: 'https://tonejs.github.io/audio/drum-samples/acoustic-kit/kick.mp3',
-            volume: 0
-          }).toDestination();
-
-          // Snare for normal
-          this.sounds.normal = new Tone.Player({
-            url: 'https://tonejs.github.io/audio/drum-samples/acoustic-kit/snare.mp3',
-            volume: -3
-          }).toDestination();
-
-          // Hi-hat for soft
-          this.sounds.soft = new Tone.Player({
-            url: 'https://tonejs.github.io/audio/drum-samples/acoustic-kit/hihat.mp3',
-            volume: -8
-          }).toDestination();
-
-          // Wait for all samples to load
-          await Tone.loaded();
-        } catch (error) {
-          console.error('Error loading drum samples:', error);
-        }
-        break;
-
+    if (generation !== this.generation) return;
+    if (!this.voices) {
+      const context = Tone.getContext().rawContext;
+      this.voices = new RhythmVoices(context);
+      this.scheduler = new RhythmScheduler({
+        now: () => context.currentTime,
+        play: note => this.voices.play(note, this.soundSet, this.soundSet === 'drumKit' ? this.buffers[note.state] : null),
+        cancelFuture: time => this.voices.cancelFuture(time),
+        stopVoices: () => this.voices.stop(),
+      });
     }
-  }
-
-  /**
-   * Change sound set
-   * @param {string} soundSet - Sound set to use
-   */
-  async setSoundSet(soundSet) {
-    await this.loadSounds(soundSet);
-  }
-
-  /**
-   * Play a single cell
-   * @param {string} cellState - 'accent' | 'normal' | 'soft' | 'mute'
-   * @param {number} time - When to play (Tone.js time)
-   * @param {boolean} isBeatStart - Whether this is the first cell of a beat (adds slight emphasis)
-   */
-  playCell(cellState, time = undefined, isBeatStart = false) {
-    if (cellState === 'mute') return;
-
-    const sound = this.sounds[cellState];
-    if (!sound) return;
-
-    // Apply beat emphasis: +3dB for first cell of each beat
-    const originalVolume = sound.volume.value;
-    if (isBeatStart) {
-      sound.volume.value = originalVolume + 3;
+    if (soundSet === 'drumKit' && !this.samplesPromise) {
+      this.samplesPromise = Promise.all(['kick', 'snare', 'hihat'].map(async (name, index) => {
+        const audio = await Tone.ToneAudioBuffer.fromUrl(`https://tonejs.github.io/audio/drum-samples/acoustic-kit/${name}.mp3`);
+        this.buffers[['accent', 'normal', 'soft'][index]] = audio.get();
+        audio.dispose();
+      })).catch(error => {
+        this.samplesPromise = null;
+        throw error;
+      });
     }
-
-    if (this.soundSet === 'drumKit') {
-      // Drum kit - real samples with Tone.Player
-      sound.start(time);
-    } else {
-      // Classic click - simple metronome
-      const note = 'C4';
-      sound.triggerAttackRelease(note, '32n', time);
-    }
-
-    // Restore original volume after a short delay
-    if (isBeatStart) {
-      setTimeout(() => {
-        sound.volume.value = originalVolume;
-      }, 50);
-    }
+    if (soundSet === 'drumKit') await this.samplesPromise;
   }
 
-  /**
-   * Stop all sounds
-   */
-  stop() {
-    Tone.Transport.stop();
-    Tone.Transport.cancel();
-    this.isPlaying = false;
-
-    // Release all sounds
-    Object.values(this.sounds).forEach(sound => {
-      if (sound && sound.triggerRelease) {
-        sound.triggerRelease();
-      }
-    });
-  }
-
-  /**
-   * Dispose of the audio player
-   */
-  dispose() {
+  start(pattern, bpm, soundSet) {
     this.stop();
-    Object.values(this.sounds).forEach(sound => {
-      if (sound && sound.dispose) sound.dispose();
-    });
-    this.sounds = {};
-    this.initialized = false;
+    this.soundSet = soundSet;
+    this.scheduler.start(pattern, bpm);
+    // Tone's context ticker runs in a Web Worker, so it keeps firing in background tabs
+    // where setInterval is throttled to ~1s and notes would be dropped.
+    this.tickContext = Tone.getContext();
+    this.onTick = () => this.scheduler?.tick();
+    this.tickContext.on('tick', this.onTick);
+  }
+
+  update(pattern, bpm, soundSet) {
+    this.soundSet = soundSet;
+    this.scheduler?.update(pattern, bpm);
+  }
+
+  position() {
+    return this.scheduler?.running ? this.scheduler.position() : -1;
+  }
+
+  stop() {
+    if (this.onTick) this.tickContext?.off('tick', this.onTick);
+    this.onTick = null;
+    this.tickContext = null;
+    this.scheduler?.stop();
+  }
+
+  dispose() {
+    this.generation++;
+    this.stop();
+    this.voices?.dispose();
+    this.voices = null;
+    this.scheduler = null;
   }
 }
 
