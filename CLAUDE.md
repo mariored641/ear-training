@@ -216,6 +216,39 @@ Production: https://ear-training-rose.vercel.app
 
 ---
 
+## 🧹 משימה פתוחה: ניקוי Vercel Blob
+
+**רקע:** עד 2026-11 הבאקינג טראקס טענו SF2 של 356MB מ-Vercel Blob, וזה פוצץ את מכסת ה-Hobby. מאז הסאונדים מוגשים מ-`public/soundfonts/packs-v1/` (קבצים סטטיים רגילים), והאפליקציה **לא משתמשת ב-Blob בכלל**. נשאר רק לנקות.
+
+**מצב ה-Blob store** (פרויקט `ear-training`, team `meishs-projects`):
+
+| קובץ | גודל | שימוש | פעולה |
+|---|---|---|---|
+| `JJazzLab-SoundFont.sf2` | 357MB | אף אחד | **למחוק** |
+| `FluidR3_GM.sf2`, `FluidR3Mono_GM.sf3`, `GeneralUser-GS.sf2`, `Antares_GM.sf2`, `LibreArachno.sf2` | ~260MB | רק `/test/sf2-lab` (השוואת ספריות) | למחוק רק אם מריו מאשר |
+
+**איך לבצע (סשן Claude Code מקומי על המחשב של מריו — סשן בענן לא יכול: הרשת שלו חוסמת את api.vercel.com ואין לו התחברות):**
+
+1. `npx vercel login` — אינטראקטיבי (אישור בדפדפן). אם Claude לא יכול להשלים אותו בעצמו, לבקש ממריו להריץ בטרמינל של הסשן: `! npx vercel login`
+2. `npx vercel link --yes --project ear-training --scope meishs-projects`
+3. משיכת טוקן ה-Blob **לקובץ זמני** (לא ל-`.env.local`, כדי לא לדרוס את הקיים):
+   `npx vercel env pull .env.vercel-tmp --yes` → לקחת ממנו את `BLOB_READ_WRITE_TOKEN`
+   (אם הוא לא שם: מריו מעתיק אותו מ-Dashboard → Storage → ה-store → `.env.local`)
+4. לבדוק מה יש: `npx vercel blob list --rw-token <TOKEN>`
+5. למחוק: `npx vercel blob del JJazzLab-SoundFont.sf2 --rw-token <TOKEN>`
+6. **לשאול את מריו** לפני מחיקת 5 הספריות האחרות. אם הוא מאשר למחוק הכל:
+   - למחוק אותן באותה דרך (או `npx vercel blob empty-store --rw-token <TOKEN>`)
+   - להסיר משתני סביבה שכבר לא בשימוש: `npx vercel env rm VITE_SF2_URL production --yes` + `VITE_SF2_URL_JJAZZLAB` / `_FLUIDR3` / `_GENERALUSER` / `_ARACHNO` (לבדוק קודם עם `npx vercel env ls` אילו קיימים ובאילו סביבות)
+   - להוריד את הספריות האלה מ-`SOUNDFONT_LIBRARIES` ב-`src/lib/soundfont/SoundFontRegistry.js` (להשאיר `jjazzlab` packs + `jjazzlab-full`, שנופל ל-GitHub release)
+7. למחוק את `.env.vercel-tmp` ואת תיקיית `.vercel/` אם נוצרה (לא לעשות להם commit).
+8. **להסיר את הסעיף הזה מ-CLAUDE.md** ולדחוף.
+
+**חלופה ידנית בדשבורד:** Storage → ה-Blob store → ⋮ בסוף שורת הקובץ → Delete. אם אין: לסמן את הקובץ → ⋮ ליד המונה בכותרת. מוצא אחרון: לשונית Settings של ה-store → Delete Store (מוחק את כל הקבצים).
+
+**מכסה:** במסלול Hobby המכסות מתחדשות כל מחזור חיוב (בערך 30 יום). התאריך מופיע ב-Dashboard → Usage. זה לא משפיע על הבאקינג טראקס, כי הם לא עוברים דרך ה-Blob.
+
+---
+
 ## כללי עבודה
 
 - **"דחוף לגיטהאב"** = `git add <קבצים ספציפיים> && git commit -m "..." && git push origin main` (מתוך `C:/Users/DELL/Documents/ear-training`)
