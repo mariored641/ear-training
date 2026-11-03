@@ -15,6 +15,8 @@ import i18n from '../../../i18n';
 import { buildRandomPool, buildDiatonicPool, pickNextChord, pickRandomKey } from './reactiveChordPool';
 import { SOUNDS, REVEAL_WINDOW_SEC } from './reactiveConstants';
 
+const END_BELL_PROGRAM = 14; // GM Tubular Bells
+
 const LS_AUTO_REVEAL = 'reactive.autoReveal';
 
 function readAutoReveal() {
@@ -88,7 +90,7 @@ export function useReactiveSession({ mode, tier, sound, chordDuration, sessionMi
   // ---- end-of-session bell (uses an extra channel) ----
   const playEndBell = useCallback(() => {
     const bellCh = 14;
-    SFP.programChange(bellCh, 14); // Tubular Bells
+    SFP.programChange(bellCh, END_BELL_PROGRAM);
     const now = SFP.getAudioContext?.()?.currentTime ?? 0;
     SFP.noteOn(bellCh, 76, 80);
     setTimeout(() => SFP.noteOff(bellCh, 76), 800);
@@ -153,11 +155,14 @@ export function useReactiveSession({ mode, tier, sound, chordDuration, sessionMi
     setInitError(null);
     lastWasMixtureRef.current = false; // reset at session start
 
-    // 1. init SoundFont if needed
-    if (!SFP.isReady()) {
+    // 1. init SoundFont if needed — only the chosen sound + the end bell
+    //    (each instrument is a separate small pack, cached after first use)
+    const soundDef = SOUNDS.find(s => s.id === sound) || SOUNDS[0];
+    const presets = [{ bank: 0, program: soundDef.gm }, { bank: 0, program: END_BELL_PROGRAM }];
+    if (!SFP.isReady() || !SFP.arePresetsLoaded(presets)) {
       setIsInitializing(true);
       try {
-        await SFP.init(() => {});
+        await SFP.init(() => {}, { presets });
       } catch (e) {
         setInitError(e?.message || i18n.t('earTraining.reactive.soundInitError'));
         setIsInitializing(false);
@@ -168,7 +173,6 @@ export function useReactiveSession({ mode, tier, sound, chordDuration, sessionMi
     SFP.resumeAudio?.();
 
     // 2. apply sound (program change on the chosen channel)
-    const soundDef = SOUNDS.find(s => s.id === sound) || SOUNDS[0];
     channelRef.current = soundDef.channel;
     SFP.programChange(soundDef.channel, soundDef.gm);
 

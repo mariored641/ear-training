@@ -1,0 +1,120 @@
+{
+  "version": "packs-v1",
+  "source": "JJazzLab-SoundFont.sf2",
+  "packs": {
+    "0:0": {
+      "file": "000-000.sf3",
+      "name": "Grand Piano",
+      "bytes": 2587506,
+      "quality": 5
+    },
+    "0:2": {
+      "file": "000-002.sf3",
+      "name": "Electric Grand CP80",
+      "bytes": 946120,
+      "quality": 5
+    },
+    "0:4": {
+      "file": "000-004.sf3",
+      "name": "E. Piano1",
+      "bytes": 443184,
+      "quality": 5
+    },
+    "0:14": {
+      "file": "000-014.sf3",
+      "name": "Tubular Bells",
+      "bytes": 458234,
+      "quality": 5
+    },
+    "0:24": {
+      "file": "000-024.sf3",
+      "name": "Nylon Guitar",
+      "bytes": 841218,
+      "quality": 5
+    },
+    "0:25": {
+      "file": "000-025.sf3",
+      "name": "Steel Guitar",
+      "bytes": 3235192,
+      "quality": 5
+    },
+    "0:26": {
+      "file": "000-026.sf3",
+      "name": "Jazz Guitar",
+      "bytes": 269946,
+      "quality": 5
+    },
+    "0:27": {
+      "file": "000-027.sf3",
+      "name": "Clean Guitar 1",
+      "bytes": 2359812,
+      "quality": 5
+    },
+    "0:28": {
+      "file": "000-028.sf3",
+      "name": "Muted Guitar",
+      "bytes": 153040,
+      "quality": 5
+    },
+    "0:29": {
+      "file": "000-029.sf3",
+      "name": "Overdrive Guitar",
+      "bytes": 751700,
+      "quality": 5
+    },
+    "0:32": {
+      "file": "000-032.sf3",
+      "name": "AcousticBass",
+      "bytes": 1056134,
+      "quality": 5
+    },
+    "0:33": {
+      "file": "000-033.sf3",
+      "name": "Finger Bass",
+      "bytes": 1389656,
+      "quality": 5
+    },
+    "0:34": {
+      "file": "000-034.sf3",
+      "name": "Pick bass",
+      "bytes": 495878,
+      "quality": 5
+    },
+    "0:36": {
+      "file": "000-036.sf3",
+      "name": "Slap Bass 1",
+      "bytes": 134730,
+      "quality": 5
+    },
+    "0:48": {
+      "file": "000-048.sf3",
+      "name": "Strings",
+      "bytes": 3314026,
+      "quality": 5
+    },
+    "0:50": {
+      "file": "000-050.sf3",
+      "name": "Synth Strings 1",
+      "bytes": 228282,
+      "quality": 5
+    },
+    "0:52": {
+      "file": "000-052.sf3",
+      "name": "Choir Aahs",
+      "bytes": 974510,
+      "quality": 5
+    },
+    "0:89": {
+      "file": "000-089.sf3",
+      "name": "Warm Pad",
+      "bytes": 185524,
+      "quality": 5
+    },
+    "128:0": {
+      "file": "128-000.sf3",
+      "name": "Std Kit 1",
+      "bytes": 3897728,
+      "quality": 7
+    }
+  }
+}

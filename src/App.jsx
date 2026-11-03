@@ -7,7 +7,6 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import LanguageSwitcher from './components/common/LanguageSwitcher';
 import { ToolsProvider } from './components/global-tools/ToolsContext';
 import GlobalTools from './components/global-tools/GlobalTools';
-import { prefetchBuffer } from './lib/soundfont/SoundFontPlayer';
 import { directionForLanguage } from './i18n';
 
 // Lazy load category screens
@@ -96,16 +95,9 @@ function App() {
       ?.setAttribute('content', t('meta.description'));
   }, [i18n.language, i18n.resolvedLanguage, t]);
 
-  useEffect(() => {
-    const hasIdleCallback = typeof window.requestIdleCallback === 'function'
-    const id = hasIdleCallback
-      ? window.requestIdleCallback(() => prefetchBuffer(), { timeout: 5000 })
-      : setTimeout(() => prefetchBuffer(), 3000)
-    return () => {
-      if (hasIdleCallback) window.cancelIdleCallback(id)
-      else clearTimeout(id)
-    }
-  }, [])
+  // NOTE: no global SoundFont prefetch here. It used to download the full
+  // 356MB SF2 for every visitor on every page. Backing Tracks now prefetches
+  // only the few instrument packs of its current genre (useBackingTrackEngine).
 
   return (
     <ErrorBoundary>

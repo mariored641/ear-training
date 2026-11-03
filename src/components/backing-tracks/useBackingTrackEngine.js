@@ -145,6 +145,62 @@ export function isAmbientGenre(id) {
   return id != null && id in AMBIENT_GENRE_MAP
 }
 
+// ─── SoundFont presets per genre ──────────────────────────────────────────────
+// Sounds are streamed per instrument ("packs"), so before playing we load only
+// the presets this genre's style actually uses.
+//
+// MIDI channel ← accType (mirrors BackingTrackEngine.ACCTYPE_TO_CHANNEL)
+const ACCTYPE_TO_CHANNEL = {
+  RHYTHM: 9, SUBRHYTHM: 9, BASS: 1, CHORD1: 0, CHORD2: 2, PAD: 3, PHRASE1: 4, PHRASE2: 4,
+}
+const DRUM_CHANNEL = 9
+
+/**
+ * GM program per melodic channel for a genre. Channels without a genre
+ * override keep the SoundFontPlayer defaults: Grand Piano / Finger Bass /
+ * Jazz Guitar / Strings, and Grand Piano on the PHRASE channel (4), which the
+ * styles never program-change.
+ */
+export function channelProgramsForGenre(genreId) {
+  const map = getInstrumentMap(genreId)
+  return {
+    0: map?.piano?.program  ?? 0,
+    1: map?.bass?.program   ?? 33,
+    2: map?.guitar?.program ?? 26,
+    3: 48,
+    4: 0,
+  }
+}
+
+/** Set of MIDI channels that have notes anywhere in the style (null = unknown → all) */
+function usedChannelsOfStyle(style) {
+  if (!style?.parts) return null
+  const used = new Set()
+  for (const part of Object.values(style.parts)) {
+    for (const ch of Object.values(part?.channels ?? {})) {
+      const channel = ACCTYPE_TO_CHANNEL[ch?.ctab?.accType]
+      if (channel !== undefined && ch.notes?.length) used.add(channel)
+    }
+  }
+  return used
+}
+
+/**
+ * Presets ({ bank, program }) to load before playing `genreId`.
+ * @param {string} genreId
+ * @param {object} [style]  the loaded style — narrows the list to used channels
+ */
+export function presetsForGenre(genreId, style) {
+  if (isAmbientGenre(genreId)) return [{ bank: 0, program: AMBIENT_GENRE_MAP[genreId].gm }]
+  const used = usedChannelsOfStyle(style)
+  const presets = []
+  if (!used || used.has(DRUM_CHANNEL)) presets.push(SFP.DRUM_KIT)
+  for (const [channel, program] of Object.entries(channelProgramsForGenre(genreId))) {
+    if (!used || used.has(Number(channel))) presets.push({ bank: 0, program })
+  }
+  return presets
+}
+
 // ─── 12-bar blues preset (shared across blues sub-styles) ─────────────────────
 
 const BLUES_PRESET_12 = [
@@ -1106,20 +1162,32 @@ export function useBackingTrackEngine() {
   useEffect(() => {
     engineRef.current = new BackingTrackEngine()
     // Preload the initial genre's .sty so the Mixer can render dynamically
-    // before the user hits Play.
-    ensureStyle(genreRef.current).catch(err =>
-      console.warn('[useBackingTrackEngine] initial style preload failed', err))
-    return () => { engineRef.current?.stop() }
+    // before the user hits Play — then, when the browser is idle, download that
+    // genre's instrument packs (a few MB, cached in IndexedDB) so Play is quick.
+    let idleId = null
+    const hasIdle = typeof window.requestIdleCallback === 'function'
+    const initialGenre = genreRef.current
+    ensureStyle(initialGenre)
+      .then(() => {
+        const prefetch = () => SFP.prefetchPresets(presetsForGenre(initialGenre, styleCache.current[initialGenre]))
+        idleId = hasIdle ? window.requestIdleCallback(prefetch, { timeout: 5000 }) : setTimeout(prefetch, 2000)
+      })
+      .catch(err => console.warn('[useBackingTrackEngine] initial style preload failed', err))
+    return () => {
+      if (idleId !== null) (hasIdle ? window.cancelIdleCallback(idleId) : clearTimeout(idleId))
+      engineRef.current?.stop()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── SF2 loading ─────────────────────────────────────────────────────────────
-  const ensureSF2 = useCallback(async () => {
-    if (SFP.isReady()) return
+  // Loads the synth (once) + the given instrument presets (only the missing ones).
+  const ensureSF2 = useCallback(async (presets) => {
+    if (SFP.isReady() && SFP.arePresetsLoaded(presets)) return
     setSfStatus('loading')
     await engineRef.current.init((msg) => {
       setSfMsg(msg)
-    })
+    }, presets)
     setSfStatus('ready')
     setSfMsg('')
   }, [])
@@ -1127,20 +1195,18 @@ export function useBackingTrackEngine() {
   // ── Instrument overrides per genre ──────────────────────────────────────────
   // Applies the GM program numbers from genreInstrumentMap so e.g. rock styles
   // route the guitar channel to Overdriven instead of whatever the .sty had.
-  // Safe no-op until SF2 is loaded — play() re-applies once SF2 is ready.
+  // Every melodic channel the style uses gets an explicit program (so switching
+  // genres never leaves a channel on the previous genre's instrument).
+  // Safe no-op until the synth is loaded — play() re-applies once it's ready.
+  // If a pack isn't loaded yet, SFP.programChange() fetches it in the background.
   const applyInstrumentOverrides = useCallback((genreId) => {
     if (!SFP.isReady()) return
-    const map = getInstrumentMap(genreId)
-    if (!map) return  // biab styles keep their own .json channelPrograms
-    // drums (channel 9) intentionally excluded — drum kits in the JJazzLab SF2
-    // sit at GM bank 128, not bank 0. Sending programChange(9, x, bank=0) would
-    // load a melodic instrument (e.g. Acoustic Bass) onto the drum channel.
-    // The .sty files already set the correct drum program via MIDI events.
-    const CHANNEL_FOR = { bass: 1, piano: 0, guitar: 2 }
-    for (const [name, channel] of Object.entries(CHANNEL_FOR)) {
-      const entry = map[name]
-      if (!entry || entry.program == null || entry.program < 0) continue
-      SFP.programChange(channel, entry.program)
+    // drums (channel 9) intentionally excluded — the drum channel is already
+    // flagged as percussion and plays the GM bank-128 kit.
+    const used = usedChannelsOfStyle(styleCache.current[genreId])
+    for (const [channel, program] of Object.entries(channelProgramsForGenre(genreId))) {
+      if (used && !used.has(Number(channel))) continue
+      SFP.programChange(Number(channel), program)
     }
     // eslint-disable-next-line no-console
     console.info('[engine] applied genre instrument overrides for', genreId)
@@ -1235,10 +1301,9 @@ export function useBackingTrackEngine() {
     stop()
     setIsLoading(true)
     try {
-      await ensureSF2()
-
       // ── Ambient pad mode — bypass .sty engine, play chords via SoundFont directly ──
       if (isAmbientGenre(genreRef.current)) {
+        await ensureSF2(presetsForGenre(genreRef.current))
         const { gm, channel } = AMBIENT_GENRE_MAP[genreRef.current]
         ambientChannelRef.current = channel
         SFP.programChange(channel, gm)
@@ -1293,6 +1358,8 @@ export function useBackingTrackEngine() {
       }
 
       await ensureStyle(genreRef.current)
+      // Load exactly the instrument packs this style uses (cached after first time)
+      await ensureSF2(presetsForGenre(genreRef.current, styleCache.current[genreRef.current]))
       // SF2 might have just finished loading — re-apply program overrides now
       // that programChange() will actually take effect.
       applyInstrumentOverrides(genreRef.current)
@@ -1605,7 +1672,9 @@ export function useBackingTrackEngine() {
   // ── Preview chord (plays on SoundFont piano channel) ─────────────────────────
   const previewChord = useCallback(async (chord) => {
     try {
-      if (!SFP.isReady()) await ensureSF2()
+      const pianoPreset = { bank: 0, program: channelProgramsForGenre(genreRef.current)[0] }
+      await ensureSF2([pianoPreset])
+      await SFP.programChange(0, pianoPreset.program)
       const symbol           = oldChordToSymbol(chord)
       const { rootPitch, typeName } = parseChordSymbol(symbol)
       const { intervals }    = getChordData(typeName)

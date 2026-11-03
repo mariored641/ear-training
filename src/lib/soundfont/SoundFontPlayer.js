@@ -1,24 +1,32 @@
 /**
  * SoundFontPlayer.js
  * Wrapper נקי סביב js-synthesizer (FluidSynth WASM)
- * משמש את מנוע ה-Backing Tracks החדש
+ * משמש את מנוע ה-Backing Tracks ואת התרגילים הריאקטיביים.
  *
  * שימוש:
  *   import * as SFP from './SoundFontPlayer'
- *   await SFP.init(onProgress)
+ *   await SFP.init(onProgress, { presets: [{ bank: 0, program: 0 }, SFP.DRUM_KIT] })
  *   SFP.programChange(0, 0)        // Piano
  *   SFP.noteOn(0, 60, 100)         // middle C
  *   SFP.noteOff(0, 60)
  *
- * החלפת ספרייה (A/B testing) — דרך getDefaultLibrary() / getLibraryById():
+ * ── טעינת סאונדים: "packs" ─────────────────────────────────────────────────
+ * כל preset (כלי) הוא קובץ SF3 קטן (Ogg Vorbis) — ראה SoundFontRegistry.
+ * נטען רק מה שצריך: ensurePresets([...]) מוריד (או שולף מ-IndexedDB) וטוען
+ * ל-FluidSynth. programChange() על preset שעוד לא נטען — טוען אותו ברקע
+ * ובוחר אותו כשהוא מוכן (מחזיר Promise).
+ *
+ * FluidSynth ה-WASM נטען בגרסת "with-libsndfile" — הנדרשת לפענוח SF3.
+ *
+ * החלפת ספרייה (A/B testing ב-/test/sf2-lab):
  *   await SFP.swapSoundFont(libraryConfig, onProgress)
  */
 
 import { Synthesizer, AudioWorkletNodeSynthesizer } from 'js-synthesizer'
-import { getDefaultLibrary } from './SoundFontRegistry'
+import { getDefaultLibrary, isPackLibrary, LEGACY_CACHE_KEYS } from './SoundFontRegistry'
 import i18n from '../../i18n/index.js'
 
-const FLUIDSYNTH_SCRIPT_URL = '/libfluidsynth-2.4.6.js'
+const FLUIDSYNTH_SCRIPT_URL = '/libfluidsynth-2.4.6-with-libsndfile.js'
 
 // ---- IndexedDB Cache ----
 const IDB_DB = 'ear-training'
@@ -60,6 +68,20 @@ async function saveToCache(cacheKey, buffer) {
   }
 }
 
+let _legacyCleanupDone = false
+/** מוחק מה-IndexedDB את ה-SF2 הישן (356MB) שנשמר אצל משתמשים — פעם אחת לסשן */
+async function cleanupLegacyCache() {
+  if (_legacyCleanupDone) return
+  _legacyCleanupDone = true
+  try {
+    const db = await openIDB()
+    const tx = db.transaction(IDB_STORE, 'readwrite')
+    for (const key of LEGACY_CACHE_KEYS) tx.objectStore(IDB_STORE).delete(key)
+  } catch {
+    // not critical
+  }
+}
+
 // GM Program numbers (0-indexed)
 export const GM = {
   ACOUSTIC_GRAND_PIANO: 0,
@@ -84,14 +106,42 @@ export const CHANNELS = {
   DRUMS: 9,  // MIDI channel 10 = channel index 9
 }
 
+/** ערכת התופים (GM bank 128) — היחידה שנמצאת ב-packs */
+export const DRUM_KIT = Object.freeze({ bank: 128, program: 0 })
+
+/** התוכניות שכל ערוץ מקבל כברירת מחדל */
+const DEFAULT_CHANNEL_PRESETS = [
+  [CHANNELS.PIANO,  { bank: 0, program: GM.ACOUSTIC_GRAND_PIANO }],
+  [CHANNELS.BASS,   { bank: 0, program: GM.ELECTRIC_BASS_FINGER }],
+  [CHANNELS.GUITAR, { bank: 0, program: GM.ELECTRIC_GUITAR_JAZZ }],
+  [CHANNELS.PAD,    { bank: 0, program: GM.STRINGS }],
+  [CHANNELS.DRUMS,  DRUM_KIT],
+]
+
+/** מה init() טוען כשלא ביקשו presets ספציפיים (תואם ל-applyDefaultPrograms הישן) */
+export const DEFAULT_PRESETS = DEFAULT_CHANNEL_PRESETS.map(([, p]) => p)
+
+const presetKey = ({ bank = 0, program }) => `${bank}:${program}`
+
 let _synth = null
 let _audioCtx = null
 let _audioNode = null
-let _sfontId = null
-let _initPromise = null
+let _synthPromise = null
 let _useWorklet = false
 let _currentLibrary = null
+let _libraryPromise = null
 let _swapPromise = null
+
+// full-SF2 mode (sf2-lab): one sfont holds every preset
+let _fullSfontId = null
+// pack mode: 'bank:program' → sfontId
+const _packSfonts = new Map()
+const _packLoads = new Map()        // 'bank:program' → Promise<void>
+const _downloads = new Map()        // cacheKey → Promise<void> (download → IndexedDB)
+let _manifestPromise = null
+let _manifestBaseUrl = null
+// desired preset per channel (survives late pack loads / library swaps)
+const _channelPresets = new Map(DEFAULT_CHANNEL_PRESETS)
 
 // ---- Crackling detector ----
 let _analyser = null
@@ -135,9 +185,7 @@ async function fetchWithProgress(url, onProgress) {
     if (done) break
     chunks.push(value)
     loaded += value.length
-    if (total > 0) {
-      onProgress?.(Math.round((loaded / total) * 100), loaded, total)
-    }
+    onProgress?.(total > 0 ? Math.round((loaded / total) * 100) : 0, loaded, total)
   }
 
   const buffer = new Uint8Array(loaded)
@@ -148,6 +196,180 @@ async function fetchWithProgress(url, onProgress) {
   }
   return buffer.buffer
 }
+
+const mb = (bytes) => (bytes / 1024 / 1024).toFixed(1)
+
+// ════════════════════════════════════════════════════════════════════════════
+// Packs (SF3 per preset)
+// ════════════════════════════════════════════════════════════════════════════
+
+function getManifest(library) {
+  if (!_manifestPromise || _manifestBaseUrl !== library.baseUrl) {
+    _manifestBaseUrl = library.baseUrl
+    // 'no-cache' = revalidate (cheap 304) — the .sf3 files themselves are immutable
+    _manifestPromise = fetch(`${library.baseUrl}/manifest.json`, { cache: 'no-cache' })
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}: ${library.baseUrl}/manifest.json`)
+        return r.json()
+      })
+      .catch(err => { _manifestPromise = null; throw err })
+  }
+  return _manifestPromise
+}
+
+const packCacheKey = (library, file) => `${library.cacheKey}:${file}`
+
+/**
+ * מוודא שקבצי ה-pack נמצאים ב-IndexedDB (הורדה אם צריך) ומחזיר אותם.
+ * @returns {Promise<Map<string, ArrayBuffer>>}  key → buffer
+ */
+async function fetchPackBuffers(library, keys, onProgress) {
+  const manifest = await getManifest(library)
+  const entries = []
+  for (const key of keys) {
+    const pack = manifest.packs[key]
+    if (!pack) {
+      console.warn(`[SFP] preset ${key} is not in the SoundFont packs — skipped`)
+      continue
+    }
+    entries.push({ key, pack, cacheKey: packCacheKey(library, pack.file) })
+  }
+
+  onProgress?.(i18n.t('soundfont.checkingCache'), 5)
+  const buffers = new Map()
+  const missing = []
+  for (const e of entries) {
+    const cached = await getFromCache(e.cacheKey)
+    if (cached) buffers.set(e.key, cached)
+    else missing.push(e)
+  }
+
+  if (missing.length) {
+    const total = missing.reduce((s, e) => s + (e.pack.bytes || 0), 0)
+    const loadedByKey = new Map()
+    const report = () => {
+      const loaded = [...loadedByKey.values()].reduce((s, v) => s + v, 0)
+      const pct = total > 0 ? Math.min(1, loaded / total) : 0
+      onProgress?.(i18n.t('soundfont.downloadingProgress', { loaded: mb(loaded), total: mb(total) }), 5 + Math.round(pct * 85))
+    }
+    onProgress?.(i18n.t('soundfont.downloading'), 5)
+    await Promise.all(missing.map(async (e) => {
+      const buf = await fetchWithProgress(`${library.baseUrl}/${e.pack.file}`, (_pct, loaded) => {
+        loadedByKey.set(e.key, loaded)
+        report()
+      })
+      // await so the IndexedDB put clones the buffer before anyone else touches it
+      await saveToCache(e.cacheKey, buf)
+      buffers.set(e.key, buf)
+    }))
+  } else if (entries.length) {
+    onProgress?.(i18n.t('soundfont.loadingFromCache'), 80)
+  }
+  return buffers
+}
+
+function selectPreset(channel, { bank = 0, program }) {
+  if (!_synth) return false
+  let sfontId
+  if (_fullSfontId !== null) sfontId = _fullSfontId
+  else sfontId = _packSfonts.get(presetKey({ bank, program }))
+  if (sfontId === undefined || sfontId === null) return false
+  _synth.midiProgramSelect(channel, sfontId, bank, program)
+  return true
+}
+
+/** מחיל על כל ערוץ את ה-preset הרצוי שלו (אם כבר נטען) */
+function reapplyChannelPresets() {
+  if (!_synth) return
+  _synth.midiSetChannelType(CHANNELS.DRUMS, true)
+  for (const [channel, preset] of _channelPresets) selectPreset(channel, preset)
+}
+
+/** טוען packs לספרייה נתונה (פנימי — לא מחכה ל-_libraryPromise) */
+async function loadPacks(library, presets, onProgress) {
+  const keys = [...new Set((presets || []).map(presetKey))]
+  const waits = []
+  const toLoad = []
+  for (const key of keys) {
+    if (_packSfonts.has(key)) continue
+    if (_packLoads.has(key)) waits.push(_packLoads.get(key))
+    else toLoad.push(key)
+  }
+
+  if (toLoad.length) {
+    const job = (async () => {
+      const buffers = await fetchPackBuffers(library, toLoad, onProgress)
+      onProgress?.(i18n.t('soundfont.initializingInstruments'), 95)
+      for (const [key, buf] of buffers) {
+        // הספרייה הוחלפה באמצע (sf2-lab) — לא טוענים pack לתוך ספרייה אחרת
+        if (_currentLibrary !== library) return
+        const id = await _synth.loadSFont(buf)
+        _packSfonts.set(key, id)
+      }
+      reapplyChannelPresets()
+    })()
+    const tracked = job.finally(() => { for (const k of toLoad) _packLoads.delete(k) })
+    for (const k of toLoad) _packLoads.set(k, tracked)
+    waits.push(tracked)
+  }
+
+  await Promise.all(waits)
+}
+
+/**
+ * טוען את ה-presets המבוקשים (מ-cache או מהרשת) ל-FluidSynth.
+ * no-op עבור presets שכבר טעונים, ועבור ספריית SF2 מלאה.
+ *
+ * @param {Array<{bank?: number, program: number}>} presets
+ * @param {function} onProgress (message, percent) => void
+ */
+export async function ensurePresets(presets, onProgress) {
+  await ensureSynth(onProgress)
+  if (_libraryPromise) await _libraryPromise.catch(() => {})
+  if (!_currentLibrary) {
+    await init(onProgress, { presets })
+    return
+  }
+  if (isPackLibrary(_currentLibrary)) await loadPacks(_currentLibrary, presets, onProgress)
+}
+
+/** האם כל ה-presets כבר טעונים (בלי לטעון) */
+export function arePresetsLoaded(presets) {
+  if (!_synth) return false
+  if (_fullSfontId !== null) return true
+  return (presets || []).every(p => _packSfonts.has(presetKey(p)))
+}
+
+/**
+ * מוריד ל-IndexedDB ברקע את ה-packs של ה-presets, בלי AudioContext.
+ * בטוח לקריאה לפני כל gesture של המשתמש. no-op עבור מה שכבר ב-cache.
+ */
+export async function prefetchPresets(presets) {
+  const library = getDefaultLibrary()
+  if (!isPackLibrary(library)) return
+  try {
+    const manifest = await getManifest(library)
+    await Promise.all((presets || []).map(async (p) => {
+      const pack = manifest.packs[presetKey(p)]
+      if (!pack) return
+      const cacheKey = packCacheKey(library, pack.file)
+      if (_downloads.has(cacheKey)) return _downloads.get(cacheKey)
+      const job = (async () => {
+        if (await getFromCache(cacheKey)) return
+        const buf = await fetchWithProgress(`${library.baseUrl}/${pack.file}`)
+        await saveToCache(cacheKey, buf)
+      })().finally(() => _downloads.delete(cacheKey))
+      _downloads.set(cacheKey, job)
+      return job
+    }))
+  } catch {
+    // fail silently — not critical, ensurePresets() will retry
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Full SF2 libraries (sf2-lab only)
+// ════════════════════════════════════════════════════════════════════════════
 
 // ---- שולף את ה-SF2 buffer (cache → fetch → cache) ----
 async function fetchSoundFontBuffer(libraryConfig, onProgress) {
@@ -162,14 +384,12 @@ async function fetchSoundFontBuffer(libraryConfig, onProgress) {
   }
   onProgress?.(i18n.t('soundfont.downloading'), 5)
   const onDownloadProgress = (pct, loaded, total) => {
-    const mb = Math.round(loaded / 1024 / 1024)
-    const totalMb = Math.round(total / 1024 / 1024)
-    onProgress?.(i18n.t('soundfont.downloadingProgress', { loaded: mb, total: totalMb }), 5 + Math.round(pct * 0.88))
+    onProgress?.(i18n.t('soundfont.downloadingProgress', { loaded: mb(loaded), total: mb(total) }), 5 + Math.round(pct * 0.88))
   }
   try {
     buffer = await fetchWithProgress(libraryConfig.url, onDownloadProgress)
   } catch (err) {
-    // ה-URL המוגדר נכשל (למשל: קובץ שנמחק מה-Blob store) — ניפול חזרה למקור המגובה ב-GitHub Releases
+    // ה-URL המוגדר נכשל — ניפול חזרה למקור הגיבוי
     if (libraryConfig.fallbackUrl && libraryConfig.fallbackUrl !== libraryConfig.url) {
       console.warn(`[SFP] Primary SF2 URL failed (${err.message}), retrying with fallback`)
       buffer = await fetchWithProgress(libraryConfig.fallbackUrl, onDownloadProgress)
@@ -177,116 +397,126 @@ async function fetchSoundFontBuffer(libraryConfig, onProgress) {
       throw err
     }
   }
-  // שמירה ב-cache ברקע — לא מחכים לה
-  saveToCache(libraryConfig.cacheKey, buffer)
+  await saveToCache(libraryConfig.cacheKey, buffer)
   return buffer
 }
 
-// ---- מבצע program changes לערוצי ברירת המחדל ----
-function applyDefaultPrograms() {
-  if (!_synth || _sfontId === null) return
-  _synth.midiSetChannelType(CHANNELS.DRUMS, true)
-  _synth.midiProgramSelect(CHANNELS.PIANO,  _sfontId, 0, GM.ACOUSTIC_GRAND_PIANO)
-  _synth.midiProgramSelect(CHANNELS.BASS,   _sfontId, 0, GM.ELECTRIC_BASS_FINGER)
-  _synth.midiProgramSelect(CHANNELS.GUITAR, _sfontId, 0, GM.ELECTRIC_GUITAR_JAZZ)
-  _synth.midiProgramSelect(CHANNELS.PAD,    _sfontId, 0, GM.STRINGS)
-}
+// ════════════════════════════════════════════════════════════════════════════
+// Synth lifecycle
+// ════════════════════════════════════════════════════════════════════════════
 
-/**
- * מוריד ושומר את ה-SF2 ב-IndexedDB ברקע, בלי AudioContext.
- * בטוח לקריאה לפני כל gesture של המשתמש.
- * קריאה חוזרת כשהבאפר כבר ב-cache היא no-op מהירה.
- */
-export async function prefetchBuffer() {
-  const library = getDefaultLibrary()
-  if (!library?.url) return
-  try {
-    await fetchSoundFontBuffer(library, null)
-  } catch {
-    // fail silently — not critical, init() will retry
-  }
-}
+/** יוצר את ה-AudioContext + FluidSynth (פעם אחת). לא טוען סאונדים. */
+function ensureSynth(onProgress) {
+  if (_synthPromise) return _synthPromise
+  _synthPromise = (async () => {
+    cleanupLegacyCache()
 
-/**
- * אתחול המנגן. קורא פעם אחת, חוזר מהר בקריאות חוזרות.
- * @param {function} onProgress   (message: string, percent: number) => void
- * @param {object}   libraryConfig (אופציונלי) ספרייה לטעון בפעם הראשונה. ברירת המחדל — JJazzLab.
- */
-export async function init(onProgress, libraryConfig) {
-  if (_initPromise) return _initPromise
+    // 1. טעינת FluidSynth JS
+    onProgress?.(i18n.t('soundfont.loadingSynth'), 2)
+    await loadFluidSynthScript()
+    await Synthesizer.waitForWasmInitialized()
 
-  const library = libraryConfig || getDefaultLibrary()
+    // 2. AudioContext
+    _audioCtx = new AudioContext()
 
-  _initPromise = (async () => {
+    // Reverb settings for both paths
+    const reverbSettings = {
+      reverbActive: true,
+      reverbRoomSize: 0.4,
+      reverbDamp: 0.4,
+      reverbWidth: 0.5,
+      reverbLevel: 0.3,
+    }
+
+    // 3. Try AudioWorklet first (synthesis off main thread = no crackling)
     try {
-      // 1. טעינת FluidSynth JS
-      onProgress?.(i18n.t('soundfont.loadingSynth'), 2)
-      await loadFluidSynthScript()
-      await Synthesizer.waitForWasmInitialized()
+      onProgress?.(i18n.t('soundfont.loadingWorklet'), 3)
+      await _audioCtx.audioWorklet.addModule(FLUIDSYNTH_SCRIPT_URL)
+      await _audioCtx.audioWorklet.addModule('/js-synthesizer.worklet.min.js')
 
-      // 2. AudioContext
-      _audioCtx = new AudioContext()
+      _synth = new AudioWorkletNodeSynthesizer()
+      _synth.init(_audioCtx.sampleRate, reverbSettings)
+      _audioNode = _synth.createAudioNode(_audioCtx)
+      _useWorklet = true
+      console.log('[SFP] Using AudioWorklet — synthesis off main thread')
+    } catch (workletErr) {
+      // Fallback: ScriptProcessorNode with larger buffer
+      console.warn('[SFP] AudioWorklet failed, falling back to ScriptProcessor:', workletErr.message)
+      _synth = new Synthesizer()
+      _synth.init(_audioCtx.sampleRate)
+      _audioNode = _synth.createAudioNode(_audioCtx, 1024)
+      _synth.setReverb(0.4, 0.4, 0.5, 0.3)
+      _synth.setReverbOn(true)
+      _useWorklet = false
+    }
 
-      // Reverb settings for both paths
-      const reverbSettings = {
-        reverbActive: true,
-        reverbRoomSize: 0.4,
-        reverbDamp: 0.4,
-        reverbWidth: 0.5,
-        reverbLevel: 0.3,
-      }
+    // 4. Connect through AnalyserNode for crackling detection
+    _analyser = _audioCtx.createAnalyser()
+    _analyser.fftSize = 2048
+    _audioNode.connect(_analyser)
+    _analyser.connect(_audioCtx.destination)
 
-      // 3. Try AudioWorklet first (synthesis off main thread = no crackling)
-      try {
-        onProgress?.(i18n.t('soundfont.loadingWorklet'), 3)
-        await _audioCtx.audioWorklet.addModule(FLUIDSYNTH_SCRIPT_URL)
-        await _audioCtx.audioWorklet.addModule('/js-synthesizer.worklet.min.js')
+    _synth.midiSetChannelType(CHANNELS.DRUMS, true)
+  })().catch(err => {
+    _synthPromise = null
+    throw err
+  })
+  return _synthPromise
+}
 
-        _synth = new AudioWorkletNodeSynthesizer()
-        _synth.init(_audioCtx.sampleRate, reverbSettings)
-        _audioNode = _synth.createAudioNode(_audioCtx)
-        _useWorklet = true
-        console.log('[SFP] Using AudioWorklet — synthesis off main thread')
-      } catch (workletErr) {
-        // Fallback: ScriptProcessorNode with larger buffer
-        console.warn('[SFP] AudioWorklet failed, falling back to ScriptProcessor:', workletErr.message)
-        _synth = new Synthesizer()
-        _synth.init(_audioCtx.sampleRate)
-        _audioNode = _synth.createAudioNode(_audioCtx, 1024)
-        _synth.setReverb(0.4, 0.4, 0.5, 0.3)
-        _synth.setReverbOn(true)
-        _useWorklet = false
-      }
+/** מחליף את הספרייה הפעילה (מניח synth קיים, בלי תחרות — נקרא מתוך init/swap) */
+async function activateLibrary(library, onProgress, presets) {
+  // פריקת כל מה שטעון
+  if (_fullSfontId !== null) {
+    try { await _synth.unloadSFontAsync(_fullSfontId) } catch (err) { console.warn('[SFP] unloadSFont failed (continuing):', err?.message) }
+    _fullSfontId = null
+  }
+  for (const id of _packSfonts.values()) {
+    try { await _synth.unloadSFontAsync(id) } catch (err) { console.warn('[SFP] unloadSFont failed (continuing):', err?.message) }
+  }
+  _packSfonts.clear()
+  _currentLibrary = library
 
-      // 4. Connect through AnalyserNode for crackling detection
-      _analyser = _audioCtx.createAnalyser()
-      _analyser.fftSize = 2048
-      _audioNode.connect(_analyser)
-      _analyser.connect(_audioCtx.destination)
+  if (isPackLibrary(library)) {
+    await loadPacks(library, presets || DEFAULT_PRESETS, onProgress)
+  } else {
+    const buffer = await fetchSoundFontBuffer(library, onProgress)
+    onProgress?.(i18n.t('soundfont.initializingInstruments'), 95)
+    _fullSfontId = await _synth.loadSFont(buffer)
+  }
+  reapplyChannelPresets()
+}
 
-      // 5. טעינת SF2 — מ-cache אם יש, אחרת הורדה ושמירה
-      const sf2Buffer = await fetchSoundFontBuffer(library, onProgress)
-
-      onProgress?.(i18n.t('soundfont.initializingInstruments'), 95)
-      _sfontId = await _synth.loadSFont(sf2Buffer)
-      _currentLibrary = library
-
-      // 6. הגדרת channels ראשוניים
-      applyDefaultPrograms()
-
-      onProgress?.(i18n.t('soundfont.ready'), 100)
-      return { sfontId: _sfontId, library }
+/**
+ * אתחול המנגן + טעינת ה-presets הנדרשים. בטוח לקריאה חוזרת (טוען רק מה שחסר).
+ * @param {function} onProgress (message: string, percent: number) => void
+ * @param {object}   [opts]
+ * @param {Array<{bank?: number, program: number}>} [opts.presets]  ברירת מחדל: DEFAULT_PRESETS
+ * @param {object}   [opts.library]  ספרייה לטעינה ראשונה (ברירת מחדל: JJazzLab packs)
+ */
+export async function init(onProgress, opts = {}) {
+  await ensureSynth(onProgress)
+  if (!_currentLibrary) {
+    if (!_libraryPromise) {
+      _libraryPromise = activateLibrary(opts.library || getDefaultLibrary(), onProgress, opts.presets)
+        .finally(() => { _libraryPromise = null })
+    }
+    try {
+      await _libraryPromise
     } catch (err) {
-      _initPromise = null
+      _currentLibrary = null
       throw err
     }
-  })()
-
-  return _initPromise
+  } else {
+    if (_libraryPromise) await _libraryPromise
+    await ensurePresets(opts.presets || DEFAULT_PRESETS, onProgress)
+  }
+  onProgress?.(i18n.t('soundfont.ready'), 100)
+  return { library: _currentLibrary }
 }
 
 /**
- * החלפת ספריית SF2 הטעונה כרגע. אם ה-synth עוד לא אותחל — מאתחל אותו עם הספרייה החדשה.
+ * החלפת הספרייה הטעונה כרגע (/test/sf2-lab). אם ה-synth עוד לא אותחל — מאתחל.
  * אם הספרייה המבוקשת כבר טעונה — no-op.
  *
  * @param {object}   libraryConfig — מ-SoundFontRegistry.SOUNDFONT_LIBRARIES
@@ -295,49 +525,28 @@ export async function init(onProgress, libraryConfig) {
  */
 export async function swapSoundFont(libraryConfig, onProgress) {
   if (!libraryConfig) throw new Error('swapSoundFont: libraryConfig is required')
-  if (!libraryConfig.url) throw new Error(`Library "${libraryConfig.id}" has no URL configured (set VITE_SF2_URL_${libraryConfig.id.toUpperCase()})`)
+  if (!isPackLibrary(libraryConfig) && !libraryConfig.url) {
+    throw new Error(`Library "${libraryConfig.id}" has no URL configured (set VITE_SF2_URL_${libraryConfig.id.toUpperCase()})`)
+  }
 
   // הימנעות מ-race בין קריאות swap מקבילות
   if (_swapPromise) await _swapPromise.catch(() => {})
 
   _swapPromise = (async () => {
-    // אם המנוע עדיין לא אותחל — init יבצע את הטעינה הראשונית עם הספרייה הזו
-    if (!_initPromise) {
-      await init(onProgress, libraryConfig)
-      return { library: _currentLibrary }
-    }
-
-    // אחרת — נחכה שה-init הקיים יסיים ואז נחליף
-    await _initPromise
+    await ensureSynth(onProgress)
+    if (_libraryPromise) await _libraryPromise.catch(() => {})
 
     if (_currentLibrary?.id === libraryConfig.id) {
       onProgress?.(i18n.t('soundfont.alreadyLoaded'), 100)
       return { library: _currentLibrary }
     }
 
-    if (!_synth) throw new Error('Synthesizer not initialized')
-
     // עוצרים את כל הצלילים לפני tear-down
     allNotesOff()
-
-    // פריקת ה-SF הקיים (FluidSynth תומך)
-    if (_sfontId !== null) {
-      try {
-        await _synth.unloadSFont(_sfontId)
-      } catch (err) {
-        console.warn('[SFP] unloadSFont failed (continuing):', err?.message)
-      }
-      _sfontId = null
-    }
-
-    // טעינת ה-buffer החדש
-    const buffer = await fetchSoundFontBuffer(libraryConfig, onProgress)
-
-    onProgress?.(i18n.t('soundfont.initializingInstruments'), 95)
-    _sfontId = await _synth.loadSFont(buffer)
-    _currentLibrary = libraryConfig
-
-    applyDefaultPrograms()
+    const wanted = [...new Map([...DEFAULT_PRESETS, ..._channelPresets.values()].map(p => [presetKey(p), p])).values()]
+    _libraryPromise = activateLibrary(libraryConfig, onProgress, wanted)
+      .finally(() => { _libraryPromise = null })
+    await _libraryPromise
 
     onProgress?.(i18n.t('soundfont.ready'), 100)
     return { library: _currentLibrary }
@@ -365,9 +574,9 @@ export function getAnalyser() {
   return _analyser
 }
 
-/** האם המנגן מוכן */
+/** האם המנגן מוכן (synth קיים ולפחות סאונד אחד טעון) */
 export function isReady() {
-  return _synth !== null && _sfontId !== null
+  return _synth !== null && (_fullSfontId !== null || _packSfonts.size > 0)
 }
 
 /** Resume AudioContext (נדרש לאחר user interaction) */
@@ -387,10 +596,22 @@ export function noteOff(channel, midi) {
   _synth.midiNoteOff(channel, midi)
 }
 
-/** שינוי תוכנית (instrument) לפי GM program number */
+/**
+ * שינוי תוכנית (instrument) לפי GM program number.
+ * אם ה-pack של ה-preset עוד לא טעון — נטען ברקע והערוץ עובר אליו כשמוכן.
+ * @returns {Promise<void>} מתממש כשהערוץ מנגן את ה-preset המבוקש
+ */
 export function programChange(channel, program, bank = 0) {
-  if (!_synth || _sfontId === null) return
-  _synth.midiProgramSelect(channel, _sfontId, bank, program)
+  const preset = { bank, program }
+  _channelPresets.set(channel, preset)
+  if (!_synth) return Promise.resolve()
+  if (selectPreset(channel, preset)) return Promise.resolve()
+  return ensurePresets([preset])
+    .then(() => {
+      const wanted = _channelPresets.get(channel)
+      if (wanted && presetKey(wanted) === presetKey(preset)) selectPreset(channel, preset)
+    })
+    .catch(err => console.warn(`[SFP] could not load preset ${presetKey(preset)}:`, err?.message))
 }
 
 /** עצירת כל הצלילים */
@@ -476,8 +697,11 @@ export function destroy() {
   }
   _audioNode = null
   _analyser = null
-  _sfontId = null
-  _initPromise = null
+  _fullSfontId = null
+  _packSfonts.clear()
+  _packLoads.clear()
+  _synthPromise = null
+  _libraryPromise = null
   _useWorklet = false
   _currentLibrary = null
   _swapPromise = null

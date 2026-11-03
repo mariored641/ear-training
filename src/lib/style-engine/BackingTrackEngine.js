@@ -107,11 +107,13 @@ export class BackingTrackEngine {
   // ── Initialization ─────────────────────────────────────────────────────────
 
   /**
-   * Load the SoundFont. Call once before play().
+   * Load the synth + the instrument presets the style needs. Call before play().
+   * Safe to call again with other presets — only missing ones are loaded.
    * @param {Function} onProgress (message: string, percent: number) => void
+   * @param {Array<{bank?: number, program: number}>} [presets]  default: SFP.DEFAULT_PRESETS
    */
-  async init(onProgress) {
-    await SFP.init(onProgress)
+  async init(onProgress, presets) {
+    await SFP.init(onProgress, { presets })
   }
 
   isReady() {

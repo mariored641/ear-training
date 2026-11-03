@@ -160,7 +160,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,svg,woff,woff2}'],
-        globIgnores: ['**/textures/**'],
+        // FluidSynth WASM (2.4MB) is only needed by Backing Tracks / reactive
+        // exercises — don't precache it for every visitor (HTTP-cached instead).
+        globIgnores: ['**/textures/**', '**/libfluidsynth-*.js'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,

@@ -1,4 +1,19 @@
 {
+  "headers": [
+    {
+      "source": "/soundfonts/packs-v1/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/libfluidsynth-2.4.6-with-libsndfile.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/soundfonts/JJazzLab-SoundFont.sf2",

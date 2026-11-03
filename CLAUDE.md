@@ -127,7 +127,14 @@ Production: https://ear-training-rose.vercel.app
 - Route: `/backing-tracks`
 - Component: `backing-tracks/BackingTracksPage.jsx`
 - ז'אנרים: 5 קטגוריות — Jazz (9), Latin (8), Blues (10), Rock & Pop (11), Country (8) — ~46 סגנונות
-- Audio engine: BackingTrackEngine (FluidSynth WASM + JJazzLab SF2 + native JSON style format)
+- Audio engine: BackingTrackEngine (FluidSynth WASM + JJazzLab SoundFont packs + native JSON style format)
+- **SoundFont packs (2026-11)**: ה-SF2 המקורי (356MB!) הוחלף ב-19 קבצי SF3 קטנים (Ogg Vorbis, ‏0.1–3.9MB כל אחד, 23.7MB סה"כ) ב-`public/soundfonts/packs-v1/` + `manifest.json`. נטענים **לפי כלי, רק מה שהז'אנר צריך** (~6–11MB בפעם הראשונה, אח"כ IndexedDB).
+  - בנייה: `node scripts/build-soundfont-packs.mjs <JJazzLab-SoundFont.sf2>` (צריך ffmpeg+libvorbis; ה-SF2 ב-GitHub release `assets-v1`). להוספת כלי: להוסיף ל-`PRESETS` בסקריפט. שינוי קידוד קיים → להעלות `PACKS_VERSION` (תיקייה חדשה, cache immutable).
+  - הסקריפט מפצה על באג ב-FluidSynth 2.4.6: פענוח SF3 מנרמל כל sample לשיא מלא → מוסיף initialAttenuation לכל zone (מחולק ב-0.4 בגלל EMU_ATTENUATION_FACTOR). אומת: רמות זהות למקור ±0.2dB.
+  - FluidSynth נטען בגרסת `public/libfluidsynth-2.4.6-with-libsndfile.js` (חובה ל-SF3).
+  - API: `SFP.init(onProgress, { presets })`, `SFP.ensurePresets([...])`, `SFP.prefetchPresets([...])`; `SFP.programChange()` טוען pack חסר ברקע. ב-hook: `presetsForGenre(genreId, style)` / `channelProgramsForGenre()`.
+  - ⚠️ אין prefetch גלובלי ב-App.jsx (הוא הוריד 356MB לכל מבקר — זה מה שפוצץ את מכסת Vercel). רק `/backing-tracks` עושה prefetch ל-packs של הז'אנר הנוכחי.
+  - ה-SF2 המלא נשאר רק כאופציית A/B ב-`/test/sf2-lab` (`jjazzlab-full`). Vercel Blob כבר לא בשימוש.
 - ⚠️ **Yamaha .sty migration (commit 59d144a)**: production no longer parses .sty at runtime. ה-engine קורא `/styles-native/<category>/<id>.json` דרך `src/lib/style-engine/StyleLoader.js`. הקבצים הילידיים נוצרו ב-`scripts/sty-to-native.mjs` (parity verified by `scripts/verify-native-parity.mjs` — 48/48). קבצי .sty המקוריים נשארים מקומית בלבד (לא בגיט; `.gitignore` חוסם `*.sty/STY/prs/sst/bcs`). `StyleParser.js` נשאר בקוד עבור file-upload tests בלבד.
 - **Skills קשורים** (ב-`~/.claude/skills/`): `sty-clone` (שכפול .sty חיצוני → JSON), `genre-style-builder` (יצירת סטייל מאפס + הנחיה לאבלטון).
 - **Level 2 deferred features**: `docs/jjazzlab-engine/LEVEL2_DEFERRED.md` — מה הפרסר קולט אבל ה-engine לא משתמש (ctb2Low/High, NTT scale variants וכו'). יש script רענון: `node scripts/analyze-level2.mjs`.
@@ -205,7 +212,7 @@ Production: https://ear-training-rose.vercel.app
 | שמיעה מוזיקלית — הרמוניה/פונקציונלי/תנועת קול | `utils/HarmonicAudioPlayer.js` | Salamander piano + gleitz guitar |
 | קצב | `utils/RhythmAudioPlayer.js` | Tone.js synths (click/woodblock) |
 | הכתבה ריתמית | `utils/rhythmTrainingAudio.js` | woodblock / bass / drums |
-| באקינג טראקס | `lib/style-engine/BackingTrackEngine.js` | JJazzLab SF2 (FluidSynth WASM) |
+| באקינג טראקס + ריאקטיבי | `lib/style-engine/BackingTrackEngine.js` + `lib/soundfont/SoundFontPlayer.js` | JJazzLab SF3 packs (FluidSynth WASM + libsndfile) |
 
 ---
 
