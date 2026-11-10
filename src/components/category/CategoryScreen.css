@@ -71,7 +71,7 @@
   font-family: var(--font-hand);
   color: var(--brass-bright);
   margin: 0;
-  direction: rtl;
+  unicode-bidi: plaintext;
   opacity: 0.85;
 }
 

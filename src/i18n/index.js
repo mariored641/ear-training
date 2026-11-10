@@ -21,8 +21,13 @@ export function getInitialLanguage() {
   return browserLanguage || 'he';
 }
 
-export function directionForLanguage(language) {
-  return normalizeLanguage(language) === 'he' ? 'rtl' : 'ltr';
+/**
+ * Page geometry is always left-to-right. Hebrew changes the strings only.
+ * A fretboard, a beat grid, and a chord progression read the same in both
+ * languages; mirroring them made the neck run backwards.
+ */
+export function directionForLanguage() {
+  return 'ltr';
 }
 
 const initialLanguage = getInitialLanguage();

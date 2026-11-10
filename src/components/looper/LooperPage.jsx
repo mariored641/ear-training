@@ -11,7 +11,7 @@ import './LooperPage.css';
 
 export default function LooperPage() {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const {
     session,
     engineState,
@@ -49,7 +49,7 @@ export default function LooperPage() {
 
       <header className="ws-page-header looper-header">
         <button type="button" className="ws-back-btn" onClick={() => navigate('/')} aria-label={t('common.backHome')}>
-          {i18n.dir() === 'rtl' ? '→' : '←'}
+          ←
         </button>
         <div className="looper-title-block">
           <h1 className="ws-page-title">{t('looper.title')}</h1>

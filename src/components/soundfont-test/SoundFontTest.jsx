@@ -174,7 +174,7 @@ const styles = {
     color: '#e0d7ff',
     fontSize: '1.6rem',
     margin: '0 0 8px',
-    direction: 'rtl',
+    direction: 'ltr',
   },
   subtitle: {
     color: '#888',
@@ -189,7 +189,7 @@ const styles = {
     borderRadius: '8px',
     fontSize: '1rem',
     cursor: 'pointer',
-    direction: 'rtl',
+    direction: 'ltr',
   },
   btnSecondary: {
     background: '#333',
@@ -220,7 +220,7 @@ const styles = {
     color: '#a0a0c0',
     fontSize: '0.85rem',
     margin: '8px 0 4px',
-    direction: 'rtl',
+    direction: 'ltr',
   },
   progressPct: {
     color: '#6c63ff',
@@ -233,7 +233,7 @@ const styles = {
     borderRadius: '8px',
     padding: '16px',
     color: '#ff8080',
-    direction: 'rtl',
+    direction: 'ltr',
   },
   playArea: {
     display: 'flex',
@@ -244,7 +244,7 @@ const styles = {
     color: '#7de87d',
     fontSize: '1rem',
     margin: 0,
-    direction: 'rtl',
+    direction: 'ltr',
   },
   instrumentGrid: {
     display: 'grid',
@@ -289,7 +289,7 @@ const styles = {
     borderRadius: '8px',
     fontSize: '1rem',
     cursor: 'pointer',
-    direction: 'rtl',
+    direction: 'ltr',
   },
   btnStop: {
     background: '#2a2a40',
@@ -299,6 +299,6 @@ const styles = {
     borderRadius: '8px',
     fontSize: '0.9rem',
     cursor: 'pointer',
-    direction: 'rtl',
+    direction: 'ltr',
   },
 }

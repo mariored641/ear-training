@@ -45,7 +45,7 @@
   font-family: var(--font-hand);
   color: var(--ink-faded);
   margin: 0;
-  direction: rtl;
+  unicode-bidi: plaintext;
 }
 
 .exercise-description {
