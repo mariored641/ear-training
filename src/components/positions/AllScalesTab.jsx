@@ -264,7 +264,7 @@ const AllScalesTab = () => {
           {/* Note name language (only relevant in "notes" display mode) */}
           {displayMode === 'notes' && (
             <div className="ast-group">
-              <label className="ast-label">שמות</label>
+              <label className="ast-label">{t('positions.names')}</label>
               <div className="ast-mode-btns">
                 <button
                   className={`ast-mode-btn wide${noteLang === 'latin' ? ' active' : ''}`}

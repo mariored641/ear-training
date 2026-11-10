@@ -540,6 +540,7 @@ export default function RhythmDictation({ settings, onActiveChange }) {
 const SEGS = 16;
 
 function VUMeter({ level, recording }) {
+  const { t } = useTranslation();
   const filled   = Math.min(1, level * 4);
   const litCount = Math.round(filled * SEGS);
 
@@ -560,7 +561,7 @@ function VUMeter({ level, recording }) {
           );
         })}
       </div>
-      {recording && <span className="rt-vu-rec">REC</span>}
+      {recording && <span className="rt-vu-rec">{t('common.rec')}</span>}
     </div>
   );
 }

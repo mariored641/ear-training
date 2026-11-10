@@ -23,9 +23,9 @@ const ROOT_OPTIONS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#'
 const WIDTH_OPTIONS = [3, 4, 5, 6];
 
 const DISPLAY_MODES = [
-  { id: 'dots',  label: 'Dots'  },
-  { id: 'tones', label: 'Numbers' },
-  { id: 'notes', label: 'Notes' },
+  { id: 'dots',  key: 'positions.dots' },
+  { id: 'tones', key: 'positions.numbers' },
+  { id: 'notes', key: 'positions.notes' },
 ];
 
 function chordLabel(chord) {
@@ -297,7 +297,7 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
                 className={`pct-display-btn ${displayMode === m.id ? 'active' : ''}`}
                 onClick={() => setDisplayMode(m.id)}
               >
-                {t(`positions.${m.id}`)}
+                {t(m.key)}
               </button>
             ))}
           </div>

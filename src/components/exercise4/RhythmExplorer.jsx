@@ -295,7 +295,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
         <div className="beat-grid">
           {grid.map((beat, beatIndex) => (
             <div key={beatIndex} className="beat-row">
-              <div className="beat-label">Beat {beatIndex + 1}:</div>
+              <div className="beat-label">{t('rhythm.beat', { number: beatIndex + 1 })}:</div>
               <div className="beat-cells">
                 {beat.map((cellState, cellIndex) => (
                   <div

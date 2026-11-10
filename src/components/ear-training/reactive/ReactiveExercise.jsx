@@ -138,9 +138,9 @@ const ReactiveExercise = ({ mode, exerciseId }) => {
             {session.isInitializing ? (
               <span className="reactive-play-label">{t('common.loading')}</span>
             ) : session.isPlaying ? (
-              <span className="reactive-play-label">⏸<br/>STOP</span>
+              <span className="reactive-play-label">⏸<br/>{t('common.stop')}</span>
             ) : (
-              <span className="reactive-play-label">▶<br/>PLAY</span>
+              <span className="reactive-play-label">▶<br/>{t('common.play')}</span>
             )}
           </button>
 

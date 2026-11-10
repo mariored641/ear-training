@@ -2,6 +2,8 @@
  * Note generation utilities for Exercise 1
  */
 
+import i18n from '../i18n';
+
 /**
  * Generates a random note based on settings
  * @param {Object} settings - Current settings
@@ -15,7 +17,7 @@ export function generateRandomNote(settings, usedNotes = []) {
   const noteNames = Object.keys(availableNotes).filter(note => availableNotes[note]);
 
   if (noteNames.length === 0) {
-    throw new Error('No notes available');
+    throw new Error(i18n.t('legacy.noNotesAvailable'));
   }
 
   let noteName, fullNote;

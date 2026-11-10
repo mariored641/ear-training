@@ -42,7 +42,7 @@ export default function TrackRow({
           }}
           aria-label={t('looper.layerName', { name: track.label })}
         />
-        {isRecording && <span className="looper-track-rec-badge">REC</span>}
+        {isRecording && <span className="looper-track-rec-badge">{t('common.rec')}</span>}
       </div>
 
       <WaveformCanvas

@@ -33,8 +33,8 @@ class ErrorBoundary extends React.Component {
           textAlign: 'center',
           color: '#f3e9d2',
         }}>
-          <p>{i18n.language === 'he' ? 'משהו השתבש. נסה לרענן את הדף.' : 'Something went wrong. Try refreshing the page.'}</p>
-          <button onClick={this.handleReload}>{i18n.language === 'he' ? 'רענן' : 'Refresh'}</button>
+          <p>{i18n.t('common.somethingWentWrong')}</p>
+          <button onClick={this.handleReload}>{i18n.t('common.refresh')}</button>
         </div>
       );
     }

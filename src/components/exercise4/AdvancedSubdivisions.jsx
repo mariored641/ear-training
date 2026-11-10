@@ -276,7 +276,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
                 >
                   {DIVISION_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {t(`rhythm.divisions.${option.value}`)}
                     </option>
                   ))}
                 </select>
