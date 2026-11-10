@@ -17,13 +17,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* The document stays LTR in every language. Hebrew letters already run
+   right-to-left inside their own words. `plaintext` also puts punctuation
+   on the correct side of a Hebrew sentence without flipping flex, grid,
+   or anything positioned with physical left/right. */
+html,
+body,
+#root {
+  direction: ltr;
+}
+
 html[lang='he'] body {
-  direction: rtl;
   font-family: 'Heebo', var(--font-family);
 }
 
-html[lang='en'] body {
-  direction: ltr;
+html[lang='he'] :where(p, h1, h2, h3, h4, h5, h6, li, label, button, a, span, th, td, legend, figcaption, summary, option) {
+  unicode-bidi: plaintext;
 }
 
 /* Music notation, chord symbols, URLs and fretboards keep their physical order. */
