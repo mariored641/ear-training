@@ -16,6 +16,7 @@ import { getChordData }        from '../../lib/style-engine/YamChordMap'
 import * as SFP                from '../../lib/soundfont/SoundFontPlayer'
 import { getInstrumentMap }    from '../../constants/genreInstrumentMap'
 import i18n                    from '../../i18n'
+import { readLastState, useRemember } from '../../utils/lastState'
 
 // ─── Genre Catalog ─────────────────────────────────────────────────────────────
 // 4 categories × 3 sub-styles each
@@ -1073,6 +1074,36 @@ const DEFAULT_VOLUMES = {
 const DEFAULT_GENRE     = 'jazz_swing'
 const DEFAULT_BAR_COUNT = 4
 
+function initialBackingState() {
+  let hadSave = false
+  try { hadSave = Boolean(localStorage.getItem('ear-training:last-state:backing-tracks')) } catch {}
+  const fallback = {
+    genre: DEFAULT_GENRE,
+    barCount: DEFAULT_BAR_COUNT,
+    tempo: GENRE_DEFAULTS[DEFAULT_GENRE].tempo,
+    maxLoops: 0,
+    volumes: DEFAULT_VOLUMES,
+    selectedKey: { root: 'C', type: 'major' },
+    chords: null,
+  }
+  const saved = readLastState('backing-tracks', 1, fallback)
+  const genre = GENRE_DEFAULTS[saved.genre] ? saved.genre : DEFAULT_GENRE
+  const selectedKey = saved.selectedKey?.root ? saved.selectedKey : fallback.selectedKey
+  const chords = Array.isArray(saved.chords) && saved.chords.length
+    ? saved.chords
+    : makeEmptyBars(genre, Number(saved.barCount) || DEFAULT_BAR_COUNT)
+  return {
+    genre,
+    barCount: chords.length,
+    tempo: Number(saved.tempo) || GENRE_DEFAULTS[genre].tempo,
+    maxLoops: Number.isFinite(Number(saved.maxLoops)) ? Number(saved.maxLoops) : 0,
+    volumes: { ...DEFAULT_VOLUMES, ...(saved.volumes && typeof saved.volumes === 'object' ? saved.volumes : {}) },
+    selectedKey,
+    chords,
+    hadSave,
+  }
+}
+
 function makeEmptyBars(genre, count) {
   const d = (GENRE_DEFAULTS[genre] ?? GENRE_DEFAULTS.jazz_swing).defaultChord
   return Array.from({ length: count }, () => ({ ...d, extensions: [...(d.extensions || [])] }))
@@ -1101,14 +1132,16 @@ function ambientChordToMidi(chord) {
 // ─── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useBackingTrackEngine() {
-  const [genre,       setGenreState]    = useState(DEFAULT_GENRE)
-  const [barCount,    setBarCountState] = useState(DEFAULT_BAR_COUNT)
-  const [chords,      setChordsState]   = useState(() => makeEmptyBars(DEFAULT_GENRE, DEFAULT_BAR_COUNT))
-  const [tempo,       setTempoState]    = useState(GENRE_DEFAULTS[DEFAULT_GENRE].tempo)
+  const restored = initialBackingState()
+  const keepSavedTempo = useRef(restored.hadSave)
+  const [genre,       setGenreState]    = useState(restored.genre)
+  const [barCount,    setBarCountState] = useState(restored.barCount)
+  const [chords,      setChordsState]   = useState(restored.chords)
+  const [tempo,       setTempoState]    = useState(restored.tempo)
   const [isPlaying,   setIsPlaying]     = useState(false)
   const [currentBar,  setCurrentBar]    = useState(0)
-  const [maxLoops,    setMaxLoopsState] = useState(0)
-  const [volumes,     setVolumesState]  = useState(DEFAULT_VOLUMES)
+  const [maxLoops,    setMaxLoopsState] = useState(restored.maxLoops)
+  const [volumes,     setVolumesState]  = useState(restored.volumes)
   const [isLoading,   setIsLoading]     = useState(false)
   const [loopCount,   setLoopCountState] = useState(0)
 
@@ -1118,7 +1151,8 @@ export function useBackingTrackEngine() {
   const [beatsPerBar,        setBeatsPerBar]          = useState(4)
   const [sfStatus,           setSfStatus]             = useState('idle')
   const [sfMsg,              setSfMsg]                = useState('')
-  const [selectedKey,        setSelectedKeyState]     = useState({ root: 'C', type: 'major' })
+  const [selectedKey,        setSelectedKeyState]     = useState(restored.selectedKey)
+  useRemember('backing-tracks', 1, { genre, barCount, chords, tempo, maxLoops, volumes, selectedKey })
   const [playbackPhase,      setPlaybackPhase]        = useState('stopped')   // 'stopped'|'intro'|'main'|'fill'|'ending'
   const [activePartName,     setActivePartName]       = useState(null)
   const [activeStyle,        setActiveStyle]           = useState(null)
@@ -1139,7 +1173,7 @@ export function useBackingTrackEngine() {
   const isPlayingRef    = useRef(false)
   const beatsPerBarRef  = useRef(4)
 
-  const selectedKeyRef  = useRef({ root: 'C', type: 'major' })
+  const selectedKeyRef  = useRef(selectedKey)
   const engineRef       = useRef(null)
   const styleCache      = useRef({})   // genre → parsed style object
   const loopCountRef    = useRef(0)
@@ -1167,7 +1201,7 @@ export function useBackingTrackEngine() {
     let idleId = null
     const hasIdle = typeof window.requestIdleCallback === 'function'
     const initialGenre = genreRef.current
-    ensureStyle(initialGenre)
+    ensureStyle(initialGenre, { keepTempo: keepSavedTempo.current })
       .then(() => {
         const prefetch = () => SFP.prefetchPresets(presetsForGenre(initialGenre, styleCache.current[initialGenre]))
         idleId = hasIdle ? window.requestIdleCallback(prefetch, { timeout: 5000 }) : setTimeout(prefetch, 2000)
@@ -1213,7 +1247,7 @@ export function useBackingTrackEngine() {
   }, [])
 
   // ── Style loading ────────────────────────────────────────────────────────────
-  const ensureStyle = useCallback(async (genreName) => {
+  const ensureStyle = useCallback(async (genreName, { keepTempo = false } = {}) => {
     const engine = engineRef.current
     if (styleCache.current[genreName]) {
       engine.setStyle(styleCache.current[genreName])
@@ -1222,6 +1256,7 @@ export function useBackingTrackEngine() {
       beatsPerBarRef.current = bpb
       setBeatsPerBar(bpb)
       setActiveStyle(styleCache.current[genreName])
+      if (keepTempo) engine.setTempo(tempoRef.current)
       applyInstrumentOverrides(genreName)
       return
     }
@@ -1234,11 +1269,13 @@ export function useBackingTrackEngine() {
     beatsPerBarRef.current = bpb
     setBeatsPerBar(bpb)
     setActiveStyle(style)
-    // Auto-set tempo from the parsed style file
-    if (style.tempo > 0) {
+    // A fresh genre takes the style's tempo. Restoring a visit keeps the student's tempo.
+    if (!keepTempo && style.tempo > 0) {
       setTempoState(style.tempo)
       tempoRef.current = style.tempo
       engine.setTempo(style.tempo)
+    } else {
+      engine.setTempo(tempoRef.current)
     }
     applyInstrumentOverrides(genreName)
   }, [applyInstrumentOverrides])
@@ -1357,7 +1394,7 @@ export function useBackingTrackEngine() {
         return
       }
 
-      await ensureStyle(genreRef.current)
+      await ensureStyle(genreRef.current, { keepTempo: true })
       // Load exactly the instrument packs this style uses (cached after first time)
       await ensureSF2(presetsForGenre(genreRef.current, styleCache.current[genreRef.current]))
       // SF2 might have just finished loading — re-apply program overrides now

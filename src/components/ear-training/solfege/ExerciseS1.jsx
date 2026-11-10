@@ -7,6 +7,7 @@ import QuestionsCounter from '../shared/QuestionsCounter';
 import BinaryToggle from '../shared/BinaryToggle';
 import NotationCard from '../shared/NotationCard';
 import { loadStoredLevel } from '../shared/LevelNavigator';
+import { readLastState, useRemember } from '../../../utils/lastState';
 import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import audioPlayer from '../../../utils/AudioPlayer';
@@ -60,7 +61,9 @@ const ExerciseS1 = () => {
     defaultValue: LEVELS.find(l => l.number === level)?.label
   });
   const [instrument, setInstrument]    = useStoredState('ear-training:S1:instrument', 'piano');
-  const [numQuestions, setNumQuestions] = useState(10);
+  const remembered = readLastState('exercise-s1', 1, { numQuestions: 10 });
+  const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
+  useRemember('exercise-s1', 1, { numQuestions });
   const [melody, setMelody]            = useState(() => pickMelody(1));
   const [questionIndex, setQuestionIndex] = useState(0);
   const [firstTry, setFirstTry]        = useState(0);

@@ -5,6 +5,7 @@ import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { CADENCE_LABELS } from '../../../constants/cadenceDefinitions';
 import { KEYS } from '../shared/KeySelector';
 import KeySelector from '../shared/KeySelector';
+import { readLastState, useRemember } from '../../../utils/lastState';
 
 const LEVELS = [
   { number: 1, label: 'PAC / HC' },
@@ -27,7 +28,9 @@ const POOLS = {
 const ExerciseF1 = () => {
   const [instrument, setInstrument] = useStoredState('ear-training:F1:instrument', 'piano');
   const [advancement, setAdvancement] = useStoredState('ear-training:F1:advancement', 'auto');
-  const [keyTonic, setKeyTonic] = useState('C');
+  const remembered = readLastState('exercise-f1', 1, { keyTonic: 'C' });
+  const [keyTonic, setKeyTonic] = useState(remembered.keyTonic || 'C');
+  useRemember('exercise-f1', 1, { keyTonic });
 
   useEffect(() => {
     if (harmonicAudioPlayer.setInstrument) harmonicAudioPlayer.setInstrument(instrument);

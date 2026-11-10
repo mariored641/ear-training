@@ -9,7 +9,11 @@ import AdvancedSubdivisions from './AdvancedSubdivisions';
 import StickyControls from './StickyControls';
 import CellIcon from './CellIcon';
 import { clampTempo, tapTempo } from '../../utils/rhythm/patterns';
+import { readLastState, useRemember } from '../../utils/lastState';
 import './Exercise4.css';
+
+const RHYTHM_TABS = ['rhythmExplorer', 'polyrhythm', 'advanced'];
+const RHYTHM_SOUNDS = ['classicClick', 'drumKit'];
 
 const CELL_LEGEND = [
   ['accent', 'rhythm.cellBass'],
@@ -21,15 +25,23 @@ const CELL_LEGEND = [
 const Exercise4 = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('rhythmExplorer');
+  const remembered = readLastState('rhythm', 1, {
+    activeTab: 'rhythmExplorer', bpm: 90, soundSet: 'classicClick',
+  });
+  const [activeTab, setActiveTab] = useState(
+    RHYTHM_TABS.includes(remembered.activeTab) ? remembered.activeTab : 'rhythmExplorer'
+  );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Shared playback state
-  const [sharedBpm, setBpm] = useState(90);
+  // Shared controls. Playback always starts stopped, even if they left mid-play.
+  const [sharedBpm, setBpm] = useState(clampTempo(remembered.bpm));
   const setSharedBpm = value => setBpm(clampTempo(value));
   const [sharedIsPlaying, setSharedIsPlaying] = useState(false);
-  const [sharedSoundSet, setSharedSoundSet] = useState('classicClick');
+  const [sharedSoundSet, setSharedSoundSet] = useState(
+    RHYTHM_SOUNDS.includes(remembered.soundSet) ? remembered.soundSet : 'classicClick'
+  );
   const [tapTimes, setTapTimes] = useState([]);
+  useRemember('rhythm', 1, { activeTab, bpm: sharedBpm, soundSet: sharedSoundSet });
 
   // Refs to tab component methods
   const rhythmExplorerRef = React.useRef(null);

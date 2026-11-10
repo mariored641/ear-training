@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './FeedbackPage.css';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 // ─── Utilities ────────────────────────────────────────────────
 
@@ -424,12 +425,14 @@ const YouTubePip = ({ youtubeId }) => {
 const PrepScreen = ({ onContinue }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [url, setUrl] = useState('');
+  const remembered = readLastState('feedback-prep', 1, { url: '', diagramUrl: '', diagramTab: 'file' });
+  const [url, setUrl] = useState(remembered.url || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [diagramFile, setDiagramFile] = useState(null);
-  const [diagramUrl, setDiagramUrl] = useState('');
-  const [diagramTab, setDiagramTab] = useState('file');
+  const [diagramUrl, setDiagramUrl] = useState(remembered.diagramUrl || '');
+  const [diagramTab, setDiagramTab] = useState(remembered.diagramTab === 'url' ? 'url' : 'file');
+  useRemember('feedback-prep', 1, { url, diagramUrl, diagramTab });
 
   const handleContinue = async () => {
     const id = extractYouTubeId(url.trim());

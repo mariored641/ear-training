@@ -25,6 +25,7 @@ import {
 } from '../../constants/rhythmTrainingDefaults';
 import './RhythmTraining.css';
 import { formatNoteName } from '../../i18n/musicTerms';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const TABS = [
   { id: 'dictation',    label: 'Rhythm Dictation', sub: 'הכתבה קצבית' },
@@ -50,10 +51,16 @@ const NUM_BARS_LABELS = { 1: 'תיבה 1', 2: '2 תיבות', 4: '4 תיבות' 
 export default function RhythmTraining() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('dictation');
-  const [settings, setSettings] = useState(DEFAULT_RHYTHM_TRAINING_SETTINGS);
+  const remembered = readLastState('rhythm-training', 1, {
+    activeTab: 'dictation',
+    settings: DEFAULT_RHYTHM_TRAINING_SETTINGS,
+    activeLevel: String(DEFAULT_RHYTHM_TRAINING_SETTINGS.level),
+  });
+  const [activeTab, setActiveTab] = useState(remembered.activeTab === 'callResponse' ? 'callResponse' : 'dictation');
+  const [settings, setSettings] = useState({ ...DEFAULT_RHYTHM_TRAINING_SETTINGS, ...(remembered.settings || {}) });
   const [exerciseActive, setExerciseActive] = useState(false);
-  const [activeLevel, setActiveLevel] = useState(() => String(DEFAULT_RHYTHM_TRAINING_SETTINGS.level));
+  const [activeLevel, setActiveLevel] = useState(String(remembered.activeLevel || settings.level));
+  useRemember('rhythm-training', 1, { activeTab, settings, activeLevel });
 
   useAudioCleanup(rhythmAudio);
 

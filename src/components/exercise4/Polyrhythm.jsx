@@ -4,16 +4,23 @@ import { DEFAULT_POLYRHYTHM, CELL_STATES, POLYRHYTHM_PRESETS } from '../../const
 import { createRow, resizeRow, polyrhythmPattern } from '../../utils/rhythm/patterns';
 import useRhythmPlayback from './useRhythmPlayback';
 import CellIcon from './CellIcon';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const stateOrder = [CELL_STATES.ACCENT, CELL_STATES.NORMAL, CELL_STATES.SOFT, CELL_STATES.MUTE];
 const nextState = state => stateOrder[(stateOrder.indexOf(state) + 1) % stateOrder.length];
 
 const Polyrhythm = forwardRef(({ sharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const { t } = useTranslation();
-  const nextId = useRef(2);
-  const [rows, setRows] = useState(() => [
-    createRow(0, DEFAULT_POLYRHYTHM.top.count), createRow(1, DEFAULT_POLYRHYTHM.bottom.count),
-  ]);
+  const [rows, setRows] = useState(() => {
+    const saved = readLastState('rhythm-polyrhythm', 1, { rows: null });
+    const restored = Array.isArray(saved.rows) && saved.rows.length
+      && saved.rows.every(row => row && Array.isArray(row.cells) && row.cells.length);
+    return restored
+      ? saved.rows
+      : [createRow(0, DEFAULT_POLYRHYTHM.top.count), createRow(1, DEFAULT_POLYRHYTHM.bottom.count)];
+  });
+  const nextId = useRef(Math.max(0, ...rows.map(row => Number(row.id) || 0)) + 1);
+  useRemember('rhythm-polyrhythm', 1, { rows });
   const pattern = useMemo(() => polyrhythmPattern(rows), [rows]);
   const { currentCells, playbackError, handlePlayStop } = useRhythmPlayback(
     pattern, sharedBpm, sharedSoundSet, sharedIsPlaying, setSharedIsPlaying,

@@ -12,15 +12,25 @@ import { getAllPresets, savePreset } from '../../utils/presetManager';
 import CellIcon from './CellIcon';
 import useRhythmPlayback from './useRhythmPlayback';
 import { sequentialPattern } from '../../utils/rhythm/patterns';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet, setSharedSoundSet }, ref) => {
   const { t } = useTranslation();
-  const [beats, setBeats] = useState(DEFAULT_RHYTHM_EXPLORER.beats);
-  const [subdivision, setSubdivision] = useState(DEFAULT_RHYTHM_EXPLORER.subdivision);
+  const remembered = readLastState('rhythm-explorer', 1, {
+    beats: DEFAULT_RHYTHM_EXPLORER.beats,
+    subdivision: DEFAULT_RHYTHM_EXPLORER.subdivision,
+    timeSignature: DEFAULT_RHYTHM_EXPLORER.timeSignature,
+    grid: [],
+  });
+  const [beats, setBeats] = useState(Number(remembered.beats) || DEFAULT_RHYTHM_EXPLORER.beats);
+  const [subdivision, setSubdivision] = useState(Number(remembered.subdivision) || DEFAULT_RHYTHM_EXPLORER.subdivision);
   const bpm = sharedBpm;
   const setBpm = setSharedBpm;
-  const [timeSignature, setTimeSignature] = useState(DEFAULT_RHYTHM_EXPLORER.timeSignature);
-  const [grid, setGrid] = useState([]);
+  const [timeSignature, setTimeSignature] = useState(
+    TIME_SIGNATURES.includes(remembered.timeSignature) ? remembered.timeSignature : DEFAULT_RHYTHM_EXPLORER.timeSignature
+  );
+  const [grid, setGrid] = useState(Array.isArray(remembered.grid) ? remembered.grid : []);
+  useRemember('rhythm-explorer', 1, { beats, subdivision, timeSignature, grid });
   const isPlaying = sharedIsPlaying;
   const setIsPlaying = setSharedIsPlaying;
   const [showSubdivisionModal, setShowSubdivisionModal] = useState(false);
