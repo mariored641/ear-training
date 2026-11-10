@@ -17,6 +17,7 @@ import {
 import { useReactiveSession } from './useReactiveSession';
 import './ReactiveExercise.css';
 import { formatNoteName } from '../../../i18n/musicTerms';
+import { readLastState, useRemember } from '../../../utils/lastState';
 
 function formatTime(sec) {
   if (sec == null) return '∞';
@@ -44,10 +45,17 @@ const ReactiveExercise = ({ mode, exerciseId }) => {
     // clamp to available tier count for this mode
     return Math.min(stored, tiers.length);
   });
-  const [sound, setSound] = useState(SOUNDS[0].id);
-  const [chordDuration, setChordDuration] = useState(DEFAULT_CHORD_DURATION);
-  const [sessionMinutes, setSessionMinutes] = useState(DEFAULT_SESSION_MINUTES);
-  const [diatonicKey, setDiatonicKey] = useState('random');
+  const remembered = readLastState(`exercise-${exerciseId}`, 1, {
+    sound: SOUNDS[0].id,
+    chordDuration: DEFAULT_CHORD_DURATION,
+    sessionMinutes: DEFAULT_SESSION_MINUTES,
+    diatonicKey: 'random',
+  });
+  const [sound, setSound] = useState(remembered.sound || SOUNDS[0].id);
+  const [chordDuration, setChordDuration] = useState(Number(remembered.chordDuration) || DEFAULT_CHORD_DURATION);
+  const [sessionMinutes, setSessionMinutes] = useState(Number(remembered.sessionMinutes) || DEFAULT_SESSION_MINUTES);
+  const [diatonicKey, setDiatonicKey] = useState(remembered.diatonicKey || 'random');
+  useRemember(`exercise-${exerciseId}`, 1, { sound, chordDuration, sessionMinutes, diatonicKey });
 
   const tier = tierIdByNumber(currentLevel, mode);
 

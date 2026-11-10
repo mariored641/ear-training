@@ -10,6 +10,7 @@ import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
 import { loadStoredLevel } from '../shared/LevelNavigator';
 import { useStoredState } from '../shared/useStoredState';
+import { readLastState, useRemember } from '../../../utils/lastState';
 import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { CHORD_DEFINITIONS, EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
@@ -118,9 +119,11 @@ const ExerciseF2 = () => {
   const localizedLevel = t(`earTraining.levels.F2.${level}`, {
     defaultValue: LEVELS.find(l => l.number === level)?.label
   });
-  const [numQuestions, setNumQuestions] = useState(8);
-  const [displayMode, setDisplayMode]  = useState('degrees');
-  const [key, setKey]                  = useState('C');
+  const remembered = readLastState('exercise-f2', 1, { numQuestions: 8, displayMode: 'degrees', key: 'C' });
+  const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 8);
+  const [displayMode, setDisplayMode]  = useState(remembered.displayMode || 'degrees');
+  const [key, setKey]                  = useState(remembered.key || 'C');
+  useRemember('exercise-f2', 1, { numQuestions, displayMode, key });
   const [instrument, setInstrument]    = useStoredState('ear-training:F2:instrument', 'piano');
   const [reference, setReference]      = useStoredState('ear-training:F2:reference', 'cadence');
   const [seqLength, setSeqLength]      = useState(4);

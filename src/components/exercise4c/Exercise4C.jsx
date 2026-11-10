@@ -14,6 +14,7 @@ import {
   getChordRoot
 } from '../../constants/harmonicDefaults';
 import './Exercise4C.css';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const Exercise4C = () => {
   const { t } = useTranslation();
@@ -25,9 +26,11 @@ const Exercise4C = () => {
   const isMountedRef = useRef(true);
 
   // Settings
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS_4C);
-  const settingsRef = useRef(DEFAULT_SETTINGS_4C);
-  const [activeLevel, setActiveLevel] = useState('regular');
+  const remembered = readLastState('exercise-4c', 1, { settings: DEFAULT_SETTINGS_4C, activeLevel: 'regular' });
+  const [settings, setSettings] = useState({ ...DEFAULT_SETTINGS_4C, ...(remembered.settings || {}) });
+  const settingsRef = useRef(settings);
+  const [activeLevel, setActiveLevel] = useState(remembered.activeLevel || 'regular');
+  useRemember('exercise-4c', 1, { settings, activeLevel });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Session state

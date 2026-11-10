@@ -14,6 +14,7 @@ import {
 } from '../../constants/harmonicDefaults';
 import './Exercise4B.css';
 import { formatNoteName } from '../../i18n/musicTerms.js';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const Exercise4B = () => {
   const { t, i18n } = useTranslation();
@@ -25,9 +26,11 @@ const Exercise4B = () => {
   const isMountedRef = useRef(true);
 
   // Settings
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS_4B);
-  const settingsRef = useRef(DEFAULT_SETTINGS_4B);
-  const [activeLevel, setActiveLevel] = useState('regular');
+  const remembered = readLastState('exercise-4b', 1, { settings: DEFAULT_SETTINGS_4B, activeLevel: 'regular' });
+  const [settings, setSettings] = useState({ ...DEFAULT_SETTINGS_4B, ...(remembered.settings || {}) });
+  const settingsRef = useRef(settings);
+  const [activeLevel, setActiveLevel] = useState(remembered.activeLevel || 'regular');
+  useRemember('exercise-4b', 1, { settings, activeLevel });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Session state

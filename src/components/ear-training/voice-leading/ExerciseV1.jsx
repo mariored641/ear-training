@@ -7,6 +7,7 @@ import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
 import BinaryToggle from '../shared/BinaryToggle';
 import { loadStoredLevel } from '../shared/LevelNavigator';
+import { readLastState, useRemember } from '../../../utils/lastState';
 import { useStoredState } from '../shared/useStoredState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import '../shared/earTrainingShared.css';
@@ -179,7 +180,9 @@ const ExerciseV1 = () => {
   });
   const [instrument, setInstrument]    = useStoredState('ear-training:V1:instrument', 'piano');
   const [reference, setReference]      = useStoredState('ear-training:V1:reference', 'cadence');
-  const [numQuestions, setNumQuestions] = useState(10);
+  const remembered = readLastState('exercise-v1', 1, { numQuestions: 10 });
+  const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
+  useRemember('exercise-v1', 1, { numQuestions });
   const [questionIndex, setQuestionIndex] = useState(0);
   const [question, setQuestion]        = useState(null);
   const [answered, setAnswered]        = useState(null);

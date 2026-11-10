@@ -7,6 +7,7 @@ import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { chordAtDegree } from '../../../constants/cadenceDefinitions';
 import { EXTENDED_CHORDS, CHORD_DEFINITIONS } from '../../../constants/harmonicDefaults';
+import { readLastState, useRemember } from '../../../utils/lastState';
 
 // ── Levels — per spec.md lines 423-431 ────────────────────────────────────
 const LEVELS = [
@@ -45,7 +46,9 @@ function resolveChord(name) {
 }
 
 const ExerciseF0 = () => {
-  const [key, setKey]             = useState('C');
+  const remembered = readLastState('exercise-f0', 1, { key: 'C' });
+  const [key, setKey]             = useState(remembered.key || 'C');
+  useRemember('exercise-f0', 1, { key });
   const [instrument, setInstrument] = useStoredState('ear-training:F0:instrument', 'piano');
   const [reference, setReference]   = useStoredState('ear-training:F0:reference', 'cadence');
 

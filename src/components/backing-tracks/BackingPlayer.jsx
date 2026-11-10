@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { readLastState, useRemember } from '../../utils/lastState'
 import { useTranslation } from 'react-i18next'
 import { useBackingTrackEngine, GENRE_CATALOG } from './useBackingTrackEngine.js'
 import { ChordProgressionEditor } from './ChordProgressionEditor.jsx'
@@ -290,13 +291,19 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
 
   // Polyscale state lives in BackingPlayer so the popup-on-popup can edit it
   // while LiveFretboard reads & applies it.
-  const [polyscaleState, setPolyscaleState] = useState({ enabled: false, map: {} })
+  const rememberedPoly = readLastState('backing-polyscale', 1, { enabled: false, map: {} })
+  const [polyscaleState, setPolyscaleState] = useState({
+    enabled: Boolean(rememberedPoly.enabled),
+    map: rememberedPoly.map && typeof rememberedPoly.map === 'object' ? rememberedPoly.map : {},
+  })
+  useRemember('backing-polyscale', 1, polyscaleState)
 
-  // Practice config (local state, synced to engine)
-  const [practiceConfig, setPracticeConfigLocal] = useState({
+  const rememberedPractice = readLastState('backing-practice', 1, {
     tempoEnabled: false, tempoAmount: 5, tempoEvery: 1,
     transposeEnabled: false, transposeSemitones: 1, transposeEvery: 1,
   })
+  const [practiceConfig, setPracticeConfigLocal] = useState(rememberedPractice)
+  useRemember('backing-practice', 1, practiceConfig)
 
   const chordLayerRef = useRef(null)
   const dockRef = useRef(null)
@@ -313,6 +320,9 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     ro.observe(dockRef.current)
     return () => ro.disconnect()
   }, [])
+
+  // Restored practice settings reach the engine without starting playback.
+  useEffect(() => { setPracticeConfig(practiceConfig) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync practice config to engine
   const handlePracticeChange = useCallback((newConfig) => {

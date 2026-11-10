@@ -12,10 +12,15 @@ import { getAllPresets, savePreset } from '../../utils/presetManager';
 import CellIcon from './CellIcon';
 import useRhythmPlayback from './useRhythmPlayback';
 import { sequentialPattern } from '../../utils/rhythm/patterns';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const { t } = useTranslation();
-  const [beats, setBeats] = useState([]);
+  const [beats, setBeats] = useState(() => {
+    const saved = readLastState('rhythm-advanced', 1, { beats: [] });
+    return Array.isArray(saved.beats) ? saved.beats : [];
+  });
+  useRemember('rhythm-advanced', 1, { beats });
   const bpm = sharedBpm;
   const setBpm = setSharedBpm;
   const isPlaying = sharedIsPlaying;
@@ -28,9 +33,11 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
   const [globalPassword, setGlobalPassword] = useState('');
   const [saveError, setSaveError] = useState('');
 
-  // Initialize beats
+  // Initialize beats only when there is nothing remembered.
   useEffect(() => {
-    initializeBeats();
+    if (beats.length === 0) initializeBeats();
+    // The default pattern is a one-time fallback, not a reset on later edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeBeats = () => {

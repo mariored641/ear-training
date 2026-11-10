@@ -14,6 +14,10 @@ import {
 } from '../../utils/partialChordShapes';
 import './PartialChordsTab.css';
 import { formatNoteName } from '../../i18n/musicTerms';
+import { readLastState, useRemember } from '../../utils/lastState';
+import { deleteLocalPreset, getLocalPresets, savePreset } from '../../utils/presetManager';
+
+const PARTIAL_PRESET_TYPE = 'partial_chords';
 
 const ROOT_OPTIONS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const WIDTH_OPTIONS = [3, 4, 5, 6];
@@ -54,12 +58,58 @@ function setIdxForWidth(currentSetIdx, newWidth) {
 
 function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiveIdxChange }) {
   const { t, i18n } = useTranslation();
-  const [builderRoot, setBuilderRoot] = useState('A');
-  const [builderQuality, setBuilderQuality] = useState('minor');
-  const [displayMode, setDisplayMode] = useState('tones');
-  const [targetFret, setTargetFret] = useState(5);
-  const [width, setWidth] = useState(3);
+  const remembered = readLastState('positions-partial-builder', 1, {
+    builderRoot: 'A', builderQuality: 'minor', displayMode: 'tones', targetFret: 5, width: 3,
+  });
+  const [builderRoot, setBuilderRoot] = useState(remembered.builderRoot || 'A');
+  const [builderQuality, setBuilderQuality] = useState(remembered.builderQuality || 'minor');
+  const [displayMode, setDisplayMode] = useState(remembered.displayMode || 'tones');
+  const [targetFret, setTargetFret] = useState(Number(remembered.targetFret) || 5);
+  const [width, setWidth] = useState(Number(remembered.width) || 3);
   const [isQualityModalOpen, setIsQualityModalOpen] = useState(false);
+  const [presets, setPresets] = useState(() => getLocalPresets(PARTIAL_PRESET_TYPE));
+  const [pickedId, setPickedId] = useState('');
+  const [naming, setNaming] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  useRemember('positions-partial-builder', 1, { builderRoot, builderQuality, displayMode, targetFret, width });
+
+  const refreshPresets = () => setPresets(getLocalPresets(PARTIAL_PRESET_TYPE));
+
+  const handleSavePreset = async () => {
+    const name = presetName.trim();
+    if (!name) return;
+    const result = await savePreset(PARTIAL_PRESET_TYPE, {
+      name, progression, activeIdx, builderRoot, builderQuality, displayMode, targetFret, width,
+    });
+    if (result.success) {
+      refreshPresets();
+      setPickedId(result.preset.id);
+      setPresetName('');
+      setNaming(false);
+    }
+  };
+
+  const handlePickPreset = (id) => {
+    setPickedId(id);
+    const preset = presets.find(item => item.id === id);
+    if (!preset) return;
+    onProgressionChange(Array.isArray(preset.progression) ? preset.progression : []);
+    onActiveIdxChange(Number.isInteger(preset.activeIdx) ? preset.activeIdx : 0);
+    if (preset.builderRoot) setBuilderRoot(preset.builderRoot);
+    if (preset.builderQuality) setBuilderQuality(preset.builderQuality);
+    if (preset.displayMode) setDisplayMode(preset.displayMode);
+    if (preset.targetFret) setTargetFret(preset.targetFret);
+    if (preset.width) setWidth(preset.width);
+  };
+
+  const handleDeletePreset = () => {
+    const preset = presets.find(item => item.id === pickedId);
+    if (!preset) return;
+    if (!window.confirm(t('backing.deleteProgression', { name: preset.name }))) return;
+    deleteLocalPreset(PARTIAL_PRESET_TYPE, preset.id);
+    setPickedId('');
+    refreshPresets();
+  };
 
   const handleAdd = useCallback(() => {
     const { cagedIdx, setIdx } = findBestShapeForFret(builderRoot, builderQuality, targetFret, width);
@@ -168,6 +218,44 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
           </div>
         </div>
 
+        <div className="pct-presets">
+          <select
+            className="pct-select pct-preset-select"
+            aria-label={t('rhythm.loadPreset')}
+            value={pickedId}
+            onChange={(event) => handlePickPreset(event.target.value)}
+          >
+            <option value="">{t('rhythm.loadPreset')}</option>
+            {presets.map(preset => (
+              <option key={preset.id} value={preset.id}>{preset.name}</option>
+            ))}
+          </select>
+          {naming ? (
+            <>
+              <input
+                className="pct-preset-name"
+                value={presetName}
+                placeholder={t('rhythm.enterPresetName')}
+                aria-label={t('rhythm.presetName')}
+                onChange={(event) => setPresetName(event.target.value)}
+                onKeyDown={(event) => { if (event.key === 'Enter') handleSavePreset(); }}
+              />
+              <button type="button" className="pct-add-btn" onClick={handleSavePreset} disabled={!presetName.trim()}>
+                {t('common.save')}
+              </button>
+              <button type="button" className="pct-clear-btn" onClick={() => { setNaming(false); setPresetName(''); }}>
+                {t('common.cancel')}
+              </button>
+            </>
+          ) : (
+            <button type="button" className="pct-add-btn" onClick={() => setNaming(true)}>
+              {t('rhythm.savePreset')}
+            </button>
+          )}
+          <button type="button" className="pct-clear-btn" onClick={handleDeletePreset} disabled={!pickedId}>
+            {t('common.delete')}
+          </button>
+        </div>
         <button className="pct-add-btn" onClick={handleAdd}>+ {t('common.add')}</button>
         <button className="pct-clear-btn" onClick={handleClear} disabled={progression.length === 0}>
           {t('common.clear')}

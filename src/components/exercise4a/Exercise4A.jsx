@@ -12,6 +12,7 @@ import {
   CHORD_DEFINITIONS
 } from '../../constants/harmonicDefaults';
 import './Exercise4A.css';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const Exercise4A = () => {
   const { t } = useTranslation();
@@ -25,8 +26,10 @@ const Exercise4A = () => {
   const currentQuestionAttemptsRef = useRef(0);
 
   // Settings
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS_4A);
-  const [activeLevel, setActiveLevel] = useState('regular');
+  const remembered = readLastState('exercise-4a', 1, { settings: DEFAULT_SETTINGS_4A, activeLevel: 'regular' });
+  const [settings, setSettings] = useState({ ...DEFAULT_SETTINGS_4A, ...(remembered.settings || {}) });
+  const [activeLevel, setActiveLevel] = useState(remembered.activeLevel || 'regular');
+  useRemember('exercise-4a', 1, { settings, activeLevel });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Session state

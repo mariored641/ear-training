@@ -8,6 +8,7 @@ import QuestionsCounter from '../shared/QuestionsCounter';
 import BinaryToggle from '../shared/BinaryToggle';
 import { loadStoredLevel } from '../shared/LevelNavigator';
 import { useStoredState } from '../shared/useStoredState';
+import { readLastState, useRemember } from '../../../utils/lastState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
 import { getChordLabel, TERMINOLOGY_TOGGLE_OPTIONS } from '../../../constants/chordTerminology';
@@ -86,12 +87,14 @@ const ExerciseH1 = () => {
 
   const [level, setLevel]              = useState(() => loadStoredLevel(storageKey, 1));
   const [instrument, setInstrument]    = useStoredState('ear-training:H1:instrument', 'piano');
-  const [voicing, setVoicing]          = useState('strummed');
+  const remembered = readLastState('exercise-h1', 1, { voicing: 'strummed', numQuestions: 10 });
+  const [voicing, setVoicing]          = useState(remembered.voicing || 'strummed');
   const [termMode, setTermMode]        = useStoredState('ear-training:H1:termMode', 'hebrew');
   const displayTermMode = (i18n.resolvedLanguage || i18n.language) === 'en' && termMode === 'hebrew'
     ? 'english'
     : termMode;
-  const [numQuestions, setNumQuestions] = useState(10);
+  const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
+  useRemember('exercise-h1', 1, { voicing, numQuestions });
   const [questionIndex, setQuestionIndex] = useState(0);
   const [question, setQuestion]        = useState(null);
   const [feedback, setFeedback]        = useState(null);

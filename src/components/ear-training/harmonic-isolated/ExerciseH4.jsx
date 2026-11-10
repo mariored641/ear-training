@@ -8,6 +8,7 @@ import QuestionsCounter from '../shared/QuestionsCounter';
 import BinaryToggle from '../shared/BinaryToggle';
 import ChipSelector from '../shared/ChipSelector';
 import { loadStoredLevel } from '../shared/LevelNavigator';
+import { readLastState, useRemember } from '../../../utils/lastState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import '../shared/earTrainingShared.css';
 
@@ -75,7 +76,9 @@ const ExerciseH4 = () => {
   const localizedLevel = t(`earTraining.levels.H4.${level}`, {
     defaultValue: LEVELS.find(l => l.number === level)?.label
   });
-  const [numQuestions, setNumQuestions] = useState(10);
+  const remembered = readLastState('exercise-h4', 1, { numQuestions: 10 });
+  const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
+  useRemember('exercise-h4', 1, { numQuestions });
   const [instrument, setInstrument] = useState(
     () => localStorage.getItem('ear-training:H4:instrument') || 'piano'
   );

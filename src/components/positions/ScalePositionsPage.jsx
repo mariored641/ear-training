@@ -12,6 +12,9 @@ import { generateFretboardNotes } from '../../utils/positionCalculations';
 import { ROOT_DISPLAY_NAMES } from '../../utils/enharmonicUtils';
 import './ScalePositionsPage.css';
 import { formatNoteName } from '../../i18n/musicTerms';
+import { readLastState, useRemember } from '../../utils/lastState';
+
+const POSITION_TABS = ['positions', 'arpeggios', 'allscales', 'partialchords'];
 
 const MAX_ACTIVE_ARPEGGIOS = 3;
 
@@ -35,19 +38,41 @@ const ScalePositionsPage = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
-  const [selectedRoot, setSelectedRoot] = useState('A');
-  const [selectedType, setSelectedType] = useState('minor');
-  const [selectedPositions, setSelectedPositions] = useState([]);
-  const [showAll, setShowAll] = useState(false);
-  const [displayMode, setDisplayMode] = useState('dots');
-  const [showPentatonic, setShowPentatonic] = useState(false);
-  const [noteLang, setNoteLang] = useState('latin');
+  const remembered = readLastState('positions', 1, {
+    selectedRoot: 'A',
+    selectedType: 'minor',
+    selectedPositions: [],
+    showAll: false,
+    displayMode: 'dots',
+    showPentatonic: false,
+    noteLang: 'latin',
+    activeTab: 'positions',
+    activeArpeggios: [],
+    hideRoots: false,
+  });
+  const [selectedRoot, setSelectedRoot] = useState(remembered.selectedRoot || 'A');
+  const [selectedType, setSelectedType] = useState(remembered.selectedType === 'major' ? 'major' : 'minor');
+  const [selectedPositions, setSelectedPositions] = useState(
+    Array.isArray(remembered.selectedPositions) ? remembered.selectedPositions : []
+  );
+  const [showAll, setShowAll] = useState(Boolean(remembered.showAll));
+  const [displayMode, setDisplayMode] = useState(remembered.displayMode || 'dots');
+  const [showPentatonic, setShowPentatonic] = useState(Boolean(remembered.showPentatonic));
+  const [noteLang, setNoteLang] = useState(remembered.noteLang || 'latin');
   const [isQuickRefOpen, setIsQuickRefOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('positions');
+  const [activeTab, setActiveTab] = useState(
+    POSITION_TABS.includes(remembered.activeTab) ? remembered.activeTab : 'positions'
+  );
 
   // Arpeggio tab state
-  const [activeArpeggios, setActiveArpeggios] = useState([]);
-  const [hideRoots, setHideRoots] = useState(false);
+  const [activeArpeggios, setActiveArpeggios] = useState(
+    Array.isArray(remembered.activeArpeggios) ? remembered.activeArpeggios.slice(0, MAX_ACTIVE_ARPEGGIOS) : []
+  );
+  const [hideRoots, setHideRoots] = useState(Boolean(remembered.hideRoots));
+  useRemember('positions', 1, {
+    selectedRoot, selectedType, selectedPositions, showAll, displayMode,
+    showPentatonic, noteLang, activeTab, activeArpeggios, hideRoots,
+  });
 
   // Partial Chords tab state — restored from localStorage so a student's
   // in-progress chords survive closing the tab/app (no backend needed).

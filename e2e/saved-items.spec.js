@@ -72,7 +72,9 @@ test('advanced subdivision presets survive reload', async ({ page }) => {
   await wipeCaches(page);
   await page.reload();
   await page.getByRole('button', { name: 'Advanced Subdivisions' }).click();
-  await expect(page.locator('select.division-select').first()).toHaveValue('1');
+  // Last-state brings the page back as it was left, before any preset is loaded.
+  await expect(page.locator('select.division-select').first()).toHaveValue('3');
+  await page.locator('select.division-select').first().selectOption('1');
   await page.getByRole('button', { name: 'Load Preset' }).click();
   await expect(page.getByText('Triplet study')).toBeVisible();
   await page.screenshot({ path: `${OUT}/saved-advanced-picker-desktop.png` });

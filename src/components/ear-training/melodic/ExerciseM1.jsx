@@ -8,6 +8,7 @@ import QuestionsCounter from '../shared/QuestionsCounter';
 import BinaryToggle from '../shared/BinaryToggle';
 import ChipSelector from '../shared/ChipSelector';
 import { loadStoredLevel } from '../shared/LevelNavigator';
+import { readLastState, useRemember } from '../../../utils/lastState';
 import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import '../shared/earTrainingShared.css';
@@ -108,13 +109,17 @@ const ExerciseM1 = () => {
   const storageKey = 'ear-training:M1:level';
 
   const [level, setLevelRaw] = useState(() => loadStoredLevel(storageKey, 1));
-  const [numQuestions, setNumQuestions] = useState(10);
-  const [displayMode, setDisplayMode] = useState('degrees');
+  const remembered = readLastState('exercise-m1', 1, {
+    numQuestions: 10, displayMode: 'degrees', reference: null, activeChips: [],
+  });
+  const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
+  const [displayMode, setDisplayMode] = useState(remembered.displayMode || 'degrees');
   const [instrument, setInstrument] = useState(
     () => localStorage.getItem('ear-training:M1:instrument') || 'piano'
   );
-  const [reference, setReference] = useState(null); // null = use defaultRef
-  const [activeChips, setActiveChips] = useState([]);
+  const [reference, setReference] = useState(remembered.reference ?? null);
+  const [activeChips, setActiveChips] = useState(Array.isArray(remembered.activeChips) ? remembered.activeChips : []);
+  useRemember('exercise-m1', 1, { numQuestions, displayMode, reference, activeChips });
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [correctNote, setCorrectNote] = useState(null);

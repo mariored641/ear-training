@@ -14,6 +14,7 @@ import { CHROMATIC_SCALE } from '../../constants/positionData';
 import { buildEnharmonicDisplayMap, buildDefaultDisplayMap } from '../../utils/enharmonicUtils';
 import './AllScalesTab.css';
 import { formatNoteName } from '../../i18n/musicTerms';
+import { readLastState, useRemember } from '../../utils/lastState';
 
 const HIGHLIGHT_PALETTE = ['#FFC107', '#E91E8C', '#00BCD4', '#76FF03', '#FF5722', '#9C27B0'];
 const OVERLAY_COLORS    = ['#E91E8C', '#FFC107', '#00BCD4', '#76FF03'];
@@ -33,17 +34,29 @@ const AllScalesTab = () => {
   const { t, i18n } = useTranslation();
   const itemName = (item) => t(`positions.musicItems.${item.id}`, { defaultValue: item.name });
   const categoryName = (category) => t(`positions.musicCategories.${category.id}`, { defaultValue: category.label });
-  const [selectedRoot, setSelectedRoot]     = useState('A');
-  const [selectedId, setSelectedId]         = useState(null);   // scale or chord id
-  const [activeNotes, setActiveNotes]       = useState(new Set()); // pitch class set
-  const [displayMode, setDisplayMode]       = useState('notes');
-  const [noteLang, setNoteLang]             = useState('latin');
-  const [highlightColors, setHighlightColors] = useState({});    // { noteName: colorHex }
+  const remembered = readLastState('positions-all-scales', 1, {
+    selectedRoot: 'A', selectedId: null, activeNotes: [], displayMode: 'notes',
+    noteLang: 'latin', highlightColors: {}, fretRangeStart: null, fretRangeEnd: null,
+    activeStrings: null, overlays: [],
+  });
+  const [selectedRoot, setSelectedRoot]     = useState(remembered.selectedRoot || 'A');
+  const [selectedId, setSelectedId]         = useState(remembered.selectedId || null);
+  const [activeNotes, setActiveNotes]       = useState(() => new Set(Array.isArray(remembered.activeNotes) ? remembered.activeNotes : []));
+  const [displayMode, setDisplayMode]       = useState(remembered.displayMode || 'notes');
+  const [noteLang, setNoteLang]             = useState(remembered.noteLang || 'latin');
+  const [highlightColors, setHighlightColors] = useState(remembered.highlightColors && typeof remembered.highlightColors === 'object' ? remembered.highlightColors : {});
   const [colorPickerNote, setColorPickerNote] = useState(null);
-  const [fretRangeStart, setFretRangeStart] = useState(null);
-  const [fretRangeEnd, setFretRangeEnd]     = useState(null);
-  const [activeStrings, setActiveStrings]   = useState(null); // Set<number> | null
-  const [overlays, setOverlays]             = useState([]);      // chord overlays
+  const [fretRangeStart, setFretRangeStart] = useState(remembered.fretRangeStart ?? null);
+  const [fretRangeEnd, setFretRangeEnd]     = useState(remembered.fretRangeEnd ?? null);
+  const [activeStrings, setActiveStrings]   = useState(() => (
+    Array.isArray(remembered.activeStrings) ? new Set(remembered.activeStrings) : null
+  ));
+  const [overlays, setOverlays]             = useState(Array.isArray(remembered.overlays) ? remembered.overlays : []);
+  useRemember('positions-all-scales', 1, {
+    selectedRoot, selectedId, activeNotes: [...activeNotes], displayMode, noteLang,
+    highlightColors, fretRangeStart, fretRangeEnd,
+    activeStrings: activeStrings ? [...activeStrings] : null, overlays,
+  });
 
   // ── Scale/Chord selector ────────────────────────────────────
   const handleScaleChange = useCallback((id) => {

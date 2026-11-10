@@ -7,6 +7,7 @@ import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
 import BinaryToggle from '../shared/BinaryToggle';
 import { loadStoredLevel } from '../shared/LevelNavigator';
+import { readLastState, useRemember } from '../../../utils/lastState';
 import AllScalesFretboard from '../../positions/AllScalesFretboard';
 import NoteIndicator from '../../exercise2/NoteIndicator';
 import AudioPlayer from '../../../utils/AudioPlayer';
@@ -68,9 +69,11 @@ const ExerciseG1 = () => {
   const localizedLevel = t(`earTraining.levels.G1.${level}`, {
     defaultValue: LEVELS.find(l => l.number === level)?.label
   });
-  const [numQuestions, setNumQuestions] = useState(10);
-  const [source, setSource]             = useState('random');
-  const [notation, setNotation]         = useState('ordered');
+  const remembered = readLastState('exercise-g1', 1, { numQuestions: 10, source: 'random', notation: 'ordered' });
+  const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
+  const [source, setSource]             = useState(remembered.source || 'random');
+  const [notation, setNotation]         = useState(remembered.notation || 'ordered');
+  useRemember('exercise-g1', 1, { numQuestions, source, notation });
 
   const [sessionState, setSessionState] = useState(initSession());
   const [feedback, setFeedback]         = useState(null);
