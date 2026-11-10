@@ -1,5 +1,6 @@
 import { melodyLibrary, noteEntities, guitarPositions } from '../constants/melodyLibrary';
 import { noteToMidi, calculateFretboardPosition, getNoteAtFret } from './fretboardCalculations';
+import i18n from '../i18n';
 
 /**
  * Gets a melody from library or generates random
@@ -74,7 +75,7 @@ export function generateRandomMelody(settings) {
     .filter(n => availableNotes[n]);
 
   if (availableStrings.length === 0 || noteNames.length === 0) {
-    throw new Error('No strings or notes available');
+    throw new Error(i18n.t('legacy.noStringsOrNotes'));
   }
 
   for (let i = 0; i < numNotes; i++) {
@@ -119,7 +120,7 @@ export function generateRandomMelody(settings) {
     }
 
     if (!validNote) {
-      throw new Error('Could not generate valid melody with current settings');
+      throw new Error(i18n.t('legacy.melodyGenerationFailed'));
     }
 
     melody.notes.push({
