@@ -77,7 +77,6 @@ Thumbs.db
 # Deferred / not yet reviewed for commit
 /test-results/
 /tests/
-playwright.config.js
 create-icons*.cjs
 create-icons*.mjs
 create_icons.py

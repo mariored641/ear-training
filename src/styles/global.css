@@ -40,6 +40,52 @@ input[type='email'] {
   min-height: 100vh;
 }
 
+/* The app is a dark workshop, but it never said so. Native form controls
+   therefore stay on the light color-scheme: Chromium paints them with black
+   FieldText even when the control background is wood-dark. That is black text
+   on the closed Rhythm division menu, and the same black text in the opened
+   native list (Android Chrome uses this scheme for its select dialog).
+   One declaration fixes every select, option list, and text field. */
+html {
+  color-scheme: dark;
+}
+
+select,
+select option,
+select optgroup {
+  background-color: var(--wood-deep, #2a1810);
+  color: var(--paper-cream, #f3e6c8);
+}
+
+/* Legacy white dropdowns (exercise 4b/4c settings). A dark scheme would
+   paint cream text on the white closed control. Keep those lists light. */
+select.select-input,
+select.select-input option,
+select.select-input optgroup {
+  color-scheme: light;
+  background-color: #ffffff;
+  color: #1a130a;
+}
+
+/* Text fields that only set a dark background were left with black FieldText.
+   Specificity stays at one element so a class (paper inputs, brass readouts)
+   can still choose its own ink. Widgets that are not text fields revert. */
+input,
+textarea {
+  color: var(--paper-cream, #f3e6c8);
+}
+
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'],
+input[type='color'],
+input[type='file'],
+input[type='button'],
+input[type='submit'],
+input[type='reset'] {
+  color: revert;
+}
+
 button {
   font-family: inherit;
 }
