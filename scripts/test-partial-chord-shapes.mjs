@@ -8,6 +8,20 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import assert from 'node:assert/strict';
+
+// Compare pitches: the display helper deliberately uses diatonic spellings.
+function pitch(note) {
+  const match = /^([A-G])([#b]*)$/.exec(note);
+  assert.ok(match, `Invalid note: ${note}`);
+  const natural = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[match[1]];
+  return (natural + [...match[2]].reduce((n, accidental) => n + (accidental === '#' ? 1 : -1), 0) + 24) % 12;
+}
+
+for (const [a, b] of [['A#', 'Bb'], ['E', 'Fb'], ['B', 'Cb'], ['F##', 'G']]) {
+  assert.equal(pitch(a), pitch(b));
+}
+assert.notEqual(pitch('C'), pitch('C#'));
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -40,7 +54,7 @@ function validate(cagedLetter, root, quality) {
     const absFret = barre + entry.fretOffset;
     const actualNote = getNoteAtFret(stringNum, absFret);
     const expectedNote = getNoteNameForTone(root, entry.tone);
-    if (actualNote !== expectedNote) {
+    if (pitch(actualNote) !== pitch(expectedNote)) {
       errors.push(
         `${root}${quality === 'minor' ? 'm' : ''}  ${cagedLetter}-shape  S${stringNum}: ` +
         `declared tone "${entry.tone}" (=${expectedNote})  →  actual note at ` +
