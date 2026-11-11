@@ -25,7 +25,7 @@ class RhythmAudioPlayer {
     }
     if (soundSet === 'drumKit' && !this.samplesPromise) {
       this.samplesPromise = Promise.all(['kick', 'snare', 'hihat'].map(async (name, index) => {
-        const audio = await Tone.ToneAudioBuffer.fromUrl(`https://tonejs.github.io/audio/drum-samples/acoustic-kit/${name}.mp3`);
+        const audio = await Tone.ToneAudioBuffer.fromUrl(`/audio/drum-kit/${name}.mp3`);
         this.buffers[['accent', 'normal', 'soft'][index]] = audio.get();
         audio.dispose();
       })).catch(error => {
