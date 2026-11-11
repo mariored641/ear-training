@@ -21,17 +21,15 @@ const MAX_ACTIVE_ARPEGGIOS = 3;
 const PARTIAL_CHORDS_STORAGE_KEY = 'earTraining:positions:partialChords';
 
 function loadPartialChordsFromStorage() {
+  let fallback = { progression: [], activeIdx: 0 };
   try {
-    const raw = localStorage.getItem(PARTIAL_CHORDS_STORAGE_KEY);
-    if (!raw) return { progression: [], activeIdx: 0 };
-    const parsed = JSON.parse(raw);
-    return {
+    const parsed = JSON.parse(localStorage.getItem(PARTIAL_CHORDS_STORAGE_KEY));
+    if (parsed) fallback = {
       progression: Array.isArray(parsed.progression) ? parsed.progression : [],
       activeIdx: Number.isInteger(parsed.activeIdx) ? parsed.activeIdx : 0,
     };
-  } catch {
-    return { progression: [], activeIdx: 0 };
-  }
+  } catch {}
+  return readLastState('positions-partial-sequence', 1, fallback);
 }
 
 const ScalePositionsPage = () => {
@@ -83,16 +81,7 @@ const ScalePositionsPage = () => {
     () => loadPartialChordsFromStorage().activeIdx
   );
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        PARTIAL_CHORDS_STORAGE_KEY,
-        JSON.stringify({ progression: partialChordsProgression, activeIdx: activePartialChordIdx })
-      );
-    } catch {
-      // localStorage unavailable (private browsing, quota) — silently skip persistence
-    }
-  }, [partialChordsProgression, activePartialChordIdx]);
+  useRemember('positions-partial-sequence', 1, { progression: partialChordsProgression, activeIdx: activePartialChordIdx });
 
   const fretboardNotes = useMemo(
     () => generateFretboardNotes(selectedRoot, selectedType, selectedPositions, showAll),

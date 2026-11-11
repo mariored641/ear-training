@@ -1,25 +1,8 @@
-import { useState, useCallback } from 'react';
+import { usePersistentState } from '../../../utils/lastState';
 
-/**
- * State hook that persists string values to localStorage.
- * Returns [value, setValue] like useState. setValue writes through to storage.
- */
+/** Migrate legacy string settings without changing their existing storage. */
 export function useStoredState(storageKey, defaultValue) {
-  const [val, setVal] = useState(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      return stored !== null ? stored : defaultValue;
-    } catch {
-      return defaultValue;
-    }
-  });
-
-  const setStored = useCallback((v) => {
-    setVal(v);
-    try {
-      localStorage.setItem(storageKey, String(v));
-    } catch {}
-  }, [storageKey]);
-
-  return [val, setStored];
+  let fallback = defaultValue;
+  try { fallback = localStorage.getItem(storageKey) ?? defaultValue; } catch {}
+  return usePersistentState('ear-settings', storageKey, fallback);
 }

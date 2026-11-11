@@ -10,7 +10,7 @@ import SessionSummary from '../shared/SessionSummary';
 import QuestionsCounter from '../shared/QuestionsCounter';
 import { loadStoredLevel } from '../shared/LevelNavigator';
 import { useStoredState } from '../shared/useStoredState';
-import { readLastState, useRemember } from '../../../utils/lastState';
+import { readLastState, useRemember, usePersistentState } from '../../../utils/lastState';
 import audioPlayer from '../../../utils/AudioPlayer';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { CHORD_DEFINITIONS, EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
@@ -126,7 +126,7 @@ const ExerciseF2 = () => {
   useRemember('exercise-f2', 1, { numQuestions, displayMode, key });
   const [instrument, setInstrument]    = useStoredState('ear-training:F2:instrument', 'piano');
   const [reference, setReference]      = useStoredState('ear-training:F2:reference', 'cadence');
-  const [seqLength, setSeqLength]      = useState(4);
+  const [seqLength, setSeqLength]      = usePersistentState('exercise-f2', 'seqLength', 4);
 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [progression, setProgression] = useState(null);
@@ -148,7 +148,7 @@ const ExerciseF2 = () => {
     if (harmonicAudioPlayer.initialized) await harmonicAudioPlayer.setInstrument(val);
   };
 
-  const startQuestion = useCallback(async () => {
+  const startQuestion = useCallback(async (autoplay = true) => {
     let prog = generateProgression(level, seqLength);
     let attempts = 0;
     const keyOf = (p) => p.map(x => x.degree).join(',');
@@ -167,7 +167,7 @@ const ExerciseF2 = () => {
     setPosAttempts({});
     setFeedback(null);
     setSelectedBtnId(null);
-    await playProg(prog);
+    if (autoplay) await playProg(prog);
   }, [level]);
 
   useEffect(() => {
@@ -175,7 +175,8 @@ const ExerciseF2 = () => {
     sessionTotalRef.current = 0;
     setQuestionIndex(0); setDone(false);
     lastProgKeyRef.current = null;
-    setTimeout(startQuestion, 100);
+    const tid = setTimeout(() => startQuestion(false), 100);
+    return () => clearTimeout(tid);
   }, [level, numQuestions]);
 
   const playReference = async () => {

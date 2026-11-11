@@ -1,3 +1,4 @@
+import { validProgression, progressionBarCount } from '../../utils/backingState.js';
 /**
  * useBackingTrackEngine.js
  * Central state + audio hook for BackingPlayer — powered by BackingTrackEngine
@@ -16,7 +17,7 @@ import { getChordData }        from '../../lib/style-engine/YamChordMap'
 import * as SFP                from '../../lib/soundfont/SoundFontPlayer'
 import { getInstrumentMap }    from '../../constants/genreInstrumentMap'
 import i18n                    from '../../i18n'
-import { readLastState, useRemember } from '../../utils/lastState'
+import { readLastState, useRemember, hasLastState } from '../../utils/lastState'
 
 // ─── Genre Catalog ─────────────────────────────────────────────────────────────
 // 4 categories × 3 sub-styles each
@@ -1075,8 +1076,7 @@ const DEFAULT_GENRE     = 'jazz_swing'
 const DEFAULT_BAR_COUNT = 4
 
 function initialBackingState() {
-  let hadSave = false
-  try { hadSave = Boolean(localStorage.getItem('ear-training:last-state:backing-tracks')) } catch {}
+  const hadSave = hasLastState('backing-tracks')
   const fallback = {
     genre: DEFAULT_GENRE,
     barCount: DEFAULT_BAR_COUNT,
@@ -1087,15 +1087,15 @@ function initialBackingState() {
     chords: null,
   }
   const saved = readLastState('backing-tracks', 1, fallback)
-  const genre = GENRE_DEFAULTS[saved.genre] ? saved.genre : DEFAULT_GENRE
-  const selectedKey = saved.selectedKey?.root ? saved.selectedKey : fallback.selectedKey
-  const chords = Array.isArray(saved.chords) && saved.chords.length
+  const genre = GENRE_CATALOG.some(category => category.subtypes.some(style => style.id === saved.genre)) ? saved.genre : DEFAULT_GENRE
+  const selectedKey = /^[A-G](?:#|b)?$/.test(saved.selectedKey?.root) && ['major', 'minor'].includes(saved.selectedKey?.type) ? saved.selectedKey : fallback.selectedKey
+  const chords = validProgression(saved.chords)
     ? saved.chords
     : makeEmptyBars(genre, Number(saved.barCount) || DEFAULT_BAR_COUNT)
   return {
     genre,
-    barCount: chords.length,
-    tempo: Number(saved.tempo) || GENRE_DEFAULTS[genre].tempo,
+    barCount: Math.max(1, Number(saved.barCount) || DEFAULT_BAR_COUNT),
+    tempo: Number(saved.tempo) || GENRE_DEFAULTS[genre]?.tempo || 120,
     maxLoops: Number.isFinite(Number(saved.maxLoops)) ? Number(saved.maxLoops) : 0,
     volumes: { ...DEFAULT_VOLUMES, ...(saved.volumes && typeof saved.volumes === 'object' ? saved.volumes : {}) },
     selectedKey,
@@ -1132,7 +1132,7 @@ function ambientChordToMidi(chord) {
 // ─── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useBackingTrackEngine() {
-  const restored = initialBackingState()
+  const [restored] = useState(initialBackingState)
   const keepSavedTempo = useRef(restored.hadSave)
   const [genre,       setGenreState]    = useState(restored.genre)
   const [barCount,    setBarCountState] = useState(restored.barCount)
@@ -1668,8 +1668,9 @@ export function useBackingTrackEngine() {
     const newChords = prog.chords.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
     setChordsState(newChords)
     chordsRef.current = newChords
-    setBarCountState(newChords.length)
-    barCountRef.current = newChords.length
+    const count = progressionBarCount(newChords, beatsPerBarRef.current)
+    setBarCountState(count)
+    barCountRef.current = count
 
     // Tempo
     if (prog.tempo) {
@@ -1702,8 +1703,9 @@ export function useBackingTrackEngine() {
   const replaceChords = useCallback((newChords) => {
     setChordsState(newChords)
     chordsRef.current  = newChords
-    setBarCountState(newChords.length)
-    barCountRef.current = newChords.length
+    const count = progressionBarCount(newChords, beatsPerBarRef.current)
+    setBarCountState(count)
+    barCountRef.current = count
   }, [])
 
   // ── Preview chord (plays on SoundFont piano channel) ─────────────────────────

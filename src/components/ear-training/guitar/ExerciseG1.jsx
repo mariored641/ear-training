@@ -104,14 +104,14 @@ const ExerciseG1 = () => {
     };
   };
 
-  const loadMelody = useCallback(async (qNum = 1) => {
+  const loadMelody = useCallback(async (qNum = 1, autoplay = true) => {
     try {
       await AudioPlayer.setInstrument('guitar');
       const settings = buildSettings();
       const melody = getMelody(settings.source, settings, qNum - 1);
       melodyRef.current = melody;
       setSessionState(prev => ({ ...prev, currentMelody: melody, currentNoteIndex: 0, markedNotes: [], highlightedNote: null, noteAttempts: {} }));
-      setTimeout(() => {
+      if (autoplay) setTimeout(() => {
         if (!isPlayingRef.current && melodyRef.current) {
           isPlayingRef.current = true;
           AudioPlayer.playSequence(melodyRef.current.notes.map(n => n.fullNote), 100)
@@ -126,7 +126,8 @@ const ExerciseG1 = () => {
     sessionTotalRef.current = 0;
     setDone(false);
     setSessionState(initSession());
-    setTimeout(() => loadMelody(1), 150);
+    const tid = setTimeout(() => loadMelody(1, false), 150);
+    return () => { clearTimeout(tid); AudioPlayer.stop(); };
   }, [level, numQuestions]);
 
   const handleFretClick = (string, fret) => {

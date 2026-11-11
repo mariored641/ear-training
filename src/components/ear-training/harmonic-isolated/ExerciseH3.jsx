@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../../utils/lastState';
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
@@ -63,7 +64,7 @@ const ExerciseH3 = () => {
   const [advancement, setAdvancement] = useStoredState('ear-training:H3:advancement', 'auto');
   const [termMode, setTermMode] = useStoredState('ear-training:H3:termMode', 'hebrew');
   const [currentLevel, setCurrentLevel] = useState(() => loadStoredLevel('ear-training:H3:level', 1));
-  const [chipsByLevel, setChipsByLevel] = useState({});
+  const [chipsByLevel, setChipsByLevel] = usePersistentState('exercise-h3', 'chipsByLevel', {});
 
   useEffect(() => {
     if (harmonicAudioPlayer.setInstrument) harmonicAudioPlayer.setInstrument(instrument);

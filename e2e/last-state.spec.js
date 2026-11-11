@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-const OUT = '/opt/cursor/artifacts';
+const OUT = process.env.T5_SCREEN_DIR || '/workspace/codex-night-11-12/screens';
 fs.mkdirSync(OUT, { recursive: true });
 
 async function useEnglish(page) {

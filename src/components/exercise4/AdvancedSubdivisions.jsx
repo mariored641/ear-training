@@ -12,7 +12,7 @@ import { getAllPresets, savePreset } from '../../utils/presetManager';
 import CellIcon from './CellIcon';
 import useRhythmPlayback from './useRhythmPlayback';
 import { sequentialPattern } from '../../utils/rhythm/patterns';
-import { readLastState, useRemember } from '../../utils/lastState';
+import { readLastState, useRemember, usePersistentState } from '../../utils/lastState';
 
 const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet }, ref) => {
   const { t } = useTranslation();
@@ -28,7 +28,7 @@ const AdvancedSubdivisions = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlay
   const [showLoadPresetModal, setShowLoadPresetModal] = useState(false);
   const [showSavePresetModal, setShowSavePresetModal] = useState(false);
   const [allPresets, setAllPresets] = useState({ builtIn: [], local: [], global: [], all: [] });
-  const [presetName, setPresetName] = useState('');
+  const [presetName, setPresetName] = usePersistentState('rhythm-advanced', 'presetName', '');
   const [saveAsGlobal, setSaveAsGlobal] = useState(false);
   const [globalPassword, setGlobalPassword] = useState('');
   const [saveError, setSaveError] = useState('');

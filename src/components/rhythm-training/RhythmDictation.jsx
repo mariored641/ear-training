@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../utils/lastState';
 /**
  * RhythmDictation — Tab 1: הכתבה קצבית
  *
@@ -43,7 +44,7 @@ export default function RhythmDictation({ settings, onActiveChange }) {
   const [audioLevel, setAudioLevel] = useState(0);
 
   // Per-session calibration (fluxThreshold + latencyCompMs)
-  const [calibration, setCalibration] = useState({ fluxThreshold: 8, latencyCompMs: 65 });
+  const [calibration, setCalibration] = usePersistentState('rhythm-dictation', 'calibration', { fluxThreshold: 8, latencyCompMs: 65 });
   const [calibResult, setCalibResult] = useState(null); // {matched, newLatency, newFlux} | 'fail'
 
   const genRef      = useRef(0);

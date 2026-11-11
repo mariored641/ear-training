@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../utils/lastState';
 /**
  * GlobalTools — floating FAB with a brass radial fan of 3 tools:
  *   Tuner · Metronome · Recorder
@@ -68,7 +69,7 @@ export default function GlobalTools() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState(null); // null | 'tuner' | 'metronome'
-  const [position, setPosition] = useState(readSavedPosition);
+  const [position, setPosition] = usePersistentState('global-tools', 'position', readSavedPosition());
   const [dragging, setDragging] = useState(false);
 
   const containerRef = useRef(null);

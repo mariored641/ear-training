@@ -1,3 +1,4 @@
+import { readLastState, writeLastState } from '../../../utils/stateStore.js';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './earTrainingShared.css';
@@ -24,7 +25,7 @@ const LevelNavigator = ({ levels, currentLevel, onChange, onClose, isOpen, stora
 
   const handlePick = (n) => {
     if (storageKey) {
-      try { localStorage.setItem(storageKey, String(n)); } catch {}
+      try { writeLastState(`levels.${storageKey}`, 1, { value: n }); } catch {}
     }
     onChange?.(n);
     onClose?.();
@@ -58,7 +59,8 @@ const LevelNavigator = ({ levels, currentLevel, onChange, onClose, isOpen, stora
 export const loadStoredLevel = (storageKey, fallback = 1) => {
   if (!storageKey) return fallback;
   try {
-    const v = parseInt(localStorage.getItem(storageKey), 10);
+    const legacy = parseInt(localStorage.getItem(storageKey), 10);
+    const v = readLastState(`levels.${storageKey}`, 1, { value: Number.isFinite(legacy) ? legacy : fallback }).value;
     return Number.isFinite(v) && v > 0 ? v : fallback;
   } catch { return fallback; }
 };

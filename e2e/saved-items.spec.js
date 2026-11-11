@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 
-const OUT = '/opt/cursor/artifacts';
+const OUT = process.env.T5_SCREEN_DIR || '/workspace/codex-night-11-12/screens';
 fs.mkdirSync(OUT, { recursive: true });
 
 async function acceptDialogs(page) {
@@ -122,6 +122,7 @@ test('saved backing-track progressions and favorites survive reload', async ({ b
   await expect(page.getByRole('button', { name: tempoLabel })).toBeVisible();
 
   await page.getByRole('button', { name: 'Templates' }).click();
+  await page.getByRole('button', { name: 'Standards' }).click();
   await page.locator('.lib-item').first().waitFor();
   await page.locator('.lib-filter-btn').click();
   await expect(page.getByText(songTitle).first()).toBeVisible();
@@ -145,11 +146,11 @@ test('partial-chord work and the looper session survive a reload', async ({ page
   await page.getByRole('button', { name: 'Partial Chords' }).click();
   await page.getByRole('button', { name: '+ Add' }).click();
   await expect(page.locator('.pct-card, .partial-chord-card, .pct-chord').first()).toBeVisible({ timeout: 5000 }).catch(() => {});
-  const saved = await page.evaluate(() => localStorage.getItem('earTraining:positions:partialChords'));
+  const saved = await page.evaluate(() => localStorage.getItem('et.state.v1.positions-partial-sequence'));
   expect(saved).toContain('"root"');
   await page.reload();
   await page.getByRole('button', { name: 'Partial Chords' }).click();
-  const after = await page.evaluate(() => localStorage.getItem('earTraining:positions:partialChords'));
+  const after = await page.evaluate(() => localStorage.getItem('et.state.v1.positions-partial-sequence'));
   expect(after).toBe(saved);
 
   await page.goto('/looper');

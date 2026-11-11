@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { readLastState, useRemember } from '../../utils/lastState'
+import { readLastState, useRemember, usePersistentState } from '../../utils/lastState'
 import { useTranslation } from 'react-i18next'
 import { useBackingTrackEngine, GENRE_CATALOG } from './useBackingTrackEngine.js'
 import { ChordProgressionEditor } from './ChordProgressionEditor.jsx'
@@ -139,7 +139,7 @@ function MixerPopup({ style, activePart, volumes, onVolumeChange }) {
    ═══════════════════════════════════════════════════════ */
 function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression }) {
   const { t } = useTranslation()
-  const [tab, setTab] = useState('standards')
+  const [tab, setTab] = usePersistentState('backing-ui', 'tab', 'standards')
   return (
     <div className="bp-popup bp-templates">
       <div className="bp-templates-tabs">
@@ -287,7 +287,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
   const [activePopup,    setActivePopup]    = useState(null)
   const [modalOpen,      setModalOpen]      = useState(false)
   const [editingBarInfo, setEditingBarInfo] = useState(null) // { barIdx, firstChordIndex, barChords }
-  const [showPolyscale, setShowPolyscale] = useState(false)
+  const [showPolyscale, setShowPolyscale] = usePersistentState('backing-ui', 'showPolyscale', false)
 
   // Polyscale state lives in BackingPlayer so the popup-on-popup can edit it
   // while LiveFretboard reads & applies it.

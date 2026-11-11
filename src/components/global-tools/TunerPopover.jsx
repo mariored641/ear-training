@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../utils/lastState';
 /**
  * TunerPopover — compact floating tuner.
  *
@@ -23,7 +24,7 @@ export default function TunerPopover() {
   const { t, i18n } = useTranslation();
   const mic = useMicrophone();
   const { getAudioContext } = useTools();
-  const [mode, setMode] = useState('chromatic'); // 'chromatic' | 'guitar'
+  const [mode, setMode] = usePersistentState('tuner', 'mode', 'chromatic'); // 'chromatic' | 'guitar'
   const [reading, setReading] = useState(null); // { name, octave, cents }
   const [permError, setPermError] = useState(null);
 

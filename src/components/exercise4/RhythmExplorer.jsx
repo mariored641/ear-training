@@ -12,7 +12,7 @@ import { getAllPresets, savePreset } from '../../utils/presetManager';
 import CellIcon from './CellIcon';
 import useRhythmPlayback from './useRhythmPlayback';
 import { sequentialPattern } from '../../utils/rhythm/patterns';
-import { readLastState, useRemember } from '../../utils/lastState';
+import { readLastState, useRemember, usePersistentState } from '../../utils/lastState';
 
 const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, setSharedIsPlaying, sharedSoundSet, setSharedSoundSet }, ref) => {
   const { t } = useTranslation();
@@ -37,7 +37,7 @@ const RhythmExplorer = forwardRef(({ sharedBpm, setSharedBpm, sharedIsPlaying, s
   const [showLoadPresetModal, setShowLoadPresetModal] = useState(false);
   const [showSavePresetModal, setShowSavePresetModal] = useState(false);
   const [allPresets, setAllPresets] = useState({ builtIn: [], local: [], global: [], all: [] });
-  const [presetName, setPresetName] = useState('');
+  const [presetName, setPresetName] = usePersistentState('rhythm-explorer', 'presetName', '');
   const [saveAsGlobal, setSaveAsGlobal] = useState(false);
   const [globalPassword, setGlobalPassword] = useState('');
   const [saveError, setSaveError] = useState('');

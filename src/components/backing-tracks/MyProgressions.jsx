@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../utils/lastState';
 import React, { useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GENRE_CATALOG } from './useBackingTrackEngine'
@@ -32,7 +33,7 @@ export function MyProgressions({ currentState, onLoadProgression, embedded = fal
   const { t, i18n } = useTranslation()
   const [isOpen,       setIsOpen]       = useState(embedded)
   const [isSaving,     setIsSaving]     = useState(false)
-  const [saveName,     setSaveName]     = useState('')
+  const [saveName,     setSaveName]     = usePersistentState('backing-saved-draft', 'saveName', '')
   const [progressions, setProgressions] = useState(loadProgressions)
 
   const inputRef = useRef(null)

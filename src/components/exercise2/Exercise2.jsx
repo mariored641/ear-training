@@ -1,3 +1,4 @@
+import { useRemember } from '../../utils/lastState';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from '../common/Header';
@@ -32,6 +33,7 @@ const Exercise2 = () => {
     const stored = Storage.loadSettings(2, DEFAULT_EXERCISE2_SETTINGS);
     return stored.activeLevel || 'regular';
   });
+  useRemember('legacy-2', 1, { ...settings, activeLevel });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [sessionState, setSessionState] = useState({
     currentQuestion: 1,
@@ -98,7 +100,7 @@ const Exercise2 = () => {
   useEffect(() => {
     // Initialize AudioPlayer first, then load melody
     AudioPlayer.setInstrument(settings.instrument || 'guitar').then(() => {
-      loadNewMelody();
+      loadNewMelody(false);
     });
     // eslint-disable-next-line
   }, []);
@@ -243,7 +245,7 @@ const Exercise2 = () => {
     const melodyToReplay = currentMelodyRef.current;
 
     setSettings(newSettings);
-    Storage.saveSettings(2, newSettings);
+
 
     // numQuestions conflict → jump to summary
     if (changes.includes('numQuestions') &&
@@ -293,14 +295,14 @@ const Exercise2 = () => {
     if (id === 'regular') {
       const next = { ...DEFAULT_EXERCISE2_SETTINGS, activeLevel: 'regular' };
       setSettings(next);
-      Storage.saveSettings(2, next);
+
       AudioPlayer.stop();
       isPlayingRef.current = false;
       handleReset();
     } else if (id === 'custom') {
       const next = { ...settings, activeLevel: 'custom' };
       setSettings(next);
-      Storage.saveSettings(2, next);
+
       setIsSettingsOpen(true);
     }
   };
@@ -336,7 +338,7 @@ const Exercise2 = () => {
 
     // Apply new settings
     setSettings(newSettings);
-    Storage.saveSettings(2, newSettings);
+
 
     // Generate melody directly with new settings
     try {

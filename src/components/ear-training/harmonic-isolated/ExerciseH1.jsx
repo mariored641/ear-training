@@ -118,7 +118,7 @@ const ExerciseH1 = () => {
 
   const keyOf = (q) => q ? `${q.correctSeq.join(',')}` : null;
 
-  const generate = useCallback(async () => {
+  const generate = useCallback(async (autoplay = true) => {
     const { level: lv, voicing: vc, termMode: tm } = stateRef.current;
     let q = buildQ(lv, tm);
     let attempts = 0;
@@ -138,13 +138,13 @@ const ExerciseH1 = () => {
     setAttempted(false);
     setSelectedKind(null);
     const effectiveVoicing = lv <= 3 ? 'strummed' : vc;
-    await playQ(q, effectiveVoicing);
+    if (autoplay) await playQ(q, effectiveVoicing);
   }, []);
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
     lastQuestionRef.current = null;
-    const tid = setTimeout(generate, 100);
+    const tid = setTimeout(() => generate(false), 100);
     return () => clearTimeout(tid);
   }, [level, numQuestions, voicing, termMode]);
 
