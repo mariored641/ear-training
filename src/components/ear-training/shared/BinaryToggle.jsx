@@ -10,8 +10,8 @@ import './earTrainingShared.css';
  *   label?: string
  */
 const BinaryToggle = ({ options, value, onChange, label }) => (
-  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-    {label && <span style={{ fontSize: 13, color: 'var(--color-text-secondary, #666)' }}>{label}:</span>}
+  <div className="et-binary-toggle">
+    {label && <span className="et-binary-label">{label}:</span>}
     <div className="et-toggle-group">
       {options.map(opt => (
         <button

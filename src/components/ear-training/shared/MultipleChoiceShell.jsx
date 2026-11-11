@@ -323,7 +323,7 @@ const MultipleChoiceShell = ({
 
       <div style={settingsDivider} />
 
-      <div className="et-mc-controls" style={controlsStyle}>
+      <div className="et-mc-controls">
         <QuestionsCounter value={numQuestions} onChange={setNumQuestions} min={3} max={30} />
         {instrument && (
           <BinaryToggle
@@ -383,15 +383,6 @@ const settingsDivider = {
   borderTop: '1px solid var(--brass-dark)',
   margin: '8px 24px 0',
   opacity: 0.55,
-};
-const controlsStyle = {
-  display: 'flex',
-  gap: 16,
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  padding: '16px 24px',
-  borderBottom: '1px solid var(--brass-dark)',
-  justifyContent: 'center'
 };
 const promptStyle = {
   textAlign: 'center',
