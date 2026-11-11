@@ -1,3 +1,4 @@
+import { useStoredState } from '../shared/useStoredState';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -114,9 +115,7 @@ const ExerciseM1 = () => {
   });
   const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
   const [displayMode, setDisplayMode] = useState(remembered.displayMode || 'degrees');
-  const [instrument, setInstrument] = useState(
-    () => localStorage.getItem('ear-training:M1:instrument') || 'piano'
-  );
+  const [instrument, setInstrument] = useStoredState('ear-training:M1:instrument', 'piano');
   const [reference, setReference] = useState(remembered.reference ?? null);
   const [activeChips, setActiveChips] = useState(Array.isArray(remembered.activeChips) ? remembered.activeChips : []);
   useRemember('exercise-m1', 1, { numQuestions, displayMode, reference, activeChips });
@@ -186,7 +185,7 @@ const ExerciseM1 = () => {
     }
   };
 
-  const loadQuestion = useCallback(async () => {
+  const loadQuestion = useCallback(async (autoplay = true) => {
     if (isPlayingRef.current) return;
     const { cfg: c, activeNotes: notes } = stateRef.current;
     let note = pickNote(notes, c.tonic, bagRef.current);
@@ -205,7 +204,7 @@ const ExerciseM1 = () => {
     setSelected(null);
     setFeedback(null);
     setAttempted(false);
-    await playQuestion(note);
+    if (autoplay) await playQuestion(note);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
 
@@ -217,7 +216,8 @@ const ExerciseM1 = () => {
     setDone(false);
     setCorrectNote(null);
     setSelected(null);
-    setTimeout(() => loadQuestion(), 100);
+    const tid = setTimeout(() => loadQuestion(false), 100);
+    return () => clearTimeout(tid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, numQuestions]);
 

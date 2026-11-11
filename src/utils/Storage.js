@@ -1,32 +1,23 @@
-/**
- * LocalStorage management utility
- */
+import { readLastState, writeLastState } from './stateStore.js';
+
+function legacy(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch { return fallback; }
+}
 const Storage = {
-  saveSettings(exerciseId, settings) {
-    const key = `exercise${exerciseId}Settings`;
-    localStorage.setItem(key, JSON.stringify(settings));
+  saveSettings(id, settings) { writeLastState(`legacy-${id}`, 1, settings); },
+  loadSettings(id, defaults) {
+    return readLastState(`legacy-${id}`, 1, { ...defaults, ...legacy(`exercise${id}Settings`, {}) });
   },
-
-  loadSettings(exerciseId, defaults) {
-    const key = `exercise${exerciseId}Settings`;
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : defaults;
-  },
-
-  saveProgress(exerciseId, progress) {
-    const key = `exercise${exerciseId}Progress`;
-    localStorage.setItem(key, JSON.stringify(progress));
-  },
-
-  loadProgress(exerciseId) {
-    const key = `exercise${exerciseId}Progress`;
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : null;
-  },
-
+  saveProgress(id, progress) { writeLastState(`progress-${id}`, 1, progress); },
+  loadProgress(id) { return readLastState(`progress-${id}`, 1, legacy(`exercise${id}Progress`, null)); },
+  // Reset exercise progress only; never erase device state, named presets or recordings.
   clearAll() {
-    localStorage.clear();
-  }
+    try {
+      for (const key of Object.keys(localStorage)) {
+        if (/^exercise\w+Progress$/.test(key) || key.startsWith('et.state.v1.progress-')) localStorage.removeItem(key);
+      }
+    } catch {}
+  },
 };
-
 export default Storage;

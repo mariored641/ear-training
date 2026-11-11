@@ -1,3 +1,4 @@
+import { useStoredState } from '../shared/useStoredState';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +9,7 @@ import QuestionsCounter from '../shared/QuestionsCounter';
 import BinaryToggle from '../shared/BinaryToggle';
 import ChipSelector from '../shared/ChipSelector';
 import { loadStoredLevel } from '../shared/LevelNavigator';
-import { readLastState, useRemember } from '../../../utils/lastState';
+import { readLastState, useRemember, usePersistentState } from '../../../utils/lastState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import '../shared/earTrainingShared.css';
 
@@ -79,11 +80,9 @@ const ExerciseH4 = () => {
   const remembered = readLastState('exercise-h4', 1, { numQuestions: 10 });
   const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
   useRemember('exercise-h4', 1, { numQuestions });
-  const [instrument, setInstrument] = useState(
-    () => localStorage.getItem('ear-training:H4:instrument') || 'piano'
-  );
-  const [userBaseType, setUserBaseType] = useState('dom7');
-  const [activeChips, setActiveChips]   = useState(ALL_TENSIONS);
+  const [instrument, setInstrument] = useStoredState('ear-training:H4:instrument', 'piano');
+  const [userBaseType, setUserBaseType] = usePersistentState('exercise-h4', 'userBaseType', 'dom7');
+  const [activeChips, setActiveChips]   = usePersistentState('exercise-h4', 'activeChips', ALL_TENSIONS);
 
   const [questionIndex,   setQuestionIndex]   = useState(0);
   const [correctTensions, setCorrectTensions] = useState([]);
@@ -110,7 +109,7 @@ const ExerciseH4 = () => {
     return ALL_TENSIONS;
   })();
 
-  const generateAndPlay = useCallback(async () => {
+  const generateAndPlay = useCallback(async (autoplay = true) => {
     const { level: lv, activeChips: chips } = stateRef.current;
     const pool = LEVEL_POOL[lv] || LEVEL_POOL[1];
 
@@ -151,6 +150,7 @@ const ExerciseH4 = () => {
     setSubmitted(false);
     setFeedback(null);
 
+    if (!autoplay) return;
     if (!harmonicAudioPlayer.initialized) await harmonicAudioPlayer.init();
     // Play with tensions (empty tensions = base chord only)
     await harmonicAudioPlayer.playWithTensions(pick.chord, pick.entry.tensions, { duration: 2.0, voicing: 'strummed' });
@@ -159,7 +159,7 @@ const ExerciseH4 = () => {
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
     lastQuestionRef.current = null;
-    const tid = setTimeout(generateAndPlay, 100);
+    const tid = setTimeout(() => generateAndPlay(false), 100);
     return () => clearTimeout(tid);
   }, [level, numQuestions]);
 

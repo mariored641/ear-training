@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../../utils/lastState';
 /**
  * Reactive Ear Training — Session Hook
  *
@@ -36,7 +37,7 @@ export function useReactiveSession({ mode, tier, sound, chordDuration, sessionMi
   const [currentChord, setCurrentChord] = useState(null);
   const [revealShown, setRevealShown] = useState(false);
   const [revealBlink, setRevealBlink] = useState(false);
-  const [autoReveal, setAutoRevealState] = useState(readAutoReveal);
+  const [autoReveal, setAutoRevealState] = usePersistentState('reactive', 'autoReveal', readAutoReveal());
   const [sessionTimeLeft, setSessionTimeLeft] = useState(null); // seconds or null=infinite
   const [sessionEnded, setSessionEnded] = useState(false);
   const [activeKey, setActiveKey] = useState(null); // for diatonic mode display

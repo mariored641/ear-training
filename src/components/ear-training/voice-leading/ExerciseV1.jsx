@@ -220,7 +220,7 @@ const ExerciseV1 = () => {
     }
   };
 
-  const generate = useCallback(async () => {
+  const generate = useCallback(async (autoplay = true) => {
     const { level: lv } = stateRef.current;
     if (lv === 7) return;
     let q = buildQ(lv);
@@ -239,14 +239,13 @@ const ExerciseV1 = () => {
     setAnswered(null);
     setFeedback(null);
     setAttempted(false);
-    await playReference();
-    await playNormal(q);
+    if (autoplay) { await playReference(); await playNormal(q); }
   }, []);
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
     lastQKeyRef.current = null;
-    const tid = setTimeout(generate, 100);
+    const tid = setTimeout(() => generate(false), 100);
     return () => clearTimeout(tid);
   }, [level, numQuestions]);
 

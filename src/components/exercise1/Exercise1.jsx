@@ -1,3 +1,4 @@
+import { useRemember } from '../../utils/lastState';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from '../common/Header';
@@ -30,6 +31,7 @@ const Exercise1 = () => {
     const stored = Storage.loadSettings(1, DEFAULT_EXERCISE1_SETTINGS);
     return stored.activeLevel || 'regular';
   });
+  useRemember('legacy-1', 1, { ...settings, activeLevel });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [sessionState, setSessionState] = useState({
     currentQuestion: 1,
@@ -53,7 +55,7 @@ const Exercise1 = () => {
   useAudioCleanup(AudioPlayer);
 
   // Load new question
-  const loadNewQuestion = React.useCallback(() => {
+  const loadNewQuestion = React.useCallback((autoplay = true) => {
     console.log('=== loadNewQuestion called ===');
 
     // Stop any currently playing audio first
@@ -93,8 +95,8 @@ const Exercise1 = () => {
 
     setWaitingForNext(false);
 
-    // Play audio after state update using the ref
-    setTimeout(() => {
+    // Mount/restore prepares the question silently.
+    if (autoplay) setTimeout(() => {
       if (currentNoteRef.current) {
         console.log('About to play audio for new question:', currentNoteRef.current.fullNote);
         playQuestionAudio(currentNoteRef.current.hasPlayedC, currentNoteRef.current.fullNote);
@@ -144,7 +146,7 @@ const Exercise1 = () => {
   useEffect(() => {
     // Initialize AudioPlayer first, then load question
     AudioPlayer.setInstrument(settings.instrument || 'piano').then(() => {
-      loadNewQuestion();
+      loadNewQuestion(false);
     });
     // eslint-disable-next-line
   }, []);
@@ -244,7 +246,7 @@ const Exercise1 = () => {
     const noteToReplay = currentNoteRef.current?.fullNote;
 
     setSettings(newSettings);
-    Storage.saveSettings(1, newSettings);
+
 
     // numQuestions conflict → jump to summary
     if (changes.includes('numQuestions') &&
@@ -275,7 +277,7 @@ const Exercise1 = () => {
       // Restore defaults; reset session
       const next = { ...DEFAULT_EXERCISE1_SETTINGS, activeLevel: 'regular' };
       setSettings(next);
-      Storage.saveSettings(1, next);
+
       AudioPlayer.stop();
       isPlayingRef.current = false;
       currentQuestionAttemptsRef.current = 0;
@@ -290,7 +292,7 @@ const Exercise1 = () => {
       // Mark settings as custom and open the panel
       const next = { ...settings, activeLevel: 'custom' };
       setSettings(next);
-      Storage.saveSettings(1, next);
+
       setIsSettingsOpen(true);
     }
   };
@@ -343,7 +345,7 @@ const Exercise1 = () => {
 
     // Apply new settings
     setSettings(newSettings);
-    Storage.saveSettings(1, newSettings);
+
 
     // Reset and start new exercise
     currentQuestionAttemptsRef.current = 0;

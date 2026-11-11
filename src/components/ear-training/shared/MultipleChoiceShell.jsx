@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../../utils/lastState';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -68,11 +69,9 @@ const MultipleChoiceShell = ({
   });
   const setLevel = (n) => { setLevelInternal(n); onLevelChange?.(n); };
   useEffect(() => { onLevelChange?.(level); /* eslint-disable-next-line */ }, []);
-  const [numQuestions, setNumQuestionsState] = useState(() => {
-    const stored = parseInt(localStorage.getItem(numQKey), 10);
-    return !isNaN(stored) ? stored : defaultNumQuestions;
-  });
-  const setNumQuestions = (n) => { setNumQuestionsState(n); localStorage.setItem(numQKey, String(n)); };
+  let legacyCount = defaultNumQuestions;
+  try { legacyCount = Number(localStorage.getItem(numQKey)) || defaultNumQuestions; } catch {}
+  const [numQuestions, setNumQuestions] = usePersistentState(`exercise-${id}`, 'numQuestions', legacyCount);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [question, setQuestion] = useState(null);
   const [answered, setAnswered] = useState(null);
@@ -174,7 +173,7 @@ const MultipleChoiceShell = ({
     }, 200);
   }, [cancelPlayback, ctx, level, onPlay, setPlaybackTimeout, waitForPlayback]);
 
-  const startQuestion = useCallback(() => {
+  const startQuestion = useCallback((autoplay = true) => {
     setAttempted(false);
     setAnswered(null);
     setFeedback(null);
@@ -191,7 +190,7 @@ const MultipleChoiceShell = ({
     }
     lastQuestionRef.current = q;
     setQuestion(q);
-    playQuestion(q);
+    if (autoplay) playQuestion(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generateQuestion, level, playQuestion, instrument?.value, reference?.value, chips?.activeIds]);
 
@@ -200,7 +199,7 @@ const MultipleChoiceShell = ({
     setFirstTry(0);
     setDone(false);
     lastQuestionRef.current = null;
-    startQuestion();
+    startQuestion(false);
     return () => {
       cancelPlayback();
       clearUiTimers();

@@ -1,3 +1,4 @@
+import { readLastState } from '../../utils/stateStore.js';
 import { ToneLooperAdapter } from './toneAdapter';
 import i18n from '../../i18n/index.js';
 import { MicrophoneRecorder, calculateWaveformPeaks } from './recorder';
@@ -22,7 +23,8 @@ function cloneTrack(track) {
 
 class LooperEngine {
   constructor() {
-    this.session = createSession();
+    this.session = readLastState('looper', 1, createSession());
+    this.session.tracks = [];
     this.state = 'idle';
     this.activeRecordingTrackId = null;
     this.recordingStartedAt = 0;
@@ -83,7 +85,7 @@ class LooperEngine {
           this.session = {
             ...createSession(),
             ...saved,
-            timeSignature: saved.timeSignature || [4, 4],
+            ...readLastState('looper', 1, { ...saved, timeSignature: saved.timeSignature || [4, 4] }),
             tracks: (saved.tracks || []).slice(0, MAX_TRACKS),
           };
           if (this.session.tracks.length && !this.session.loopLengthBars) {

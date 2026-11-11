@@ -1,3 +1,4 @@
+import { useRemember } from '../../utils/lastState';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { audioEngine } from '../../lib/looperEngine';
 import i18n from '../../i18n';
@@ -9,6 +10,8 @@ export default function useLooperEngine() {
   const [recordingElapsed, setRecordingElapsed] = useState(0);
   const [inputLevel, setInputLevel] = useState(0);
   const [error, setError] = useState('');
+  const { tracks, ...settings } = snapshot.session;
+  useRemember('looper', 1, settings);
 
   useEffect(() => {
     const unsubscribe = audioEngine.subscribe(setSnapshot);

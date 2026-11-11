@@ -1,3 +1,4 @@
+import { usePersistentState, readLastState, useRemember } from '../../utils/lastState';
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import AllScalesFretboard from '../positions/AllScalesFretboard';
@@ -37,14 +38,14 @@ export default function LiveFretboard({
 }) {
   const { t, i18n } = useTranslation();
   const scaleName = (item) => t(`positions.musicItems.${item?.id}`, { defaultValue: item?.name ?? '' });
-  const [isOpenInternal, setIsOpenInternal] = useState(false);
+  const [isOpenInternal, setIsOpenInternal] = usePersistentState('backing-fretboard', 'isOpenInternal', false);
   const isOpen = embedded ? true : (isOpenProp !== undefined ? isOpenProp : isOpenInternal);
   const handleToggle = onToggle || (() => setIsOpenInternal(p => !p));
-  const [displayMode, setDisplayMode] = useState('dots');
-  const [globalScaleId, setGlobalScaleId] = useState(null);
-  const [globalRoot, setGlobalRoot] = useState('auto'); // 'auto' or note name
-  const [polyscaleEnabledInternal, setPolyscaleEnabledInternal] = useState(false);
-  const [polyscaleMapInternal, setPolyscaleMapInternal] = useState({}); // { barIndex: { scaleId, root } }
+  const [displayMode, setDisplayMode] = usePersistentState('backing-fretboard', 'displayMode', 'dots');
+  const [globalScaleId, setGlobalScaleId] = usePersistentState('backing-fretboard', 'globalScaleId', null);
+  const [globalRoot, setGlobalRoot] = usePersistentState('backing-fretboard', 'globalRoot', 'auto'); // 'auto' or note name
+  const [polyscaleEnabledInternal, setPolyscaleEnabledInternal] = usePersistentState('backing-fretboard', 'polyscaleEnabledInternal', false);
+  const [polyscaleMapInternal, setPolyscaleMapInternal] = usePersistentState('backing-fretboard', 'polyscaleMapInternal', {}); // { barIndex: { scaleId, root } }
   // When embedded, accept polyscale state from parent so a separate popup can edit it.
   const polyscaleEnabled = polyscaleEnabledProp !== undefined ? polyscaleEnabledProp : polyscaleEnabledInternal;
   const polyscaleMap = polyscaleMapProp !== undefined ? polyscaleMapProp : polyscaleMapInternal;
@@ -63,9 +64,13 @@ export default function LiveFretboard({
       setPolyscaleMapInternal(newMap);
     }
   };
-  const [fretRangeStart, setFretRangeStart] = useState(null);
-  const [fretRangeEnd, setFretRangeEnd] = useState(null);
-  const [activeStrings, setActiveStrings] = useState(null);
+  const [fretRangeStart, setFretRangeStart] = usePersistentState('backing-fretboard', 'fretRangeStart', null);
+  const [fretRangeEnd, setFretRangeEnd] = usePersistentState('backing-fretboard', 'fretRangeEnd', null);
+  const [activeStrings, setActiveStrings] = useState(() => {
+    const saved = readLastState('backing-fretboard-strings', 1, { strings: null });
+    return Array.isArray(saved.strings) ? new Set(saved.strings) : null;
+  });
+  useRemember('backing-fretboard-strings', 1, { strings: activeStrings ? [...activeStrings] : null });
 
   // Which bar/symbol to display (playing = current, stopped = bar 0)
   const displayBar = isPlaying ? currentBar : 0;

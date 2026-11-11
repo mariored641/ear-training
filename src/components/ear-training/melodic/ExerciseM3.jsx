@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../../utils/lastState';
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import MultipleChoiceShell from '../shared/MultipleChoiceShell';
@@ -45,7 +46,7 @@ const ExerciseM3 = () => {
   const [advancement, setAdvancement] = useStoredState('ear-training:M3:advancement', 'auto');
   const [reference, setReference] = useStoredState('ear-training:M3:reference', 'note');
   const [currentLevel, setCurrentLevel] = useState(() => loadStoredLevel('ear-training:M3:level', 1));
-  const [chipsByLevel, setChipsByLevel] = useState({});
+  const [chipsByLevel, setChipsByLevel] = usePersistentState('exercise-m3', 'chipsByLevel', {});
 
   useEffect(() => { audioPlayer.setInstrument(instrument); }, [instrument]);
 

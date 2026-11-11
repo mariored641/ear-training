@@ -67,11 +67,11 @@ const Exercise4C = () => {
   // Start new question
   useEffect(() => {
     if (!isComplete && isAudioReady) {
-      generateNewQuestion();
+      generateNewQuestion(currentQuestion > 1);
     }
   }, [currentQuestion, isAudioReady]);
 
-  const generateNewQuestion = async () => {
+  const generateNewQuestion = async (autoplay = true) => {
     if (!isMountedRef.current) return;
 
     // Reset state
@@ -84,6 +84,7 @@ const Exercise4C = () => {
     const progression = generateProgression();
     setCurrentProgression(progression);
 
+    if (!autoplay) return;
     // Play progression automatically
     if (!isMountedRef.current) return;
     await delay(500);

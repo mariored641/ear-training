@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import { checkI18n } from '../scripts/check-i18n.mjs';
 
-const OUT = '/opt/cursor/artifacts';
+const OUT = process.env.T5_SCREEN_DIR || '/workspace/codex-night-11-12/screens';
 fs.mkdirSync(OUT, { recursive: true });
 
 const RAW_KEY = /\b[A-Za-z][A-Za-z0-9]*(\.[A-Za-z][A-Za-z0-9]*)+\b/g;

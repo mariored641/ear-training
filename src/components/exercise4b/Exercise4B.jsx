@@ -157,7 +157,7 @@ const Exercise4B = () => {
     setIsPlayingMelody(false);
   }, []);
 
-  const generateNewQuestion = useCallback(async () => {
+  const generateNewQuestion = useCallback(async (autoplay = true) => {
     console.log('[Exercise4B] generateNewQuestion called');
     if (!isMountedRef.current) {
       console.log('[Exercise4B] Component not mounted, aborting');
@@ -176,6 +176,7 @@ const Exercise4B = () => {
     console.log('[Exercise4B] Melody generated:', melody);
     setCurrentMelody(melody);
 
+    if (!autoplay) return;
     // Play melody automatically
     if (!isMountedRef.current) return;
     await delay(500);
@@ -187,7 +188,7 @@ const Exercise4B = () => {
   // Start new question
   useEffect(() => {
     if (!isComplete && isAudioReady) {
-      generateNewQuestion();
+      generateNewQuestion(currentQuestion > 1);
     }
   }, [currentQuestion, isAudioReady, isComplete, generateNewQuestion]);
 

@@ -1,8 +1,9 @@
+import { readMediaDraft, saveMediaDraft, clearMediaDraft } from '../../utils/mediaDraft.js';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './FeedbackPage.css';
-import { readLastState, useRemember } from '../../utils/lastState';
+import { readLastState, useRemember, usePersistentState } from '../../utils/lastState';
 
 // ─── Utilities ────────────────────────────────────────────────
 
@@ -265,7 +266,7 @@ const DiagramViewer = ({ source }) => {
   const srcUrl = source instanceof File ? blobUrl : source;
   const isImage = source instanceof File
     ? source.type.startsWith('image/')
-    : /\.(jpg|jpeg|png|gif|webp|svg)/i.test((source || '').split('?')[0]);
+    : /^data:image\//i.test(source || '') || /\.(jpg|jpeg|png|gif|webp|svg)/i.test((source || '').split('?')[0]);
 
   if (!srcUrl) return null;
   if (isImage) return <ZoomableImage src={srcUrl} />;
@@ -430,6 +431,7 @@ const PrepScreen = ({ onContinue }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [diagramFile, setDiagramFile] = useState(null);
+  const [attachment, setAttachment] = usePersistentState('feedback-prep', 'attachment', { name: '', dataUrl: '' });
   const [diagramUrl, setDiagramUrl] = useState(remembered.diagramUrl || '');
   const [diagramTab, setDiagramTab] = useState(remembered.diagramTab === 'url' ? 'url' : 'file');
   useRemember('feedback-prep', 1, { url, diagramUrl, diagramTab });
@@ -440,7 +442,7 @@ const PrepScreen = ({ onContinue }) => {
     setError(''); setLoading(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: RECORD_AUDIO_CONSTRAINTS });
-      const diagramSource = diagramFile || diagramUrl.trim() || null;
+      const diagramSource = diagramTab === 'file' ? (diagramFile || attachment.dataUrl || null) : (diagramUrl.trim() || null);
       onContinue({ youtubeId: id, stream, diagramSource });
     } catch (err) {
       let msg = t('feedback.mediaError');
@@ -480,10 +482,17 @@ const PrepScreen = ({ onContinue }) => {
               onClick={() => setDiagramTab('url')}>{t('feedback.link')}</button>
           </div>
           {diagramTab === 'file' ? (
-            <label className={`fb-file-btn${diagramFile ? ' fb-file-btn--done' : ''}`}>
-              {diagramFile ? `✓ ${diagramFile.name}` : `📎 ${t('feedback.chooseImagePdf')}`}
+            <label className={`fb-file-btn${(diagramFile || attachment.name) ? ' fb-file-btn--done' : ''}`}>
+              {(diagramFile || attachment.name) ? `✓ ${diagramFile?.name || attachment.name}` : `📎 ${t('feedback.chooseImagePdf')}`}
               <input type="file" accept="image/*,.pdf" style={{ display: 'none' }}
-                onChange={e => setDiagramFile(e.target.files[0] || null)} />
+                onChange={e => {
+                  const file = e.target.files[0] || null;
+                  setDiagramFile(file);
+                  if (!file) { setAttachment({ name: '', dataUrl: '' }); return; }
+                  const reader = new FileReader();
+                  reader.onload = () => setAttachment({ name: file.name, dataUrl: String(reader.result) });
+                  reader.readAsDataURL(file);
+                }} />
             </label>
           ) : (
             <input className="fb-input" type="url"
@@ -555,7 +564,13 @@ const RecordingScreen = ({ youtubeId, stream: initStream, diagramSource, onFinis
     let recorder;
     try { recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
     catch { try { recorder = new MediaRecorder(stream); } catch (e) { alert(t('feedback.videoUnsupported', { message: e.message })); return; } }
-    recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+    recorder.ondataavailable = e => {
+      if (e.data.size > 0) {
+        chunksRef.current.push(e.data);
+        const type = recorder.mimeType || mime || 'video/webm';
+        saveMediaDraft('feedback-recording', new Blob(chunksRef.current, { type }));
+      }
+    };
     recorder.onstop = () => {
       const finalMime = recorder.mimeType || mime || 'video/webm';
       onFinished(new Blob(chunksRef.current, { type: finalMime }), finalMime);
@@ -677,12 +692,13 @@ const PreviewScreen = ({ blob, mimeType, onRecordAgain }) => {
 
 const FeedbackPage = () => {
   const { t } = useTranslation();
-  const [step, setStep] = useState('prep');
-  const [youtubeId, setYoutubeId] = useState('');
+  const [restoredRecording] = useState(() => readMediaDraft('feedback-recording'));
+  const [step, setStep] = useState(restoredRecording ? 'preview' : 'prep');
+  const [youtubeId, setYoutubeId] = usePersistentState('feedback-prep', 'youtubeId', '');
   const [stream, setStream] = useState(null);
   const [diagramSource, setDiagramSource] = useState(null);
-  const [blob, setBlob] = useState(null);
-  const [mimeType, setMimeType] = useState('video/webm');
+  const [blob, setBlob] = useState(restoredRecording?.blob || null);
+  const [mimeType, setMimeType] = useState(restoredRecording?.mimeType || 'video/webm');
 
   const handlePrepDone = ({ youtubeId: id, stream: s, diagramSource: ds }) => {
     setYoutubeId(id); setStream(s); setDiagramSource(ds); setStep('recording');
@@ -690,15 +706,17 @@ const FeedbackPage = () => {
   const handleRecordDone = (b, mime) => {
     stream?.getTracks().forEach(t => t.stop());
     setStream(null); setBlob(b); setMimeType(mime); setStep('preview');
+    saveMediaDraft('feedback-recording', b, { mimeType: mime });
   };
   const handleBack = () => {
     stream?.getTracks().forEach(t => t.stop());
     setStream(null); setStep('prep');
   };
   const handleRecordAgain = async () => {
-    setBlob(null);
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: RECORD_AUDIO_CONSTRAINTS });
+      clearMediaDraft('feedback-recording');
+      setBlob(null);
       setStream(s); setStep('recording');
     } catch (e) { alert(t('feedback.cameraError', { message: e.message })); }
   };

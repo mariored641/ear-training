@@ -8,7 +8,7 @@ import QuestionsCounter from '../shared/QuestionsCounter';
 import MeterToggle from '../shared/MeterToggle';
 import RhythmGrid from '../shared/RhythmGrid';
 import { loadStoredLevel } from '../shared/LevelNavigator';
-import { readLastState, useRemember } from '../../../utils/lastState';
+import { readLastState, useRemember, usePersistentState } from '../../../utils/lastState';
 import harmonicAudioPlayer from '../../../utils/HarmonicAudioPlayer';
 import { chordAtDegree } from '../../../constants/cadenceDefinitions';
 import { CHORD_DEFINITIONS, EXTENDED_CHORDS } from '../../../constants/harmonicDefaults';
@@ -118,7 +118,7 @@ const ExerciseF3 = () => {
   const localizedLevel = t(`earTraining.levels.F3.${level}`, {
     defaultValue: LEVELS.find(l => l.number === level)?.label
   });
-  const [meter, setMeter]              = useState('4/4');
+  const [meter, setMeter]              = usePersistentState('exercise-f3', 'meter', '4/4');
   const remembered = readLastState('exercise-f3', 1, { numQuestions: 10 });
   const [numQuestions, setNumQuestions] = useState(Number(remembered.numQuestions) || 10);
   useRemember('exercise-f3', 1, { numQuestions });
@@ -134,7 +134,7 @@ const ExerciseF3 = () => {
   const lastQKeyRef = useRef(null);
   stateRef.current = { level, meter };
 
-  const generate = useCallback(async () => {
+  const generate = useCallback(async (autoplay = true) => {
     const { level: lv, meter: mt } = stateRef.current;
     if (lv === 6) return;
     let q = buildQ(lv, mt);
@@ -153,13 +153,13 @@ const ExerciseF3 = () => {
     setGridResetKey(k => k + 1);
     setFeedback(null);
     setSimpleAnswered(null);
-    await playQ(q);
+    if (autoplay) await playQ(q);
   }, []);
 
   useEffect(() => {
     setQuestionIndex(0); setFirstTry(0); setDone(false);
     lastQKeyRef.current = null;
-    const tid = setTimeout(generate, 100);
+    const tid = setTimeout(() => generate(false), 100);
     return () => clearTimeout(tid);
   }, [level, numQuestions, meter]);
 

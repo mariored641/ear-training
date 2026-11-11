@@ -14,7 +14,7 @@ import {
 } from '../../utils/partialChordShapes';
 import './PartialChordsTab.css';
 import { formatNoteName } from '../../i18n/musicTerms';
-import { readLastState, useRemember } from '../../utils/lastState';
+import { readLastState, useRemember, usePersistentState } from '../../utils/lastState';
 import { deleteLocalPreset, getLocalPresets, savePreset } from '../../utils/presetManager';
 
 const PARTIAL_PRESET_TYPE = 'partial_chords';
@@ -70,7 +70,7 @@ function PartialChordsTab({ progression, onProgressionChange, activeIdx, onActiv
   const [presets, setPresets] = useState(() => getLocalPresets(PARTIAL_PRESET_TYPE));
   const [pickedId, setPickedId] = useState('');
   const [naming, setNaming] = useState(false);
-  const [presetName, setPresetName] = useState('');
+  const [presetName, setPresetName] = usePersistentState('partial-preset-draft', 'presetName', '');
   useRemember('positions-partial-builder', 1, { builderRoot, builderQuality, displayMode, targetFret, width });
 
   const refreshPresets = () => setPresets(getLocalPresets(PARTIAL_PRESET_TYPE));

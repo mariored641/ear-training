@@ -1,3 +1,5 @@
+import { readMediaDraft, saveMediaDraft, clearMediaDraft } from '../../utils/mediaDraft.js';
+import { usePersistentState } from '../../utils/lastState';
 /**
  * ToolsContext — provider for the global tools FAB.
  *
@@ -61,11 +63,13 @@ export function ToolsProvider({ children }) {
   const metroRef = useRef(null);
   const metroBpmRef = useRef(readMetroBpm());
   const metroBeatsPerBarRef = useRef(4);
-  const [metroBpm, setMetroBpmState] = useState(metroBpmRef.current);
-  const [metroBeatsPerBar, setMetroBeatsPerBarState] = useState(4);
+  const [metroBpm, setMetroBpmState] = usePersistentState('global-tools', 'metroBpm', metroBpmRef.current);
+  const [metroBeatsPerBar, setMetroBeatsPerBarState] = usePersistentState('global-tools', 'metroBeatsPerBar', 4);
+  metroBpmRef.current = metroBpm;
+  metroBeatsPerBarRef.current = metroBeatsPerBar;
   const [metroIsRunning, setMetroIsRunning] = useState(false);
   const [metroCurrentBeat, setMetroCurrentBeat] = useState(-1);
-  const [metroKeepAlive, setMetroKeepAliveState] = useState(readMetroKeepAlive);
+  const [metroKeepAlive, setMetroKeepAliveState] = usePersistentState('global-tools', 'metroKeepAlive', readMetroKeepAlive());
 
   // Cleanup on unmount
   useEffect(() => () => {
@@ -73,8 +77,9 @@ export function ToolsProvider({ children }) {
     metroRef.current = null;
   }, []);
 
-  const [recordingState, setRecordingState] = useState('idle'); // 'idle' | 'starting' | 'recording' | 'ready'
-  const [lastResult, setLastResult] = useState(null); // { blob, mime, ext, durationSec, url }
+  const [restoredTake] = useState(() => readMediaDraft('global-recording'));
+  const [recordingState, setRecordingState] = useState(restoredTake ? 'ready' : 'idle'); // 'idle' | 'starting' | 'recording' | 'ready'
+  const [lastResult, setLastResult] = useState(() => restoredTake ? { ...restoredTake, mime: restoredTake.mimeType, ext: mimeToExt(restoredTake.mimeType), url: URL.createObjectURL(restoredTake.blob) } : null); // { blob, mime, ext, durationSec, url }
   const [error, setError] = useState(null);
 
   const mic = useMicrophone();
@@ -138,7 +143,13 @@ export function ToolsProvider({ children }) {
         ? new MediaRecorder(stream, { mimeType: m })
         : new MediaRecorder(stream);
       rec.ondataavailable = (ev) => {
-        if (ev.data && ev.data.size > 0) chunksRef.current.push(ev.data);
+        if (ev.data && ev.data.size > 0) {
+          chunksRef.current.push(ev.data);
+          if (Date.now() - (rec.lastDraftAt || 0) >= 1000) {
+            rec.lastDraftAt = Date.now();
+            saveMediaDraft('global-recording', new Blob(chunksRef.current, { type: m || ev.data.type }), { durationSec: Math.round((Date.now() - startedAtRef.current) / 1000) });
+          }
+        }
       };
       rec.onstop = () => {
         const effectiveMime = m || (chunksRef.current[0]?.type) || 'audio/webm';
@@ -173,7 +184,12 @@ export function ToolsProvider({ children }) {
     try { rec.stop(); } catch {}
   }, []);
 
+  useEffect(() => {
+    if (lastResult?.blob && lastResult !== restoredTake) saveMediaDraft('global-recording', lastResult.blob, { mimeType: lastResult.mime, durationSec: lastResult.durationSec });
+  }, [lastResult]);
+
   const clearResult = useCallback(() => {
+    clearMediaDraft('global-recording');
     if (lastResult?.url) {
       try { URL.revokeObjectURL(lastResult.url); } catch {}
     }

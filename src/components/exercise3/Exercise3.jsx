@@ -1,3 +1,4 @@
+import { useRemember } from '../../utils/lastState';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +50,7 @@ export default function Exercise3() {
   });
 
   // ── Exercise state ─────────────────────────────────────────────────────────
+  useRemember('legacy-3', 1, { ...settings, activeLevel });
   const [appState, setAppState]         = useState(S.IDLE);
   const [countInBeat, setCountInBeat]   = useState(0);    // 1-4 during count-in, 0 otherwise
   const [sequence, setSequence]         = useState([]);   // [{noteName,octave,fullNote,midiNote}]
@@ -114,7 +116,7 @@ export default function Exercise3() {
   const updateSetting = (key, value) => {
     setSettings(prev => {
       const next = { ...prev, [key]: value };
-      Storage.saveSettings(3, next);
+
       return next;
     });
   };
@@ -127,12 +129,12 @@ export default function Exercise3() {
     if (id === 'custom') {
       const next = { ...settings, activeLevel: 'custom' };
       setSettings(next);
-      Storage.saveSettings(3, next);
+
     } else {
       const difficultyNum = parseInt(id);
       const next = { ...settings, difficulty: difficultyNum, activeLevel: id };
       setSettings(next);
-      Storage.saveSettings(3, next);
+
     }
   };
 

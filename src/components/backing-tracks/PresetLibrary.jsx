@@ -1,3 +1,4 @@
+import { usePersistentState } from '../../utils/lastState';
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import './PresetLibrary.css'
@@ -27,13 +28,13 @@ const LIBRARIES = [
 export function PresetLibrary({ onLoadPreset, embedded = false }) {
   const { t } = useTranslation()
   const [isOpen,        setIsOpen]       = useState(embedded)
-  const [activeLib,     setActiveLib]    = useState(LIBRARIES[0].id)
+  const [activeLib,     setActiveLib]    = usePersistentState('backing-library', 'activeLib', LIBRARIES[0].id)
   const [songs,         setSongs]        = useState([])
   const [isLoading,     setIsLoading]    = useState(false)
   const [loadError,     setLoadError]    = useState(null)
-  const [query,         setQuery]        = useState('')
+  const [query,         setQuery]        = usePersistentState('backing-library', 'query', '')
   const [favorites,     setFavorites]    = useState(loadFavorites)
-  const [activeFilter,  setActiveFilter] = useState('all') // 'all' | 'favorites'
+  const [activeFilter,  setActiveFilter] = usePersistentState('backing-library', 'activeFilter', 'all') // 'all' | 'favorites'
 
   const cacheRef    = useRef({})
   const searchRef   = useRef(null)

@@ -66,11 +66,11 @@ const Exercise4A = () => {
   // Start new question
   useEffect(() => {
     if (!isComplete && isAudioReady) {
-      generateNewQuestion();
+      generateNewQuestion(currentQuestion > 1);
     }
   }, [currentQuestion, isAudioReady]);
 
-  const generateNewQuestion = async () => {
+  const generateNewQuestion = async (autoplay = true) => {
     if (!isMountedRef.current) return;
 
     // Reset UI state and attempts counter
@@ -92,6 +92,7 @@ const Exercise4A = () => {
     setCorrectChord(randomChord);
     setUsedChords([...usedChords, randomChord]);
 
+    if (!autoplay) return;
     // Play C reference if needed
     if (settings.playC === 'everyTime') {
       if (!isMountedRef.current) return;
