@@ -79,6 +79,10 @@
   display: flex;
   gap: 6px;
   padding: 8px 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.15)),
     linear-gradient(180deg, var(--wood-mid), var(--wood-board));
@@ -89,8 +93,12 @@
 }
 
 .tab-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   padding: 8px 14px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--brass-dark);
   color: var(--paper-aged);
@@ -117,6 +125,18 @@
   color: var(--paper-cream);
   background: rgba(184, 146, 61, 0.18);
   border-color: var(--brass);
+}
+
+@media (max-width: 480px) {
+  .positions-tabs {
+    gap: 4px;
+    padding: 8px;
+  }
+  .tab-btn {
+    padding: 6px 4px;
+    font-size: 12px;
+    letter-spacing: 0;
+  }
 }
 
 /* Content */
