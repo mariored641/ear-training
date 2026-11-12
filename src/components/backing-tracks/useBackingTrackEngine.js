@@ -1167,6 +1167,8 @@ export function useBackingTrackEngine() {
   const chordsRef       = useRef(chords)
   const volumesRef      = useRef(volumes)
   const maxLoopsRef     = useRef(maxLoops)
+  // Video export plays a fixed number of repetitions without touching the saved Repeats setting.
+  const loopsOverrideRef = useRef(null)
   const genreRef        = useRef(genre)
   const barCountRef     = useRef(barCount)
   const tempoRef        = useRef(tempo)
@@ -1334,9 +1336,13 @@ export function useBackingTrackEngine() {
   }, [])
 
   // ── Play ─────────────────────────────────────────────────────────────────────
-  const play = useCallback(async () => {
+  // `opts.loops` (video export) overrides Repeats for this run only. `play` is also used as a click
+  // handler, so anything that isn't a plain { loops } object is ignored. Resolves true once playing.
+  const play = useCallback(async (opts) => {
     stop()
+    loopsOverrideRef.current = Number.isInteger(opts?.loops) && opts.loops > 0 ? opts.loops : null
     setIsLoading(true)
+    let started = false
     try {
       // ── Ambient pad mode — bypass .sty engine, play chords via SoundFont directly ──
       if (isAmbientGenre(genreRef.current)) {
@@ -1377,7 +1383,7 @@ export function useBackingTrackEngine() {
           if (barIdx > 0 && idx === 0) {
             loopCountRef.current += 1
             setLoopCountState(loopCountRef.current)
-            const ml = maxLoopsRef.current
+            const ml = loopsOverrideRef.current ?? maxLoopsRef.current
             if (ml > 0 && loopCountRef.current >= ml) {
               // Finish after current chord duration
               ambientBarTimerRef.current = setTimeout(() => stop(true), barMs)
@@ -1391,7 +1397,8 @@ export function useBackingTrackEngine() {
         scheduleAmbientChord(0)
         setIsPlaying(true)
         isPlayingRef.current = true
-        return
+        started = true
+        return true
       }
 
       await ensureStyle(genreRef.current, { keepTempo: true })
@@ -1477,7 +1484,7 @@ export function useBackingTrackEngine() {
           }
 
           // ── Max loops ──
-          const ml = maxLoopsRef.current
+          const ml = loopsOverrideRef.current ?? maxLoopsRef.current
           if (ml > 0 && loopCountRef.current >= ml) {
             // Soft stop — plays ending at progression boundary
             setTimeout(() => stop(false), 0)
@@ -1510,6 +1517,7 @@ export function useBackingTrackEngine() {
       SFP.startCracklingMonitor()
       setIsPlaying(true)
       isPlayingRef.current = true
+      started = true
     } catch (err) {
       console.error('[BackingTrackEngine] play error:', err)
       setSfStatus('error')
@@ -1519,6 +1527,19 @@ export function useBackingTrackEngine() {
     } finally {
       setIsLoading(false)
     }
+    return started
+  }, [stop, ensureSF2, ensureStyle])
+
+  // Video export: load style + instrument packs up front so recording can start with playback.
+  // Does not start any sound.
+  const prepareForExport = useCallback(async () => {
+    stop(true)
+    if (isAmbientGenre(genreRef.current)) {
+      await ensureSF2(presetsForGenre(genreRef.current))
+      return
+    }
+    await ensureStyle(genreRef.current, { keepTempo: true })
+    await ensureSF2(presetsForGenre(genreRef.current, styleCache.current[genreRef.current]))
   }, [stop, ensureSF2, ensureStyle])
 
   // ── Tempo ────────────────────────────────────────────────────────────────────
@@ -1765,7 +1786,7 @@ export function useBackingTrackEngine() {
     // Original API (same as useBackingTrack)
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
-    play, stop, setTempo, setMaxLoops,
+    play, stop, setTempo, setMaxLoops, prepareForExport,
     setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression,
     setChord, replaceChords, previewChord,
     setVolume,
