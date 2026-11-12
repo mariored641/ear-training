@@ -20,7 +20,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   font-size: var(--font-size-lg);
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border: none;
   border-radius: var(--border-radius);
   cursor: pointer;

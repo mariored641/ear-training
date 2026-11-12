@@ -73,7 +73,7 @@ select.select-input option,
 select.select-input optgroup {
   color-scheme: light;
   background-color: #ffffff;
-  color: #1a130a;
+  color: var(--control-ink);
 }
 
 /* Text fields that only set a dark background were left with black FieldText.
@@ -152,7 +152,7 @@ a:hover {
 
 .btn-primary {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
 }
 
 .btn-primary:hover {
@@ -171,12 +171,12 @@ a:hover {
 
 .btn-success {
   background-color: var(--color-success);
-  color: white;
+  color: var(--control-ink);
 }
 
 .btn-error {
   background-color: var(--color-error);
-  color: white;
+  color: var(--control-ink);
 }
 
 .btn:disabled {
@@ -205,4 +205,12 @@ a:hover {
 .status-message.info {
   background-color: #E3F2FD;
   color: var(--color-primary);
+}
+
+/* Placeholder hints share their field's surface-aware ink. Browser defaults
+   use mid-gray, which fails on both the wood fields and aged paper inputs. */
+input::placeholder,
+textarea::placeholder {
+  color: inherit;
+  opacity: 1;
 }

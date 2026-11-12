@@ -10,7 +10,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test": "node --test unit-tests/*.test.js && node scripts/test-partial-chord-shapes.mjs"
+    "test": "node --test unit-tests/*.test.js && node scripts/test-partial-chord-shapes.mjs",
+    "test:contrast": "playwright test e2e/app-contrast.spec.js",
+    "audit:contrast": "node scripts/audit-contrast.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.2",

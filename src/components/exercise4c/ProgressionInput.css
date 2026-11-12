@@ -84,7 +84,7 @@
   padding: 10px 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--control-ink);
   background: white;
   border: 2px solid var(--border-color);
   border-radius: 8px;
@@ -136,7 +136,7 @@
   padding: 10px 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--control-ink);
   background: white;
   border: 2px solid var(--border-color);
   border-radius: 8px;

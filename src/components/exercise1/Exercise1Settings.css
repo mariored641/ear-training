@@ -57,14 +57,14 @@
 
 .settings-button:hover {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-primary);
 }
 
 .reset-button {
   width: 100%;
   background-color: var(--color-error);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-error);
 }
 

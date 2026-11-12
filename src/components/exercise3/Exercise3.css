@@ -36,7 +36,7 @@
 .ex3-header-right { flex: 0 0 72px; text-align: right; }
 
 .ex3-back-btn {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   border: 1px solid var(--brass-dark);
   color: var(--wood-darkest);
   font-size: 22px;
@@ -338,7 +338,7 @@
   display: flex; align-items: center; justify-content: center;
 }
 .ex3-step-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   color: var(--wood-darkest);
 }
 .ex3-step-btn:disabled { opacity: 0.35; cursor: not-allowed; }
@@ -372,7 +372,7 @@
   color: var(--paper-cream);
 }
 .ex3-seg-btn.active {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   border-color: var(--brass-dark);
   color: var(--wood-darkest);
   box-shadow: var(--shadow-inset);
@@ -396,7 +396,7 @@
   -webkit-appearance: none;
   width: 16px; height: 16px;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   border: 1px solid var(--brass-dark);
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
@@ -419,14 +419,14 @@
   gap: 8px;
 }
 .ex3-mic-btn.off {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   color: var(--wood-darkest);
   box-shadow: var(--shadow-inset), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 .ex3-mic-btn.off:hover  { filter: brightness(1.12); transform: translateY(-1px); }
 .ex3-mic-btn.requesting { background: var(--wood-mid); color: var(--paper-aged); cursor: not-allowed; }
 .ex3-mic-btn.active {
-  background: linear-gradient(180deg, #6ed988 0%, #3aac5a 60%, #267d40 100%);
+  background: linear-gradient(180deg, #6ed988 0%, #3aac5a 60%, #3aac5a 100%);
   color: #0e2a16;
   border-color: #267d40;
   box-shadow: var(--shadow-inset), 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -484,7 +484,7 @@
   box-shadow: var(--shadow-inset), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 .ex3-ctrl-btn.start {
-  background: linear-gradient(180deg, #6ed988 0%, #3aac5a 60%, #267d40 100%);
+  background: linear-gradient(180deg, #6ed988 0%, #3aac5a 60%, #3aac5a 100%);
   color: #0e2a16;
   border-color: #267d40;
 }
@@ -534,3 +534,5 @@
 @media (max-width: 360px) {
   .ex3-note-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+.ex3-space-hint { opacity: 1; }

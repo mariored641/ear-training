@@ -36,7 +36,7 @@
 
 .progression-chord.current {
   background: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-primary);
   transform: scale(1.1);
 }

@@ -15,7 +15,7 @@
   position: fixed;
   top: 14px;
   right: 16px;
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   color: var(--wood-darkest);
   border: 1px solid var(--brass-dark);
   border-radius: 20px;
@@ -130,7 +130,7 @@
   transition: filter 0.15s ease, background 0.15s ease;
 }
 .fb-tab--active {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   border-color: var(--brass-dark);
   color: var(--wood-darkest);
   box-shadow: var(--shadow-inset);
@@ -191,7 +191,7 @@
 .fb-continue-btn {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   color: var(--wood-darkest);
   border: 1px solid var(--brass-dark);
   border-radius: 4px;
@@ -491,7 +491,7 @@
 
 .fb-share-btn {
   padding: 14px;
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   color: var(--wood-darkest);
   border: 1px solid var(--brass-dark); border-radius: 4px;
   font-size: 16px; font-weight: 700;
@@ -532,3 +532,7 @@
   .fb-pip { width: 100px; height: 75px; }
   .fb-meter-wrap { bottom: 190px; }
 }
+
+.fb-optional, .fb-tab:not(.fb-tab--active), .fb-file-btn { color: var(--control-paper-ink); opacity: 1; }
+
+.fb-tab:not(.fb-tab--active), .fb-file-btn { background: var(--paper-cream); }

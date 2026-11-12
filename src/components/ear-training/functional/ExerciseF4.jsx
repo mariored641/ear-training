@@ -224,11 +224,11 @@ const ExerciseF4 = () => {
               <div style={{ fontWeight:700, fontSize:15 }}>
                 {t(`earTraining.knownProgressions.${p.id}`, { defaultValue: p.name })}
               </div>
-              <div style={{ fontSize:12, color: colored ? '#fff' : '#888', marginTop:4 }}>
+              <div style={{ fontSize:12, color: 'var(--control-paper-ink)', marginTop:4 }}>
                 {displayMode === 'degrees' ? p.degrees.join(' ') : chordDisplay?.join(' ')}
               </div>
               {p.examples?.length > 0 && (
-                <div style={{ fontSize:11, color: colored ? '#fff' : '#bbb', marginTop:3 }}>
+                <div style={{ fontSize:11, color: 'var(--control-paper-ink)', marginTop:3 }}>
                   {p.examples[0]}
                 </div>
               )}
@@ -243,11 +243,11 @@ const ExerciseF4 = () => {
 };
 
 const ctrlRow = { display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', padding:'16px 24px', borderBottom:'1px solid #eee', justifyContent:'center' };
-const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
+const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)', fontSize:15, fontWeight:600, cursor:'pointer' };
 const optGrid = { display:'flex', flexWrap:'wrap', gap:12, justifyContent:'center', padding:'24px 16px', maxWidth:700, margin:'0 auto' };
-const optBtn = { width:165, padding:'16px 12px', borderRadius:12, border:'2px solid #ddd', background:'#fff', cursor:'pointer', textAlign:'center', transition:'all 0.15s' };
-const optSelected = { background:'var(--color-primary, #4a90e2)', border:'2px solid var(--color-primary, #4a90e2)', color:'#fff' };
-const optCorrect = { background:'#2dbb5b', border:'2px solid #2dbb5b', color:'#fff' };
-const optWrong = { background:'#e74c3c', border:'2px solid #e74c3c', color:'#fff' };
+const optBtn = { width:165, padding:'16px 12px', borderRadius:12, border:'2px solid #ddd', background:'var(--paper-cream)', color:'var(--control-paper-ink)', cursor:'pointer', textAlign:'center', transition:'all 0.15s' };
+const optSelected = { background:'var(--color-primary, #4a90e2)', border:'2px solid var(--color-primary, #4a90e2)', color:'var(--control-ink)' };
+const optCorrect = { background:'#2dbb5b', border:'2px solid #2dbb5b', color:'var(--control-ink)' };
+const optWrong = { background:'#e74c3c', border:'2px solid #e74c3c', color:'var(--control-ink)' };
 
 export default ExerciseF4;

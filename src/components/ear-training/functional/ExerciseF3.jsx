@@ -331,12 +331,12 @@ const ExerciseF3 = () => {
 
 const settingsDivider = { borderTop:'1px solid #eee', margin:'8px 24px 0', opacity:0.6 };
 const ctrlRow = { display:'flex', gap:16, alignItems:'center', padding:'16px 24px', justifyContent:'center', flexWrap:'wrap' };
-const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
-const questionLabel = { fontSize:17, color:'var(--color-text,#222)', marginBottom:20, fontWeight:600 };
+const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)', fontSize:15, fontWeight:600, cursor:'pointer' };
+const questionLabel = { fontSize:17, color:'var(--control-text)', marginBottom:20, fontWeight:600 };
 const btnRow = { display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' };
-const optBtn = { padding:'14px 28px', borderRadius:10, border:'2px solid #ddd', background:'#fff', fontSize:15, fontWeight:600, cursor:'pointer', minWidth:140, transition:'all 0.15s' };
-const optBtnSq = { width:72, height:72, borderRadius:10, border:'2px solid #ddd', background:'#fff', fontSize:22, fontWeight:700, cursor:'pointer', transition:'all 0.15s' };
-const optCorrect = { background:'#2dbb5b', borderColor:'#2dbb5b', color:'#fff' };
-const optWrong = { background:'#e74c3c', borderColor:'#e74c3c', color:'#fff' };
+const optBtn = { padding:'14px 28px', borderRadius:10, border:'2px solid #ddd', background:'var(--paper-cream)', color:'var(--control-paper-ink)', fontSize:15, fontWeight:600, cursor:'pointer', minWidth:140, transition:'all 0.15s' };
+const optBtnSq = { width:72, height:72, borderRadius:10, border:'2px solid #ddd', background:'var(--paper-cream)', color:'var(--control-paper-ink)', fontSize:22, fontWeight:700, cursor:'pointer', transition:'all 0.15s' };
+const optCorrect = { background:'#2dbb5b', borderColor:'#2dbb5b', color:'var(--control-ink)' };
+const optWrong = { background:'#e74c3c', borderColor:'#e74c3c', color:'var(--control-ink)' };
 
 export default ExerciseF3;

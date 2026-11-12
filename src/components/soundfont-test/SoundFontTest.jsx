@@ -182,8 +182,8 @@ const styles = {
     margin: '0 0 32px',
   },
   btnPrimary: {
-    background: '#6c63ff',
-    color: 'white',
+    background: 'var(--brass)',
+    color: 'var(--control-ink)',
     border: 'none',
     padding: '14px 32px',
     borderRadius: '8px',
@@ -282,8 +282,8 @@ const styles = {
     color: '#888',
   },
   btnAll: {
-    background: '#6c63ff',
-    color: 'white',
+    background: 'var(--brass)',
+    color: 'var(--control-ink)',
     border: 'none',
     padding: '14px',
     borderRadius: '8px',

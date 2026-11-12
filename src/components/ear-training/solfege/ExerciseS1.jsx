@@ -124,7 +124,7 @@ const ExerciseS1 = () => {
         progressCurrent={questionIndex} progressTotal={numQuestions} />
 
       <div style={{ textAlign:'center', padding:'24px 16px' }}>
-        <h2 style={{ fontSize:18, fontWeight:600, marginBottom:20, color:'var(--color-text,#222)' }}>
+        <h2 style={{ fontSize:18, fontWeight:600, marginBottom:20, color:'var(--control-text)' }}>
           {t('earTraining.prompts.singMelody')}
         </h2>
 
@@ -142,7 +142,7 @@ const ExerciseS1 = () => {
           <button onClick={() => handleSelfRate(true)} style={{ ...btn, background:'#2dbb5b', borderColor:'#2dbb5b' }}>
             {t('earTraining.prompts.gotIt')}
           </button>
-          <button onClick={() => handleSelfRate(false)} style={{ ...btn, background:'#fff', color:'#e74c3c', borderColor:'#e74c3c' }}>
+          <button onClick={() => handleSelfRate(false)} style={{ ...btn, background:'var(--paper-cream)', color:'var(--control-paper-ink)', borderColor:'#e74c3c' }}>
             {t('earTraining.prompts.missedIt')}
           </button>
         </div>
@@ -165,7 +165,7 @@ const ctrlRow = { display:'flex', gap:16, alignItems:'center', padding:'16px 24p
 const btn = {
   padding:'12px 24px', borderRadius:10,
   border:'2px solid var(--color-primary,#4a90e2)',
-  background:'var(--color-primary,#4a90e2)', color:'#fff',
+  background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)',
   fontSize:15, fontWeight:600, cursor:'pointer'
 };
 

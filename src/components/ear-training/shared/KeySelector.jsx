@@ -14,7 +14,7 @@ const KeySelector = ({ value = 'C', onChange, label }) => {
   const prev = () => onChange?.(KEYS[(idx + 11) % 12]);
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-secondary, #666)' }}>{label || t('common.key')}:</span>
+      <span style={{ fontSize: 13, color: 'var(--control-text)' }}>{label || t('common.key')}:</span>
       <div className="et-counter">
         <button className="et-counter-btn" onClick={prev} aria-label={t('common.previousKey')}>−</button>
         <span className="et-counter-value note-symbol" style={{ minWidth: 44 }}>{formatNoteName(value, language)}</span>

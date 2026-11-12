@@ -51,7 +51,7 @@ const EarTrainingHeader = ({
           title={exerciseTitle}
         >
           <span>{exerciseTitle}</span>
-          <span style={{ opacity: 0.6 }}>· {currentLabel}</span>
+          <span style={{ opacity: 1 }}>· {currentLabel}</span>
           <span>▼</span>
         </button>
 

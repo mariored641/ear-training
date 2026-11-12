@@ -63,7 +63,7 @@
 
 .fret-cell.marked {
   background-color: var(--color-success);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-success);
 }
 

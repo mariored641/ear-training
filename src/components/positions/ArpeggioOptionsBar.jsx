@@ -31,7 +31,7 @@ const ArpeggioOptionsBar = ({ activeArpeggios, onArpeggioToggle, hideRoots, onHi
                 boxShadow: `0 0 8px ${arp.color}88`,
               } : {
                 borderColor: arp.color,
-                color: arp.color,
+                color: 'var(--control-text)',
               }}
               onClick={() => onArpeggioToggle(arp.id)}
               title={`${arp.label} ${t('common.chord')}`}

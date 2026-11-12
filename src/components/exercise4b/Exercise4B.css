@@ -183,7 +183,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #212121;
+  color: var(--control-ink);
 }
 
 .note-button:hover:not(:disabled) {

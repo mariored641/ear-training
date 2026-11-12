@@ -354,7 +354,7 @@ const ctrlRow = {
 const replayBtn = {
   padding:'10px 20px', borderRadius:10,
   border:'2px solid var(--color-primary,#4a90e2)',
-  background:'var(--color-primary,#4a90e2)', color:'#fff',
+  background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)',
   fontSize:15, fontWeight:600, cursor:'pointer'
 };
 const noteGrid = {
@@ -363,11 +363,10 @@ const noteGrid = {
 };
 const noteBtn = {
   minWidth:80, padding:'16px 12px', borderRadius:10,
-  border:'2px solid var(--border-color,#ddd)', background:'#fff',
-  color:'var(--color-text,#222)', fontSize:18, fontWeight:700, cursor:'pointer'
+  border:'2px solid var(--border-color,#ddd)', background:'var(--paper-cream)', color:'var(--control-paper-ink)', fontSize:18, fontWeight:700, cursor:'pointer'
 };
-const noteSelected = { background:'var(--color-primary, #4a90e2)', color:'#fff', border:'2px solid var(--color-primary, #4a90e2)' };
-const noteCorrect  = { background:'#2dbb5b', color:'#fff', border:'2px solid #2dbb5b' };
-const noteWrong    = { background:'#e74c3c', color:'#fff', border:'2px solid #e74c3c' };
+const noteSelected = { background:'var(--color-primary, #4a90e2)', color:'var(--control-ink)', border:'2px solid var(--color-primary, #4a90e2)' };
+const noteCorrect  = { background:'#2dbb5b', color:'var(--control-ink)', border:'2px solid #2dbb5b' };
+const noteWrong    = { background:'#e74c3c', color:'var(--control-ink)', border:'2px solid #e74c3c' };
 
 export default ExerciseM1;

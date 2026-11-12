@@ -259,6 +259,6 @@ const ExerciseG1 = () => {
 
 const settingsDivider = { borderTop:'1px solid #eee', margin:'8px 24px 0', opacity:0.6 };
 const ctrlRow = { display:'flex', flexWrap:'wrap', gap:12, alignItems:'center', padding:'12px 20px', justifyContent:'center' };
-const audioBtn = { padding:'10px 24px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
+const audioBtn = { padding:'10px 24px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)', fontSize:15, fontWeight:600, cursor:'pointer' };
 
 export default ExerciseG1;

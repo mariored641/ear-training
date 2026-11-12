@@ -173,12 +173,12 @@ export default function FeedbackTestPage() {
 
       <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <button onClick={startTest} disabled={status === 'recording' || status === 'stopping'}
-          style={{ padding: '10px 20px', fontSize: 15, background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+          style={{ padding: '10px 20px', fontSize: 15, background: 'var(--brass)', color: 'var(--control-ink)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
           {status === 'recording' ? '⏺ Recording...' : status === 'stopping' ? 'Stopping...' : '▶ Start 8s Test'}
         </button>
         {status === 'recording' && (
           <button onClick={stopEarly}
-            style={{ padding: '10px 20px', fontSize: 15, background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+            style={{ padding: '10px 20px', fontSize: 15, background: 'var(--color-error)', color: 'var(--control-ink)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
             ⏹ Stop early
           </button>
         )}
