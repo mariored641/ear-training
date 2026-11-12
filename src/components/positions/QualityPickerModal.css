@@ -48,7 +48,7 @@
   border: none;
   font-size: 22px;
   line-height: 1;
-  color: var(--ink-faded);
+  color: var(--control-paper-ink);
   cursor: pointer;
   padding: 2px 8px;
   border-radius: 4px;
@@ -68,7 +68,7 @@
   font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink-faded);
+  color: var(--control-paper-ink);
   margin-bottom: 6px;
   font-family: var(--font-display);
 }
@@ -100,14 +100,14 @@
 }
 
 .qpm-tile.active {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   border-color: var(--brass-dark);
   color: var(--wood-darkest);
   box-shadow: var(--shadow-inset);
 }
 
 .qpm-tile.active .qpm-tile-intervals {
-  color: rgba(26, 19, 10, 0.75);
+  color: var(--control-ink);
 }
 
 .qpm-tile-label {
@@ -125,7 +125,7 @@
 
 .qpm-tile-intervals {
   font-size: 10px;
-  color: var(--ink-faded);
+  color: var(--control-paper-ink);
   letter-spacing: 0.3px;
   font-family: var(--font-display);
 }

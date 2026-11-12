@@ -299,7 +299,7 @@ const ExerciseF2 = () => {
                 {displayMode === 'degrees' ? btn.roman : dispName}
               </div>
               {displayMode === 'degrees' && (
-                <div style={{ fontSize: 11, color: isSel ? '#fff' : '#aaa', marginTop: 2 }}>{dispName}</div>
+                <div style={{ fontSize: 11, color: 'var(--control-paper-ink)', marginTop: 2 }}>{dispName}</div>
               )}
             </button>
           );
@@ -333,15 +333,15 @@ const ExerciseF2 = () => {
 
 const settingsDivider = { borderTop:'1px solid #eee', margin:'8px 24px 0', opacity:0.6 };
 const ctrlRow = { display:'flex', flexWrap:'wrap', gap:16, alignItems:'center', padding:'16px 24px', justifyContent:'center' };
-const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
+const playBtn = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)', fontSize:15, fontWeight:600, cursor:'pointer' };
 const slotRow = { display:'flex', gap:12, justifyContent:'center', padding:'24px 16px 8px', flexWrap:'wrap' };
 const slot = { width:80, height:64, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:10, border:'2px solid #ddd', fontSize:18, fontWeight:700, color:'#999', background:'#f8f8f8' };
 const slotCorrect = { background:'#e8f9f0', borderColor:'#2dbb5b', color:'#2dbb5b' };
 const slotActive = { background:'#eaf3ff', borderColor:'var(--color-primary,#4a90e2)', color:'var(--color-primary,#4a90e2)' };
 const btnGrid = { display:'flex', flexWrap:'wrap', gap:10, justifyContent:'center', padding:'20px 16px 32px', maxWidth:700, margin:'0 auto' };
-const chordBtn = { minWidth:80, padding:'12px 10px', borderRadius:10, border:'2px solid #ddd', background:'#fff', cursor:'pointer', textAlign:'center', transition:'all 0.15s' };
-const chordSelected = { background:'var(--color-primary, #4a90e2)', color:'#fff', border:'2px solid var(--color-primary, #4a90e2)' };
-const chordCorrect  = { background:'#2dbb5b', color:'#fff', border:'2px solid #2dbb5b' };
-const chordWrong    = { background:'#e74c3c', color:'#fff', border:'2px solid #e74c3c' };
+const chordBtn = { minWidth:80, padding:'12px 10px', borderRadius:10, border:'2px solid #ddd', background:'var(--paper-cream)', color:'var(--control-paper-ink)', cursor:'pointer', textAlign:'center', transition:'all 0.15s' };
+const chordSelected = { background:'var(--color-primary, #4a90e2)', color:'var(--control-ink)', border:'2px solid var(--color-primary, #4a90e2)' };
+const chordCorrect  = { background:'#2dbb5b', color:'var(--control-ink)', border:'2px solid #2dbb5b' };
+const chordWrong    = { background:'#e74c3c', color:'var(--control-ink)', border:'2px solid #e74c3c' };
 
 export default ExerciseF2;

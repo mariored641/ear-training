@@ -837,3 +837,6 @@ body.looper-page-active {
     transition: none;
   }
 }
+
+.looper-record-btn { background: #8f3026; }
+.looper-record-btn small { opacity: 1; }

@@ -35,7 +35,7 @@
 
 .note-selector-button.active {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-primary);
 }
 
@@ -46,5 +46,5 @@
 
 .note-selector-button.active.marked {
   background-color: var(--color-success);
-  color: white;
+  color: var(--control-ink);
 }

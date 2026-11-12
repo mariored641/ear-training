@@ -55,11 +55,11 @@ const FretboardAnswer = ({
     const base = {
       width: 44, height: 36, border: '1px solid #aaa', cursor: 'pointer',
       display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12,
-      background: '#fff', color: '#333'
+      background:'var(--paper-cream)', color:'var(--control-paper-ink)'
     };
-    if (state === 'picked') return { ...base, background: 'var(--color-primary, #4a90e2)', color: '#fff' };
-    if (state === 'correct') return { ...base, background: '#2dbb5b', color: '#fff' };
-    if (state === 'wrong') return { ...base, background: '#e74c3c', color: '#fff' };
+    if (state === 'picked') return { ...base, background: 'var(--color-primary, #4a90e2)', color:'var(--control-ink)' };
+    if (state === 'correct') return { ...base, background: '#2dbb5b', color: 'var(--control-ink)' };
+    if (state === 'wrong') return { ...base, background: '#e74c3c', color: 'var(--control-ink)' };
     if (state === 'shouldBe') return { ...base, background: '#fff7cc', borderColor: '#e0a000' };
     return base;
   };

@@ -400,7 +400,7 @@ function sleep(ms) {
 
 const controlsRowStyle = { display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', margin: '14px 0' }
 const selectStyle      = { background: '#16162a', color: '#e0e0f0', border: '1px solid #2a2a3e', padding: '6px 8px', borderRadius: 4, fontSize: 13 }
-const runBtnStyle      = { padding: '8px 18px', background: '#3a7eff', color: 'white', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }
+const runBtnStyle      = { padding: '8px 18px', background: 'var(--brass)', color: 'var(--control-ink)', border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer' }
 const summaryBoxStyle  = { padding: '10px 14px', background: '#16162a', border: '1px solid #2a2a3e', borderRadius: 6, marginBottom: 14, fontSize: 13, color: '#c0c0e0' }
 const subHeader        = { color: '#a0a0c0', fontSize: 14, marginTop: 22, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }
 const tableStyle       = { width: '100%', borderCollapse: 'collapse', fontSize: 13, color: '#e0e0f0', background: '#16162a', borderRadius: 6, overflow: 'hidden' }

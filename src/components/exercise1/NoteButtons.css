@@ -24,7 +24,7 @@
 
 .note-button:hover:not(:disabled) {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
 }
@@ -41,14 +41,14 @@
 
 .note-button.correct {
   background-color: var(--color-success);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-success);
   animation: successPulse 0.5s ease;
 }
 
 .note-button.incorrect {
   background-color: var(--color-error);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-error);
   animation: shake 0.5s ease;
 }

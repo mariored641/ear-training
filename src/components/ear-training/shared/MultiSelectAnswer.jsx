@@ -86,22 +86,21 @@ const baseStyle = {
   padding: '8px 16px',
   border: '2px solid var(--border-color, #ddd)',
   borderRadius: 999,
-  background: '#fff',
-  color: 'var(--color-text, #222)',
+  background:'var(--paper-cream)', color:'var(--control-paper-ink)',
   cursor: 'pointer',
   fontWeight: 600,
   fontSize: 14
 };
-const activeStyle = { ...baseStyle, background: 'var(--color-primary, #4a90e2)', color: '#fff', borderColor: 'var(--color-primary, #4a90e2)' };
-const correctChipStyle = { ...baseStyle, background: '#2dbb5b', color: '#fff', borderColor: '#2dbb5b' };
-const wrongChipStyle = { ...baseStyle, background: '#e74c3c', color: '#fff', borderColor: '#e74c3c' };
+const activeStyle = { ...baseStyle, background: 'var(--color-primary, #4a90e2)', color:'var(--control-ink)', borderColor: 'var(--color-primary, #4a90e2)' };
+const correctChipStyle = { ...baseStyle, background: '#2dbb5b', color: 'var(--control-ink)', borderColor: '#2dbb5b' };
+const wrongChipStyle = { ...baseStyle, background: '#e74c3c', color: 'var(--control-ink)', borderColor: '#e74c3c' };
 const missedChipStyle = { ...baseStyle, borderColor: '#2dbb5b', borderStyle: 'dashed', color: '#2dbb5b' };
 const confirmBtnStyle = {
   padding: '12px 32px',
   borderRadius: 12,
   border: '2px solid var(--color-primary, #4a90e2)',
   background: 'var(--color-primary, #4a90e2)',
-  color: '#fff',
+  color: 'var(--control-ink)',
   fontWeight: 700,
   fontSize: 16,
   cursor: 'pointer'

@@ -39,7 +39,7 @@
 }
 
 .back-btn {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   border: 1px solid var(--brass-dark);
   color: var(--wood-darkest);
   font-size: 22px;
@@ -114,7 +114,7 @@
 }
 
 .tab-btn.active {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   color: var(--wood-darkest);
   border-color: var(--brass-bright);
   text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);

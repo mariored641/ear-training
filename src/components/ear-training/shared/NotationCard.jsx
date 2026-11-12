@@ -15,7 +15,7 @@ const NotationCard = ({ notes = [], onClick, highlight, selected }) => {
     border: '2px solid var(--border-color, #ddd)',
     borderRadius: 12,
     padding: 12,
-    background: '#fff',
+    background:'var(--paper-cream)', color:'var(--control-paper-ink)',
     cursor: onClick ? 'pointer' : 'default',
     minWidth: 160,
     transition: 'all 0.15s',
@@ -48,7 +48,7 @@ const NotationCard = ({ notes = [], onClick, highlight, selected }) => {
           return <circle key={i} cx={x} cy={y} r="3" fill="var(--color-primary, #4a90e2)" />;
         })}
       </svg>
-      <div style={{ marginTop: 6, fontSize: 12, fontFamily: 'monospace', textAlign: 'center', color: 'var(--color-text-secondary, #666)' }}>
+      <div style={{ marginTop: 6, fontSize: 12, fontFamily: 'monospace', textAlign: 'center', color: 'var(--control-paper-ink)' }}>
         {notes.map(n => stripOctave(n)).join(' • ')}
       </div>
     </div>

@@ -27,7 +27,7 @@
   font-size: 20px;
   font-weight: 600;
   background: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border: 2px solid var(--color-primary);
   border-radius: 12px;
   cursor: pointer;
@@ -36,7 +36,7 @@
 
 .preset-btn-2:hover {
   background: white;
-  color: var(--color-primary);
+  color: var(--control-ink);
   border-color: var(--color-primary);
   transform: scale(1.05);
 }

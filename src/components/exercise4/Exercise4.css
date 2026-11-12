@@ -108,7 +108,7 @@
 
 .sticky-controls .action-btn.primary {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   min-width: 100px;
 }
 
@@ -195,7 +195,7 @@
   border: none;
   border-radius: 50%;
   background: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
@@ -266,7 +266,7 @@
 
 .bpm-arrow {
   font-size: 12px;
-  color: #666;
+  color: var(--control-text);
 }
 
 /* BPM Modal - Mobile */
@@ -341,7 +341,7 @@
   border: none;
   border-radius: 50%;
   background: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   cursor: pointer;
   font-size: 20px;
   font-weight: bold;
@@ -385,7 +385,7 @@
 .bpm-tempo-name-modal {
   text-align: center;
   font-style: italic;
-  color: #666;
+  color: var(--control-text);
   margin-bottom: 24px;
   font-size: 14px;
 }
@@ -394,7 +394,7 @@
   width: 100%;
   padding: 12px;
   background: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -709,7 +709,7 @@
 
 .control-btn:hover {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
 }
 
 /* BPM Control */
@@ -791,7 +791,7 @@
 
 .action-btn.primary {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
 }
 
 .action-btn.primary:hover {
@@ -841,7 +841,7 @@
 
 .sound-set-btn.active {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-primary);
   font-weight: 600;
 }
@@ -876,7 +876,7 @@
 
 .time-sig-btn.active {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-primary);
 }
 
@@ -939,7 +939,7 @@
 
 .subdivision-btn.active {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   border-color: var(--color-primary);
 }
 
@@ -966,7 +966,7 @@
   width: 100%;
   padding: 12px 20px;
   background-color: var(--color-secondary);
-  color: white;
+  color: var(--control-ink);
   border: none;
   border-radius: var(--border-radius);
   font-size: var(--font-size-md);
@@ -1159,11 +1159,11 @@
 
 .modal-action-btn.save {
   background-color: #3aac5a;
-  color: white;
+  color: var(--control-ink);
 }
 
 .modal-action-btn.save:hover {
-  background-color: #267d40;
+  background-color: #3aac5a;
 }
 
 .modal-action-btn.cancel {
@@ -1390,7 +1390,7 @@
   border-radius: 8px;
   border: none;
   background-color: var(--color-primary);
-  color: white;
+  color: var(--control-ink);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -1408,7 +1408,7 @@
   border-radius: 8px;
   border: none;
   background-color: var(--color-secondary);
-  color: white;
+  color: var(--control-ink);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -1765,3 +1765,8 @@
 /* Many polyrhythm rows: let the ratio wrap and dim the disabled remove button. */
 .polyrhythm .control-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .ratio-display { overflow-wrap: anywhere; }
+
+.tab-button, .tab-button.active, .bpm-label-small, .bpm-tempo-name-small { color: var(--control-text); }
+.delete-btn { color: var(--control-danger); }
+
+.sound-btn.active { color: var(--control-ink); }

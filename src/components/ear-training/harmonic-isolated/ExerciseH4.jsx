@@ -254,9 +254,9 @@ const ExerciseH4 = () => {
           return (
             <button key={t} onClick={() => handleCheck(t)} style={{
               ...tensionBtn,
-              ...(isChecked && !submitted ? { background:'var(--color-primary,#4a90e2)', color:'#fff', borderColor:'var(--color-primary,#4a90e2)' } : {}),
-              ...(correct ? { background:'#2dbb5b', color:'#fff', borderColor:'#2dbb5b' } : {}),
-              ...(wrong   ? { background:'#e74c3c', color:'#fff', borderColor:'#e74c3c' } : {}),
+              ...(isChecked && !submitted ? { background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)', borderColor:'var(--color-primary,#4a90e2)' } : {}),
+              ...(correct ? { background:'#2dbb5b', color:'var(--control-ink)', borderColor:'#2dbb5b' } : {}),
+              ...(wrong   ? { background:'#e74c3c', color:'var(--control-ink)', borderColor:'#e74c3c' } : {}),
               ...(missed  ? { borderColor:'#2dbb5b', outline:'2px dashed #2dbb5b' } : {}),
             }}>
               {TENSION_LABELS[t]}
@@ -297,9 +297,9 @@ const ExerciseH4 = () => {
 
 const settingsDivider = { borderTop:'1px solid #eee', margin:'8px 24px 0', opacity:0.6 };
 const ctrlRow    = { display:'flex', gap:16, alignItems:'center', padding:'16px 24px', justifyContent:'center', flexWrap:'wrap' };
-const playBtn    = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer' };
+const playBtn    = { padding:'10px 20px', borderRadius:10, border:'2px solid var(--color-primary,#4a90e2)', background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)', fontSize:15, fontWeight:600, cursor:'pointer' };
 const tensionGrid= { display:'flex', flexWrap:'wrap', gap:16, justifyContent:'center', padding:'24px 16px', maxWidth:500, margin:'0 auto' };
-const tensionBtn = { width:90, height:90, borderRadius:12, border:'2px solid #ddd', background:'#fff', fontSize:22, fontWeight:700, cursor:'pointer', transition:'all 0.15s' };
-const submitBtn  = { padding:'14px 40px', borderRadius:12, border:'none', background:'var(--color-primary,#4a90e2)', color:'#fff', fontSize:16, fontWeight:700, cursor:'pointer' };
+const tensionBtn = { width:90, height:90, borderRadius:12, border:'2px solid #ddd', background:'var(--paper-cream)', color:'var(--control-paper-ink)', fontSize:22, fontWeight:700, cursor:'pointer', transition:'all 0.15s' };
+const submitBtn  = { padding:'14px 40px', borderRadius:12, border:'none', background:'var(--color-primary,#4a90e2)', color:'var(--control-ink)', fontSize:16, fontWeight:700, cursor:'pointer' };
 
 export default ExerciseH4;

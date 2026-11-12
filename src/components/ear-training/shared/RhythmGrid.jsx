@@ -102,7 +102,7 @@ const RhythmGrid = ({
 };
 
 const rowStyle = { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 };
-const measureLabelStyle = { minWidth: 60, fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary, #666)' };
+const measureLabelStyle = { minWidth: 60, fontSize: 14, fontWeight: 600, color: 'var(--control-text)' };
 const cellsStyle = { display: 'flex', gap: 4, flex: 1 };
 const cellStyle = {
   flex: 1,
@@ -110,22 +110,22 @@ const cellStyle = {
   height: 44,
   border: '2px solid var(--border-color, #ddd)',
   borderRadius: 6,
-  background: '#fff',
+  background:'var(--paper-cream)',
   cursor: 'pointer',
   fontSize: 13,
   fontWeight: 600,
-  color: 'var(--color-text-secondary, #666)'
+  color: 'var(--control-paper-ink)'
 };
-const selStyle = { ...cellStyle, background: 'var(--color-primary, #4a90e2)', color: '#fff', borderColor: 'var(--color-primary, #4a90e2)' };
-const correctCell = { ...cellStyle, background: '#2dbb5b', color: '#fff', borderColor: '#2dbb5b' };
-const wrongCell = { ...cellStyle, background: '#e74c3c', color: '#fff', borderColor: '#e74c3c' };
+const selStyle = { ...cellStyle, background: 'var(--color-primary, #4a90e2)', color:'var(--control-ink)', borderColor: 'var(--color-primary, #4a90e2)' };
+const correctCell = { ...cellStyle, background: '#2dbb5b', color: 'var(--control-ink)', borderColor: '#2dbb5b' };
+const wrongCell = { ...cellStyle, background: '#e74c3c', color: 'var(--control-ink)', borderColor: '#e74c3c' };
 const missedCell = { ...cellStyle, borderColor: '#2dbb5b', borderStyle: 'dashed', color: '#2dbb5b' };
 const confirmBtnStyle = {
   padding: '12px 32px',
   borderRadius: 12,
   border: '2px solid var(--color-primary, #4a90e2)',
   background: 'var(--color-primary, #4a90e2)',
-  color: '#fff',
+  color: 'var(--control-ink)',
   fontWeight: 700,
   fontSize: 16,
   cursor: 'pointer'

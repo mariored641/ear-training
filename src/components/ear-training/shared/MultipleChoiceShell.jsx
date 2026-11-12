@@ -395,7 +395,7 @@ const replayBtnStyle = {
   padding: '11px 26px',
   borderRadius: 4,
   border: '1px solid var(--brass-dark)',
-  background: 'linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%)',
+  background: 'linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%)',
   color: 'var(--wood-darkest)',
   fontSize: 15,
   fontWeight: 700,
@@ -431,7 +431,7 @@ const optionBtnStyle = {
   boxShadow: 'var(--shadow-paper)'
 };
 const optionSelectedStyle = {
-  background: 'linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%)',
+  background: 'linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%)',
   color: 'var(--wood-darkest)',
   border: '1px solid var(--brass-dark)',
   boxShadow: 'var(--shadow-inset), 0 2px 6px rgba(0,0,0,0.4)'

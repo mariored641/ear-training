@@ -67,13 +67,13 @@
 
 /* Selects — dark wood with brass border */
 .ast-select {
-  background-color: #2a1810;
-  color: #d9c8a4;
+  background-color: var(--control-surface);
+  color: var(--control-text);
   border: 1px solid var(--brass-dark);
   border-radius: 4px;
   padding: 5px 8px;
-  font-size: 13px;
-  font-family: var(--font-display);
+  font-size: 14px;
+  font-family: system-ui, sans-serif;
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s ease;
@@ -87,8 +87,8 @@
 
 /* Open dropdown options — override OS gray */
 .ast-select option {
-  background-color: #2a1810;
-  color: #d9c8a4;
+  background-color: var(--control-surface);
+  color: var(--control-text);
 }
 
 .ast-select optgroup {
@@ -139,7 +139,7 @@
   border-radius: 4px;
   font-size: 14px;
   font-weight: 700;
-  font-family: var(--font-display);
+  font-family: system-ui, sans-serif;
   cursor: pointer;
   transition: all 0.12s ease;
   display: flex;
@@ -154,7 +154,7 @@
 }
 
 .ast-mode-btn.active {
-  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   border-color: var(--brass-bright);
   color: var(--wood-darkest);
   text-shadow: 0 1px 0 rgba(255, 220, 160, 0.4);
@@ -174,7 +174,7 @@
   border-radius: 4px;
   padding: 3px 10px;
   font-size: 12px;
-  font-family: var(--font-display);
+  font-family: system-ui, sans-serif;
   cursor: pointer;
   transition: all 0.12s ease;
   white-space: nowrap;
@@ -254,7 +254,7 @@
   border-radius: 4px;
   padding: 2px 10px;
   font-size: 12px;
-  font-family: var(--font-display);
+  font-family: system-ui, sans-serif;
   cursor: pointer;
   transition: all 0.12s ease;
 }
@@ -290,7 +290,7 @@
   border-radius: 4px;
   padding: 2px 10px;
   font-size: 12px;
-  font-family: var(--font-display);
+  font-family: system-ui, sans-serif;
   cursor: pointer;
   transition: all 0.12s ease;
 }

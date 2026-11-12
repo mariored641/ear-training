@@ -54,6 +54,7 @@
   padding: 14px;
 }
 .sf2lab-player-wrapper {
+  color: var(--control-text);
   background: #1a1a2e; /* BackingPlayer is dark-themed; keep its native look */
   border-radius: 8px;
   overflow: hidden;
@@ -217,7 +218,7 @@
 }
 .sf2lab-notes-row textarea {
   background: #ffffff;
-  color: #1f2937;
+  color: var(--control-ink);
   border: 1px solid #d1d5db;
   border-radius: 6px;
   padding: 8px 10px;
