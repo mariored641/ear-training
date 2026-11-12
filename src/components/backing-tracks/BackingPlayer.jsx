@@ -10,6 +10,7 @@ import { PresetLibrary }          from './PresetLibrary.jsx'
 import { MyProgressions }         from './MyProgressions.jsx'
 import { ChordPreviewStrip }      from './ChordPreviewStrip.jsx'
 import { PolyscalePopup }         from './PolyscalePopup.jsx'
+import { VideoExportDialog }      from './VideoExportDialog.jsx'
 import { PentatonicBoxIcon, GENRE_ICON_MAP } from '../icons/AppIcons'
 import { formatNoteName } from '../../i18n/musicTerms'
 
@@ -280,12 +281,14 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     loopCount,
     setPracticeConfig,
     activeStyle, activePartName,
+    playbackPhase, prepareForExport,
   } = useBackingTrackEngine()
 
   // UI state — single activePopup controls all overlay panels
   // values: 'tempo' | 'repeats' | 'transposition' | 'genre' | 'mixer' | 'practice' | 'templates' | 'fretboard'
   const [activePopup,    setActivePopup]    = useState(null)
   const [modalOpen,      setModalOpen]      = useState(false)
+  const [exportOpen,     setExportOpen]     = useState(false) // never persisted: opening the dialog must not start anything
   const [editingBarInfo, setEditingBarInfo] = useState(null) // { barIdx, firstChordIndex, barChords }
   const [showPolyscale, setShowPolyscale] = usePersistentState('backing-ui', 'showPolyscale', false)
 
@@ -304,6 +307,11 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
   })
   const [practiceConfig, setPracticeConfigLocal] = useState(rememberedPractice)
   useRemember('backing-practice', 1, practiceConfig)
+
+  // Latest playback state for the video exporter, which samples it every frame outside React.
+  const liveRef = useRef(null)
+  liveRef.current = { isPlaying, currentBar, currentBeat, loopCount, playbackPhase, chords, beatsPerBar }
+  const getLive = useCallback(() => liveRef.current, [])
 
   const chordLayerRef = useRef(null)
   const dockRef = useRef(null)
@@ -559,6 +567,15 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           >
             {tempo} bpm
           </button>
+          <button
+            className="bp-info-btn"
+            onClick={() => { closeAll(); setExportOpen(true) }}
+            title={t('backing.videoExport.title')}
+            aria-label={t('backing.videoExport.title')}
+            data-testid="open-video-export"
+          >
+            🎬
+          </button>
         </div>
 
         {/* Style Name */}
@@ -629,6 +646,20 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           </button>
         </div>
       </div>
+
+      {exportOpen && (
+        <VideoExportDialog
+          getLive={getLive}
+          meta={{ styleName, keyLabel: formatNoteName(selectedKey.root, 'en') + (selectedKey.type === 'minor' ? 'm' : ''), tempo }}
+          chords={chords}
+          beatsPerBar={beatsPerBar}
+          genre={genre}
+          prepare={prepareForExport}
+          play={play}
+          stop={stop}
+          onClose={() => setExportOpen(false)}
+        />
+      )}
 
       {/* ── Chord Picker Modal ── */}
       <ChordPickerModal

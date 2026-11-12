@@ -669,6 +669,20 @@ export function isReady() {
   return _synth !== null && (_fullSfontId !== null || _packSfonts.size > 0)
 }
 
+/**
+ * Tap of the synth's output for recording (video export). The speakers keep playing;
+ * dispose() detaches the tap. Requires init() to have created the audio graph.
+ */
+export function createCaptureStream() {
+  if (!_audioCtx || !_analyser) throw new Error('SoundFontPlayer: audio not initialised')
+  const dest = _audioCtx.createMediaStreamDestination()
+  _analyser.connect(dest)
+  return {
+    stream: dest.stream,
+    dispose() { try { _analyser.disconnect(dest) } catch { /* already detached */ } },
+  }
+}
+
 /** Resume AudioContext (נדרש לאחר user interaction) */
 export function resumeAudio() {
   return _audioCtx?.resume()
