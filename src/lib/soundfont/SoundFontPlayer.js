@@ -25,6 +25,9 @@
 import { Synthesizer, AudioWorkletNodeSynthesizer } from 'js-synthesizer'
 import { getDefaultLibrary, isPackLibrary, LEGACY_CACHE_KEYS } from './SoundFontRegistry'
 import i18n from '../../i18n/index.js'
+import {
+  SoundLoadError, withRetry, withTimeout, fetchBuffer, looksLikeSoundFont,
+} from './loadResilience'
 
 const FLUIDSYNTH_SCRIPT_URL = '/libfluidsynth-2.4.6-with-libsndfile.js'
 
@@ -51,6 +54,21 @@ async function getFromCache(cacheKey) {
     })
   } catch {
     return null
+  }
+}
+
+/** מוחק עותק פגום מה-cache כדי שההורדה הבאה תהיה נקייה */
+async function deleteFromCache(cacheKey) {
+  try {
+    const db = await openIDB()
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite')
+      tx.objectStore(IDB_STORE).delete(cacheKey)
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => resolve()
+    })
+  } catch {
+    // not critical
   }
 }
 
@@ -148,53 +166,73 @@ let _analyser = null
 let _cracklingInterval = null
 let _prevSamples = null
 
-function loadFluidSynthScript() {
-  if (window.__fluidSynthLoaded) return Promise.resolve()
+let _scriptPromise = null
+
+/**
+ * טוען את libfluidsynth-*.js (מגדיר את ה-global `Module`).
+ * חשוב: לא מסמנים "נטען" רק כי קיים <script> בדף — תג שנכשל/נקטע (רשת, reload של
+ * Vite באמצע, offline) נשאר ב-DOM, וניסיון חוזר היה מקבל "הצלחה" בלי Module, ואז
+ * js-synthesizer זורק "wasm module is not available". לכן: מחכים לאירוע load האמיתי,
+ * מוודאים ש-Module קיים, ובכישלון מסירים את התג כדי שאפשר לנסות שוב.
+ */
+function injectFluidSynthScript(attempt) {
   return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${FLUIDSYNTH_SCRIPT_URL}"]`)
-    if (existing) {
-      // Script tag exists — wait for it or resolve immediately
-      window.__fluidSynthLoaded = true
-      resolve()
-      return
-    }
+    window.__fluidSynthLoaded = false
+    // תגים ישנים (שנכשלו או שלא סיימו) — מוחקים ויוצרים מחדש
+    document.querySelectorAll('script[data-fluidsynth]').forEach(s => s.remove())
+
     const script = document.createElement('script')
-    script.src = FLUIDSYNTH_SCRIPT_URL
+    // בניסיון חוזר מוסיפים query כדי לעקוף עותק שבור ב-HTTP cache / service worker
+    script.src = attempt === 0 ? FLUIDSYNTH_SCRIPT_URL : `${FLUIDSYNTH_SCRIPT_URL}?retry=${attempt}`
+    script.dataset.fluidsynth = '1'
     script.async = false
     script.onload = () => {
+      if (typeof window.Module === 'undefined') {
+        script.remove()
+        reject(new SoundLoadError(`${FLUIDSYNTH_SCRIPT_URL} loaded but did not define Module`))
+        return
+      }
       window.__fluidSynthLoaded = true
       resolve()
     }
-    script.onerror = () => reject(new Error(`Failed to load ${FLUIDSYNTH_SCRIPT_URL}`))
+    script.onerror = () => {
+      script.remove()
+      reject(new SoundLoadError(`Failed to load ${FLUIDSYNTH_SCRIPT_URL}`))
+    }
     document.head.appendChild(script)
   })
 }
 
-async function fetchWithProgress(url, onProgress) {
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`HTTP ${response.status}: ${url}`)
+function loadFluidSynthScript(onProgress) {
+  if (window.__fluidSynthLoaded && typeof window.Module !== 'undefined') return Promise.resolve()
+  if (_scriptPromise) return _scriptPromise
 
-  const contentLength = response.headers.get('Content-Length')
-  const total = contentLength ? parseInt(contentLength, 10) : 0
-  const reader = response.body.getReader()
-  const chunks = []
-  let loaded = 0
+  _scriptPromise = withRetry(injectFluidSynthScript, {
+    label: 'FluidSynth script',
+    onRetry: () => onProgress?.(i18n.t('soundfont.retrying'), 2),
+  }).catch(err => {
+    _scriptPromise = null
+    throw err
+  })
+  return _scriptPromise
+}
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    chunks.push(value)
-    loaded += value.length
-    onProgress?.(total > 0 ? Math.round((loaded / total) * 100) : 0, loaded, total)
-  }
+/** הורדה בודדת (ללא retry) — ל-SF2 המלא של sf2-lab */
+const fetchWithProgress = (url, onProgress) => fetchBuffer(url, onProgress)
 
-  const buffer = new Uint8Array(loaded)
-  let offset = 0
-  for (const chunk of chunks) {
-    buffer.set(chunk, offset)
-    offset += chunk.length
-  }
-  return buffer.buffer
+/**
+ * מוריד pack אחד עם ניסיונות חוזרים: בדיקת גודל + header של SoundFont, ו-timeout לתקיעה.
+ * @param {(msg:string)=>void} [onRetry]
+ */
+function downloadPack(library, pack, onProgress, onRetry) {
+  return withRetry(
+    (attempt) => fetchBuffer(`${library.baseUrl}/${pack.file}`, onProgress, {
+      expectedBytes: pack.bytes,
+      bypassCache: attempt > 0,
+      validateSoundFont: true,
+    }),
+    { label: `pack ${pack.file}`, onRetry },
+  )
 }
 
 const mb = (bytes) => (bytes / 1024 / 1024).toFixed(1)
@@ -206,13 +244,35 @@ const mb = (bytes) => (bytes / 1024 / 1024).toFixed(1)
 function getManifest(library) {
   if (!_manifestPromise || _manifestBaseUrl !== library.baseUrl) {
     _manifestBaseUrl = library.baseUrl
+    const url = `${library.baseUrl}/manifest.json`
+    const lsKey = `sfp:manifest:${library.cacheKey}`
     // 'no-cache' = revalidate (cheap 304) — the .sf3 files themselves are immutable
-    _manifestPromise = fetch(`${library.baseUrl}/manifest.json`, { cache: 'no-cache' })
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}: ${library.baseUrl}/manifest.json`)
-        return r.json()
+    _manifestPromise = withRetry(async (attempt) => {
+      let r
+      try {
+        r = await fetch(url, { cache: attempt === 0 ? 'no-cache' : 'reload' })
+      } catch (err) {
+        throw new SoundLoadError(`Network error: ${url}`, { cause: err })
+      }
+      if (!r.ok) throw new SoundLoadError(`HTTP ${r.status}: ${url}`, { status: r.status })
+      // JSON לא תקין / HTML (SPA rewrite) → נזרק כאן ומנוסה שוב
+      const manifest = await r.json().catch(() => null)
+      if (!manifest?.packs) throw new SoundLoadError(`Invalid manifest: ${url}`)
+      try { localStorage.setItem(lsKey, JSON.stringify(manifest)) } catch { /* optional */ }
+      return manifest
+    }, { label: 'manifest' })
+      .catch(err => {
+        // offline / שרת נפל: משתמשים בעותק האחרון שהצליח (ה-packs עצמם כבר ב-IndexedDB)
+        try {
+          const saved = JSON.parse(localStorage.getItem(lsKey))
+          if (saved?.packs) {
+            console.warn('[SFP] manifest fetch failed — using last known copy:', err?.message)
+            return saved
+          }
+        } catch { /* no saved copy */ }
+        _manifestPromise = null
+        throw err
       })
-      .catch(err => { _manifestPromise = null; throw err })
   }
   return _manifestPromise
 }
@@ -223,7 +283,7 @@ const packCacheKey = (library, file) => `${library.cacheKey}:${file}`
  * מוודא שקבצי ה-pack נמצאים ב-IndexedDB (הורדה אם צריך) ומחזיר אותם.
  * @returns {Promise<Map<string, ArrayBuffer>>}  key → buffer
  */
-async function fetchPackBuffers(library, keys, onProgress) {
+async function fetchPackBuffers(library, keys, onProgress, { skipCache = false } = {}) {
   const manifest = await getManifest(library)
   const entries = []
   for (const key of keys) {
@@ -239,9 +299,12 @@ async function fetchPackBuffers(library, keys, onProgress) {
   const buffers = new Map()
   const missing = []
   for (const e of entries) {
-    const cached = await getFromCache(e.cacheKey)
-    if (cached) buffers.set(e.key, cached)
-    else missing.push(e)
+    const cached = skipCache ? null : await getFromCache(e.cacheKey)
+    if (cached && looksLikeSoundFont(cached)) buffers.set(e.key, cached)
+    else {
+      if (cached) await deleteFromCache(e.cacheKey)   // עותק פגום ב-IndexedDB — מורידים מחדש
+      missing.push(e)
+    }
   }
 
   if (missing.length) {
@@ -254,9 +317,12 @@ async function fetchPackBuffers(library, keys, onProgress) {
     }
     onProgress?.(i18n.t('soundfont.downloading'), 5)
     await Promise.all(missing.map(async (e) => {
-      const buf = await fetchWithProgress(`${library.baseUrl}/${e.pack.file}`, (_pct, loaded) => {
+      const buf = await downloadPack(library, e.pack, (_pct, loaded) => {
         loadedByKey.set(e.key, loaded)
         report()
+      }, () => {
+        loadedByKey.set(e.key, 0)
+        onProgress?.(i18n.t('soundfont.retrying'), 5)
       })
       // await so the IndexedDB put clones the buffer before anyone else touches it
       await saveToCache(e.cacheKey, buf)
@@ -303,7 +369,22 @@ async function loadPacks(library, presets, onProgress) {
       for (const [key, buf] of buffers) {
         // הספרייה הוחלפה באמצע (sf2-lab) — לא טוענים pack לתוך ספרייה אחרת
         if (_currentLibrary !== library) return
-        const id = await _synth.loadSFont(buf)
+        let id
+        try {
+          id = await _synth.loadSFont(buf)
+        } catch (firstErr) {
+          // קובץ פגום (בד"כ עותק שנשמר שבור ב-IndexedDB): מוחקים, מורידים מחדש, וטוענים שוב פעם אחת
+          console.warn(`[SFP] loadSFont failed for ${key} — re-downloading:`, firstErr?.message)
+          const manifest = await getManifest(library)
+          const pack = manifest.packs[key]
+          if (pack) await deleteFromCache(packCacheKey(library, pack.file))
+          try {
+            const fresh = await fetchPackBuffers(library, [key], onProgress, { skipCache: true })
+            id = await _synth.loadSFont(fresh.get(key))
+          } catch (err) {
+            throw new SoundLoadError(`Could not load instrument ${key}`, { cause: err })
+          }
+        }
         _packSfonts.set(key, id)
       }
       reapplyChannelPresets()
@@ -355,8 +436,9 @@ export async function prefetchPresets(presets) {
       const cacheKey = packCacheKey(library, pack.file)
       if (_downloads.has(cacheKey)) return _downloads.get(cacheKey)
       const job = (async () => {
-        if (await getFromCache(cacheKey)) return
-        const buf = await fetchWithProgress(`${library.baseUrl}/${pack.file}`)
+        const cached = await getFromCache(cacheKey)
+        if (cached && looksLikeSoundFont(cached)) return
+        const buf = await downloadPack(library, pack)
         await saveToCache(cacheKey, buf)
       })().finally(() => _downloads.delete(cacheKey))
       _downloads.set(cacheKey, job)
@@ -413,8 +495,16 @@ function ensureSynth(onProgress) {
 
     // 1. טעינת FluidSynth JS
     onProgress?.(i18n.t('soundfont.loadingSynth'), 2)
-    await loadFluidSynthScript()
-    await Synthesizer.waitForWasmInitialized()
+    try {
+      await loadFluidSynthScript(onProgress)
+      // אם ה-WASM "נתקע" באתחול אין ריפוי בתוך הדף (js-synthesizer שומר את ה-Promise) —
+      // לפחות לא מחכים לנצח, ומחזירים שגיאה ברורה
+      await withTimeout(
+        Synthesizer.waitForWasmInitialized(), 20000, 'FluidSynth WASM initialization timed out',
+      )
+    } catch (err) {
+      throw err?.isSoundLoadError ? err : new SoundLoadError(err?.message || 'FluidSynth failed to start', { cause: err })
+    }
 
     // 2. AudioContext
     _audioCtx = new AudioContext()

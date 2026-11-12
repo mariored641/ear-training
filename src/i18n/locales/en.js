@@ -1009,6 +1009,7 @@ const en = {
     deleteProgression: 'Delete “{{name}}”?',
     loadError: 'Could not load: {{message}}',
     playError: 'Playback error: {{message}}',
+    loadFailed: "Couldn't load the sounds. Check your connection and press ▶ again (if it keeps happening, refresh the page).",
     unsupportedMeter: '⚠️ {{meter}} — will play in 4/4',
     newBar: 'New Bar',
     editBar: 'Edit Bar {{number}}',
@@ -1236,6 +1237,7 @@ const en = {
     initializingInstruments: 'Initializing instruments…',
     ready: 'Ready!',
     alreadyLoaded: 'Already loaded',
+    retrying: 'Connection hiccup — retrying…',
   },
 };
 

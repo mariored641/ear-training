@@ -1513,7 +1513,9 @@ export function useBackingTrackEngine() {
     } catch (err) {
       console.error('[BackingTrackEngine] play error:', err)
       setSfStatus('error')
-      setSfMsg(i18n.t('backing.playError', { message: err.message }))
+      setSfMsg(err?.isSoundLoadError
+        ? i18n.t('backing.loadFailed')
+        : i18n.t('backing.playError', { message: err.message }))
     } finally {
       setIsLoading(false)
     }

@@ -1019,6 +1019,7 @@ const he = {
     deleteProgression: 'למחוק את “{{name}}”?',
     loadError: 'לא ניתן לטעון: {{message}}',
     playError: 'שגיאת נגינה: {{message}}',
+    loadFailed: 'לא הצלחנו לטעון את הסאונדים. בדוק את החיבור לאינטרנט ולחץ שוב על ▶ (אם זה חוזר — רענן את הדף).',
     unsupportedMeter: '⚠️ {{meter}} — ינוגן ב־4/4',
     newBar: 'תיבה חדשה',
     editBar: 'עריכת תיבה {{number}}',
@@ -1246,6 +1247,7 @@ const he = {
     initializingInstruments: 'מאתחל כלי נגינה…',
     ready: 'מוכן!',
     alreadyLoaded: 'כבר טעון',
+    retrying: 'החיבור איטי — מנסה שוב…',
   },
 };
 
