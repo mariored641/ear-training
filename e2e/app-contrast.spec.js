@@ -1,7 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { scanContrast } from './helpers/contrast.js';
-import { walkContrast } from './helpers/contrast-navigation.js';
+import { walkContrast, waitForView } from './helpers/contrast-navigation.js';
 test.describe.configure({ mode: 'parallel' });
+
+test('audit waits for a delayed React view instead of skipping controls',async({page})=>{
+ await page.setContent('<div id="root"><div class="container">Loading…</div></div>');
+ await page.evaluate(()=>setTimeout(()=>{
+  document.getElementById('root').innerHTML='<main><button>Loaded selector control for the contrast audit</button></main>';
+ },200));
+ await waitForView(page);
+ await expect(page.getByRole('button')).toBeVisible();
+});
+
+test('legacy chord-tone table keeps readable ink on its pale rows',async({page})=>{
+ await page.goto('/exercise/4b'); await waitForView(page);
+ await expect(page.locator('td.available-tones').first()).toBeVisible();
+ const rows=(await page.evaluate(scanContrast)).filter(x=>x.selector==='td.available-tones'||x.selector==='td.row-label');
+ expect(rows.length).toBeGreaterThan(0);
+ for(const row of rows) expect(row.ratio).toBeGreaterThanOrEqual(4.5);
+});
 
 test('contrast scanner catches dark ink on dark surfaces and composites alpha',async({page})=>{
  await page.setContent('<div style="background:rgb(20,20,20)"><button style="background:rgba(0,0,0,.5);color:rgb(10,10,10)">Unreadable</button><button style="background:rgb(20,20,20);color:white">Readable</button></div>');

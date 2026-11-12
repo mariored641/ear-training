@@ -114,11 +114,11 @@
   background: #fafafa;
 }
 
-.available-tones {
+.exercise4b .available-tones {
   padding: 12px;
   text-align: center;
   font-size: 14px;
-  color: #757575;
+  color: var(--control-paper-ink);
   border-bottom: 1px solid #e0e0e0;
   font-weight: 500;
 }
@@ -133,12 +133,12 @@
 }
 
 /* Row Label */
-.row-label {
+.exercise4b .row-label {
   padding: 16px 12px;
   text-align: center;
   font-size: 16px;
   font-weight: 600;
-  color: #757575;
+  color: var(--control-paper-ink);
   background: #f5f5f5;
   border-right: 1px solid #e0e0e0;
   vertical-align: middle;
@@ -294,7 +294,7 @@
     font-size: 11px;
   }
 
-  .available-tones {
+  .exercise4b .available-tones {
     font-size: 12px;
     padding: 8px;
   }
@@ -312,7 +312,7 @@
     font-size: 12px;
   }
 
-  .row-label {
+  .exercise4b .row-label {
     font-size: 14px;
     padding: 12px 8px;
   }

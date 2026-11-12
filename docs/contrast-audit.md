@@ -34,3 +34,9 @@ node scripts/report-contrast.mjs BEFORE.json AFTER.json REPORT.md
 The scanner calculates WCAG contrast, composites alpha backgrounds through ancestors, checks native select options/groups, and uses the lowest ratio among explicit CSS gradient stops. Every checked text size must reach 4.5:1. A synthetic unreadable control verifies detection; unit tests enforce the shared palette pairs. Disabled controls and SVG artwork are excluded. Raster textures, browser-owned popup pixels, and camera/microphone or audio-running states require visual/manual evaluation. Hidden developer diagnostic pages are also included (without running their audio or recording tests). The contrast walker dispatches panel clicks directly where the draggable global FAB can cover the phone dock; it does not test pointer accessibility.
 
 Detailed before/after rows, the exact production matrix, deployment evidence, and screenshot paths are generated in `/workspace/codex-night-11-12/` during the production verification run. Each screenshot is named `screens/t6-<instance>-<light|dark>-<en|he>-<390|1280>.png`.
+
+The walker waits for the actual React view after every navigation and reload,
+including mandatory popup controls, so slower production loads cannot silently
+skip panels. A delayed-view test enforces this. A focused legacy Chord Tones table
+test also covers gray text on its pale rows (4.23:1–4.41:1 before correction);
+scoped paper ink prevents global class rules from changing that pair.

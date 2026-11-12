@@ -1,8 +1,18 @@
 export const routes=['/','/positions','/backing-tracks','/looper','/feedback','/rhythm-training','/category/dictation','/category/melodic','/category/harmonic','/category/ear-training',...['melodic','harmonic-isolated','functional','voice-leading','solfege','guitar','reactive'].map(s=>'/category/ear-training/'+s),...['M1','M2','M3','H1','H2','H3','H4','F0','F1','F2','F3','F4','V1','V2','S1','S2','G1','R1','R2','1','2','3','4','4a','4b','4c'].map(s=>'/exercise/'+s), '/feedback-test','/soundfont-test','/style-parser-test','/chord-engine-test','/engine-test','/timing-test','/test/backing-tracks','/test/sf2-lab', '/positions', '/backing-tracks'];
 
+// A DOMContentLoaded navigation can finish before the React route mounts.
+// Check actual view content, including after panel-isolation reloads.
+export async function waitForView(page) {
+ await page.waitForFunction(() => {
+  const root=document.getElementById('root');
+  return root && root.innerText.trim().length>20 &&
+   ![...root.querySelectorAll('.container')].some(el=>/^(Loading|טוען)[….]*$/.test(el.textContent.trim()));
+ });
+}
+
 export async function walkContrast(page, base, capture) {
  for (const route of routes) {
-  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  await page.goto(base+route,{waitUntil:'domcontentloaded'}); await waitForView(page);
   await page.addStyleTag({content:'*,*::before,*::after { transition: none !important; animation: none !important; }'});
   await page.waitForTimeout(180);
   await page.locator('#root > .container').filter({hasText:/^(Loading|טוען)/i}).waitFor({state:'hidden',timeout:10000}).catch(()=>{});
@@ -24,6 +34,8 @@ export async function walkContrast(page, base, capture) {
     : route==='/positions' ? ['.pct-more-btn'] : [];
   for(let i=0;i<panels.length;i++) {
    const button=page.locator(panels[i]).first();
+   const required=!route.startsWith('/exercise/') || route==='/exercise/4' || (i===0 && /^\/exercise\/[A-Z]/.test(route));
+   if(required) await button.waitFor({state:'visible'});
    if(await button.isVisible() && await button.isEnabled()) {
     // The draggable global FAB may cover the dock on phones; this suite audits paint, not hit testing.
     await button.dispatchEvent('click'); await page.waitForTimeout(80);
@@ -39,7 +51,7 @@ export async function walkContrast(page, base, capture) {
       await page.locator('.bp-templates-tab').nth(1).click(); await capture(route,'backing-saved-progressions');
     }
     await page.keyboard.press('Escape');
-    await page.goto(base+route,{waitUntil:'domcontentloaded'}); await page.addStyleTag({content:'* {transition:none !important; animation:none !important}'}); await page.waitForTimeout(100);
+    await page.goto(base+route,{waitUntil:'domcontentloaded'}); await waitForView(page); await page.addStyleTag({content:'* {transition:none !important; animation:none !important}'}); await page.waitForTimeout(100);
    }
   }
   if(route==='/') {
