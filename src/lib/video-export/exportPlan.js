@@ -2,9 +2,20 @@
  * Pure planning helpers for the backing-track video export.
  * No DOM / audio access here so everything is unit-testable.
  */
+import { isShapeId, toSharpName } from '../../constants/neckShapes.js'
+import { CHROMATIC_SCALE } from '../../constants/positionData.js'
 
-export const MAX_REPETITIONS = 32
-export const MAX_ROTATE_EVERY = 16
+// A 4-bar vamp at 190 BPM is ~5 s per repetition, so a 10-minute practice video needs
+// well over 100 repetitions. The real guard is MAX_EXPORT_SEC below.
+export const MAX_REPETITIONS = 240
+export const MAX_ROTATE_EVERY = 64
+/** Longest export we allow (real-time recording; also bounds memory / file size). */
+export const MAX_EXPORT_SEC = 15 * 60
+/** Target lengths offered as one-tap presets in the dialog (minutes). */
+export const LENGTH_PRESETS_MIN = [5, 7, 10]
+// Mostly-static graphics compress very well; these keep a 10-minute 720p file around 200 MB.
+export const VIDEO_BITRATES = { '720p': 2_500_000, '1080p': 5_000_000 }
+export const AUDIO_BITRATE = 160_000
 export const MAX_VIEWS = 12
 export const MAX_FRET = 24
 export const DEFAULT_FRET_RANGE = [0, 15]
@@ -37,12 +48,17 @@ export function normalizeFretRange(start, end) {
 export function sanitizeView(view) {
   const v = view && typeof view === 'object' ? view : {}
   const [fretStart, fretEnd] = normalizeFretRange(v.fretStart, v.fretEnd)
+  const shapeKey = toSharpName(v.shapeKey)
   return {
     scaleId: typeof v.scaleId === 'string' && v.scaleId ? v.scaleId : null,
     root: typeof v.root === 'string' && v.root ? v.root : 'auto',
     fretStart,
     fretEnd,
     displayMode: DISPLAY_MODES.includes(v.displayMode) ? v.displayMode : 'notes',
+    // Optional lesson shape (CAGED window / octave position / 3-per-string) placed in the key
+    // whose MAJOR root is shapeKey. When set, it decides which cells (and frets) are shown.
+    shapeId: isShapeId(v.shapeId) ? v.shapeId : null,
+    shapeKey: CHROMATIC_SCALE.includes(shapeKey) ? shapeKey : 'C',
   }
 }
 
@@ -106,6 +122,25 @@ export function estimateDurationSec({ chords, beatsPerBar, tempo, repetitions })
   const beats = (chords || []).reduce((sum, c) => sum + (c.beats ?? bpb), 0)
   const spb = 60 / Math.max(20, tempo || 120)
   return Math.round((beats * repetitions + bpb) * spb)
+}
+
+/** Seconds per repetition of the progression. */
+export function repetitionSec({ chords, beatsPerBar, tempo }) {
+  const bpb = beatsPerBar || 4
+  const beats = (chords || []).reduce((sum, c) => sum + (c.beats ?? bpb), 0) || bpb
+  return beats * 60 / Math.max(20, tempo || 120)
+}
+
+/** Repetitions whose length is closest to `minutes`, within [1, MAX_REPETITIONS]. */
+export function repetitionsForMinutes({ chords, beatsPerBar, tempo, minutes }) {
+  const per = repetitionSec({ chords, beatsPerBar, tempo })
+  return Math.min(MAX_REPETITIONS, Math.max(1, Math.round((minutes * 60) / per)))
+}
+
+/** Rough file size in bytes for a recording of `durationSec` (bitrates are upper bounds). */
+export function estimateBytes(durationSec, resolution = '720p') {
+  const video = VIDEO_BITRATES[resolution] ?? VIDEO_BITRATES['720p']
+  return Math.round(((video + AUDIO_BITRATE) * Math.max(0, durationSec)) / 8)
 }
 
 export function formatDuration(sec) {

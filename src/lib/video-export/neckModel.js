@@ -6,7 +6,8 @@
 import { CHROMATIC_SCALE, STRING_TUNING } from '../../constants/positionData.js'
 import { ALL_SCALES_MAP, computeNotes, INTERVAL_NAMES } from '../../constants/allScalesData.js'
 import { parseChordSymbol, PITCH_NAMES, getChordData } from '../style-engine/YamChordMap.js'
-import { normalizeFretRange } from './exportPlan.js'
+import { normalizeFretRange, MAX_FRET } from './exportPlan.js'
+import { shapeCells } from '../../constants/neckShapes.js'
 
 const ENHARMONIC = { Eb: 'D#', Ab: 'G#', Bb: 'A#', Db: 'C#', Gb: 'F#' }
 const toSharp = (n) => ENHARMONIC[n] || n
@@ -21,7 +22,11 @@ export function noteAt(stringNum, fret) {
  * role: 'chordRoot' | 'chordTone' | 'scale'. Strings are numbered 1 (high E) … 6 (low E).
  */
 export function buildNeckModel(view, chordSymbol) {
-  const [fretStart, fretEnd] = normalizeFretRange(view?.fretStart, view?.fretEnd)
+  // A lesson shape decides both which cells may show a dot and the fret window (shape ±1 fret).
+  const shape = view?.shapeId ? shapeCells(view.shapeId, view.shapeKey || 'C') : null
+  const [fretStart, fretEnd] = shape
+    ? normalizeFretRange(Math.max(0, shape.fretStart - 1), Math.min(MAX_FRET, shape.fretEnd + 1))
+    : normalizeFretRange(view?.fretStart, view?.fretEnd)
   let rootPitch = 0
   let typeName = 'Maj'
   if (chordSymbol) ({ rootPitch, typeName } = parseChordSymbol(chordSymbol))
@@ -39,6 +44,7 @@ export function buildNeckModel(view, chordSymbol) {
   const dots = []
   for (let string = 1; string <= 6; string++) {
     for (let fret = fretStart; fret <= fretEnd; fret++) {
+      if (shape && !shape.cells.has(`${string}-${fret}`)) continue
       const note = noteAt(string, fret)
       const isChord = chordNotes.has(note)
       const isScale = scaleNotes.has(note)
@@ -48,5 +54,5 @@ export function buildNeckModel(view, chordSymbol) {
       dots.push({ string, fret, note, role, degree })
     }
   }
-  return { fretStart, fretEnd, chordRoot, scaleRoot, scaleName: scale?.name ?? null, scaleId: scale?.id ?? null, dots }
+  return { fretStart, fretEnd, chordRoot, scaleRoot, scaleName: scale?.name ?? null, scaleId: scale?.id ?? null, shapeId: shape ? view.shapeId : null, dots }
 }

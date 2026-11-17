@@ -13,7 +13,7 @@ const FALLBACK_VIEW = sanitizeView({ displayMode: 'notes' })
  * @param {object} p.settings  sanitized export settings (repetitions, rotateEvery, views)
  * @param {object} p.meta      { styleName, keyLabel, tempo }
  * @param {object} p.labels    translated strings
- * @param {object} p.deps      { chordSymbol(chord) → ascii symbol, pretty(symbol) → display, noteLabel(note), scaleName(id) }
+ * @param {object} p.deps      { chordSymbol(chord) → ascii symbol, pretty(symbol) → display, noteLabel(note), scaleName(id), shapeName?(id) }
  */
 export function buildScene({ live, settings, meta, labels, deps }) {
   const chords = live.chords || []
@@ -36,7 +36,10 @@ export function buildScene({ live, settings, meta, labels, deps }) {
   const scaleLabel = neck.scaleId
     ? `${deps.noteLabel(neck.scaleRoot)} ${deps.scaleName(neck.scaleId)}`
     : labels.chordTones
-  const viewCaption = `${scaleLabel}  ·  ${labels.frets} ${neck.fretStart}–${neck.fretEnd}`
+  const shapeLabel = neck.shapeId ? (deps.shapeName ? deps.shapeName(neck.shapeId) : neck.shapeId) : null
+  const viewCaption = shapeLabel
+    ? `${shapeLabel}  ·  ${scaleLabel}`
+    : `${scaleLabel}  ·  ${labels.frets} ${neck.fretStart}–${neck.fretEnd}`
 
   return {
     phase,

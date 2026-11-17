@@ -660,6 +660,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           play={play}
           stop={stop}
           onClose={() => setExportOpen(false)}
+          shapeKey={majorRootOf(selectedKey.root, selectedKey.type)}
         />
       )}
 
