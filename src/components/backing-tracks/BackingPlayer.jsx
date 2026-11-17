@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { readLastState, useRemember, usePersistentState } from '../../utils/lastState'
+import { readLastState, writeLastState, useRemember, usePersistentState } from '../../utils/lastState'
+import { sanitizeSettings, DEFAULT_SETTINGS } from '../../lib/video-export/exportPlan.js'
 import { useTranslation } from 'react-i18next'
 import { useBackingTrackEngine, GENRE_CATALOG } from './useBackingTrackEngine.js'
 import { ChordProgressionEditor } from './ChordProgressionEditor.jsx'
@@ -10,7 +11,8 @@ import { PresetLibrary }          from './PresetLibrary.jsx'
 import { MyProgressions }         from './MyProgressions.jsx'
 import { ChordPreviewStrip }      from './ChordPreviewStrip.jsx'
 import { PolyscalePopup }         from './PolyscalePopup.jsx'
-import { VideoExportDialog }      from './VideoExportDialog.jsx'
+import { VideoExportDialog, STORAGE_ID as VIDEO_EXPORT_STORAGE_ID } from './VideoExportDialog.jsx'
+import { LessonPresets }          from './LessonPresets.jsx'
 import { PentatonicBoxIcon, GENRE_ICON_MAP } from '../icons/AppIcons'
 import { formatNoteName } from '../../i18n/musicTerms'
 import { majorRootOf } from '../../constants/neckShapes.js'
@@ -139,7 +141,7 @@ function MixerPopup({ style, activePart, volumes, onVolumeChange }) {
 /* ═══════════════════════════════════════════════════════
    Popup: Templates (PresetLibrary + MyProgressions with 2 tabs)
    ═══════════════════════════════════════════════════════ */
-function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression }) {
+function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression, onLoadLesson, loadedLessonId }) {
   const { t } = useTranslation()
   const [tab, setTab] = usePersistentState('backing-ui', 'tab', 'standards')
   return (
@@ -153,10 +155,18 @@ function TemplatesPopup({ currentState, onLoadPreset, onLoadProgression }) {
           className={`bp-templates-tab${tab === 'mine' ? ' active' : ''}`}
           onClick={() => setTab('mine')}
         >💾 {t('backing.myProgressions')}</button>
+        <button
+          className={`bp-templates-tab${tab === 'lessons' ? ' active' : ''}`}
+          onClick={() => setTab('lessons')}
+          data-testid="templates-tab-lessons"
+        >🎓 {t('backing.lessons.tab')}</button>
       </div>
       <div className="bp-templates-body">
         {tab === 'standards' && (
           <PresetLibrary embedded onLoadPreset={onLoadPreset} />
+        )}
+        {tab === 'lessons' && (
+          <LessonPresets onLoad={onLoadLesson} loadedId={loadedLessonId} />
         )}
         {tab === 'mine' && (
           <MyProgressions
@@ -273,7 +283,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops,
-    setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression,
+    setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression, loadLessonPreset,
     setChord, replaceChords, previewChord,
     setVolume,
     currentChordSymbol, currentBeat, beatsPerBar,
@@ -433,6 +443,20 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
 
   const practiceActive = practiceConfig.tempoEnabled || practiceConfig.transposeEnabled
 
+  // Lesson module: fill the track, the live neck view and the 🎬 export settings. No playback.
+  const [loadedLessonId, setLoadedLessonId] = usePersistentState('backing-lessons', 'loaded', null)
+  const handleLoadLesson = useCallback((preset) => {
+    loadLessonPreset(preset)
+    const first = preset.export.views[0]
+    const neck = { globalScaleId: first.scaleId, globalRoot: first.root, shapeId: first.shapeId, fretRangeStart: null, fretRangeEnd: null }
+    for (const [field, value] of Object.entries(neck)) writeLastState(`backing-fretboard.${field}`, 1, { value })
+    const saved = sanitizeSettings(readLastState(VIDEO_EXPORT_STORAGE_ID, 1, DEFAULT_SETTINGS))
+    writeLastState(VIDEO_EXPORT_STORAGE_ID, 1, sanitizeSettings({ ...saved, ...preset.export }))
+    setPolyscaleState(prev => ({ ...prev, enabled: false }))
+    setLoadedLessonId(preset.id)
+    setActivePopup(null)
+  }, [loadLessonPreset])
+
   return (
     <div className="backing-player" onClick={closeAll}>
 
@@ -505,6 +529,8 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
               currentState={{ chords, tempo, genre, selectedKey, barCount }}
               onLoadPreset={(song) => { loadJazzPreset(song); setActivePopup(null) }}
               onLoadProgression={(prog) => { loadSavedProgression(prog); setActivePopup(null) }}
+              onLoadLesson={handleLoadLesson}
+              loadedLessonId={loadedLessonId}
             />
           )}
           {activePopup === 'fretboard' && !hideFretboard && (
