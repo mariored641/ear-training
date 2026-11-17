@@ -7,6 +7,7 @@ import {
   C_AM_POSITION_RANGES,
 } from '../constants/positionData';
 import { computeEnharmonicNotes } from './enharmonicUtils';
+import { isShapeId, shapeCells, majorRootOf } from '../constants/neckShapes.js';
 
 /**
  * Get the notes of a scale given a root and type
@@ -155,6 +156,11 @@ export function getPositionRange(position, selectedRoot, selectedType) {
  * (including octave mirrors).
  */
 export function filterByPosition(allNotes, position, selectedRoot, selectedType) {
+  // Non-CAGED shapes (octave positions, 3 notes per string) are exact cells, not fret windows.
+  if (isShapeId(position)) {
+    const shape = shapeCells(position, majorRootOf(selectedRoot, selectedType));
+    return shape ? allNotes.filter(n => shape.cells.has(`${n.string}-${n.fret}`)) : [];
+  }
   const ranges = getPositionRanges(position, selectedRoot, selectedType);
   return allNotes.filter(n =>
     ranges.some(r => n.fret >= r.fretStart && n.fret <= r.fretEnd)

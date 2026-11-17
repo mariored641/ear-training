@@ -12,6 +12,7 @@ import { chordDisplayName, prettifyChord } from './useBackingTrackEngine';
 import { ChordPreviewStrip } from './ChordPreviewStrip';
 import './LiveFretboard.css';
 import { formatNoteName } from '../../i18n/musicTerms';
+import { SHAPE_GROUPS, isShapeId, shapeCells, majorRootOf } from '../../constants/neckShapes.js';
 
 // PITCH_NAMES uses flats (Eb, Ab, Bb); CHROMATIC_SCALE uses sharps — normalize
 const ENHARMONIC = { 'Eb': 'D#', 'Ab': 'G#', 'Bb': 'A#', 'Db': 'C#', 'Gb': 'F#' };
@@ -35,6 +36,7 @@ export default function LiveFretboard({
   polyscaleMap: polyscaleMapProp,
   onPolyscaleChange,
   onOpenPolyscale,
+  selectedKey = { root: 'C', type: 'major' },
 }) {
   const { t, i18n } = useTranslation();
   const scaleName = (item) => t(`positions.musicItems.${item?.id}`, { defaultValue: item?.name ?? '' });
@@ -64,6 +66,13 @@ export default function LiveFretboard({
       setPolyscaleMapInternal(newMap);
     }
   };
+  // Lesson shape (CAGED window / octave position / 3-per-string), placed in the backing track's key.
+  const [savedShapeId, setShapeId] = usePersistentState('backing-fretboard', 'shapeId', null);
+  const shapeId = isShapeId(savedShapeId) ? savedShapeId : null;
+  const shape = useMemo(
+    () => (shapeId ? shapeCells(shapeId, majorRootOf(selectedKey.root, selectedKey.type)) : null),
+    [shapeId, selectedKey.root, selectedKey.type],
+  );
   const [fretRangeStart, setFretRangeStart] = usePersistentState('backing-fretboard', 'fretRangeStart', null);
   const [fretRangeEnd, setFretRangeEnd] = usePersistentState('backing-fretboard', 'fretRangeEnd', null);
   const [activeStrings, setActiveStrings] = useState(() => {
@@ -206,6 +215,7 @@ export default function LiveFretboard({
             onNoteLongPress={() => {}}
             onFretClick={handleFretClick}
             onStringClick={handleStringClick}
+            cellMask={shape ? shape.cells : null}
           />
 
           {/* Controls bar */}
@@ -259,6 +269,24 @@ export default function LiveFretboard({
                 </div>
               </>
             )}
+
+            {/* Lesson shape */}
+            <div className="lf-ctrl-group">
+              <span className="lf-ctrl-label">{t('positions.shapeLabel')}</span>
+              <select
+                className="lf-select"
+                data-testid="lf-shape"
+                value={shapeId || ''}
+                onChange={e => setShapeId(e.target.value || null)}
+              >
+                <option value="">— {t('positions.allNeck')} —</option>
+                {SHAPE_GROUPS.map(group => (
+                  <optgroup key={group.id} label={t(`positions.shapeGroups.${group.id}`)}>
+                    {group.shapes.map(id => <option key={id} value={id}>{t(`positions.shapes.${id}`)}</option>)}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
 
             {/* Polyscale toggle — in embedded mode, opens a separate popup-on-popup */}
             <button

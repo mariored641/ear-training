@@ -13,6 +13,7 @@ import { PolyscalePopup }         from './PolyscalePopup.jsx'
 import { VideoExportDialog }      from './VideoExportDialog.jsx'
 import { PentatonicBoxIcon, GENRE_ICON_MAP } from '../icons/AppIcons'
 import { formatNoteName } from '../../i18n/musicTerms'
+import { majorRootOf } from '../../constants/neckShapes.js'
 
 const TRANSPOSE_GRID = ['D','Db','C','F','E','Eb','Ab','G','Gb','B','Bb','A']
 
@@ -523,6 +524,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
                 polyscaleMap={polyscaleState.map}
                 onPolyscaleChange={handlePolyscaleChange}
                 onOpenPolyscale={() => setShowPolyscale(true)}
+                selectedKey={selectedKey}
               />
             </>
           )}

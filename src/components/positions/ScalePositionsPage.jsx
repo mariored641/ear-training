@@ -13,6 +13,9 @@ import { ROOT_DISPLAY_NAMES } from '../../utils/enharmonicUtils';
 import './ScalePositionsPage.css';
 import { formatNoteName } from '../../i18n/musicTerms';
 import { readLastState, useRemember } from '../../utils/lastState';
+import { NON_CAGED_SHAPE_IDS } from '../../constants/neckShapes.js';
+
+const KNOWN_POSITIONS = ['C', 'A', 'G', 'E', 'D', ...NON_CAGED_SHAPE_IDS];
 
 const POSITION_TABS = ['positions', 'arpeggios', 'allscales', 'partialchords'];
 
@@ -51,7 +54,7 @@ const ScalePositionsPage = () => {
   const [selectedRoot, setSelectedRoot] = useState(remembered.selectedRoot || 'A');
   const [selectedType, setSelectedType] = useState(remembered.selectedType === 'major' ? 'major' : 'minor');
   const [selectedPositions, setSelectedPositions] = useState(
-    Array.isArray(remembered.selectedPositions) ? remembered.selectedPositions : []
+    Array.isArray(remembered.selectedPositions) ? remembered.selectedPositions.filter(p => KNOWN_POSITIONS.includes(p)) : []
   );
   const [showAll, setShowAll] = useState(Boolean(remembered.showAll));
   const [displayMode, setDisplayMode] = useState(remembered.displayMode || 'dots');
