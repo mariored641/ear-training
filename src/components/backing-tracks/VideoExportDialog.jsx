@@ -104,7 +104,10 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
     legendChordTone: t('backing.videoExport.canvas.legendChordTone'),
     legendScale: t('backing.videoExport.canvas.legendScale'),
     legendScaleSoft: t('backing.videoExport.canvas.legendScaleSoft'),
+    legendScaleOther: t('backing.videoExport.canvas.legendScaleOther'),
+    legendPentatonic: t('backing.videoExport.canvas.legendPentatonic'),
     pentatonicEmphasis: t('backing.videoExport.canvas.pentatonicEmphasis'),
+    arpeggioEmphasis: t('backing.videoExport.canvas.arpeggioEmphasis'),
   }), [t, i18n.language])
 
   const start = useCallback(async () => {
@@ -222,7 +225,7 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
                 <span className="vx-view-n">{i + 1}</span>
                 <select aria-label={t('positions.scale')} value={v.scaleId || ''} disabled={running}
                   onChange={e => setView(i, { scaleId: e.target.value || null })}>
-                  <option value="">{t('backing.videoExport.chordTonesOnly')}</option>
+                  <option value="">{t('backing.videoExport.keyScaleAuto')}</option>
                   {SCALE_CATEGORIES.map(cat => (
                     <optgroup key={cat.id} label={t(`positions.musicCategories.${cat.id}`, { defaultValue: cat.label })}>
                       {cat.items.map(item => (
@@ -265,13 +268,12 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
                     </select>
                   )
                 })()}
-                {v.scaleId && (
-                  <label className="vx-check">
-                    <input type="checkbox" checked={v.emphasis === 'pentatonic'} disabled={running} data-testid="vx-emphasis"
-                      onChange={e => setView(i, { emphasis: e.target.checked ? 'pentatonic' : null })} />
-                    {t('backing.videoExport.emphasisPentatonic')}
-                  </label>
-                )}
+                <select aria-label={t('backing.videoExport.highlight')} value={v.emphasis || ''} disabled={running} data-testid="vx-emphasis"
+                  onChange={e => setView(i, { emphasis: e.target.value || null })}>
+                  <option value="">{t('backing.videoExport.highlightChordTones')}</option>
+                  <option value="arpeggio">{t('backing.videoExport.highlightArpeggio')}</option>
+                  <option value="pentatonic">{t('backing.videoExport.emphasisPentatonic')}</option>
+                </select>
                 {parseShapeIds(v.shapeIds?.length ? v.shapeIds : v.shapeId).length > 0 && (
                   <select aria-label={t('backing.videoExport.shapeKey')} value={v.shapeKey} disabled={running} data-testid="vx-shape-key"
                     onChange={e => setView(i, { shapeKey: e.target.value })}>

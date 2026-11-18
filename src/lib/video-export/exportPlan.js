@@ -13,7 +13,8 @@ export const MAX_ROTATE_EVERY = 64
 export const MAX_EXPORT_SEC = 15 * 60
 /** Target lengths offered as one-tap presets in the dialog (minutes). */
 export const LENGTH_PRESETS_MIN = [5, 8, 10]
-export const EMPHASIS_MODES = ['pentatonic']
+// 'arpeggio': chord tones on top, other scale notes softened; 'pentatonic': notes outside it softened.
+export const EMPHASIS_MODES = ['arpeggio', 'pentatonic']
 export const NECKS_PER_SCREEN = [1, 2]
 // Mostly-static graphics compress very well; these keep a 10-minute 720p file around 200 MB.
 export const VIDEO_BITRATES = { '720p': 2_500_000, '1080p': 5_000_000 }

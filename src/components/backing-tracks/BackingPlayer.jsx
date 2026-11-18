@@ -449,7 +449,10 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
   const handleLoadLesson = useCallback((preset) => {
     loadLessonPreset(preset)
     const first = preset.export.views[0]
-    const neck = { globalScaleId: first.scaleId, globalRoot: first.root, shapeId: (first.shapeIds || [first.shapeId]).join(','), fretRangeStart: null, fretRangeEnd: null }
+    const neck = {
+      globalScaleId: first.scaleId, globalRoot: first.root, shapeId: (first.shapeIds || [first.shapeId]).join(','),
+      emphasis: first.emphasis ?? null, fretRangeStart: null, fretRangeEnd: null,
+    }
     for (const [field, value] of Object.entries(neck)) writeLastState(`backing-fretboard.${field}`, 1, { value })
     const saved = sanitizeSettings(readLastState(VIDEO_EXPORT_STORAGE_ID, 1, DEFAULT_SETTINGS))
     writeLastState(VIDEO_EXPORT_STORAGE_ID, 1, sanitizeSettings({ ...saved, ...preset.export }))
@@ -680,7 +683,7 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
       {exportOpen && createPortal(
         <VideoExportDialog
           getLive={getLive}
-          meta={{ styleName, keyLabel: formatNoteName(selectedKey.root, 'en') + (selectedKey.type === 'minor' ? 'm' : ''), tempo }}
+          meta={{ styleName, keyLabel: formatNoteName(selectedKey.root, 'en') + (selectedKey.type === 'minor' ? 'm' : ''), tempo, key: selectedKey }}
           chords={chords}
           beatsPerBar={beatsPerBar}
           genre={genre}

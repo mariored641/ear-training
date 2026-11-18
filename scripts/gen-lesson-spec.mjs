@@ -58,7 +58,8 @@ function variantText(v) {
 
 function viewsText(views, necks = 1) {
   const v = views[0]
-  const scale = v.scaleId ? `${SCALE_NAME[v.scaleId] ?? v.scaleId}, root ${v.root}${v.emphasis ? ', pentatonic highlighted' : ''}` : 'chord tones only (scale "none")'
+  const hl = v.emphasis === 'pentatonic' ? ', pentatonic highlighted on top' : v.emphasis === 'arpeggio' ? ', arpeggios highlighted on top' : ', chord tones coloured on top'
+  const scale = `full ${SCALE_NAME[v.scaleId] ?? v.scaleId}, root ${v.root}${hl}`
   const shapes = necks === 2
     ? `**2 necks**: ${views.map(x => groupText(x.shapeIds)).join(' | ')}`
     : views.map(x => groupText(x.shapeIds)).join(' → ')
@@ -121,6 +122,7 @@ p('- **All CAGED positions**: neck 1 = C · G · D, neck 2 = A · E. These windo
 p('- **Octave positions**: neck 1 = 1-3-4, neck 2 = 1-2-4 (their union is the hybrid, which is also its own single-neck video).')
 p('- Each position is outlined by a coloured, labelled frame (C orange, A yellow, G green, E blue, D purple; octave boxes one frame per string pair). Dots, roots and chord tones keep their usual colours.')
 p('- *Full scale + pentatonic* (answer 6): every note of the full scale is shown; notes outside the pentatonic are drawn smaller and fainter (extra legend row).')
+p('- **Rule (round 3): the full working scale is always visible** — in the video and in the live neck. Arpeggio lessons (5–8) highlight the arpeggio on top (other scale notes smaller/fainter, legend "Other scale notes"); blues lessons highlight the pentatonic on top; the other necks colour the chord tones over the normal scale. A view without a scale uses the track key\'s scale, so a chord-tones-only or pentatonic-only neck cannot occur (unit- and e2e-tested).')
 p()
 p('## 3. Neck shapes (non-CAGED positions added to the app)')
 p()
@@ -218,12 +220,21 @@ p('| 7 | Lessons 9–12 suggestions? | Trusts Claude\'s suggestions; will review
 p('| 8 | Lesson 6: only G and E? | If the text names only two positions, use two; in principle all can be shown. Let the student choose what to look at — e.g. 2 necks, C·G·D on one and A·E on the other, coloured rectangles marking each position. | **Resolved.** Lesson 6 default = 2 necks G \| E; alternative = all positions on 2 necks. Every CAGED preset (lessons 3–5, 7–11) now defaults to **all positions on 2 necks** with "one position at a time" as the alternative. |')
 p('| 9 | Target length? | 6 min is fine; leans to ~8, toward 10; anything above 5. | **Resolved.** Target 8 min (all presets 5–10 min); dialog length buttons ≈5 / ≈8 / ≈10 min. |')
 p()
+p('### Round 3 answers (2026-11-18)')
+p()
+p('Mario: "What is there now is excellent. Make the videos of the first 8 lessons for now, without the suggestions for the next lessons. The full scale being worked on must always be visible, with the arpeggios highlighted on top of it (or the pentatonic highlighted on top, but always with the full scale in the background)."')
+p()
+p('| Round-2 open question | Status |')
+p('|---|---|')
+p('| 1. Export defaults only or all versions? | **Resolved** — default version of every preset in lessons 1–8 only, for now. |')
+p('| 2. 3 necks for octave positions? | **Resolved** — no; the current two-neck default stays ("what\'s there is excellent"). |')
+p('| 3. Pentatonic highlight in the live neck too? | **Resolved** — yes: the live neck now shows the same full scale + highlight as the video. |')
+p('| 4. Review lessons 9–12 suggestions? | **Deferred** — not worked on this round; lessons 9–12 are not exported. |')
+p()
 p('### New open questions')
 p()
-p('1. **How many videos to export?** Default versions only, or all versions? (counts in §5)')
-p('2. Octave presets: default is 2 necks (1-3-4 | 1-2-4) with the hybrid as a separate video. Prefer 3 necks (adding hybrid) on one screen? (Not built: with 3 necks the dots get small at 720p.)')
-p('3. Pentatonic highlighting exists in the **video** only; should the live neck in the app get it too?')
-p('4. Lessons 9–12: please review the suggested track lists when convenient.')
+p('1. Lessons 3 and 8 (CAGED + scale) and 1–2 (octave positions) colour the chord tones over a normal-size scale (no arpeggio softening), because those lessons are about the scale/position itself. Should they also use the arpeggio highlight (other scale notes fainter)?')
+p('2. Lessons 9–12 remain suggestions; when should they be reviewed and exported?')
 p()
 p('## 8. Not covered')
 p()

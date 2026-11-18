@@ -14,7 +14,7 @@ const C = {
   paper: '#f3ead3', paperInk: '#2b1d12',
   brass: '#d4a94f', brassDark: '#7d5f22',
   text: '#f6ecd6', dim: '#a8977b',
-  chord: '#4fc3f7', root: '#ff5a4d', scale: 'rgba(235,225,205,0.55)', scaleSoft: 'rgba(235,225,205,0.25)',
+  chord: '#4fc3f7', root: '#ff5a4d', scale: 'rgba(235,225,205,0.55)', scaleSoft: 'rgba(235,225,205,0.38)',
 }
 
 function setFont(ctx, px, weight = 'bold') { ctx.font = `${weight} ${px}px ${FONT}` }
@@ -74,8 +74,14 @@ function drawSidePanel(ctx, scene, assets) {
 
   // Legend
   const rows = [[C.root, labels.legendRoot], [C.chord, labels.legendChordTone], ['#cfc6b3', labels.legendScale]]
-  const soft = (scene.necks || []).some(n => n.neck.emphasis) && labels.legendScaleSoft
-  if (soft) rows.push(['#8f8573', labels.legendScaleSoft])
+  const emphasis = (scene.necks || []).map(n => n.neck.emphasis).find(Boolean)
+  // Arpeggio: every non-chord note is a (fainter) scale note. Pentatonic: pentatonic normal, rest fainter.
+  if (emphasis === 'arpeggio') rows[2] = ['#a59c88', labels.legendScaleOther ?? labels.legendScale]
+  const soft = emphasis === 'pentatonic' && Boolean(labels.legendScaleSoft)
+  if (soft) {
+    rows[2] = ['#cfc6b3', labels.legendPentatonic ?? labels.legendScale]
+    rows.push(['#a59c88', labels.legendScaleSoft])
+  }
   const step = soft ? 30 : 36
   rows.forEach(([color, text], i) => {
     const y = (soft ? 596 : 602) + i * step
@@ -225,7 +231,7 @@ function drawNeckBox(ctx, entry, scene, assets, box, { captionPx = 26, counter =
   for (const d of neck.dots) {
     const cx = x0 + (d.fret - fretStart + 0.5) * cw
     const cy = y0 + (d.string - 0.5) * sGap
-    const rr = d.soft ? r * 0.72 : r
+    const rr = d.soft ? r * 0.75 : r
     ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2)
     ctx.fillStyle = d.role === 'chordRoot' ? C.root : d.role === 'chordTone' ? C.chord : d.soft ? C.scaleSoft : C.scale
     ctx.fill()
@@ -235,7 +241,7 @@ function drawNeckBox(ctx, entry, scene, assets, box, { captionPx = 26, counter =
       ctx.textBaseline = 'middle'
       setFont(ctx, Math.round(rr * 1.05))
       ctx.textAlign = 'center'
-      ctx.fillText(view.displayMode === 'degrees' ? d.degree : noteLabel(d.note), cx, cy + 1)
+      ctx.fillText(view.displayMode === 'degrees' ? d.degree : noteLabel(d.name ?? d.note), cx, cy + 1)
       ctx.textBaseline = 'alphabetic'
     }
   }

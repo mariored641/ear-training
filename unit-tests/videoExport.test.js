@@ -368,3 +368,17 @@ test('renderer draws the two-neck layout (frames, both necks) without throwing',
   drawFrame(ctx, buildScene({ ...base, settings: { repetitions: 2, rotateEvery: 1, necksPerScreen: 2, views: [o1, o2] }, live: live() }), assets);
   assert.ok(!calls.fillText.includes('1-3-4') && !calls.fillText.includes('1-2-4'));
 });
+
+test('neck notes are spelled by the track key (C blues: F7 shows E♭, not D♯)', async () => {
+  const { spellingForKey } = await import('../src/lib/video-export/neckModel.js');
+  assert.equal(spellingForKey({ root: 'C', type: 'major' }), 'flat');
+  assert.equal(spellingForKey({ root: 'A', type: 'minor' }), 'flat');
+  assert.equal(spellingForKey({ root: 'E', type: 'major' }), 'sharp');
+  assert.equal(spellingForKey({ root: 'C#', type: 'minor' }), 'sharp');
+  assert.equal(spellingForKey({ root: 'Bb', type: 'major' }), 'flat');
+  const v = sanitizeView({ scaleId: 'ionian', root: 'C', shapeIds: ['caged_C'], shapeKey: 'C' });
+  const sc = buildScene({ ...base, settings: { repetitions: 1, rotateEvery: 1, views: [v] },
+    meta: { ...base.meta, key: { root: 'C', type: 'major' } }, live: live({ chords: [{ sym: 'F7' }] }) });
+  const names = new Set(sc.neck.dots.filter(d => d.role !== 'scale').map(d => d.name));
+  assert.ok(names.has('Eb') && !names.has('D#'));
+});

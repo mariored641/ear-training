@@ -12,7 +12,9 @@ import { chordDisplayName, prettifyChord } from './useBackingTrackEngine';
 import { ChordPreviewStrip } from './ChordPreviewStrip';
 import './LiveFretboard.css';
 import { formatNoteName } from '../../i18n/musicTerms';
-import { SHAPE_GROUPS, SHAPE_COMBOS, parseShapeIds, shapeSet, shapeShortLabel, majorRootOf } from '../../constants/neckShapes.js';
+import { SHAPE_GROUPS, SHAPE_COMBOS, parseShapeIds, shapeSet, shapeShortLabel, majorRootOf, pentatonicPcs, noteToPc } from '../../constants/neckShapes.js';
+import { keyScaleOf } from '../../lib/video-export/scene.js';
+import { spellingForKey, spellNote } from '../../lib/video-export/neckModel.js';
 
 // PITCH_NAMES uses flats (Eb, Ab, Bb); CHROMATIC_SCALE uses sharps — normalize
 const ENHARMONIC = { 'Eb': 'D#', 'Ab': 'G#', 'Bb': 'A#', 'Db': 'C#', 'Gb': 'F#' };
@@ -68,6 +70,9 @@ export default function LiveFretboard({
   };
   // Lesson shape (CAGED window / octave position / 3-per-string), placed in the backing track's key.
   const [savedShapeId, setShapeId] = usePersistentState('backing-fretboard', 'shapeId', null);
+  // Highlight on top of the full scale: null (chord tones) | 'arpeggio' | 'pentatonic'.
+  const [savedEmphasis, setEmphasis] = usePersistentState('backing-fretboard', 'emphasis', null);
+  const emphasis = ['arpeggio', 'pentatonic'].includes(savedEmphasis) ? savedEmphasis : null;
   // One shape id or a comma-joined combo (e.g. CAGED C,G,D) — several positions on one neck.
   const shapeIds = parseShapeIds(savedShapeId);
   const shapeId = shapeIds.length ? shapeIds.join(',') : null;
@@ -104,13 +109,16 @@ export default function LiveFretboard({
     ? (polyscaleMap[displayBar] ?? defaultEntry())
     : null;
 
-  const selectedRoot = polyscaleEnabled
-    ? (activeEntry.root !== 'auto' ? activeEntry.root : chordRoot)
-    : (globalRoot !== 'auto' ? globalRoot : chordRoot);
-
-  const scaleId = polyscaleEnabled
-    ? (activeEntry.scaleId ?? null)
-    : globalScaleId;
+  // The working scale is always shown (Mario, round 3): with no scale chosen, use the track key's scale.
+  const keyScale = keyScaleOf(selectedKey);
+  const chosenScaleId = polyscaleEnabled ? (activeEntry.scaleId ?? null) : globalScaleId;
+  const usesKeyScale = !ALL_SCALES_MAP[chosenScaleId];
+  const scaleId = usesKeyScale ? keyScale.scaleId : chosenScaleId;
+  const selectedRoot = usesKeyScale
+    ? keyScale.root
+    : polyscaleEnabled
+      ? (activeEntry.root !== 'auto' ? activeEntry.root : chordRoot)
+      : (globalRoot !== 'auto' ? globalRoot : chordRoot);
 
   // Scale notes (background grey dots)
   const scaleNotes = useMemo(() => {
@@ -120,18 +128,32 @@ export default function LiveFretboard({
     return new Set(computeNotes(selectedRoot, item.intervals));
   }, [scaleId, selectedRoot]);
 
-  // Chord tone notes — only overlaid while playing (always relative to chord root)
+  // Chord tones (arpeggio) on top of the scale — current chord while playing, first chord when stopped.
   const chordToneNotes = useMemo(() => {
-    if (!isPlaying || !displaySymbol) return new Set();
+    if (!displaySymbol) return new Set();
     const { intervals } = getChordData(typeName);
     return new Set(computeNotes(chordRoot, intervals));
-  }, [isPlaying, displaySymbol, typeName, chordRoot]);
+  }, [displaySymbol, typeName, chordRoot]);
 
-  // Chord overlay rings (shown while playing)
   const chordOverlays = useMemo(() => {
-    if (!isPlaying || chordToneNotes.size === 0) return [];
+    if (chordToneNotes.size === 0) return [];
     return [{ id: 'chord', notesSet: chordToneNotes, color: CHORD_COLOR }];
-  }, [isPlaying, chordToneNotes]);
+  }, [chordToneNotes]);
+
+  // Spell accidentals like the track key (flat keys and C/Am → flats), same as the exported video.
+  const noteDisplayMap = useMemo(() => {
+    const spelling = spellingForKey(selectedKey);
+    return Object.fromEntries(CHROMATIC.map(n => [n, spellNote(n, spelling)]));
+  }, [selectedKey.root, selectedKey.type]);
+
+  // Scale notes pushed to the background by the highlight (still drawn, smaller and fainter).
+  const softNotes = useMemo(() => {
+    if (!emphasis) return null;
+    const item = ALL_SCALES_MAP[scaleId];
+    const minor = item?.intervals.includes(3) && !item?.intervals.includes(4);
+    const pent = emphasis === 'pentatonic' ? pentatonicPcs(selectedRoot, minor) : null;
+    return new Set([...scaleNotes].filter(n => !chordToneNotes.has(n) && (emphasis === 'arpeggio' || !pent.has(noteToPc(n)))));
+  }, [emphasis, scaleId, selectedRoot, scaleNotes, chordToneNotes]);
 
   // Fret range handler
   const handleFretClick = useCallback((fret) => {
@@ -219,6 +241,8 @@ export default function LiveFretboard({
             onFretClick={handleFretClick}
             onStringClick={handleStringClick}
             cellMask={shape ? shape.cells : null}
+            softNotes={softNotes}
+            noteDisplayMap={noteDisplayMap}
           />
 
           {/* Controls bar */}
@@ -260,7 +284,7 @@ export default function LiveFretboard({
                     value={globalScaleId || ''}
                     onChange={e => setGlobalScaleId(e.target.value || null)}
                   >
-                    <option value="">— {t('common.none')} —</option>
+                    <option value="">{t('backing.videoExport.keyScaleAuto')}</option>
                     {SCALE_CATEGORIES.map(cat => (
                       <optgroup key={cat.id} label={t(`positions.musicCategories.${cat.id}`, { defaultValue: cat.label })}>
                         {cat.items.map(item => (
@@ -272,6 +296,16 @@ export default function LiveFretboard({
                 </div>
               </>
             )}
+
+            {/* Highlight on top of the full scale */}
+            <div className="lf-ctrl-group">
+              <span className="lf-ctrl-label">{t('backing.videoExport.highlight')}</span>
+              <select className="lf-select" data-testid="lf-emphasis" value={emphasis || ''} onChange={e => setEmphasis(e.target.value || null)}>
+                <option value="">{t('backing.videoExport.highlightChordTones')}</option>
+                <option value="arpeggio">{t('backing.videoExport.highlightArpeggio')}</option>
+                <option value="pentatonic">{t('backing.videoExport.emphasisPentatonic')}</option>
+              </select>
+            </div>
 
             {/* Lesson shape */}
             <div className="lf-ctrl-group">

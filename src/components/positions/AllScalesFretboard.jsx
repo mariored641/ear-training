@@ -57,6 +57,7 @@ const AllScalesFretboard = ({
   noteDisplayMap,      // { [chromaticName]: displayName } — enharmonic display names
   noteLang = 'latin',  // 'latin' | 'hebrew'
   cellMask = null,     // Set<`${stringNum}-${fret}`> | null — only these cells may show notes (lesson shapes)
+  softNotes = null,    // Set<noteName> | null — scale notes drawn smaller/fainter (highlight sits on top)
 }) => {
   const timers = useRef({});
   const longPressed = useRef({});
@@ -184,6 +185,7 @@ const AllScalesFretboard = ({
     const noteClasses = [
       'asf-note',
       marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
+      isActive && !isRoot && !ringStyle && softNotes?.has(noteName) ? 'soft' : '',
       highlightColor && !marked ? 'highlighted' : '',
       displayMode === 'dots' && !marked ? 'dot-mode' : '',
       displayMode === 'notes' && noteLang === 'hebrew' ? 'note-hebrew' : '',
@@ -235,6 +237,7 @@ const AllScalesFretboard = ({
     const noteClasses = [
       'asf-note',
       marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
+      isActive && !isRoot && !ringStyle && softNotes?.has(noteName) ? 'soft' : '',
       highlightColor && !marked ? 'highlighted' : '',
       displayMode === 'dots' && !marked ? 'dot-mode' : '',
       displayMode === 'notes' && noteLang === 'hebrew' ? 'note-hebrew' : '',

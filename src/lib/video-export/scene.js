@@ -2,7 +2,7 @@
  * Turns the live playback state into the data renderFrame.drawFrame needs.
  * Pure: formatting helpers are injected so this runs under node:test.
  */
-import { buildNeckModel, viewShape, viewFretRange } from './neckModel.js'
+import { buildNeckModel, viewShape, viewFretRange, spellingForKey } from './neckModel.js'
 import { shapeShortLabel } from '../../constants/neckShapes.js'
 import { locateChord, viewsForRepetition, sanitizeView, normalizeFretRange } from './exportPlan.js'
 
@@ -12,7 +12,7 @@ const FALLBACK_VIEW = sanitizeView({ displayMode: 'notes' })
  * @param {object} p
  * @param {object} p.live      { isPlaying, currentBar, currentBeat, loopCount, playbackPhase, chords, beatsPerBar }
  * @param {object} p.settings  sanitized export settings (repetitions, rotateEvery, views)
- * @param {object} p.meta      { styleName, keyLabel, tempo }
+ * @param {object} p.meta      { styleName, keyLabel, tempo, key?: { root, type } } — key gives the fallback scale
  * @param {object} p.labels    translated strings
  * @param {object} p.deps      { chordSymbol(chord) → ascii symbol, pretty(symbol) → display, noteLabel(note), scaleName(id), shapeName?(id) }
  */
@@ -45,7 +45,7 @@ export function buildScene({ live, settings, meta, labels, deps }) {
   }
   const necks = indices.map((i, k) => {
     const view = views[i]
-    const neck = buildNeckModel(view, currentSymbol, { shape: shapes[k], range })
+    const neck = buildNeckModel(view, currentSymbol, { shape: shapes[k], range, keyScale: keyScaleOf(meta.key), spelling: spellingForKey(meta.key) })
     return { neck, view, caption: neckCaption(neck, labels, deps) }
   })
   const first = necks[0]
@@ -72,9 +72,18 @@ export function buildScene({ live, settings, meta, labels, deps }) {
   }
 }
 
+const spellNoteForCaption = (neck) => neck.dots.find(d => d.note === neck.scaleRoot)?.name ?? neck.scaleRoot
+
+/** Scale of the track's key (major → Ionian, minor → Aeolian), sharp spelling. */
+export function keyScaleOf(key) {
+  if (!key?.root) return null
+  const SHARP = { Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#' }
+  return { scaleId: key.type === 'minor' ? 'aeolian' : 'ionian', root: SHARP[key.root] || key.root }
+}
+
 function neckCaption(neck, labels, deps) {
   const scaleLabel = neck.scaleId
-    ? `${deps.noteLabel(neck.scaleRoot)} ${deps.scaleName(neck.scaleId)}`
+    ? `${deps.noteLabel(spellNoteForCaption(neck))} ${deps.scaleName(neck.scaleId)}`
     : labels.chordTones
   const ids = neck.shapeIds || []
   let shapeLabel = null
@@ -84,7 +93,8 @@ function neckCaption(neck, labels, deps) {
     const prefix = deps.groupName ? deps.groupName(group) : group
     shapeLabel = `${prefix} ${ids.map(shapeShortLabel).join(' · ')}`
   }
-  const emphasis = neck.emphasis && labels.pentatonicEmphasis ? `  ·  ${labels.pentatonicEmphasis}` : ''
+  const emphasisLabel = neck.emphasis === 'pentatonic' ? labels.pentatonicEmphasis : neck.emphasis === 'arpeggio' ? labels.arpeggioEmphasis : null
+  const emphasis = emphasisLabel ? `  ·  ${emphasisLabel}` : ''
   return shapeLabel
     ? `${shapeLabel}  ·  ${scaleLabel}${emphasis}`
     : `${scaleLabel}${emphasis}  ·  ${labels.frets} ${neck.fretStart}–${neck.fretEnd}`

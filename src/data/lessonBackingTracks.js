@@ -123,12 +123,19 @@ export const NECKS = {
     diagram: 'global CAGED - full and pentatonic sidebyside (full scale, pentatonic emphasised — Mario, answer 6)',
     variants: [ALL_TWO_NECKS, CAGED_ROTATE],
   },
-  caged_chords: { scale: () => null, diagram: 'C-F-G - all CAGED', variants: [ALL_TWO_NECKS, CAGED_ROTATE] },
+  // Round 3 (Mario): the full working scale is always visible; arpeggios / pentatonic are highlighted on top.
+  caged_chords: {
+    scale: keyScale, emphasis: 'arpeggio', diagram: 'C-F-G - all CAGED (full scale, arpeggios highlighted — round 3)',
+    variants: [ALL_TWO_NECKS, CAGED_ROTATE],
+  },
   caged_GE_chords: {
-    scale: () => null, diagram: 'Am-Dm-Em - all CAGED (lesson text: positions G and E)',
+    scale: keyScale, emphasis: 'arpeggio', diagram: 'Am-Dm-Em - all CAGED (lesson text: positions G and E; full scale, arpeggios highlighted)',
     variants: [{ id: 'ge', necks: 2, groups: [['caged_G'], ['caged_E']] }, ALL_TWO_NECKS],
   },
-  caged_chords_scale: { scale: keyScale, diagram: 'CAGED - chords in position - ALL', variants: [ALL_TWO_NECKS, CAGED_ROTATE] },
+  caged_chords_scale: {
+    scale: keyScale, emphasis: 'arpeggio', diagram: 'CAGED - chords in position - ALL (full scale, arpeggios highlighted)',
+    variants: [ALL_TWO_NECKS, CAGED_ROTATE],
+  },
   nps3: {
     scale: keyScale, diagram: '(none — lesson 12 text: "fixed number of notes per string")',
     variants: [{ id: 'rotate', necks: 1, groups: NPS3.map(id => [id]) }],

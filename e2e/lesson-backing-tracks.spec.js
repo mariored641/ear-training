@@ -87,7 +87,7 @@ test('CAGED lesson presets default to all positions on two necks (C·G·D | A·E
   await expect(page.getByTestId('vx-necks')).toHaveValue('2');
   await expect(page.getByTestId('vx-shape').nth(0)).toHaveValue('caged_C,caged_G,caged_D');
   await expect(page.getByTestId('vx-shape').nth(1)).toHaveValue('caged_A,caged_E');
-  await expect(page.getByTestId('vx-emphasis').first()).toBeChecked();
+  await expect(page.getByTestId('vx-emphasis').first()).toHaveValue('pentatonic');
   await page.getByRole('button', { name: 'Close' }).click();
   await page.getByTitle('Fretboard').click();
   await expect(page.getByTestId('lf-shape')).toHaveValue('caged_C,caged_G,caged_D');
@@ -118,4 +118,39 @@ test('lesson module in Hebrew: translated, layout stays LTR', async ({ page }) =
   await expect(page.getByTestId('lesson-presets')).toContainText('אלתור בהישג יד');
   await expect(page.getByTestId('lesson-title')).toContainText('שיעור');
   expect(await page.evaluate(() => getComputedStyle(document.querySelector('.lp-root')).direction)).toBe('ltr');
+});
+
+test('round 3: the live neck always shows the full scale with the arpeggio highlighted on top (lesson 6)', async ({ page }) => {
+  await page.goto('/backing-tracks');
+  await page.getByTitle('Templates').click();
+  await page.getByTestId('templates-tab-lessons').click();
+  await page.getByTestId('lesson-btn-6').click();
+  await page.getByTestId('lesson-load-amdmem-rock').click();
+  await page.getByTitle('Fretboard').click();
+  await expect(page.getByTestId('lf-emphasis')).toHaveValue('arpeggio');
+  const neck = page.locator('.lf-panel');
+  // Am chord on A minor, G position: chord tones ringed, the rest of the scale still drawn (softened).
+  const active = neck.locator('.asf-note.active, .asf-note.root');
+  const soft = neck.locator('.asf-note.soft');
+  await expect(active.first()).toBeVisible();
+  const nActive = await active.count();
+  const nSoft = await soft.count();
+  expect(nSoft).toBeGreaterThan(0);
+  expect(nActive).toBeGreaterThan(nSoft);
+  // Pentatonic highlight also keeps the full scale
+  await page.getByTestId('lf-emphasis').selectOption('pentatonic');
+  await expect(neck.locator('.asf-note.soft').first()).toBeVisible();
+  await page.locator('.bp-chord-layer').click({ position: { x: 5, y: 5 } });
+  await page.getByTestId('open-video-export').click();
+  await expect(page.getByTestId('vx-emphasis').first()).toHaveValue('arpeggio');
+  await expect(page.locator('[data-testid=vx-view] select').first()).toHaveValue('aeolian');
+});
+
+test('round 3: with no scale chosen the live neck still shows the key scale (never chord tones alone)', async ({ page }) => {
+  await page.goto('/backing-tracks');
+  await page.getByTitle('Fretboard').click();
+  await page.locator('.lf-panel select.lf-select').nth(1).selectOption('');
+  const scaleNotes = page.locator('.lf-panel .asf-note.active, .lf-panel .asf-note.root');
+  // a 7-note key scale over the whole neck shows dozens of notes
+  await expect(scaleNotes.nth(30)).toBeAttached();
 });

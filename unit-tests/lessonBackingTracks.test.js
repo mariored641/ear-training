@@ -105,3 +105,66 @@ test('answer 9: presets aim at ~8 minutes', () => {
   const avg = lens.reduce((a, b) => a + b, 0) / lens.length;
   assert.ok(avg > 450 && avg < 520, `avg ${avg}`);
 });
+
+// ── Round 3 (Mario): the full working scale is always visible; highlight sits on top ──
+import { buildScene } from '../src/lib/video-export/scene.js';
+import { ALL_SCALES_MAP, computeNotes } from '../src/constants/allScalesData.js';
+
+const ascii = (c) => `${c.root}${c.quality === 'minor' ? 'm' : ''}${(c.extensions || []).join('')}`;
+const sceneDeps = { chordSymbol: ascii, pretty: s => s, noteLabel: n => n, scaleName: id => id };
+
+test('every lesson view (all versions) names a full scale — never chord tones or pentatonic alone', () => {
+  for (const l of LESSONS) {
+    for (const item of l.items) {
+      for (const p of lessonPresetVariants(l.n, item.trackId)) {
+        for (const v of p.export.views) {
+          assert.ok(['ionian', 'aeolian'].includes(v.scaleId), `${p.id}: ${v.scaleId}`);
+          assert.ok(v.emphasis === null || v.emphasis === 'arpeggio' || v.emphasis === 'pentatonic');
+        }
+      }
+    }
+  }
+  const emph = (n, id) => lessonPreset(n, id).export.views[0].emphasis;
+  assert.equal(emph(5, 'cfg-rock'), 'arpeggio');
+  assert.equal(emph(6, 'amdmem-blues'), 'arpeggio');
+  assert.equal(emph(7, 'cam-easy'), 'arpeggio');
+  assert.equal(emph(4, 'blues-C'), 'pentatonic');
+});
+
+test('rendered necks of every lesson 1–8 default preset contain all 7 scale notes, with the highlight on top', () => {
+  for (const l of LESSONS.filter(x => x.n <= 8)) {
+    for (const item of l.items) {
+      const p = lessonPreset(l.n, item.trackId);
+      const settings = sanitizeSettings({ ...p.export, resolution: '720p' });
+      for (const [ci, c] of p.chords.slice(0, 4).entries()) {
+        let beats = 0; for (let i = 0; i < ci; i++) beats += p.chords[i].beats ?? 4;
+        const scene = buildScene({
+          live: { isPlaying: true, currentBar: Math.floor(beats / 4), currentBeat: beats % 4, loopCount: 0, playbackPhase: 'main', chords: p.chords, beatsPerBar: 4 },
+          settings, meta: { styleName: 's', keyLabel: 'k', tempo: p.tempo, key: p.key }, labels: {}, deps: sceneDeps,
+        });
+        for (const { neck, view } of scene.necks) {
+          const scaleNotes = new Set(computeNotes(view.root, ALL_SCALES_MAP[view.scaleId].intervals));
+          const shown = new Set(neck.dots.map(d => d.note));
+          for (const n of scaleNotes) assert.ok(shown.has(n), `${p.id} ${ascii(c)}: scale note ${n} missing`);
+          assert.ok(neck.dots.some(d => d.role === 'scale'), `${p.id}: no background scale notes`);
+          // Highlight: chord tones are never softened; arpeggio mode softens every other scale note.
+          assert.ok(neck.dots.filter(d => d.role !== 'scale').every(d => !d.soft));
+          if (view.emphasis === 'arpeggio') assert.ok(neck.dots.filter(d => d.role === 'scale').every(d => d.soft));
+          if (view.emphasis === 'pentatonic') assert.ok(neck.dots.some(d => d.role === 'scale' && !d.soft));
+        }
+      }
+    }
+  }
+});
+
+test('a view without a scale falls back to the track key scale (no chord-tones-only neck)', () => {
+  const p = lessonPreset(5, 'cfg-rock');
+  const views = p.export.views.map(v => ({ ...v, scaleId: null, root: 'auto' }));
+  const scene = buildScene({
+    live: { isPlaying: true, currentBar: 0, currentBeat: 0, loopCount: 0, playbackPhase: 'main', chords: p.chords, beatsPerBar: 4 },
+    settings: sanitizeSettings({ ...p.export, views }), meta: { styleName: 's', keyLabel: 'C', tempo: 75, key: { root: 'C', type: 'major' } },
+    labels: {}, deps: sceneDeps,
+  });
+  assert.equal(scene.necks[0].neck.scaleId, 'ionian');
+  assert.ok(scene.necks[0].neck.dots.some(d => d.role === 'scale' && d.note === 'D'));
+});
