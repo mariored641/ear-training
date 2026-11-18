@@ -48,7 +48,9 @@ if (args.limit) list = list.slice(0, Number(args.limit))
 
 const manifestPath = path.join(OUT, 'manifest.json')
 const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : { videos: {} }
-const fileName = (j) => `L${String(Math.min(...j.lessons)).padStart(2, '0')}__${j.preset.track.id}__${j.preset.neck}__${j.preset.variantId}.mp4`
+// '#' (C#m, F#m …) must not reach ffmpeg paths: it is parsed as a URL fragment.
+const safe = (s) => String(s).replace(/#/g, 'sharp').replace(/[^A-Za-z0-9_.-]/g, '-')
+const fileName = (j) => `L${String(Math.min(...j.lessons)).padStart(2, '0')}__${safe(j.preset.track.id)}__${j.preset.neck}__${j.preset.variantId}.mp4`
 
 function diskPct() {
   const out = execFileSync('df', ['-P', OUT]).toString().trim().split('\n').pop().split(/\s+/)
@@ -91,7 +93,7 @@ function wavHeader(dataBytes, sampleRate) {
 }
 
 async function exportOne(page, job) {
-  const work = path.join(OUT, '.work', job.key)
+  const work = path.join(OUT, '.work', safe(job.key))
   fs.rmSync(work, { recursive: true, force: true })
   fs.mkdirSync(work, { recursive: true })
   const audioParts = []
