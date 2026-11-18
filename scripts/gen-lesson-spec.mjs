@@ -8,10 +8,10 @@
 import fs from 'fs'
 import path from 'path'
 import {
-  COURSE, LESSONS, TRACKS, TRACKS_BY_ID, TRACK_TYPES, NECKS, trackBars, exportPlanFor,
+  COURSE, LESSONS, TRACKS, TRACKS_BY_ID, TRACK_TYPES, NECKS, trackBars, exportPlanFor, variantOf,
   TARGET_SEC, MIN_SEC, MAX_SEC, INTRO_ENDING_ALLOWANCE_SEC,
 } from '../src/data/lessonBackingTracks.js'
-import { shapeCells, majorRootOf } from '../src/constants/neckShapes.js'
+import { shapeCells, shapeSet } from '../src/constants/neckShapes.js'
 import { C_AM_POSITION_RANGES } from '../src/constants/positionData.js'
 import { formatDuration, MAX_REPETITIONS, MAX_ROTATE_EVERY, MAX_EXPORT_SEC, VIDEO_BITRATES, AUDIO_BITRATE } from '../src/lib/video-export/exportPlan.js'
 
@@ -51,10 +51,18 @@ function cellsByString(list) {
   return [6, 5, 4, 3, 2, 1].map(s => `${s}: ${(by[s] || []).join(',') || '–'}`).join(' │ ')
 }
 
-function viewsText(views) {
+const groupText = (ids) => ids.length > 1 ? ids.map(id => SHAPE_NAME[id].replace(/^CAGED /, '')).join(' + ') : SHAPE_NAME[ids[0]]
+function variantText(v) {
+  return v.necks === 2 ? `2 necks [${v.groups.map(groupText).join(' | ')}]` : v.groups.length > 1 ? `1 neck, rotating ${v.groups.map(groupText).join(' → ')}` : `1 neck ${groupText(v.groups[0])}`
+}
+
+function viewsText(views, necks = 1) {
   const v = views[0]
-  const scale = v.scaleId ? `${SCALE_NAME[v.scaleId] ?? v.scaleId}, root ${v.root}` : 'chord tones only (scale "none")'
-  return `${views.map(x => SHAPE_NAME[x.shapeId]).join(' → ')}; ${scale}; shape key ${v.shapeKey}; display "Note names"`
+  const scale = v.scaleId ? `${SCALE_NAME[v.scaleId] ?? v.scaleId}, root ${v.root}${v.emphasis ? ', pentatonic highlighted' : ''}` : 'chord tones only (scale "none")'
+  const shapes = necks === 2
+    ? `**2 necks**: ${views.map(x => groupText(x.shapeIds)).join(' | ')}`
+    : views.map(x => groupText(x.shapeIds)).join(' → ')
+  return `${shapes}; ${scale}; shape key ${v.shapeKey}`
 }
 
 const L = []
@@ -71,12 +79,12 @@ p()
 p('| Mark | Meaning |')
 p('|---|---|')
 p('| **[YT]** | Read from Mario\'s YouTube video: chords + form read off the Band-in-a-Box chord chart shown on screen; BPM **measured** from the bar-highlight timing (frame-difference events, 97–322 bar changes per video, all intervals within 10 % of the median; BPM = 240 / bar-seconds, assuming 4/4); source repeats = (bars played) / (form length). |')
-p('| **[style≈]** | The BIAB style name comes from the video title; the **app style** chosen to replace it is *our* closest match (inferred). |')
+p('| **App style** | The app\'s own backing-track style. Mario (answer 1): Band-in-a-Box styles and app styles are different things — no style correspondence is implied; the app styles are simply chosen to vary. |')
 p('| **[new]** | Extra style/variant suggested here so each track type has ≥ 5 styles (inferred; not in Mario\'s material). |')
 p('| **[lesson-inferred]** | The lesson text has no backing-track link; the list is our suggestion (see open questions). |')
 p('| Neck shapes | Octave positions: cells copied from Mario\'s Guitar Scientist diagram data (read). CAGED windows: the app\'s existing Positions-tab ranges (read from code; consistent with the "AM-G7_C-G7 - CAGED" PDF fret labels). 3NPS: computed (inferred — lesson 12 only names the idea). |')
 p()
-p('Time signature: every source chart is 4/4 (BIAB 4-beat bars; measured bar lengths match 4 beats at round BPMs). Exception to verify: "C F G - Spanish dance" could be 3/4 at 90 BPM — it is specced as 4/4 at 120 (open question).')
+p('Time signature: every source chart is 4/4 (BIAB 4-beat bars; measured bar lengths match 4 beats at round BPMs). "C F G - Spanish dance" stays C–G–F–C in 4/4 with an app style (Mario, answer 3).')
 p()
 
 p('## 1. How to batch-export with the 🎬 dialog (PR #13)')
@@ -84,9 +92,9 @@ p()
 p('For **every row** in the lesson tables below:')
 p()
 p('1. Open **Backing Tracks** → bottom tab **Templates** (📄) → tab **🎓 Lessons / שיעורים**.')
-p('2. Press the lesson number, then **Load / טען** on the row\'s preset (group = progression, title = app style). This fills style, chords, tempo, key, the live neck view **and the 🎬 export settings**. It never starts playback.')
-p('3. Press **🎬** (info strip). The dialog is already filled with the values in the row: *Repetitions*, *Change neck view every*, and the *Neck views* list (each view: shape select = the listed shape, shape key = listed key, scale + root as listed, display "Note names").')
-p('4. Leave *Video size* at **720p** (≈ 2.5 Mbit/s video + 160 kbit/s audio → ≈ 120 MB for 6 min). Press **Start export**, keep the tab in front, then **Download**.')
+p('2. Press the lesson number. Each row is one preset; under it are its **🎬 video versions** (chips). Press the chip of the version to export (the first one is the default; **Load / טען** = default). This fills style, chords, tempo, key, the live neck view **and the 🎬 export settings** for that version. It never starts playback.')
+p('3. Press **🎬** (info strip). The dialog is already filled: *Repetitions*, *Change neck view every*, *Necks on screen* (1 or 2) and the *Neck views* list (per view: shape or position combo, shape key, scale + root, pentatonic highlight, display "Note names").')
+p('4. *Video size*: **720p** (≈ 2.5 Mbit/s video + 160 kbit/s audio → ≈ 160 MB for 8 min). Press **Start export**, keep the tab in front, then **Download**. Identical rows in different lessons (same track + neck + version) are the same video — export once (see the unique-video count in §5).')
 p()
 p(`Duration math (shown per row): *rep* = beats × 60 / BPM; repetitions = round(${TARGET_SEC} s / rep) nudged into [${MIN_SEC}, ${MAX_SEC - INTRO_ENDING_ALLOWANCE_SEC}] s so that count-in (style intro) + ending (≈ ${INTRO_ENDING_ALLOWANCE_SEC} s allowance) still land inside 5–10 min; neck view changes every round(60 s / rep) repetitions (≈ once a minute). "Dialog" = the dialog's own estimate (adds a 1-bar count-in).`)
 p()
@@ -105,6 +113,15 @@ p()
 p('Tests: `unit-tests/videoExport.test.js` runs a full **10-minute export in virtual time** (≈600 one-second recorder chunks, progress to 100 %, view rotation, 30 s hidden tab measured, wake lock) and checks the too-long guard; the e2e suite runs a real (short) export in Chromium.')
 p()
 
+p('### Two-neck video layout (Mario, answers 2 and 8)')
+p()
+p('*Necks on screen = 2* shows two aligned necks (same fret range, same fret at the same x). The chord header is compacted to one row (current chord large, next chord + beat dots on the right) and the chord strip stays, so it is always clear which chord plays; the logo/side panel is unchanged.')
+p()
+p('- **All CAGED positions**: neck 1 = C · G · D, neck 2 = A · E. These windows never overlap (C 0–3, G 4–8, D 9–13 / A 2–6, E 7–10 in C; shifted per key, the second neck uses the octave closest to the first).')
+p('- **Octave positions**: neck 1 = 1-3-4, neck 2 = 1-2-4 (their union is the hybrid, which is also its own single-neck video).')
+p('- Each position is outlined by a coloured, labelled frame (C orange, A yellow, G green, E blue, D purple; octave boxes one frame per string pair). Dots, roots and chord tones keep their usual colours.')
+p('- *Full scale + pentatonic* (answer 6): every note of the full scale is shown; notes outside the pentatonic are drawn smaller and fainter (extra legend row).')
+p()
 p('## 3. Neck shapes (non-CAGED positions added to the app)')
 p()
 p('Strings numbered 1 = high E … 6 = low E (same orientation everywhere). Cells listed per string as frets, **drawn for C major / A minor**; for another key every cell shifts by the same number of frets (−5…+6, keeps the shape on the neck).')
@@ -120,28 +137,37 @@ p('CAGED windows (C major / A minor; all strings, frets inclusive): ' + Object.e
 p()
 p('Where they appear: **Positions → Positions/Arpeggios tabs** (new "Octave positions" and "3 notes per string" button rows), **Backing Tracks → neck panel** ("Position shape" select, placed in the backing-track key), and the **🎬 export** (per-view shape + shape key; window = shape ±1 fret).')
 p()
-p('Note — the C-major diagram "Octave Positions - C (red) G7 (orange)" (guitarscientist.com/diagrams/jy3vghd) is not identical to the A-minor one (its 1-3-4 board omits the two slide notes, 4:5 and 2:8). The app uses the A-minor diagram cells for both keys (open question 2).')
+p('Resolved (answer 2): the C–G7 videos use the octave positions 1-3-4, 1-2-4 and hybrid with these cells (the C-major diagram jy3vghd differs slightly — no slide notes 4:5 / 2:8 — and is not used).')
+p('Previously noted — the C-major diagram "Octave Positions - C (red) G7 (orange)" (guitarscientist.com/diagrams/jy3vghd) is not identical to the A-minor one (its 1-3-4 board omits the two slide notes, 4:5 and 2:8). The app uses the A-minor diagram cells for both keys (open question 2).')
 p()
 
 p('## 4. Lessons')
 p()
 let totalItems = 0
+const uniqueVideos = new Set()
+let allVersionExports = 0
 for (const lesson of LESSONS) {
   p(`### Lesson ${lesson.n} — ${lesson.titleHe} / ${lesson.titleEn}${lesson.inferred ? ' **[lesson-inferred]**' : ''}`)
   p()
   const necks = [...new Set(lesson.items.map(i => i.neck))]
-  for (const n of necks) p(`- Neck diagram: **${n}** — ${NECKS[n].shapes.map(s => SHAPE_NAME[s]).join(', ')}; lesson diagram: ${NECKS[n].diagram}.`)
+  for (const n of necks) {
+    p(`- Neck **${n}** — lesson diagram: ${NECKS[n].diagram}. Video versions: ${NECKS[n].variants.map((v, k) => `\`${v.id}\`${k === 0 ? ' (default)' : ''} = ${variantText(v)}`).join('; ')}.`)
+  }
   p()
-  p('| # | Preset (group → Load) | Bars (1 bar = 4/4; ½+½ = two 2-beat chords) | Form | Key | BPM | App style | Source | 🎬 Repetitions — math → length | Change view every | Neck views |')
+  p('| # | Preset (group → app style) | Bars (1 bar = 4/4; ½+½ = two 2-beat chords) | Form | Key | BPM | App style | Source | 🎬 Repetitions — math → length | Change view every | Neck views |')
   p('|---|---|---|---|---|---|---|---|---|---|---|')
   lesson.items.forEach((item, i) => {
     const t = TRACKS_BY_ID[item.trackId]
     const bars = trackBars(t)
     const plan = exportPlanFor(t, item.neck)
+    const variants = NECKS[item.neck].variants
+    for (const v of variants) uniqueVideos.add(`${t.id}|${item.neck}|${v.id}`)
+    allVersionExports += variants.length
     const src = t.source.kind === 'youtube'
-      ? `[YT] [${t.source.videoId}](https://youtu.be/${t.source.videoId}) "${t.source.title}" (${t.source.measured.repeats}× in video) [style≈]`
+      ? `[YT] [${t.source.videoId}](https://youtu.be/${t.source.videoId}) "${t.source.title}" (${t.source.measured.repeats}× in video)`
       : '[new]'
-    p(`| ${i + 1} | ${TRACK_TYPES[t.type].labelEn} → ${t.styleLabel} | ${formText(bars)} | ${bars.length}-bar form | ${keyLabel(t.key)} | ${t.tempo} | \`${t.genre}\` (${STYLE_LABEL[t.genre] ?? '?'}) | ${src} | ${plan.repetitions} × (${bars.length * 4}×60/${t.tempo} = ${r1(plan.repSec)} s) = ${r1(plan.musicSec)} s → **${sec(plan.musicSec)}** (dialog ${sec(plan.dialogEstimateSec)}) | ${plan.rotateEvery} rep (${plan.viewChanges} changes) | ${viewsText(plan.views)} |`)
+    const app = STYLE_LABEL[t.genre] ?? t.genre
+    p(`| ${i + 1} | ${TRACK_TYPES[t.type].labelEn} → ${app} | ${formText(bars)} | ${bars.length}-bar form | ${keyLabel(t.key)} | ${t.tempo} | \`${t.genre}\` (${app}) | ${src} | ${plan.repetitions} × (${bars.length * 4}×60/${t.tempo} = ${r1(plan.repSec)} s) = ${r1(plan.musicSec)} s → **${sec(plan.musicSec)}** (dialog ${sec(plan.dialogEstimateSec)}) | ${plan.viewChanges ? `${plan.rotateEvery} rep (${plan.viewChanges} changes)` : '— (no rotation)'} | ${viewsText(plan.views, plan.necksPerScreen)} (+ ${variants.length - 1} other version${variants.length === 2 ? '' : 's'}) |`)
     totalItems++
   })
   p()
@@ -156,7 +182,7 @@ for (const [type, info] of Object.entries(TRACK_TYPES)) {
   p(`| ${info.labelEn} | ${ts.length} | ${new Set(ts.map(t => t.genre)).size} (${[...new Set(ts.map(t => t.genre))].join(', ')}) | ${ts.filter(t => t.source.kind === 'youtube').length} | ${ts.filter(t => t.source.kind !== 'youtube').length} |`)
 }
 p()
-p(`Totals: **${LESSONS.length} lessons, ${TRACKS.length} distinct tracks, ${totalItems} lesson presets (= exports)**.`)
+p(`Totals: **${LESSONS.length} lessons, ${TRACKS.length} distinct tracks, ${totalItems} lesson presets**. Default videos: ${totalItems}; all video versions: ${allVersionExports}; **unique videos** (same track + neck + version counted once across lessons): ${uniqueVideos.size}.`)
 p()
 
 p('## 6. Links followed')
@@ -178,17 +204,26 @@ p()
 p('All 51 videos: no description, chapters or subtitles (auto-captions only exist for some, music only) — so chords/form/BPM come from the on-screen chart and timing. One download returned HTTP 403 once (CVbakqNZVhY) and succeeded on retry.')
 p()
 
-p('## 7. Open questions for Mario')
+p('## 7. Questions for Mario — answered (round 2, 2026-11-17)')
 p()
-p('1. **Style matches**: the app styles are our closest guesses to the BIAB style names (e.g. "Latin" → Samba 3, "Spanish dance" → Organ Cha-Cha). Swap any you dislike in the data file — the spec regenerates.')
-p('2. **C-major octave diagram** differs from the A-minor one (no slide notes 4:5 / 2:8 in "1-3-4"; different 1-2-4 board). Should C–G7 videos use the C diagram cells exactly?')
-p('3. **"C F G - Spanish dance"**: 4/4 at 120 BPM or 3/4 at 90 BPM? (bar = 2.0 s either way).')
-p('4. **Blues keys B♭m and Bm** have no video — we added them (110 / 95 BPM, new styles). OK?')
-p('5. **12-bar blues styles**: titles don\'t name the BIAB style; we rotate 6 blues/shuffle styles across keys (major) and 6 grooves (minor). OK, or should all keys use one style?')
-p('6. **Blues neck views**: we show CAGED windows + pentatonic (major pent. for major blues, minor pent. for minor). Lesson 4 also mentions the full scale — want full-scale videos too?')
-p('7. **Lessons 9–12** have no backing-track links: our lists are suggestions (9: blues in all keys + full scale; 10: contrasting grooves; 11: Cmaj7–Am7–Dm7–G7 in 5 styles; 12: 3-notes-per-string warm-up). Confirm or send the intended tracks.')
-p('8. Lesson 6 focuses on positions **G and E** only (as the text says) — add the other three?')
-p('9. Video length target: we aim at ~6 min. Prefer ~5 or ~10?')
+p('| # | Question | Mario\'s answer (summary) | What changed |')
+p('|---|---|---|---|')
+p('| 1 | Do the app styles match the BIAB styles? | They don\'t correspond — BIAB styles and app styles are different. | **Resolved.** No "closest match" claim any more; presets are named by their app style; styles are chosen for variety. |')
+p('| 2 | C–G7: use the C-major octave diagram exactly? | Use the octave positions 1-3-4, 1-2-4 and hybrid — each a separate video, or 2–3 in one video if it stays uncluttered (spacious, logo kept, clear which chord plays). | **Resolved.** Octave presets now have 4 video versions: default **2 necks (1-3-4 \| 1-2-4)**, plus single-neck 1-3-4, 1-2-4, hybrid. New two-neck layout (§2). |')
+p('| 3 | "Spanish dance": 4/4 or 3/4? | Doesn\'t matter; keep C, F and G and use the app\'s styles. | **Resolved.** Stays C–G–F–C, 4/4, app style Organ Cha-Cha. |')
+p('| 4 | Add B♭m and Bm blues? | Yes — blues in all keys. | **Resolved.** All 12 major + 12 minor keys. |')
+p('| 5 | Blues styles across keys? | Vary the styles; repeats are OK but not the same style on neighbouring keys. | **Resolved.** 8 styles rotate over 12 keys (major and minor each); a unit test checks no two neighbouring keys (incl. B→C) share a style. |')
+p('| 6 | Blues: pentatonic only or full scale? | Prefer full-scale versions; highlight the pentatonic or the full scale as the lesson instructs. | **Resolved.** Lessons 4 and 12 (blues): full scale with the **pentatonic highlighted** (lesson 4 says start from pentatonic). Lesson 9: full scale. |')
+p('| 7 | Lessons 9–12 suggestions? | Trusts Claude\'s suggestions; will review later. | **Resolved for now** (kept as suggestions, marked [lesson-inferred]). |')
+p('| 8 | Lesson 6: only G and E? | If the text names only two positions, use two; in principle all can be shown. Let the student choose what to look at — e.g. 2 necks, C·G·D on one and A·E on the other, coloured rectangles marking each position. | **Resolved.** Lesson 6 default = 2 necks G \| E; alternative = all positions on 2 necks. Every CAGED preset (lessons 3–5, 7–11) now defaults to **all positions on 2 necks** with "one position at a time" as the alternative. |')
+p('| 9 | Target length? | 6 min is fine; leans to ~8, toward 10; anything above 5. | **Resolved.** Target 8 min (all presets 5–10 min); dialog length buttons ≈5 / ≈8 / ≈10 min. |')
+p()
+p('### New open questions')
+p()
+p('1. **How many videos to export?** Default versions only, or all versions? (counts in §5)')
+p('2. Octave presets: default is 2 necks (1-3-4 | 1-2-4) with the hybrid as a separate video. Prefer 3 necks (adding hybrid) on one screen? (Not built: with 3 necks the dots get small at 720p.)')
+p('3. Pentatonic highlighting exists in the **video** only; should the live neck in the app get it too?')
+p('4. Lessons 9–12: please review the suggested track lists when convenient.')
 p()
 p('## 8. Not covered')
 p()

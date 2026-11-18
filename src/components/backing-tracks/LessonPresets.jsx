@@ -4,7 +4,7 @@ import { usePersistentState } from '../../utils/lastState'
 import { formatNoteName } from '../../i18n/musicTerms'
 import { prettifyChord } from './useBackingTrackEngine.js'
 import { formatDuration } from '../../lib/video-export/exportPlan.js'
-import { COURSE, LESSONS, TRACKS_BY_ID, TRACK_TYPES, trackBars, lessonPreset } from '../../data/lessonBackingTracks.js'
+import { COURSE, LESSONS, TRACKS_BY_ID, TRACK_TYPES, trackBars, lessonPresetVariants } from '../../data/lessonBackingTracks.js'
 import './LessonPresets.css'
 
 const LESSON_NUMBERS = LESSONS.map(l => l.n)
@@ -33,7 +33,7 @@ export function LessonPresets({ onLoad, loadedId }) {
       const track = TRACKS_BY_ID[item.trackId]
       let g = out.find(x => x.type === track.type && x.neck === item.neck)
       if (!g) out.push(g = { type: track.type, neck: item.neck, items: [] })
-      g.items.push(lessonPreset(lessonN, item.trackId))
+      g.items.push(lessonPresetVariants(lessonN, item.trackId))
     }
     return out
   }, [lesson, lessonN])
@@ -66,8 +66,8 @@ export function LessonPresets({ onLoad, loadedId }) {
             <span className="lp-neck">🎸 {t(`backing.lessons.necks.${g.neck}`)}</span>
           </div>
           <ul className="lp-list">
-            {g.items.map(p => (
-              <li key={p.id} className={`lp-item${loadedId === p.id ? ' loaded' : ''}`}>
+            {g.items.map(([p, ...alts]) => (
+              <li key={p.id} className={`lp-item${[p, ...alts].some(x => x.id === loadedId) ? ' loaded' : ''}`}>
                 <div className="lp-item-main">
                   <div className="lp-item-title">
                     {t(`backing.styles.${p.genre}`, { defaultValue: p.track.styleLabel })}
@@ -80,13 +80,25 @@ export function LessonPresets({ onLoad, loadedId }) {
                     {' · '}{t('backing.lessons.barsCount', { count: trackBars(p.track).length })}
                     {' · '}🎬 {formatDuration(p.plan.dialogEstimateSec)} ({p.export.repetitions}×)
                   </div>
+                  <div className="lp-variants" role="group" aria-label={t('backing.lessons.videoVariants')}>
+                    {[p, ...alts].map(v => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        className={`lp-variant-btn${loadedId === v.id ? ' active' : ''}`}
+                        data-testid={`lesson-variant-${v.track.id}-${v.variantId}`}
+                        title={t('backing.lessons.loadVariant')}
+                        onClick={() => onLoad(v)}
+                      >🎬 {t(`backing.lessons.variants.${v.variantId}`)}</button>
+                    ))}
+                  </div>
                 </div>
                 <button
                   type="button"
                   className="lp-load-btn"
                   data-testid={`lesson-load-${p.track.id}`}
                   onClick={() => onLoad(p)}
-                >{loadedId === p.id ? `✓ ${t('backing.lessons.loaded')}` : t('backing.lessons.load')}</button>
+                >{[p, ...alts].some(x => x.id === loadedId) ? `✓ ${t('backing.lessons.loaded')}` : t('backing.lessons.load')}</button>
               </li>
             ))}
           </ul>

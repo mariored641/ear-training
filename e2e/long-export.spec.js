@@ -13,7 +13,7 @@ test('lesson preset exports a 5+ minute video with audio', async ({ page }, info
   await page.getByTitle('Templates').click();
   await page.getByTestId('templates-tab-lessons').click();
   await page.getByTestId('lesson-btn-1').click();
-  await page.getByTestId('lesson-load-amg7-bossa').click();
+  await page.getByTestId('lesson-load-amg7-bossa').click();   // default version: two necks (octave 1-3-4 | 1-2-4)
   await page.getByTestId('open-video-export').click();
   await page.getByTestId('vx-len-5').click();
   await expect(page.getByTestId('vx-repetitions')).toHaveText('59');

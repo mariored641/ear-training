@@ -97,27 +97,62 @@ const NPS3 = ['nps3_1', 'nps3_2', 'nps3_3', 'nps3_4', 'nps3_5', 'nps3_6', 'nps3_
 const keyScale = (key) => (key.type === 'minor' ? 'aeolian' : 'ionian')
 const toSharp = (n) => ({ Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#' }[n] || n)
 
+/**
+ * Each neck set has export VARIANTS. A variant = how many necks are on screen and which
+ * shapes each neck shows (`groups`, one entry per neck view). The first variant is the
+ * preset's default video; the others are alternative videos of the same track.
+ *   two-neck CAGED ("all"): C·G·D on one neck, A·E on the other — windows never overlap,
+ *   each position outlined with a coloured, labelled frame (Mario, answer 8).
+ */
+const ALL_TWO_NECKS = { id: 'all', necks: 2, groups: [['caged_C', 'caged_G', 'caged_D'], ['caged_A', 'caged_E']] }
+const CAGED_ROTATE = { id: 'rotate', necks: 1, groups: CAGED.map(id => [id]) }
+const single = (id, shape) => ({ id, necks: 1, groups: [[shape]] })
+
 export const NECKS = {
-  octave: { shapes: OCTAVE, scale: keyScale, diagram: 'Octave position - AM (red) G7 (orange) / Octave Positions - C (red) G7 (orange)' },
-  caged_scale: { shapes: CAGED, scale: keyScale, diagram: 'AM-G7_C-G7 - CAGED (+ LINE version)' },
-  caged_pent: { shapes: CAGED, scale: (k) => (k.type === 'minor' ? 'minor_pent' : 'major_pent'), diagram: 'global CAGED - full and pentatonic sidebyside' },
-  caged_chords: { shapes: CAGED, scale: () => null, diagram: 'C-F-G - all CAGED' },
-  caged_GE_chords: { shapes: ['caged_G', 'caged_E'], scale: () => null, diagram: 'Am-Dm-Em - all CAGED' },
-  caged_chords_scale: { shapes: CAGED, scale: keyScale, diagram: 'CAGED - chords in position - ALL' },
-  nps3: { shapes: NPS3, scale: keyScale, diagram: '(none — lesson 12 text: "fixed number of notes per string")' },
+  octave: {
+    scale: keyScale,
+    diagram: 'Octave position - AM (red) G7 (orange) — used for both Am–G7 and C–G7 (Mario, answer 2)',
+    variants: [
+      { id: 'two', necks: 2, groups: [['octave_134'], ['octave_124']] },
+      single('134', 'octave_134'), single('124', 'octave_124'), single('hybrid', 'octave_hybrid'),
+    ],
+  },
+  caged_scale: { scale: keyScale, diagram: 'AM-G7_C-G7 - CAGED (+ LINE version)', variants: [ALL_TWO_NECKS, CAGED_ROTATE] },
+  caged_full_pent: {
+    scale: keyScale, emphasis: 'pentatonic',
+    diagram: 'global CAGED - full and pentatonic sidebyside (full scale, pentatonic emphasised — Mario, answer 6)',
+    variants: [ALL_TWO_NECKS, CAGED_ROTATE],
+  },
+  caged_chords: { scale: () => null, diagram: 'C-F-G - all CAGED', variants: [ALL_TWO_NECKS, CAGED_ROTATE] },
+  caged_GE_chords: {
+    scale: () => null, diagram: 'Am-Dm-Em - all CAGED (lesson text: positions G and E)',
+    variants: [{ id: 'ge', necks: 2, groups: [['caged_G'], ['caged_E']] }, ALL_TWO_NECKS],
+  },
+  caged_chords_scale: { scale: keyScale, diagram: 'CAGED - chords in position - ALL', variants: [ALL_TWO_NECKS, CAGED_ROTATE] },
+  nps3: {
+    scale: keyScale, diagram: '(none — lesson 12 text: "fixed number of notes per string")',
+    variants: [{ id: 'rotate', necks: 1, groups: NPS3.map(id => [id]) }],
+  },
 }
 
-export function neckViews(neckId, key) {
+export const variantOf = (neckId, variantId) => {
+  const vs = NECKS[neckId].variants
+  return vs.find(v => v.id === variantId) ?? vs[0]
+}
+
+export function neckViews(neckId, key, variantId) {
   const n = NECKS[neckId]
   const scaleId = n.scale(key)
-  return n.shapes.map(shapeId => ({
+  return variantOf(neckId, variantId).groups.map(shapeIds => ({
     scaleId,
     root: scaleId ? toSharp(key.root) : 'auto',
     fretStart: 0,
     fretEnd: 15,
     displayMode: 'notes',
-    shapeId,
+    shapeIds: [...shapeIds],
+    shapeId: shapeIds[0],
     shapeKey: majorRootOf(key.root, key.type),
+    emphasis: scaleId && n.emphasis ? n.emphasis : null,
   }))
 }
 
@@ -158,9 +193,11 @@ const MAJOR_BLUES = [
   ['Ab', 100, '-_xtj7weF6c', '12 bar blues - Ab major'], ['A', 165, 'KM6xgZ6y9Vg', '12 bar blues - A major'],
   ['Bb', 80, 'aY4bHlL2vRc', '12 bar blues - Bb major'], ['B', 85, 'n7KMFG1Dq8U', '12 bar blues - B major'],
 ]
+// Answer 5: vary the styles; a style may come back, but never on neighbouring keys.
 const MAJOR_BLUES_STYLES = [
   ['blues_shuffle', "Mr Mac's Blues"], ['blues_kool', 'Kool Shuffle'], ['blues_soul', 'Soul Shuffle'],
   ['blues_simple', 'Simple Shuffle'], ['blues_rock60s', "60's Rock & Roll"], ['country_shuffle', 'Country Shuffle'],
+  ['blues_gospel', 'Gospel Swing'], ['blues_funk', 'Jazz Funk'],
 ]
 MAJOR_BLUES.forEach(([k, bpm, vid, title], i) => {
   const [genre, label] = MAJOR_BLUES_STYLES[i % MAJOR_BLUES_STYLES.length]
@@ -177,6 +214,7 @@ const MINOR_BLUES = [
 const MINOR_BLUES_STYLES = [
   ['blues_16beat', '16 Beat Ferna'], ['blues_koolfunk', 'Kool Funk'], ['blues_funk', 'Jazz Funk'],
   ['rock_16beat2', '16 Beat Ballad 2'], ['blues_slow', 'Slow Blues'], ['latin_bossa', 'Cool Bossa'],
+  ['rock_pop', 'Pop Rock'], ['jazz_cool', 'LA Cool Swing'],
 ]
 MINOR_BLUES.forEach(([k, bpm, vid, title], i) => {
   const [genre, label] = MINOR_BLUES_STYLES[i % MINOR_BLUES_STYLES.length]
@@ -252,7 +290,7 @@ export const LESSONS = [
   { n: 3, titleHe: 'CAGED', titleEn: 'CAGED',
     items: [...items(ids('am-g7'), 'caged_scale'), ...items(ids('c-g7'), 'caged_scale')] },
   { n: 4, titleHe: 'כל הסולמות! ופנטטוני', titleEn: 'All keys! And pentatonic',
-    items: [...items(ids('blues-major'), 'caged_pent'), ...items(ids('blues-minor'), 'caged_pent')] },
+    items: [...items(ids('blues-major'), 'caged_full_pent'), ...items(ids('blues-minor'), 'caged_full_pent')] },
   { n: 5, titleHe: 'ארפג׳ים 1: הצורות המז׳וריות, C-F-G', titleEn: 'Arpeggios 1: major shapes, C-F-G',
     items: items(ids('c-f-g'), 'caged_chords') },
   { n: 6, titleHe: 'ארפג׳ים 2: הצורות המינוריות', titleEn: 'Arpeggios 2: minor shapes',
@@ -270,11 +308,12 @@ export const LESSONS = [
     items: items(ids('sevenths'), 'caged_chords_scale') },
   { n: 12, titleHe: 'סיכום, סשן ותרגילים להמשך', titleEn: 'Summary, warm-up session and next steps', inferred: true,
     items: [...items(['amg7-jazz', 'amg7-rock', 'cg7-jazz', 'cg7-rockballad', 'amg7-bossa'], 'nps3'),
-      ...items(['amg7-blues', 'cg7-blues'], 'caged_pent')] },
+      ...items(['amg7-blues', 'cg7-blues'], 'caged_full_pent')] },
 ]
 
 // ── Export plan (5–10 min videos) ───────────────────────────────────────────
-export const TARGET_SEC = 6 * 60
+// Answer 9: ~6 min is fine, Mario leans to ~8 (toward 10); anything above 5 works.
+export const TARGET_SEC = 8 * 60
 export const MIN_SEC = 5 * 60
 export const MAX_SEC = 10 * 60
 /** Approximate extra seconds for count-in (style intro) + ending, added by the engine. */
@@ -285,7 +324,7 @@ export const INTRO_ENDING_ALLOWANCE_SEC = 15
  * repetitions = round(TARGET_SEC / repSec), then nudged into [MIN_SEC, MAX_SEC − allowance];
  * rotateEvery = round(60 / repSec) → the neck view changes about once a minute.
  */
-export function exportPlanFor(track, neckId) {
+export function exportPlanFor(track, neckId, variantId) {
   const chords = trackChords(track)
   const repSec = repetitionSec({ chords, beatsPerBar: 4, tempo: track.tempo })
   let repetitions = Math.max(1, Math.round(TARGET_SEC / repSec))
@@ -293,27 +332,33 @@ export function exportPlanFor(track, neckId) {
   while (repetitions * repSec > MAX_SEC - INTRO_ENDING_ALLOWANCE_SEC && repetitions > 1) repetitions--
   repetitions = Math.min(MAX_REPETITIONS, repetitions)
   const rotateEvery = Math.min(MAX_ROTATE_EVERY, Math.max(1, Math.round(60 / repSec)))
-  const views = neckViews(neckId, track.key)
+  const variant = variantOf(neckId, variantId)
+  const views = neckViews(neckId, track.key, variant.id)
+  const screens = Math.ceil(views.length / variant.necks)
   return {
+    variantId: variant.id,
+    necksPerScreen: variant.necks,
     repSec,
     repetitions,
     rotateEvery,
     musicSec: repetitions * repSec,
     dialogEstimateSec: estimateDurationSec({ chords, beatsPerBar: 4, tempo: track.tempo, repetitions }),
     views,
-    viewChanges: Math.ceil(repetitions / rotateEvery),
+    viewChanges: screens > 1 ? Math.ceil(repetitions / rotateEvery) : 0,
   }
 }
 
 /** Everything the lesson module needs to load one preset (no playback). */
-export function lessonPreset(lessonN, trackId) {
+export function lessonPreset(lessonN, trackId, variantId) {
   const lesson = LESSONS.find(l => l.n === lessonN)
   const item = lesson?.items.find(i => i.trackId === trackId)
   const track = TRACKS_BY_ID[trackId]
   if (!item || !track) return null
-  const plan = exportPlanFor(track, item.neck)
+  const plan = exportPlanFor(track, item.neck, variantId)
+  const isDefault = plan.variantId === NECKS[item.neck].variants[0].id
   return {
-    id: `L${lessonN}-${trackId}`,
+    id: isDefault ? `L${lessonN}-${trackId}` : `L${lessonN}-${trackId}~${plan.variantId}`,
+    variantId: plan.variantId,
     lesson: lessonN,
     track,
     neck: item.neck,
@@ -321,7 +366,13 @@ export function lessonPreset(lessonN, trackId) {
     genre: track.genre,
     tempo: track.tempo,
     key: { root: track.key.root, type: track.key.type },
-    export: { repetitions: plan.repetitions, rotateEvery: plan.rotateEvery, views: plan.views },
+    export: { repetitions: plan.repetitions, rotateEvery: plan.rotateEvery, necksPerScreen: plan.necksPerScreen, views: plan.views },
     plan,
   }
+}
+
+/** All export variants (videos) of one lesson item; the first is the default. */
+export function lessonPresetVariants(lessonN, trackId) {
+  const item = LESSONS.find(l => l.n === lessonN)?.items.find(i => i.trackId === trackId)
+  return item ? NECKS[item.neck].variants.map(v => lessonPreset(lessonN, trackId, v.id)) : []
 }
