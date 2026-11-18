@@ -175,7 +175,7 @@ export function channelProgramsForGenre(genreId) {
 }
 
 /** Set of MIDI channels that have notes anywhere in the style (null = unknown → all) */
-function usedChannelsOfStyle(style) {
+export function usedChannelsOfStyle(style) {
   if (!style?.parts) return null
   const used = new Set()
   for (const part of Object.values(style.parts)) {
@@ -1064,7 +1064,7 @@ export const ACCTYPE_TO_CHANNEL_KEY = {
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_VOLUMES = {
+export const DEFAULT_VOLUMES = {
   piano:  0.85,
   bass:   0.85,
   guitar: 0.85,
