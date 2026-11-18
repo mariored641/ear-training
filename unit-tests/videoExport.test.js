@@ -354,10 +354,17 @@ test('renderer draws the two-neck layout (frames, both necks) without throwing',
     set: (t, k, v) => { t[k] = v; return true; },
   });
   const assets = createAssets({ makeCanvas: () => ({ getContext: () => ctx }) });
-  const v1 = sanitizeView({ scaleId: 'ionian', root: 'C', shapeIds: ['octave_134'], shapeKey: 'C' });
-  const v2 = sanitizeView({ ...v1, shapeIds: ['octave_124'] });
+  // Several positions on a neck → each frame is tagged above the board.
+  const v1 = sanitizeView({ scaleId: 'ionian', root: 'C', shapeIds: ['caged_C', 'caged_G', 'caged_D'], shapeKey: 'C' });
+  const v2 = sanitizeView({ ...v1, shapeIds: ['caged_A', 'caged_E'] });
   const sc = buildScene({ ...base, settings: { repetitions: 2, rotateEvery: 1, necksPerScreen: 2, views: [v1, v2] }, live: live() });
   drawFrame(ctx, sc, assets);
   assert.equal(calls.strokeRect, 2);                        // two boards
-  assert.ok(calls.fillText.includes('1-3-4') && calls.fillText.includes('1-2-4'));
+  for (const tag of ['C', 'G', 'D', 'A', 'E']) assert.ok(calls.fillText.includes(tag), tag);
+  // One position per neck → no tags (the caption already names it).
+  calls.fillText.length = 0;
+  const o1 = sanitizeView({ scaleId: 'ionian', root: 'C', shapeIds: ['octave_134'], shapeKey: 'C' });
+  const o2 = sanitizeView({ ...o1, shapeIds: ['octave_124'] });
+  drawFrame(ctx, buildScene({ ...base, settings: { repetitions: 2, rotateEvery: 1, necksPerScreen: 2, views: [o1, o2] }, live: live() }), assets);
+  assert.ok(!calls.fillText.includes('1-3-4') && !calls.fillText.includes('1-2-4'));
 });
