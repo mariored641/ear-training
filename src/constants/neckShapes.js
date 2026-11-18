@@ -130,3 +130,84 @@ export function shapeCells(shapeId, majorRoot = 'C') {
     fretEnd: Math.max(...frets),
   }
 }
+
+// ── Several shapes on one neck (two-neck video layout, live neck combos) ──────
+const PAIRS = [[6, 5], [4, 3], [2, 1]]
+const pcOf = (n) => pc(n) ?? 0
+
+/** Parse a stored shape value: one id or a comma-joined combo ("caged_C,caged_G,caged_D"). */
+export function parseShapeIds(value) {
+  const list = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : []
+  const ids = [...new Set(list.map(s => String(s).trim()).filter(isShapeId))]
+  return ids.slice(0, 5)
+}
+
+/** Combos offered in selects (CAGED split so the windows never overlap, octave pair). */
+export const SHAPE_COMBOS = [
+  ['caged_C', 'caged_G', 'caged_D'],
+  ['caged_A', 'caged_E'],
+  ['caged_G', 'caged_E'],
+  ['octave_134', 'octave_124'],
+]
+
+/**
+ * Cells + labelled frames for several shapes on one neck.
+ * CAGED windows are laid out in neck order from the first one, so a combo such as
+ * C·G·D never overlaps (frets 0–3 / 4–8 / 9–13 in C) whatever the key.
+ * Frames: CAGED → one rectangle over all strings; octave / 3NPS → one per string pair.
+ * @returns {{ list, cells:Set<string>, fretStart, fretEnd, frames: Array<{shapeId,label,fretStart,fretEnd,stringFrom,stringTo}> } | null}
+ */
+export function shapeSet(shapeIds, majorRoot = 'C', { near = null } = {}) {
+  const ids = parseShapeIds(shapeIds)
+  if (!ids.length) return null
+  const offset = pcOf(majorRoot)
+  // CAGED windows repeat every 12 frets: with `near` (a fret), use the octave closest to it.
+  let cagedShift = 0
+  if (near !== null && ids.some(id => id.startsWith('caged_'))) {
+    const probe = shapeSet(ids.filter(id => id.startsWith('caged_')), majorRoot)
+    const center = (probe.fretStart + probe.fretEnd) / 2
+    for (const k of [-12, 12]) {
+      if (probe.fretStart + k >= 0 && probe.fretEnd + k <= 24 && Math.abs(center + k - near) < Math.abs(center + cagedShift - near)) cagedShift = k
+    }
+  }
+  const list = []
+  const frames = []
+  let firstStart = null
+  let firstBase = null
+  for (const id of ids) {
+    if (id.startsWith('caged_')) {
+      const base = C_AM_POSITION_RANGES[id.slice(6)]
+      let start
+      if (firstStart === null) {
+        start = (base.fretStart + offset) % 12 + cagedShift
+        firstStart = start; firstBase = base.fretStart
+      } else {
+        start = firstStart + ((base.fretStart - firstBase + 12) % 12)
+      }
+      const end = start + (base.fretEnd - base.fretStart)
+      for (let s = 1; s <= 6; s++) for (let f = start; f <= end; f++) list.push([s, f])
+      frames.push({ shapeId: id, label: id.slice(6), fretStart: start, fretEnd: end, stringFrom: 1, stringTo: 6 })
+    } else {
+      const shape = shapeCells(id, majorRoot)
+      list.push(...shape.list)
+      PAIRS.forEach(([lo, hi], i) => {
+        const frets = shape.list.filter(([s]) => s === lo || s === hi).map(([, f]) => f)
+        if (!frets.length) return
+        frames.push({
+          shapeId: id, label: i === 0 ? shapeShortLabel(id) : '',
+          fretStart: Math.min(...frets), fretEnd: Math.max(...frets), stringFrom: hi, stringTo: lo,
+        })
+      })
+    }
+  }
+  const frets = list.map(([, f]) => f)
+  const cells = new Set(list.map(([s, f]) => `${s}-${f}`))
+  return { list, cells, fretStart: Math.min(...frets), fretEnd: Math.max(...frets), frames }
+}
+
+/** Pentatonic subset used to emphasise notes inside a full major/minor scale. */
+export function pentatonicPcs(scaleRoot, minor) {
+  const r = pcOf(scaleRoot)
+  return new Set((minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9]).map(i => (r + i) % 12))
+}
+export const noteToPc = pcOf

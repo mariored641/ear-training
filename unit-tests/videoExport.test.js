@@ -321,3 +321,43 @@ test('neck model: a lesson shape limits dots to its cells and sets the fret wind
   assert.equal(sanitizeView({ shapeId: 'bogus', shapeKey: 'H' }).shapeId, null);
   assert.equal(sanitizeView({ shapeId: 'nps3_2', shapeKey: 'Bb' }).shapeKey, 'A#');
 });
+
+test('two necks per screen: views shown in pairs, shared fret range, frames + pentatonic emphasis', () => {
+  const v1 = sanitizeView({ scaleId: 'aeolian', root: 'A', shapeIds: ['caged_C', 'caged_G', 'caged_D'], shapeKey: 'C', emphasis: 'pentatonic' });
+  const v2 = sanitizeView({ ...v1, shapeIds: ['caged_A', 'caged_E'] });
+  const settings = { repetitions: 4, rotateEvery: 1, necksPerScreen: 2, views: [v1, v2] };
+  const sc = buildScene({ ...base, settings, live: live({ chords: [{ sym: 'Am' }, { sym: 'G7' }] }) });
+  assert.equal(sc.layout, 'dual');
+  assert.equal(sc.necks.length, 2);
+  assert.deepEqual([sc.necks[0].neck.fretStart, sc.necks[0].neck.fretEnd], [sc.necks[1].neck.fretStart, sc.necks[1].neck.fretEnd]);
+  assert.deepEqual(sc.necks[0].neck.frames.map(f => f.label), ['C', 'G', 'D']);
+  assert.deepEqual(sc.necks[1].neck.frames.map(f => f.label), ['A', 'E']);
+  assert.equal(sc.viewCount, 1);
+  // F (outside A minor pentatonic) is softened, C (in it) is not; chord tones never are.
+  const dots = sc.necks[0].neck.dots;
+  assert.ok(dots.some(d => d.note === 'F' && d.soft));
+  assert.ok(dots.filter(d => d.note === 'C').every(d => !d.soft));
+  assert.ok(dots.filter(d => d.role !== 'scale').every(d => !d.soft));
+  // 4 views, 2 per screen → two screens that rotate
+  const four = { ...settings, views: [v1, v2, v1, v2], rotateEvery: 2 };
+  assert.equal(buildScene({ ...base, settings: four, live: live({ loopCount: 2 }) }).viewIndex, 1);
+  assert.equal(sanitizeSettings({ necksPerScreen: 7 }).necksPerScreen, 1);
+  assert.deepEqual(sanitizeView({ shapeId: 'octave_124' }).shapeIds, ['octave_124']);
+});
+
+test('renderer draws the two-neck layout (frames, both necks) without throwing', async () => {
+  const { drawFrame, createAssets } = await import('../src/lib/video-export/renderFrame.js');
+  const calls = { strokeRect: 0, fillText: [] };
+  const ctx = new Proxy({}, {
+    get: (t, k) => (k === 'createLinearGradient' ? () => ({ addColorStop() {} }) : k === 'measureText' ? () => ({ width: 10 })
+      : k === 'strokeRect' ? () => { calls.strokeRect++ } : k === 'fillText' ? (txt) => { calls.fillText.push(String(txt)) } : (k in t ? t[k] : () => {})),
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  const assets = createAssets({ makeCanvas: () => ({ getContext: () => ctx }) });
+  const v1 = sanitizeView({ scaleId: 'ionian', root: 'C', shapeIds: ['octave_134'], shapeKey: 'C' });
+  const v2 = sanitizeView({ ...v1, shapeIds: ['octave_124'] });
+  const sc = buildScene({ ...base, settings: { repetitions: 2, rotateEvery: 1, necksPerScreen: 2, views: [v1, v2] }, live: live() });
+  drawFrame(ctx, sc, assets);
+  assert.equal(calls.strokeRect, 2);                        // two boards
+  assert.ok(calls.fillText.includes('1-3-4') && calls.fillText.includes('1-2-4'));
+});

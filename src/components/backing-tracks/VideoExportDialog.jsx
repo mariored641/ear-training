@@ -10,7 +10,7 @@ import {
   RESOLUTIONS, MAX_EXPORT_SEC, LENGTH_PRESETS_MIN, sanitizeSettings, sanitizeView, fretWindows, estimateDurationSec,
   estimateBytes, repetitionsForMinutes, formatDuration, exportFileName, pickRecorderFormat,
 } from '../../lib/video-export/exportPlan.js'
-import { SHAPE_GROUPS } from '../../constants/neckShapes.js'
+import { SHAPE_GROUPS, SHAPE_COMBOS, parseShapeIds, shapeShortLabel } from '../../constants/neckShapes.js'
 import { runExport, ExportCancelled } from '../../lib/video-export/VideoExporter.js'
 import './VideoExportDialog.css'
 
@@ -79,6 +79,15 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
   }))
   const removeView = (i) => setSettings(s => ({ ...s, views: s.views.length > 1 ? s.views.filter((_, j) => j !== i) : s.views }))
   const splitPositions = () => setSettings(s => ({ ...s, views: fretWindows(s.views[0]) }))
+  // All five CAGED positions at once: C·G·D on one neck, A·E on the other (windows never overlap).
+  const allPositionsTwoNecks = () => setSettings(s => {
+    const base = { ...s.views[0], shapeKey: s.views[0]?.shapeIds?.length ? s.views[0].shapeKey : shapeKey }
+    return sanitizeSettings({ ...s, necksPerScreen: 2, views: [
+      { ...base, shapeIds: ['caged_C', 'caged_G', 'caged_D'] },
+      { ...base, shapeIds: ['caged_A', 'caged_E'] },
+    ] })
+  })
+  const comboLabel = (ids) => `${t(`positions.shapeGroups.${ids[0].split('_')[0]}`)} ${ids.map(shapeShortLabel).join(' + ')}`
 
   // Free the preview blob when the dialog goes away or a new export replaces it.
   useEffect(() => () => { if (result?.url) URL.revokeObjectURL(result.url) }, [result])
@@ -94,6 +103,8 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
     legendRoot: t('backing.videoExport.canvas.legendRoot'),
     legendChordTone: t('backing.videoExport.canvas.legendChordTone'),
     legendScale: t('backing.videoExport.canvas.legendScale'),
+    legendScaleSoft: t('backing.videoExport.canvas.legendScaleSoft'),
+    pentatonicEmphasis: t('backing.videoExport.canvas.pentatonicEmphasis'),
   }), [t, i18n.language])
 
   const start = useCallback(async () => {
@@ -122,6 +133,7 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
           noteLabel: normalizeDisplayAccidentals,
           scaleName: (id) => t(`positions.musicItems.${id}`, { defaultValue: ALL_SCALES_MAP[id]?.name ?? id }),
           shapeName: (id) => t(`positions.shapes.${id}`),
+          groupName: (group) => t(`positions.shapeGroups.${group}`),
         },
         getLive,
         prepare,
@@ -154,7 +166,7 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
   const duration = estimateDurationSec({ chords, beatsPerBar, tempo: meta.tempo, repetitions: settings.repetitions })
   const tooLong = duration > MAX_EXPORT_SEC
   const sizeMb = Math.round(estimateBytes(duration, settings.resolution) / 1048576)
-  const rotates = settings.views.length > 1
+  const rotates = Math.ceil(settings.views.length / (settings.necksPerScreen === 2 ? 2 : 1)) > 1
   const pct = Math.round(status.progress * 100)
 
   return (
@@ -189,6 +201,14 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
           </div>
           {!rotates && <p className="vx-hint">{t('backing.videoExport.rotateHint')}</p>}
           <div className="vx-row">
+            <label>{t('backing.videoExport.necksPerScreen')}</label>
+            <select value={settings.necksPerScreen} disabled={running} data-testid="vx-necks"
+              onChange={e => patch({ necksPerScreen: Number(e.target.value) })}>
+              <option value={1}>{t('backing.videoExport.oneNeck')}</option>
+              <option value={2}>{t('backing.videoExport.twoNecks')}</option>
+            </select>
+          </div>
+          <div className="vx-row">
             <label>{t('backing.videoExport.quality')}</label>
             <select value={settings.resolution} disabled={running} onChange={e => patch({ resolution: e.target.value })}>
               {Object.keys(RESOLUTIONS).map(r => <option key={r} value={r}>{r}</option>)}
@@ -215,23 +235,44 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
                   <option value="auto">{t('common.auto')}</option>
                   {CHROMATIC.map(n => <option key={n} value={n}>{normalizeDisplayAccidentals(n)}</option>)}
                 </select>
-                <span className="vx-frets" hidden={Boolean(v.shapeId)}>
+                <span className="vx-frets" hidden={parseShapeIds(v.shapeIds?.length ? v.shapeIds : v.shapeId).length > 0}>
                   <input type="number" min={0} max={MAX_FRET} value={v.fretStart} disabled={running}
                     aria-label={t('backing.videoExport.fromFret')} onChange={e => setView(i, { fretStart: e.target.value })} onBlur={normalise} />
                   <span>–</span>
                   <input type="number" min={0} max={MAX_FRET} value={v.fretEnd} disabled={running}
                     aria-label={t('backing.videoExport.toFret')} onChange={e => setView(i, { fretEnd: e.target.value })} onBlur={normalise} />
                 </span>
-                <select aria-label={t('positions.shapeLabel')} value={v.shapeId || ''} disabled={running} data-testid="vx-shape"
-                  onChange={e => setView(i, { shapeId: e.target.value || null, shapeKey: v.shapeId ? v.shapeKey : shapeKey })}>
-                  <option value="">{t('backing.videoExport.fretWindow')}</option>
-                  {SHAPE_GROUPS.map(group => (
-                    <optgroup key={group.id} label={t(`positions.shapeGroups.${group.id}`)}>
-                      {group.shapes.map(id => <option key={id} value={id}>{t(`positions.shapes.${id}`)}</option>)}
-                    </optgroup>
-                  ))}
-                </select>
-                {v.shapeId && (
+                {(() => {
+                  const ids = parseShapeIds(v.shapeIds?.length ? v.shapeIds : v.shapeId)
+                  const value = ids.join(',')
+                  const known = [...SHAPE_GROUPS.flatMap(g => g.shapes), ...SHAPE_COMBOS.map(c => c.join(','))]
+                  return (
+                    <select aria-label={t('positions.shapeLabel')} value={value} disabled={running} data-testid="vx-shape"
+                      onChange={e => {
+                        const next = parseShapeIds(e.target.value)
+                        setView(i, { shapeIds: next, shapeId: next[0] ?? null, shapeKey: ids.length ? v.shapeKey : shapeKey })
+                      }}>
+                      <option value="">{t('backing.videoExport.fretWindow')}</option>
+                      {SHAPE_GROUPS.map(group => (
+                        <optgroup key={group.id} label={t(`positions.shapeGroups.${group.id}`)}>
+                          {group.shapes.map(id => <option key={id} value={id}>{t(`positions.shapes.${id}`)}</option>)}
+                        </optgroup>
+                      ))}
+                      <optgroup label={t('backing.videoExport.shapeCombos')}>
+                        {SHAPE_COMBOS.map(c => <option key={c.join()} value={c.join(',')}>{comboLabel(c)}</option>)}
+                        {value && !known.includes(value) && <option value={value}>{comboLabel(ids)}</option>}
+                      </optgroup>
+                    </select>
+                  )
+                })()}
+                {v.scaleId && (
+                  <label className="vx-check">
+                    <input type="checkbox" checked={v.emphasis === 'pentatonic'} disabled={running} data-testid="vx-emphasis"
+                      onChange={e => setView(i, { emphasis: e.target.checked ? 'pentatonic' : null })} />
+                    {t('backing.videoExport.emphasisPentatonic')}
+                  </label>
+                )}
+                {parseShapeIds(v.shapeIds?.length ? v.shapeIds : v.shapeId).length > 0 && (
                   <select aria-label={t('backing.videoExport.shapeKey')} value={v.shapeKey} disabled={running} data-testid="vx-shape-key"
                     onChange={e => setView(i, { shapeKey: e.target.value })}>
                     {CHROMATIC.map(n => <option key={n} value={n}>{t('backing.videoExport.shapeKeyOption', { note: normalizeDisplayAccidentals(n) })}</option>)}
@@ -248,6 +289,7 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
           <div className="vx-actions-row">
             <button type="button" disabled={running || settings.views.length >= MAX_VIEWS} onClick={addView}>＋ {t('backing.videoExport.addView')}</button>
             <button type="button" disabled={running} onClick={splitPositions}>{t('backing.videoExport.splitPositions')}</button>
+            <button type="button" disabled={running} onClick={allPositionsTwoNecks} data-testid="vx-all-positions">{t('backing.videoExport.allPositionsTwoNecks')}</button>
           </div>
 
           <p className="vx-hint">

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { readLastState, writeLastState, useRemember, usePersistentState } from '../../utils/lastState'
 import { sanitizeSettings, DEFAULT_SETTINGS } from '../../lib/video-export/exportPlan.js'
 import { useTranslation } from 'react-i18next'
@@ -675,7 +676,8 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
         </div>
       </div>
 
-      {exportOpen && (
+      {/* Portal: the player is its own stacking context, so a nested dialog could end up under the page header. */}
+      {exportOpen && createPortal(
         <VideoExportDialog
           getLive={getLive}
           meta={{ styleName, keyLabel: formatNoteName(selectedKey.root, 'en') + (selectedKey.type === 'minor' ? 'm' : ''), tempo }}
@@ -687,7 +689,8 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
           stop={stop}
           onClose={() => setExportOpen(false)}
           shapeKey={majorRootOf(selectedKey.root, selectedKey.type)}
-        />
+        />,
+        document.body,
       )}
 
       {/* ── Chord Picker Modal ── */}

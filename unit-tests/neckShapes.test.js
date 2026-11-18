@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { shapeCells, majorRootOf, SHAPE_IDS, isShapeId, shapeShortLabel } from '../src/constants/neckShapes.js';
+import { shapeCells, shapeSet, parseShapeIds, majorRootOf, SHAPE_IDS, isShapeId, shapeShortLabel } from '../src/constants/neckShapes.js';
 import { C_AM_POSITION_RANGES } from '../src/constants/positionData.js';
 import { noteAt } from '../src/lib/video-export/neckModel.js';
 
@@ -63,4 +63,29 @@ test('CAGED shapes reuse the Positions-tab windows', () => {
   assert.equal(isShapeId('X'), false);
   assert.equal(shapeShortLabel('octave_hybrid'), '1-3-4/1-2-4');
   assert.equal(shapeCells('nope', 'C'), null);
+});
+
+test('two-neck combos: C·G·D and A·E never overlap and stay close to each other in every key', () => {
+  for (const key of ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']) {
+    const a = shapeSet(['caged_C', 'caged_G', 'caged_D'], key);
+    const b = shapeSet(['caged_A', 'caged_E'], key, { near: (a.fretStart + a.fretEnd) / 2 });
+    for (const set of [a, b]) {
+      const fr = [...set.frames].sort((x, y) => x.fretStart - y.fretStart);
+      for (let i = 1; i < fr.length; i++) assert.ok(fr[i].fretStart > fr[i - 1].fretEnd, `${key} ${fr[i - 1].label}/${fr[i].label}`);
+      assert.ok(set.fretStart >= 0 && set.fretEnd <= 24);
+    }
+    const span = Math.max(a.fretEnd, b.fretEnd) - Math.min(a.fretStart, b.fretStart);
+    assert.ok(span <= 15, `${key}: shared range ${span}`);
+  }
+  const c = shapeSet('caged_C,caged_G,caged_D', 'C');
+  assert.deepEqual(c.frames.map(f => [f.label, f.fretStart, f.fretEnd]), [['C', 0, 3], ['G', 4, 8], ['D', 9, 13]]);
+});
+
+test('octave frames: one box per string pair, labelled once', () => {
+  const s = shapeSet(['octave_134'], 'C');
+  assert.equal(s.frames.length, 3);
+  assert.deepEqual(s.frames.map(f => [f.stringFrom, f.stringTo]), [[5, 6], [3, 4], [1, 2]]);
+  assert.deepEqual(s.frames.map(f => f.label), ['1-3-4', '', '']);
+  assert.deepEqual(parseShapeIds('caged_A, bogus,caged_A'), ['caged_A']);
+  assert.equal(shapeSet([], 'C'), null);
 });

@@ -12,7 +12,7 @@ import { chordDisplayName, prettifyChord } from './useBackingTrackEngine';
 import { ChordPreviewStrip } from './ChordPreviewStrip';
 import './LiveFretboard.css';
 import { formatNoteName } from '../../i18n/musicTerms';
-import { SHAPE_GROUPS, isShapeId, shapeCells, majorRootOf } from '../../constants/neckShapes.js';
+import { SHAPE_GROUPS, SHAPE_COMBOS, parseShapeIds, shapeSet, shapeShortLabel, majorRootOf } from '../../constants/neckShapes.js';
 
 // PITCH_NAMES uses flats (Eb, Ab, Bb); CHROMATIC_SCALE uses sharps — normalize
 const ENHARMONIC = { 'Eb': 'D#', 'Ab': 'G#', 'Bb': 'A#', 'Db': 'C#', 'Gb': 'F#' };
@@ -68,11 +68,14 @@ export default function LiveFretboard({
   };
   // Lesson shape (CAGED window / octave position / 3-per-string), placed in the backing track's key.
   const [savedShapeId, setShapeId] = usePersistentState('backing-fretboard', 'shapeId', null);
-  const shapeId = isShapeId(savedShapeId) ? savedShapeId : null;
+  // One shape id or a comma-joined combo (e.g. CAGED C,G,D) — several positions on one neck.
+  const shapeIds = parseShapeIds(savedShapeId);
+  const shapeId = shapeIds.length ? shapeIds.join(',') : null;
   const shape = useMemo(
-    () => (shapeId ? shapeCells(shapeId, majorRootOf(selectedKey.root, selectedKey.type)) : null),
+    () => (shapeId ? shapeSet(shapeId, majorRootOf(selectedKey.root, selectedKey.type)) : null),
     [shapeId, selectedKey.root, selectedKey.type],
   );
+  const comboLabel = (ids) => `${t(`positions.shapeGroups.${ids[0].split('_')[0]}`)} ${ids.map(shapeShortLabel).join(' + ')}`;
   const [fretRangeStart, setFretRangeStart] = usePersistentState('backing-fretboard', 'fretRangeStart', null);
   const [fretRangeEnd, setFretRangeEnd] = usePersistentState('backing-fretboard', 'fretRangeEnd', null);
   const [activeStrings, setActiveStrings] = useState(() => {
@@ -285,6 +288,12 @@ export default function LiveFretboard({
                     {group.shapes.map(id => <option key={id} value={id}>{t(`positions.shapes.${id}`)}</option>)}
                   </optgroup>
                 ))}
+                <optgroup label={t('backing.videoExport.shapeCombos')}>
+                  {SHAPE_COMBOS.map(c => <option key={c.join()} value={c.join(',')}>{comboLabel(c)}</option>)}
+                  {shapeId && shapeIds.length > 1 && !SHAPE_COMBOS.some(c => c.join(',') === shapeId) && (
+                    <option value={shapeId}>{comboLabel(shapeIds)}</option>
+                  )}
+                </optgroup>
               </select>
             </div>
 

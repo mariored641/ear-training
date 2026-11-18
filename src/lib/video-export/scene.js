@@ -2,8 +2,9 @@
  * Turns the live playback state into the data renderFrame.drawFrame needs.
  * Pure: formatting helpers are injected so this runs under node:test.
  */
-import { buildNeckModel } from './neckModel.js'
-import { locateChord, viewIndexForRepetition, sanitizeView } from './exportPlan.js'
+import { buildNeckModel, viewShape, viewFretRange } from './neckModel.js'
+import { shapeShortLabel } from '../../constants/neckShapes.js'
+import { locateChord, viewsForRepetition, sanitizeView, normalizeFretRange } from './exportPlan.js'
 
 const FALLBACK_VIEW = sanitizeView({ displayMode: 'notes' })
 
@@ -21,8 +22,7 @@ export function buildScene({ live, settings, meta, labels, deps }) {
   const views = settings.views.length ? settings.views : [FALLBACK_VIEW]
   const phase = live.playbackPhase === 'intro' ? 'intro' : live.playbackPhase === 'ending' ? 'ending' : 'main'
   const repIndex = Math.min(Math.max(0, live.loopCount || 0), settings.repetitions - 1)
-  const viewIndex = viewIndexForRepetition(repIndex, settings.rotateEvery, views.length)
-  const view = views[viewIndex]
+  const { group, groupCount, indices } = viewsForRepetition(repIndex, { ...settings, views })
 
   const bar = phase === 'intro' ? 0 : live.currentBar || 0
   const beat = live.currentBeat ?? null
@@ -31,15 +31,24 @@ export function buildScene({ live, settings, meta, labels, deps }) {
     : locateChord(chords, bpb, bar, beat ?? 0)
   const current = chords[index]
   const currentSymbol = current ? deps.chordSymbol(current) : null
-  const neck = buildNeckModel(view, currentSymbol)
 
-  const scaleLabel = neck.scaleId
-    ? `${deps.noteLabel(neck.scaleRoot)} ${deps.scaleName(neck.scaleId)}`
-    : labels.chordTones
-  const shapeLabel = neck.shapeId ? (deps.shapeName ? deps.shapeName(neck.shapeId) : neck.shapeId) : null
-  const viewCaption = shapeLabel
-    ? `${shapeLabel}  ·  ${scaleLabel}`
-    : `${scaleLabel}  ·  ${labels.frets} ${neck.fretStart}–${neck.fretEnd}`
+  // Two necks share one fret range so the same fret sits at the same x on both.
+  const shapes = []
+  for (const i of indices) {
+    const near = shapes.length && shapes[0] ? (shapes[0].fretStart + shapes[0].fretEnd) / 2 : null
+    shapes.push(viewShape(views[i], near))
+  }
+  let range = null
+  if (indices.length > 1) {
+    const ranges = indices.map((i, k) => viewFretRange(views[i], shapes[k]))
+    range = normalizeFretRange(Math.min(...ranges.map(r => r[0])), Math.max(...ranges.map(r => r[1])))
+  }
+  const necks = indices.map((i, k) => {
+    const view = views[i]
+    const neck = buildNeckModel(view, currentSymbol, { shape: shapes[k], range })
+    return { neck, view, caption: neckCaption(neck, labels, deps) }
+  })
+  const first = necks[0]
 
   return {
     phase,
@@ -50,15 +59,35 @@ export function buildScene({ live, settings, meta, labels, deps }) {
     beat,
     beatsPerBar: bpb,
     chips: chords.map((c, i) => ({ label: deps.pretty(deps.chordSymbol(c)), active: i === index })),
-    neck,
-    view,
-    viewIndex,
-    viewCount: views.length,
-    viewCaption,
+    layout: necks.length > 1 ? 'dual' : 'single',
+    necks,
+    neck: first.neck,
+    view: first.view,
+    viewIndex: indices.length > 1 ? group : indices[0],
+    viewCount: indices.length > 1 ? groupCount : views.length,
+    viewCaption: first.caption,
     noteLabel: deps.noteLabel,
     info: { key: meta.keyLabel, bpm: meta.tempo },
     labels: { ...labels, style: meta.styleName },
   }
+}
+
+function neckCaption(neck, labels, deps) {
+  const scaleLabel = neck.scaleId
+    ? `${deps.noteLabel(neck.scaleRoot)} ${deps.scaleName(neck.scaleId)}`
+    : labels.chordTones
+  const ids = neck.shapeIds || []
+  let shapeLabel = null
+  if (ids.length === 1) shapeLabel = deps.shapeName ? deps.shapeName(ids[0]) : ids[0]
+  else if (ids.length > 1) {
+    const group = ids[0].split('_')[0]
+    const prefix = deps.groupName ? deps.groupName(group) : group
+    shapeLabel = `${prefix} ${ids.map(shapeShortLabel).join(' · ')}`
+  }
+  const emphasis = neck.emphasis && labels.pentatonicEmphasis ? `  ·  ${labels.pentatonicEmphasis}` : ''
+  return shapeLabel
+    ? `${shapeLabel}  ·  ${scaleLabel}${emphasis}`
+    : `${scaleLabel}${emphasis}  ·  ${labels.frets} ${neck.fretStart}–${neck.fretEnd}`
 }
 
 /** 0..1 progress through the requested repetitions. */

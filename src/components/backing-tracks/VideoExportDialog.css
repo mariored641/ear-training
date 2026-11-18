@@ -47,3 +47,4 @@
 .vx-btn--primary:disabled { opacity: 0.4; cursor: default; }
 .vx-btn--danger { background: #8a2b20; }
 @media (max-width: 520px) { .vx-view { gap: 4px; } }
+.vx-check { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }

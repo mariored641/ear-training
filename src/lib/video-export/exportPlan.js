@@ -2,7 +2,7 @@
  * Pure planning helpers for the backing-track video export.
  * No DOM / audio access here so everything is unit-testable.
  */
-import { isShapeId, toSharpName } from '../../constants/neckShapes.js'
+import { toSharpName, parseShapeIds } from '../../constants/neckShapes.js'
 import { CHROMATIC_SCALE } from '../../constants/positionData.js'
 
 // A 4-bar vamp at 190 BPM is ~5 s per repetition, so a 10-minute practice video needs
@@ -12,7 +12,9 @@ export const MAX_ROTATE_EVERY = 64
 /** Longest export we allow (real-time recording; also bounds memory / file size). */
 export const MAX_EXPORT_SEC = 15 * 60
 /** Target lengths offered as one-tap presets in the dialog (minutes). */
-export const LENGTH_PRESETS_MIN = [5, 7, 10]
+export const LENGTH_PRESETS_MIN = [5, 8, 10]
+export const EMPHASIS_MODES = ['pentatonic']
+export const NECKS_PER_SCREEN = [1, 2]
 // Mostly-static graphics compress very well; these keep a 10-minute 720p file around 200 MB.
 export const VIDEO_BITRATES = { '720p': 2_500_000, '1080p': 5_000_000 }
 export const AUDIO_BITRATE = 160_000
@@ -49,6 +51,8 @@ export function sanitizeView(view) {
   const v = view && typeof view === 'object' ? view : {}
   const [fretStart, fretEnd] = normalizeFretRange(v.fretStart, v.fretEnd)
   const shapeKey = toSharpName(v.shapeKey)
+  const fromList = parseShapeIds(v.shapeIds)
+  const shapeIds = fromList.length ? fromList : parseShapeIds(v.shapeId)
   return {
     scaleId: typeof v.scaleId === 'string' && v.scaleId ? v.scaleId : null,
     root: typeof v.root === 'string' && v.root ? v.root : 'auto',
@@ -57,8 +61,12 @@ export function sanitizeView(view) {
     displayMode: DISPLAY_MODES.includes(v.displayMode) ? v.displayMode : 'notes',
     // Optional lesson shape (CAGED window / octave position / 3-per-string) placed in the key
     // whose MAJOR root is shapeKey. When set, it decides which cells (and frets) are shown.
-    shapeId: isShapeId(v.shapeId) ? v.shapeId : null,
+    // Several shapes may share one neck (e.g. CAGED C·G·D); shapeId stays the first for older readers.
+    shapeIds,
+    shapeId: shapeIds[0] ?? null,
     shapeKey: CHROMATIC_SCALE.includes(shapeKey) ? shapeKey : 'C',
+    // 'pentatonic': full scale shown, pentatonic notes stand out and the rest are softened.
+    emphasis: EMPHASIS_MODES.includes(v.emphasis) ? v.emphasis : null,
   }
 }
 
@@ -66,6 +74,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   repetitions: 4,
   rotateEvery: 1,
   resolution: '720p',
+  necksPerScreen: 1,
   views: [],
 })
 
@@ -77,6 +86,7 @@ export function sanitizeSettings(raw) {
     repetitions: clampInt(s.repetitions, 1, MAX_REPETITIONS, DEFAULT_SETTINGS.repetitions),
     rotateEvery: clampInt(s.rotateEvery, 1, MAX_ROTATE_EVERY, DEFAULT_SETTINGS.rotateEvery),
     resolution: s.resolution in RESOLUTIONS ? s.resolution : DEFAULT_SETTINGS.resolution,
+    necksPerScreen: NECKS_PER_SCREEN.includes(Number(s.necksPerScreen)) ? Number(s.necksPerScreen) : 1,
     views,
   }
 }
@@ -86,6 +96,21 @@ export function viewIndexForRepetition(repIndex, rotateEvery, viewCount) {
   if (viewCount <= 1) return 0
   const every = Math.max(1, Math.floor(rotateEvery) || 1)
   return Math.floor(Math.max(0, repIndex) / every) % viewCount
+}
+
+/**
+ * Views on screen during a repetition. With 2 necks per screen, views are shown in pairs
+ * (views 1+2, then 3+4, …) and the pair rotates every `rotateEvery` repetitions.
+ * @returns {{ group: number, groupCount: number, indices: number[] }}
+ */
+export function viewsForRepetition(repIndex, settings) {
+  const n = settings.necksPerScreen === 2 ? 2 : 1
+  const count = Math.max(1, settings.views?.length || 0)
+  const groupCount = Math.ceil(count / n)
+  const group = viewIndexForRepetition(repIndex, settings.rotateEvery, groupCount)
+  const indices = []
+  for (let i = group * n; i < Math.min(count, group * n + n); i++) indices.push(i)
+  return { group, groupCount, indices }
 }
 
 /** Evenly stepped fret windows reusing the scale/root/mode of `base` (position rotation helper). */
