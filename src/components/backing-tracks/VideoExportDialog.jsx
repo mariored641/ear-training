@@ -7,17 +7,18 @@ import { chordDisplayName, prettifyChord } from './useBackingTrackEngine.js'
 import * as SFP from '../../lib/soundfont/SoundFontPlayer.js'
 import {
   DEFAULT_SETTINGS, MAX_REPETITIONS, MAX_ROTATE_EVERY, MAX_VIEWS, MAX_FRET, DISPLAY_MODES,
-  RESOLUTIONS, sanitizeSettings, sanitizeView, fretWindows, estimateDurationSec,
-  formatDuration, exportFileName, pickRecorderFormat,
+  RESOLUTIONS, MAX_EXPORT_SEC, LENGTH_PRESETS_MIN, sanitizeSettings, sanitizeView, fretWindows, estimateDurationSec,
+  estimateBytes, repetitionsForMinutes, formatDuration, exportFileName, pickRecorderFormat,
 } from '../../lib/video-export/exportPlan.js'
+import { SHAPE_GROUPS, SHAPE_COMBOS, parseShapeIds, shapeShortLabel } from '../../constants/neckShapes.js'
 import { runExport, ExportCancelled } from '../../lib/video-export/VideoExporter.js'
 import './VideoExportDialog.css'
 
 const CHROMATIC = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
-const STORAGE_ID = 'backing-video-export'
+export const STORAGE_ID = 'backing-video-export'
 
 /** The neck view the student currently has on the live fretboard. */
-function currentNeckView() {
+function currentNeckView(shapeKey) {
   const read = (field, fallback) => readLastState(`backing-fretboard.${field}`, 1, { value: fallback }).value
   return sanitizeView({
     scaleId: read('globalScaleId', null),
@@ -25,12 +26,14 @@ function currentNeckView() {
     fretStart: read('fretRangeStart', null),
     fretEnd: read('fretRangeEnd', null),
     displayMode: read('displayMode', 'notes') === 'degrees' ? 'degrees' : 'notes',
+    shapeId: read('shapeId', null),
+    shapeKey,
   })
 }
 
-function initialSettings() {
+function initialSettings(shapeKey) {
   const saved = sanitizeSettings(readLastState(STORAGE_ID, 1, DEFAULT_SETTINGS))
-  return saved.views.length ? saved : { ...saved, views: [currentNeckView()] }
+  return saved.views.length ? saved : { ...saved, views: [currentNeckView(shapeKey)] }
 }
 
 function Stepper({ value, min, max, onChange, label, disabled }) {
@@ -50,13 +53,13 @@ function Stepper({ value, min, max, onChange, label, disabled }) {
  *  chords, beatsPerBar, genre → for the duration estimate and file name
  *  prepare / play / stop      → engine controls from useBackingTrackEngine
  */
-export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, prepare, play, stop, onClose }) {
+export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, prepare, play, stop, onClose, shapeKey = 'C' }) {
   const { t, i18n } = useTranslation()
-  const [settings, setSettings] = useState(initialSettings)
+  const [settings, setSettings] = useState(() => initialSettings(shapeKey))
   const rawSettings = settings
   useRemember(STORAGE_ID, 1, settings)
   const [status, setStatus] = useState({ stage: 'idle', progress: 0 })
-  const [result, setResult] = useState(null)   // { url, name, ext, bytes }
+  const [result, setResult] = useState(null)   // { url, name, ext, bytes, hiddenMs }
   const [error, setError] = useState('')
   const abortRef = useRef(null)
   const running = status.stage === 'loading' || status.stage === 'recording' || status.stage === 'finalizing'
@@ -76,6 +79,15 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
   }))
   const removeView = (i) => setSettings(s => ({ ...s, views: s.views.length > 1 ? s.views.filter((_, j) => j !== i) : s.views }))
   const splitPositions = () => setSettings(s => ({ ...s, views: fretWindows(s.views[0]) }))
+  // All five CAGED positions at once: C·G·D on one neck, A·E on the other (windows never overlap).
+  const allPositionsTwoNecks = () => setSettings(s => {
+    const base = { ...s.views[0], shapeKey: s.views[0]?.shapeIds?.length ? s.views[0].shapeKey : shapeKey }
+    return sanitizeSettings({ ...s, necksPerScreen: 2, views: [
+      { ...base, shapeIds: ['caged_C', 'caged_G', 'caged_D'] },
+      { ...base, shapeIds: ['caged_A', 'caged_E'] },
+    ] })
+  })
+  const comboLabel = (ids) => `${t(`positions.shapeGroups.${ids[0].split('_')[0]}`)} ${ids.map(shapeShortLabel).join(' + ')}`
 
   // Free the preview blob when the dialog goes away or a new export replaces it.
   useEffect(() => () => { if (result?.url) URL.revokeObjectURL(result.url) }, [result])
@@ -91,6 +103,11 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
     legendRoot: t('backing.videoExport.canvas.legendRoot'),
     legendChordTone: t('backing.videoExport.canvas.legendChordTone'),
     legendScale: t('backing.videoExport.canvas.legendScale'),
+    legendScaleSoft: t('backing.videoExport.canvas.legendScaleSoft'),
+    legendScaleOther: t('backing.videoExport.canvas.legendScaleOther'),
+    legendPentatonic: t('backing.videoExport.canvas.legendPentatonic'),
+    pentatonicEmphasis: t('backing.videoExport.canvas.pentatonicEmphasis'),
+    arpeggioEmphasis: t('backing.videoExport.canvas.arpeggioEmphasis'),
   }), [t, i18n.language])
 
   const start = useCallback(async () => {
@@ -118,6 +135,8 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
           pretty: prettifyChord,
           noteLabel: normalizeDisplayAccidentals,
           scaleName: (id) => t(`positions.musicItems.${id}`, { defaultValue: ALL_SCALES_MAP[id]?.name ?? id }),
+          shapeName: (id) => t(`positions.shapes.${id}`),
+          groupName: (group) => t(`positions.shapeGroups.${group}`),
         },
         getLive,
         prepare,
@@ -129,14 +148,16 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
         signal: controller.signal,
       })
       const name = exportFileName({ genre, ext: out.ext })
-      setResult({ url: URL.createObjectURL(out.blob), name, ext: out.ext, bytes: out.blob.size })
+      setResult({ url: URL.createObjectURL(out.blob), name, ext: out.ext, bytes: out.blob.size, hiddenMs: out.hiddenMs || 0 })
       setStatus({ stage: 'done', progress: 1 })
     } catch (err) {
       if (err instanceof ExportCancelled) {
         setStatus({ stage: 'cancelled', progress: 0 })
       } else {
         console.error('[VideoExport]', err)
-        setError(err?.message === 'recording-unsupported' ? t('backing.videoExport.errUnsupported') : t('backing.videoExport.errFailed'))
+        setError(err?.message === 'recording-unsupported' ? t('backing.videoExport.errUnsupported')
+          : err?.message === 'export-too-long' ? t('backing.videoExport.errTooLong', { max: formatDuration(MAX_EXPORT_SEC) })
+          : t('backing.videoExport.errFailed'))
         setStatus({ stage: 'error', progress: 0 })
       }
     } finally {
@@ -146,7 +167,9 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
 
   const cancel = () => abortRef.current?.abort()
   const duration = estimateDurationSec({ chords, beatsPerBar, tempo: meta.tempo, repetitions: settings.repetitions })
-  const rotates = settings.views.length > 1
+  const tooLong = duration > MAX_EXPORT_SEC
+  const sizeMb = Math.round(estimateBytes(duration, settings.resolution) / 1048576)
+  const rotates = Math.ceil(settings.views.length / (settings.necksPerScreen === 2 ? 2 : 1)) > 1
   const pct = Math.round(status.progress * 100)
 
   return (
@@ -164,11 +187,30 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
               onChange={v => patch({ repetitions: v })} />
           </div>
           <div className="vx-row">
+            <label>{t('backing.videoExport.targetLength')}</label>
+            <span className="vx-len-btns">
+              {LENGTH_PRESETS_MIN.map(m => (
+                <button type="button" key={m} disabled={running} data-testid={`vx-len-${m}`}
+                  onClick={() => patch({ repetitions: repetitionsForMinutes({ chords, beatsPerBar, tempo: meta.tempo, minutes: m }) })}>
+                  {t('backing.videoExport.minutes', { count: m })}
+                </button>
+              ))}
+            </span>
+          </div>
+          <div className="vx-row">
             <label>{t('backing.videoExport.rotateEvery')}</label>
             <Stepper label="rotateEvery" value={settings.rotateEvery} min={1} max={MAX_ROTATE_EVERY} disabled={running || !rotates}
               onChange={v => patch({ rotateEvery: v })} />
           </div>
           {!rotates && <p className="vx-hint">{t('backing.videoExport.rotateHint')}</p>}
+          <div className="vx-row">
+            <label>{t('backing.videoExport.necksPerScreen')}</label>
+            <select value={settings.necksPerScreen} disabled={running} data-testid="vx-necks"
+              onChange={e => patch({ necksPerScreen: Number(e.target.value) })}>
+              <option value={1}>{t('backing.videoExport.oneNeck')}</option>
+              <option value={2}>{t('backing.videoExport.twoNecks')}</option>
+            </select>
+          </div>
           <div className="vx-row">
             <label>{t('backing.videoExport.quality')}</label>
             <select value={settings.resolution} disabled={running} onChange={e => patch({ resolution: e.target.value })}>
@@ -183,7 +225,7 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
                 <span className="vx-view-n">{i + 1}</span>
                 <select aria-label={t('positions.scale')} value={v.scaleId || ''} disabled={running}
                   onChange={e => setView(i, { scaleId: e.target.value || null })}>
-                  <option value="">{t('backing.videoExport.chordTonesOnly')}</option>
+                  <option value="">{t('backing.videoExport.keyScaleAuto')}</option>
                   {SCALE_CATEGORIES.map(cat => (
                     <optgroup key={cat.id} label={t(`positions.musicCategories.${cat.id}`, { defaultValue: cat.label })}>
                       {cat.items.map(item => (
@@ -196,13 +238,48 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
                   <option value="auto">{t('common.auto')}</option>
                   {CHROMATIC.map(n => <option key={n} value={n}>{normalizeDisplayAccidentals(n)}</option>)}
                 </select>
-                <span className="vx-frets">
+                <span className="vx-frets" hidden={parseShapeIds(v.shapeIds?.length ? v.shapeIds : v.shapeId).length > 0}>
                   <input type="number" min={0} max={MAX_FRET} value={v.fretStart} disabled={running}
                     aria-label={t('backing.videoExport.fromFret')} onChange={e => setView(i, { fretStart: e.target.value })} onBlur={normalise} />
                   <span>–</span>
                   <input type="number" min={0} max={MAX_FRET} value={v.fretEnd} disabled={running}
                     aria-label={t('backing.videoExport.toFret')} onChange={e => setView(i, { fretEnd: e.target.value })} onBlur={normalise} />
                 </span>
+                {(() => {
+                  const ids = parseShapeIds(v.shapeIds?.length ? v.shapeIds : v.shapeId)
+                  const value = ids.join(',')
+                  const known = [...SHAPE_GROUPS.flatMap(g => g.shapes), ...SHAPE_COMBOS.map(c => c.join(','))]
+                  return (
+                    <select aria-label={t('positions.shapeLabel')} value={value} disabled={running} data-testid="vx-shape"
+                      onChange={e => {
+                        const next = parseShapeIds(e.target.value)
+                        setView(i, { shapeIds: next, shapeId: next[0] ?? null, shapeKey: ids.length ? v.shapeKey : shapeKey })
+                      }}>
+                      <option value="">{t('backing.videoExport.fretWindow')}</option>
+                      {SHAPE_GROUPS.map(group => (
+                        <optgroup key={group.id} label={t(`positions.shapeGroups.${group.id}`)}>
+                          {group.shapes.map(id => <option key={id} value={id}>{t(`positions.shapes.${id}`)}</option>)}
+                        </optgroup>
+                      ))}
+                      <optgroup label={t('backing.videoExport.shapeCombos')}>
+                        {SHAPE_COMBOS.map(c => <option key={c.join()} value={c.join(',')}>{comboLabel(c)}</option>)}
+                        {value && !known.includes(value) && <option value={value}>{comboLabel(ids)}</option>}
+                      </optgroup>
+                    </select>
+                  )
+                })()}
+                <select aria-label={t('backing.videoExport.highlight')} value={v.emphasis || ''} disabled={running} data-testid="vx-emphasis"
+                  onChange={e => setView(i, { emphasis: e.target.value || null })}>
+                  <option value="">{t('backing.videoExport.highlightChordTones')}</option>
+                  <option value="arpeggio">{t('backing.videoExport.highlightArpeggio')}</option>
+                  <option value="pentatonic">{t('backing.videoExport.emphasisPentatonic')}</option>
+                </select>
+                {parseShapeIds(v.shapeIds?.length ? v.shapeIds : v.shapeId).length > 0 && (
+                  <select aria-label={t('backing.videoExport.shapeKey')} value={v.shapeKey} disabled={running} data-testid="vx-shape-key"
+                    onChange={e => setView(i, { shapeKey: e.target.value })}>
+                    {CHROMATIC.map(n => <option key={n} value={n}>{t('backing.videoExport.shapeKeyOption', { note: normalizeDisplayAccidentals(n) })}</option>)}
+                  </select>
+                )}
                 <select aria-label={t('common.display')} value={v.displayMode} disabled={running} onChange={e => setView(i, { displayMode: e.target.value })}>
                   {DISPLAY_MODES.map(m => <option key={m} value={m}>{t(`backing.videoExport.mode_${m}`)}</option>)}
                 </select>
@@ -214,14 +291,18 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
           <div className="vx-actions-row">
             <button type="button" disabled={running || settings.views.length >= MAX_VIEWS} onClick={addView}>＋ {t('backing.videoExport.addView')}</button>
             <button type="button" disabled={running} onClick={splitPositions}>{t('backing.videoExport.splitPositions')}</button>
+            <button type="button" disabled={running} onClick={allPositionsTwoNecks} data-testid="vx-all-positions">{t('backing.videoExport.allPositionsTwoNecks')}</button>
           </div>
 
           <p className="vx-hint">
             {t('backing.videoExport.estimate', { duration: formatDuration(duration) })}
             {' · '}
+            <span data-testid="vx-size">{t('backing.videoExport.sizeEstimate', { mb: sizeMb })}</span>
+            {' · '}
             {format ? t('backing.videoExport.formatLabel', { ext: format.ext.toUpperCase() }) : t('backing.videoExport.errUnsupported')}
           </p>
           <p className="vx-hint">{t('backing.videoExport.keepOpen')}</p>
+          {tooLong && <p className="vx-error" role="alert" data-testid="vx-too-long">{t('backing.videoExport.errTooLong', { max: formatDuration(MAX_EXPORT_SEC) })}</p>}
 
           {running && (
             <div className="vx-progress" data-testid="vx-progress">
@@ -237,6 +318,7 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
           {result && (
             <div className="vx-result" data-testid="vx-result">
               <video src={result.url} controls playsInline className="vx-preview" />
+              {result.hiddenMs > 2000 && <p className="vx-note">{t('backing.videoExport.wasHidden')}</p>}
               <a className="vx-download" href={result.url} download={result.name} data-testid="vx-download">
                 ⬇ {t('backing.videoExport.download')} ({result.ext.toUpperCase()}, {(result.bytes / 1048576).toFixed(1)} MB)
               </a>
@@ -247,7 +329,7 @@ export function VideoExportDialog({ getLive, meta, chords, beatsPerBar, genre, p
         <div className="vx-foot">
           {running
             ? <button type="button" className="vx-btn vx-btn--danger" onClick={cancel}>{t('backing.videoExport.cancel')}</button>
-            : <button type="button" className="vx-btn vx-btn--primary" onClick={start} disabled={!format} data-testid="vx-start">
+            : <button type="button" className="vx-btn vx-btn--primary" onClick={start} disabled={!format || tooLong} data-testid="vx-start">
                 🎬 {result ? t('backing.videoExport.again') : t('backing.videoExport.start')}
               </button>}
         </div>

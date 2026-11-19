@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { CHROMATIC_SCALE } from '../../constants/positionData';
 import './ControlPanel.css';
 import { formatNoteName } from '../../i18n/musicTerms';
+import { SHAPE_GROUPS, shapeShortLabel } from '../../constants/neckShapes.js';
+
+// Non-CAGED shapes from the lessons (octave positions, 3 notes per string).
+const EXTRA_SHAPE_GROUPS = SHAPE_GROUPS.filter(g => g.id !== 'caged');
 
 const POSITION_NAMES = ['C', 'A', 'G', 'E', 'D'];
 
@@ -87,6 +91,27 @@ const ControlPanel = ({
           ))}
         </div>
       </div>
+
+      {/* Row 2b: lesson shapes that are not CAGED windows */}
+      {EXTRA_SHAPE_GROUPS.map(group => (
+        <div className="control-row" key={group.id} data-testid={`shape-group-${group.id}`}>
+          <label className="control-label">{t(`positions.shapeGroups.${group.id}`)}:</label>
+          <div className="position-buttons">
+            {group.shapes.map(id => (
+              <button
+                key={id}
+                className={`position-btn position-btn--shape ${selectedPositions.includes(id) ? 'active' : ''}`}
+                onClick={() => handlePositionToggle(id)}
+                title={t(`positions.shapes.${id}`)}
+                aria-label={t(`positions.shapes.${id}`)}
+                aria-pressed={selectedPositions.includes(id)}
+              >
+                {shapeShortLabel(id)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
 
       {/* Row 3: Show All */}
       <div className="control-row">

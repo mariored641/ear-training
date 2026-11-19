@@ -227,6 +227,30 @@ export class BackingTrackEngine {
     // Ensure AudioContext is running (browsers require a user gesture first)
     await SFP.resumeAudio()
 
+    this._resetForPlay()
+
+    // Create clock
+    const audioCtx = SFP.getAudioContext()
+    this._clock = new BackingTrackClock(audioCtx)
+    this._clock.setTempo(this._style.tempo || 120)
+    this._clock.setTimeSignature(this._beatsPerBar)
+
+    this._clock.onScheduleBeat = ({ beat, bar, audioTime, beatDuration }) => {
+      this._onScheduleBeat(beat, bar, audioTime, beatDuration)
+    }
+    this._clock.onBeat = ({ beat, bar }) => {
+      this._onBeat(beat, bar)
+    }
+
+    this._clock.start()
+  }
+
+  /**
+   * Reset the playback state machine to the start (Intro if the style has one, else Main_A).
+   * Shared by play() and the offline video renderer, which then drives _onScheduleBeat /
+   * _onBeat itself, beat by beat, instead of the audio clock.
+   */
+  _resetForPlay() {
     // Reset runtime state
     this._noteTimers              = []
     this._partLoopCount           = 0
@@ -257,21 +281,6 @@ export class BackingTrackEngine {
     }
 
     this._emitPhaseChange()
-
-    // Create clock
-    const audioCtx = SFP.getAudioContext()
-    this._clock = new BackingTrackClock(audioCtx)
-    this._clock.setTempo(this._style.tempo || 120)
-    this._clock.setTimeSignature(this._beatsPerBar)
-
-    this._clock.onScheduleBeat = ({ beat, bar, audioTime, beatDuration }) => {
-      this._onScheduleBeat(beat, bar, audioTime, beatDuration)
-    }
-    this._clock.onBeat = ({ beat, bar }) => {
-      this._onBeat(beat, bar)
-    }
-
-    this._clock.start()
   }
 
   /**
@@ -611,37 +620,22 @@ export class BackingTrackEngine {
    * so timing is consistent regardless of when this callback fires.
    */
   _scheduleBeatNotes(partBeat) {
-    const { phrases, windowAudioTime, beatDuration } = this._pendingNotes
     const now = SFP.getAudioContext().currentTime
 
-    for (const [accType, notes] of Object.entries(phrases)) {
-      const channel = ACCTYPE_TO_CHANNEL[accType]
-      if (channel === undefined) continue
-
-      // Filter to notes whose onset falls in this beat's slice
-      const beatNotes = notes.filter(
-        n => n.position >= partBeat && n.position < partBeat + 1
+    for (const note of this._notesForBeat(partBeat)) {
+      const onDelay  = Math.max(0, (note.onAt - now) * 1000)
+      const onId = setTimeout(
+        () => SFP.noteOn(note.channel, note.pitch, note.velocity), onDelay
       )
+      this._noteTimers.push(onId)
 
-      for (const note of beatNotes) {
-        const noteOnAt  = windowAudioTime + note.position * beatDuration
-        const noteOffAt = noteOnAt  + note.duration * beatDuration
-
-        const onDelay  = Math.max(0, (noteOnAt  - now) * 1000)
-        const offDelay = Math.max(0, (noteOffAt - now) * 1000)
-
-        const onId = setTimeout(
-          () => SFP.noteOn(channel, note.pitch, note.velocity), onDelay
+      // Drums don't need noteOff (GM percussion is self-decaying)
+      if (note.offAt !== null) {
+        const offDelay = Math.max(0, (note.offAt - now) * 1000)
+        const offId = setTimeout(
+          () => SFP.noteOff(note.channel, note.pitch), offDelay
         )
-        this._noteTimers.push(onId)
-
-        // Drums don't need noteOff (GM percussion is self-decaying)
-        if (channel !== DRUM_CHANNEL) {
-          const offId = setTimeout(
-            () => SFP.noteOff(channel, note.pitch), offDelay
-          )
-          this._noteTimers.push(offId)
-        }
+        this._noteTimers.push(offId)
       }
     }
 
@@ -649,6 +643,29 @@ export class BackingTrackEngine {
     if (this._noteTimers.length > 2000) {
       this._noteTimers = this._noteTimers.slice(-1000)
     }
+  }
+
+  /**
+   * Notes of the pending window whose onset falls in [partBeat, partBeat + 1), with absolute
+   * times on the window's clock (audio-context seconds live, timeline seconds offline).
+   * offAt is null for drums (GM percussion is self-decaying).
+   */
+  _notesForBeat(partBeat) {
+    const { phrases, windowAudioTime, beatDuration } = this._pendingNotes
+    const out = []
+    for (const [accType, notes] of Object.entries(phrases)) {
+      const channel = ACCTYPE_TO_CHANNEL[accType]
+      if (channel === undefined) continue
+      for (const n of notes) {
+        if (n.position < partBeat || n.position >= partBeat + 1) continue
+        const onAt = windowAudioTime + n.position * beatDuration
+        out.push({
+          channel, pitch: n.pitch, velocity: n.velocity, onAt,
+          offAt: channel === DRUM_CHANNEL ? null : onAt + n.duration * beatDuration,
+        })
+      }
+    }
+    return out
   }
 
   // ── Internal — partSize alignment ─────────────────────────────────────────

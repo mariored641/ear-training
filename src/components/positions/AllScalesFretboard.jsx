@@ -56,6 +56,8 @@ const AllScalesFretboard = ({
   disableInactiveStringClicks,  // boolean — dimmed strings not clickable
   noteDisplayMap,      // { [chromaticName]: displayName } — enharmonic display names
   noteLang = 'latin',  // 'latin' | 'hebrew'
+  cellMask = null,     // Set<`${stringNum}-${fret}`> | null — only these cells may show notes (lesson shapes)
+  softNotes = null,    // Set<noteName> | null — scale notes drawn smaller/fainter (highlight sits on top)
 }) => {
   const timers = useRef({});
   const longPressed = useRef({});
@@ -168,12 +170,13 @@ const AllScalesFretboard = ({
 
   const renderCell = (stringNum, fret) => {
     const noteName = getNoteAt(stringNum, fret);
-    const isActive = activeNoteClasses.has(noteName);
+    const key = `${stringNum}-${fret}`;
+    const inMask = !cellMask || cellMask.has(key);
+    const isActive = inMask && activeNoteClasses.has(noteName);
     const isRoot = isActive && noteName === selectedRoot;
     const highlightColor = isActive ? highlightColors[noteName] : null;
     const dimmed = isFretDimmed(fret);
-    const key = `${stringNum}-${fret}`;
-    const ringStyle = getChordRingStyle(noteName); // check overlays regardless of isActive
+    const ringStyle = inMask ? getChordRingStyle(noteName) : undefined; // check overlays regardless of isActive
     const isChordOnly = !isActive && !!ringStyle;   // in chord overlay but not in scale
     const marked = markedCells?.get(key);
     const stringDimmed = isStringDimmed(stringNum);
@@ -182,6 +185,7 @@ const AllScalesFretboard = ({
     const noteClasses = [
       'asf-note',
       marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
+      isActive && !isRoot && !ringStyle && softNotes?.has(noteName) ? 'soft' : '',
       highlightColor && !marked ? 'highlighted' : '',
       displayMode === 'dots' && !marked ? 'dot-mode' : '',
       displayMode === 'notes' && noteLang === 'hebrew' ? 'note-hebrew' : '',
@@ -218,12 +222,13 @@ const AllScalesFretboard = ({
 
   const renderNutCell = (stringNum) => {
     const noteName = getNoteAt(stringNum, 0);
-    const isActive = activeNoteClasses.has(noteName);
+    const key = `${stringNum}-0`;
+    const inMask = !cellMask || cellMask.has(key);
+    const isActive = inMask && activeNoteClasses.has(noteName);
     const isRoot = isActive && noteName === selectedRoot;
     const highlightColor = isActive ? highlightColors[noteName] : null;
     const dimmed = isFretDimmed(0);
-    const key = `${stringNum}-0`;
-    const ringStyle = getChordRingStyle(noteName);
+    const ringStyle = inMask ? getChordRingStyle(noteName) : undefined;
     const isChordOnly = !isActive && !!ringStyle;
     const marked = markedCells?.get(key);
     const stringDimmed = isStringDimmed(stringNum);
@@ -232,6 +237,7 @@ const AllScalesFretboard = ({
     const noteClasses = [
       'asf-note',
       marked ? 'marked' : isRoot ? 'root' : isActive ? 'active' : isChordOnly ? 'chord-only' : 'inactive',
+      isActive && !isRoot && !ringStyle && softNotes?.has(noteName) ? 'soft' : '',
       highlightColor && !marked ? 'highlighted' : '',
       displayMode === 'dots' && !marked ? 'dot-mode' : '',
       displayMode === 'notes' && noteLang === 'hebrew' ? 'note-hebrew' : '',

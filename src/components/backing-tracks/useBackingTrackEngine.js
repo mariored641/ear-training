@@ -175,7 +175,7 @@ export function channelProgramsForGenre(genreId) {
 }
 
 /** Set of MIDI channels that have notes anywhere in the style (null = unknown → all) */
-function usedChannelsOfStyle(style) {
+export function usedChannelsOfStyle(style) {
   if (!style?.parts) return null
   const used = new Set()
   for (const part of Object.values(style.parts)) {
@@ -1064,7 +1064,7 @@ export const ACCTYPE_TO_CHANNEL_KEY = {
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_VOLUMES = {
+export const DEFAULT_VOLUMES = {
   piano:  0.85,
   bass:   0.85,
   guitar: 0.85,
@@ -1712,6 +1712,36 @@ export function useBackingTrackEngine() {
     if (wasPlaying) setTimeout(() => play(), 100)
   }, [stop, play])
 
+  // ── Load a lesson preset ("אלתור בהישג יד") ──────────────────────────────────
+  // Fills genre, chords, tempo and key. Never starts playback (stops it if running).
+  const loadLessonPreset = useCallback((preset) => {
+    if (isPlayingRef.current) stop(true)
+    if (preset.genre && preset.genre in GENRE_STYLES) {
+      setGenreState(preset.genre)
+      genreRef.current = preset.genre
+    }
+    const newChords = preset.chords.map(c => ({ ...c, extensions: [...(c.extensions || [])] }))
+    setChordsState(newChords)
+    chordsRef.current = newChords
+    const count = progressionBarCount(newChords, 4)
+    setBarCountState(count)
+    barCountRef.current = count
+    if (preset.tempo) {
+      setTempoState(preset.tempo)
+      tempoRef.current = preset.tempo
+      engineRef.current?.setTempo(preset.tempo)
+    }
+    if (preset.key) {
+      const key = { root: preset.key.root, type: preset.key.type }
+      setSelectedKeyState(key)
+      selectedKeyRef.current = key
+    }
+    // Load the style in the background (mixer + beatsPerBar), keeping the lesson tempo.
+    if (!isAmbientGenre(genreRef.current)) {
+      ensureStyle(genreRef.current, { keepTempo: true }).catch(err => console.warn('[loadLessonPreset] style preload failed', err))
+    }
+  }, [stop, ensureStyle])
+
   // ── Set individual chord ─────────────────────────────────────────────────────
   const setChord = useCallback((barIndex, chord) => {
     setChordsState(prev => {
@@ -1787,7 +1817,7 @@ export function useBackingTrackEngine() {
     genre, barCount, chords, tempo, isPlaying, currentBar,
     maxLoops, volumes, isLoading,
     play, stop, setTempo, setMaxLoops, prepareForExport,
-    setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression,
+    setGenre, setBarCount, loadPreset, loadJazzPreset, loadSavedProgression, loadLessonPreset,
     setChord, replaceChords, previewChord,
     setVolume,
     initPlayer: () => {},  // backward-compat no-op

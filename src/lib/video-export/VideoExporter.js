@@ -6,7 +6,9 @@
  * how to read the live state. All browser objects are injected so the lifecycle
  * can be unit-tested with fakes.
  */
-import { FPS, RESOLUTIONS, estimateDurationSec, pickRecorderFormat } from './exportPlan.js'
+import {
+  FPS, RESOLUTIONS, VIDEO_BITRATES, AUDIO_BITRATE, MAX_EXPORT_SEC, estimateDurationSec, pickRecorderFormat,
+} from './exportPlan.js'
 import { drawFrame, createAssets } from './renderFrame.js'
 import { buildScene, progressFraction } from './scene.js'
 
@@ -32,14 +34,28 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms))
  * @param {HTMLImageElement|null} o.logo
  * @param {(p:{stage:string, progress:number}) => void} o.onProgress
  * @param {AbortSignal} o.signal
- * @param {object} [o.env]  test seam: { document, MediaRecorder }
+ * @param {object} [o.env]  test seam: { document, MediaRecorder, navigator, now, sleep, setInterval, clearInterval }
+ * @returns {Promise<{blob, ext, mime, hiddenMs, chunkCount}>}  hiddenMs = time the page spent in the
+ *          background while recording (browsers throttle hidden tabs, so frames may stutter).
  */
 export async function runExport(o) {
   const env = o.env || {}
   const doc = env.document || document
   const Recorder = env.MediaRecorder || MediaRecorder
+  const nav = env.navigator || (typeof navigator !== 'undefined' ? navigator : null)
+  // Clock seams let unit tests run a 10-minute export in virtual time.
+  const now = env.now || Date.now
+  const wait = env.sleep || sleep
+  const every = env.setInterval || setInterval
+  const stopEvery = env.clearInterval || clearInterval
   const { settings, signal } = o
   const throwIfCancelled = () => { if (signal?.aborted) throw new ExportCancelled() }
+
+  const plannedSec = estimateDurationSec({
+    chords: o.getLive().chords, beatsPerBar: o.getLive().beatsPerBar,
+    tempo: o.meta.tempo, repetitions: settings.repetitions,
+  })
+  if (plannedSec > MAX_EXPORT_SEC) throw new Error('export-too-long')
 
   const format = pickRecorderFormat(t => Recorder.isTypeSupported(t))
   if (!format) throw new Error('recording-unsupported')
@@ -73,8 +89,8 @@ export async function runExport(o) {
   const chunks = []
   const recorder = new Recorder(stream, {
     mimeType: format.mime,
-    videoBitsPerSecond: width >= 1920 ? 8_000_000 : 4_000_000,
-    audioBitsPerSecond: 192_000,
+    videoBitsPerSecond: VIDEO_BITRATES[settings.resolution] ?? VIDEO_BITRATES['720p'],
+    audioBitsPerSecond: AUDIO_BITRATE,
   })
   recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data) }
   const stopped = new Promise((resolve, reject) => {
@@ -82,9 +98,29 @@ export async function runExport(o) {
     recorder.onerror = (e) => reject(e.error || new Error('recorder-error'))
   })
 
+  // Long exports: keep the screen awake (a sleeping screen hides the page, and hidden pages
+  // get their timers throttled), and measure any time spent hidden so the UI can warn.
+  let wakeLock = null
+  try { wakeLock = await nav?.wakeLock?.request?.('screen') } catch { /* not allowed / unsupported */ }
+  let hiddenMs = 0
+  let hiddenSince = doc.visibilityState === 'hidden' ? now() : null
+  const onVisibility = () => {
+    if (doc.visibilityState === 'hidden') { if (hiddenSince === null) hiddenSince = now() }
+    else if (hiddenSince !== null) {
+      hiddenMs += now() - hiddenSince
+      hiddenSince = null
+      // The browser drops screen wake locks when the page is hidden; take it again.
+      Promise.resolve(nav?.wakeLock?.request?.('screen')).then(l => { if (l) wakeLock = l }).catch(() => {})
+    }
+  }
+  doc.addEventListener?.('visibilitychange', onVisibility)
+
   let timer = null
   const cleanup = () => {
-    clearInterval(timer)
+    stopEvery(timer)
+    doc.removeEventListener?.('visibilitychange', onVisibility)
+    if (hiddenSince !== null) { hiddenMs += now() - hiddenSince; hiddenSince = null }
+    try { wakeLock?.release?.() } catch { /* already released */ }
     try { audio.dispose() } catch { /* already disconnected */ }
     stream.getTracks().forEach(t => t.stop())
   }
@@ -93,16 +129,13 @@ export async function runExport(o) {
     let sawPlaying = false
     let finished = false
     let finishedAt = 0
-    const startedAt = Date.now()
-    const maxMs = (estimateDurationSec({
-      chords: o.getLive().chords, beatsPerBar: o.getLive().beatsPerBar,
-      tempo: o.meta.tempo, repetitions: settings.repetitions,
-    }) * 2 + 60) * 1000
+    const startedAt = now()
+    const maxMs = (plannedSec * 2 + 60) * 1000
 
-    timer = setInterval(() => {
+    timer = every(() => {
       const live = render()
       if (live.isPlaying) sawPlaying = true
-      if (sawPlaying && !live.isPlaying && !finished) { finished = true; finishedAt = Date.now() }
+      if (sawPlaying && !live.isPlaying && !finished) { finished = true; finishedAt = now() }
       if (sawPlaying) o.onProgress({ stage: 'recording', progress: progressFraction({ live, repetitions: settings.repetitions }) })
     }, 1000 / FPS)
 
@@ -110,11 +143,11 @@ export async function runExport(o) {
     const ok = await o.startPlayback(settings.repetitions)
     if (!ok) throw new Error('playback-failed')
 
-    while (!(finished && Date.now() - finishedAt >= TAIL_MS)) {
+    while (!(finished && now() - finishedAt >= TAIL_MS)) {
       throwIfCancelled()
-      if (!sawPlaying && Date.now() - startedAt > START_TIMEOUT_MS) throw new Error('playback-timeout')
-      if (Date.now() - startedAt > maxMs) throw new Error('export-timeout')
-      await sleep(50)
+      if (!sawPlaying && now() - startedAt > START_TIMEOUT_MS) throw new Error('playback-timeout')
+      if (now() - startedAt > maxMs) throw new Error('export-timeout')
+      await wait(50)
     }
 
     o.onProgress({ stage: 'finalizing', progress: 1 })
@@ -122,7 +155,9 @@ export async function runExport(o) {
     await stopped
     cleanup()
     const blob = new Blob(chunks, { type: format.mime.split(';')[0] })
-    return { blob, ext: format.ext, mime: format.mime }
+    const chunkCount = chunks.length
+    chunks.length = 0   // the Blob holds the data now; drop our references
+    return { blob, ext: format.ext, mime: format.mime, hiddenMs, chunkCount }
   } catch (err) {
     o.stopPlayback(true)
     cleanup()

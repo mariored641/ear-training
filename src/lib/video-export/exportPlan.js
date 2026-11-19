@@ -2,9 +2,23 @@
  * Pure planning helpers for the backing-track video export.
  * No DOM / audio access here so everything is unit-testable.
  */
+import { toSharpName, parseShapeIds } from '../../constants/neckShapes.js'
+import { CHROMATIC_SCALE } from '../../constants/positionData.js'
 
-export const MAX_REPETITIONS = 32
-export const MAX_ROTATE_EVERY = 16
+// A 4-bar vamp at 190 BPM is ~5 s per repetition, so a 10-minute practice video needs
+// well over 100 repetitions. The real guard is MAX_EXPORT_SEC below.
+export const MAX_REPETITIONS = 240
+export const MAX_ROTATE_EVERY = 64
+/** Longest export we allow (real-time recording; also bounds memory / file size). */
+export const MAX_EXPORT_SEC = 15 * 60
+/** Target lengths offered as one-tap presets in the dialog (minutes). */
+export const LENGTH_PRESETS_MIN = [5, 8, 10]
+// 'arpeggio': chord tones on top, other scale notes softened; 'pentatonic': notes outside it softened.
+export const EMPHASIS_MODES = ['arpeggio', 'pentatonic']
+export const NECKS_PER_SCREEN = [1, 2]
+// Mostly-static graphics compress very well; these keep a 10-minute 720p file around 200 MB.
+export const VIDEO_BITRATES = { '720p': 2_500_000, '1080p': 5_000_000 }
+export const AUDIO_BITRATE = 160_000
 export const MAX_VIEWS = 12
 export const MAX_FRET = 24
 export const DEFAULT_FRET_RANGE = [0, 15]
@@ -37,12 +51,23 @@ export function normalizeFretRange(start, end) {
 export function sanitizeView(view) {
   const v = view && typeof view === 'object' ? view : {}
   const [fretStart, fretEnd] = normalizeFretRange(v.fretStart, v.fretEnd)
+  const shapeKey = toSharpName(v.shapeKey)
+  const fromList = parseShapeIds(v.shapeIds)
+  const shapeIds = fromList.length ? fromList : parseShapeIds(v.shapeId)
   return {
     scaleId: typeof v.scaleId === 'string' && v.scaleId ? v.scaleId : null,
     root: typeof v.root === 'string' && v.root ? v.root : 'auto',
     fretStart,
     fretEnd,
     displayMode: DISPLAY_MODES.includes(v.displayMode) ? v.displayMode : 'notes',
+    // Optional lesson shape (CAGED window / octave position / 3-per-string) placed in the key
+    // whose MAJOR root is shapeKey. When set, it decides which cells (and frets) are shown.
+    // Several shapes may share one neck (e.g. CAGED C·G·D); shapeId stays the first for older readers.
+    shapeIds,
+    shapeId: shapeIds[0] ?? null,
+    shapeKey: CHROMATIC_SCALE.includes(shapeKey) ? shapeKey : 'C',
+    // 'pentatonic': full scale shown, pentatonic notes stand out and the rest are softened.
+    emphasis: EMPHASIS_MODES.includes(v.emphasis) ? v.emphasis : null,
   }
 }
 
@@ -50,6 +75,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   repetitions: 4,
   rotateEvery: 1,
   resolution: '720p',
+  necksPerScreen: 1,
   views: [],
 })
 
@@ -61,6 +87,7 @@ export function sanitizeSettings(raw) {
     repetitions: clampInt(s.repetitions, 1, MAX_REPETITIONS, DEFAULT_SETTINGS.repetitions),
     rotateEvery: clampInt(s.rotateEvery, 1, MAX_ROTATE_EVERY, DEFAULT_SETTINGS.rotateEvery),
     resolution: s.resolution in RESOLUTIONS ? s.resolution : DEFAULT_SETTINGS.resolution,
+    necksPerScreen: NECKS_PER_SCREEN.includes(Number(s.necksPerScreen)) ? Number(s.necksPerScreen) : 1,
     views,
   }
 }
@@ -70,6 +97,21 @@ export function viewIndexForRepetition(repIndex, rotateEvery, viewCount) {
   if (viewCount <= 1) return 0
   const every = Math.max(1, Math.floor(rotateEvery) || 1)
   return Math.floor(Math.max(0, repIndex) / every) % viewCount
+}
+
+/**
+ * Views on screen during a repetition. With 2 necks per screen, views are shown in pairs
+ * (views 1+2, then 3+4, …) and the pair rotates every `rotateEvery` repetitions.
+ * @returns {{ group: number, groupCount: number, indices: number[] }}
+ */
+export function viewsForRepetition(repIndex, settings) {
+  const n = settings.necksPerScreen === 2 ? 2 : 1
+  const count = Math.max(1, settings.views?.length || 0)
+  const groupCount = Math.ceil(count / n)
+  const group = viewIndexForRepetition(repIndex, settings.rotateEvery, groupCount)
+  const indices = []
+  for (let i = group * n; i < Math.min(count, group * n + n); i++) indices.push(i)
+  return { group, groupCount, indices }
 }
 
 /** Evenly stepped fret windows reusing the scale/root/mode of `base` (position rotation helper). */
@@ -106,6 +148,25 @@ export function estimateDurationSec({ chords, beatsPerBar, tempo, repetitions })
   const beats = (chords || []).reduce((sum, c) => sum + (c.beats ?? bpb), 0)
   const spb = 60 / Math.max(20, tempo || 120)
   return Math.round((beats * repetitions + bpb) * spb)
+}
+
+/** Seconds per repetition of the progression. */
+export function repetitionSec({ chords, beatsPerBar, tempo }) {
+  const bpb = beatsPerBar || 4
+  const beats = (chords || []).reduce((sum, c) => sum + (c.beats ?? bpb), 0) || bpb
+  return beats * 60 / Math.max(20, tempo || 120)
+}
+
+/** Repetitions whose length is closest to `minutes`, within [1, MAX_REPETITIONS]. */
+export function repetitionsForMinutes({ chords, beatsPerBar, tempo, minutes }) {
+  const per = repetitionSec({ chords, beatsPerBar, tempo })
+  return Math.min(MAX_REPETITIONS, Math.max(1, Math.round((minutes * 60) / per)))
+}
+
+/** Rough file size in bytes for a recording of `durationSec` (bitrates are upper bounds). */
+export function estimateBytes(durationSec, resolution = '720p') {
+  const video = VIDEO_BITRATES[resolution] ?? VIDEO_BITRATES['720p']
+  return Math.round(((video + AUDIO_BITRATE) * Math.max(0, durationSec)) / 8)
 }
 
 export function formatDuration(sec) {

@@ -417,3 +417,9 @@
   .asf-note       { width: 23px; height: 23px; font-size: 11px; }
   .asf-note.root  { width: 28px; height: 28px; font-size: 12px; }
 }
+
+/* Background scale notes when a highlight (arpeggio / pentatonic) sits on top: smaller and fainter, still visible. */
+.asf-note.active.soft {
+  transform: scale(0.72);
+  opacity: 0.5;
+}

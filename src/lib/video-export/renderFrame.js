@@ -14,7 +14,7 @@ const C = {
   paper: '#f3ead3', paperInk: '#2b1d12',
   brass: '#d4a94f', brassDark: '#7d5f22',
   text: '#f6ecd6', dim: '#a8977b',
-  chord: '#4fc3f7', root: '#ff5a4d', scale: 'rgba(235,225,205,0.55)',
+  chord: '#4fc3f7', root: '#ff5a4d', scale: 'rgba(235,225,205,0.55)', scaleSoft: 'rgba(235,225,205,0.38)',
 }
 
 function setFont(ctx, px, weight = 'bold') { ctx.font = `${weight} ${px}px ${FONT}` }
@@ -74,8 +74,17 @@ function drawSidePanel(ctx, scene, assets) {
 
   // Legend
   const rows = [[C.root, labels.legendRoot], [C.chord, labels.legendChordTone], ['#cfc6b3', labels.legendScale]]
+  const emphasis = (scene.necks || []).map(n => n.neck.emphasis).find(Boolean)
+  // Arpeggio: every non-chord note is a (fainter) scale note. Pentatonic: pentatonic normal, rest fainter.
+  if (emphasis === 'arpeggio') rows[2] = ['#a59c88', labels.legendScaleOther ?? labels.legendScale]
+  const soft = emphasis === 'pentatonic' && Boolean(labels.legendScaleSoft)
+  if (soft) {
+    rows[2] = ['#cfc6b3', labels.legendPentatonic ?? labels.legendScale]
+    rows.push(['#a59c88', labels.legendScaleSoft])
+  }
+  const step = soft ? 30 : 36
   rows.forEach(([color, text], i) => {
-    const y = 602 + i * 36
+    const y = (soft ? 596 : 602) + i * step
     ctx.fillStyle = color
     ctx.beginPath(); ctx.arc(46, y - 7, 11, 0, Math.PI * 2); ctx.fill()
     ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.stroke()
@@ -110,13 +119,13 @@ function drawChordHeader(ctx, scene) {
   }
 }
 
-function drawBarStrip(ctx, scene) {
+function drawBarStrip(ctx, scene, { top = 362, maxRowH = 36 } = {}) {
   const chips = scene.chips
   if (!chips.length) return
-  const left = 310, width = 940, top = 362
+  const left = 310, width = 940
   const perRow = Math.min(chips.length, 16)
   const rows = Math.ceil(chips.length / perRow)
-  const rowH = rows <= 2 ? 36 : 26
+  const rowH = rows <= 2 ? maxRowH : 26
   const gap = 6
   const cw = (width - gap * (perRow - 1)) / perRow
   chips.forEach((chip, i) => {
@@ -134,29 +143,42 @@ function drawBarStrip(ctx, scene) {
 
 const INLAYS = new Set([3, 5, 7, 9, 12, 15, 17, 19, 21, 24])
 
-function drawNeck(ctx, scene, assets) {
-  const { neck, view, labels, noteLabel } = scene
-  const x0 = 310, y0 = 494, w = 940, h = 190
+/** Outline colour per lesson shape (CAGED letter / octave fingering / 3-per-string). */
+export const FRAME_COLORS = {
+  caged_C: '#ff8a65', caged_A: '#ffd54f', caged_G: '#81c784', caged_E: '#64b5f6', caged_D: '#ce93d8',
+  octave_134: '#ffd54f', octave_124: '#64b5f6', octave_hybrid: '#81c784',
+}
+const frameColor = (id) => FRAME_COLORS[id] || '#ffd54f'
+
+/**
+ * One neck in the box { x0, y0, w, h }. Caption sits above the board, fret numbers below.
+ * Lesson shapes are outlined with coloured, labelled frames so several positions can share
+ * a neck without blending into each other.
+ */
+function drawNeckBox(ctx, entry, scene, assets, box, { captionPx = 26, counter = null } = {}) {
+  const { neck, view, caption } = entry
+  const { noteLabel } = scene
+  const { x0, y0, w, h } = box
   const { fretStart, fretEnd } = neck
   const cols = fretEnd - fretStart + 1
   const cw = w / cols
   const sGap = h / 6
 
-  // View caption
   ctx.fillStyle = C.brass
   ctx.textBaseline = 'alphabetic'
-  fitText(ctx, scene.viewCaption, x0, 480, 26, 820, { align: 'left' })
-  if (scene.viewCount > 1) {
+  // Several positions on one neck: a tag strip right above the board names each frame.
+  const tagged = (neck.shapeIds?.length ?? 0) > 1
+  const capY = y0 - (tagged ? 24 : 14)
+  fitText(ctx, caption, x0, capY, captionPx, w - 110, { align: 'left' })
+  if (counter) {
     ctx.fillStyle = C.dim
-    fitText(ctx, `${scene.viewIndex + 1}/${scene.viewCount}`, x0 + w, 480, 24, 100, { align: 'right', weight: 'normal' })
+    fitText(ctx, counter, x0 + w, capY, captionPx - 2, 100, { align: 'right', weight: 'normal' })
   }
 
-  // Board
   ctx.drawImage(assets.wood, 0, 0, 940, 210, x0, y0, w, h)
   ctx.strokeStyle = C.brassDark; ctx.lineWidth = 2
   ctx.strokeRect(x0, y0, w, h)
 
-  // Frets / nut
   for (let i = 0; i <= cols; i++) {
     const x = x0 + i * cw
     const isNut = fretStart === 0 && i === 1
@@ -164,43 +186,96 @@ function drawNeck(ctx, scene, assets) {
     ctx.lineWidth = isNut ? 7 : 3
     ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + h); ctx.stroke()
   }
-  // Inlays + fret numbers
   for (let f = fretStart; f <= fretEnd; f++) {
     const cx = x0 + (f - fretStart + 0.5) * cw
     if (INLAYS.has(f)) {
       ctx.fillStyle = 'rgba(240,230,205,0.28)'
       const ys = f % 12 === 0 ? [y0 + h * 0.3, y0 + h * 0.7] : [y0 + h / 2]
-      for (const yy of ys) { ctx.beginPath(); ctx.arc(cx, yy, 10, 0, Math.PI * 2); ctx.fill() }
+      for (const yy of ys) { ctx.beginPath(); ctx.arc(cx, yy, Math.min(10, h / 18), 0, Math.PI * 2); ctx.fill() }
     }
     ctx.fillStyle = C.dim
-    setFont(ctx, 20, 'normal'); ctx.textAlign = 'center'
-    ctx.fillText(String(f), cx, y0 + h + 26)
+    setFont(ctx, h < 180 ? 17 : 20, 'normal'); ctx.textAlign = 'center'
+    ctx.fillText(String(f), cx, y0 + h + (h < 180 ? 21 : 26))
   }
-  // Strings (string 1 = top, thinnest)
   for (let s = 1; s <= 6; s++) {
     const y = y0 + (s - 0.5) * sGap
     ctx.strokeStyle = s >= 4 ? '#c9a46a' : '#e8e0d0'
     ctx.lineWidth = 1 + s * 0.45
     ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); ctx.stroke()
   }
-  // Dots
+
+  // Position frames (under the dots), each with a small coloured tag on its top edge.
+  for (const fr of neck.frames || []) {
+    const a = Math.max(fr.fretStart, fretStart), b = Math.min(fr.fretEnd, fretEnd)
+    const fx = x0 + (a - fretStart) * cw + 3
+    const fw = (b - a + 1) * cw - 6
+    const fy = y0 + (fr.stringFrom - 1) * sGap + 2
+    const fh = (fr.stringTo - fr.stringFrom + 1) * sGap - 4
+    const color = frameColor(fr.shapeId)
+    ctx.fillStyle = color + '1f'
+    roundRect(ctx, fx, fy, fw, fh, 8); ctx.fill()
+    ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.stroke()
+    if (tagged && fr.label) {
+      setFont(ctx, 14)
+      const tw = ctx.measureText(fr.label).width + 16
+      const tx = fx + fw / 2 - tw / 2
+      roundRect(ctx, tx, y0 - 19, tw, 17, 6)
+      ctx.fillStyle = color; ctx.fill()
+      ctx.fillStyle = '#1a110a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+      ctx.fillText(fr.label, tx + tw / 2, y0 - 10)
+      ctx.textBaseline = 'alphabetic'
+    }
+  }
+
   const r = Math.min(cw * 0.34, sGap * 0.42, 19)
   for (const d of neck.dots) {
     const cx = x0 + (d.fret - fretStart + 0.5) * cw
     const cy = y0 + (d.string - 0.5) * sGap
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2)
-    ctx.fillStyle = d.role === 'chordRoot' ? C.root : d.role === 'chordTone' ? C.chord : C.scale
+    const rr = d.soft ? r * 0.75 : r
+    ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2)
+    ctx.fillStyle = d.role === 'chordRoot' ? C.root : d.role === 'chordTone' ? C.chord : d.soft ? C.scaleSoft : C.scale
     ctx.fill()
     ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.stroke()
     if (view.displayMode !== 'dots') {
-      ctx.fillStyle = d.role === 'scale' ? '#1a110a' : '#10161a'
+      ctx.fillStyle = d.role === 'scale' ? (d.soft ? '#3a2c1e' : '#1a110a') : '#10161a'
       ctx.textBaseline = 'middle'
-      setFont(ctx, Math.round(r * 1.05))
+      setFont(ctx, Math.round(rr * 1.05))
       ctx.textAlign = 'center'
-      ctx.fillText(view.displayMode === 'degrees' ? d.degree : noteLabel(d.note), cx, cy + 1)
+      ctx.fillText(view.displayMode === 'degrees' ? d.degree : noteLabel(d.name ?? d.note), cx, cy + 1)
       ctx.textBaseline = 'alphabetic'
     }
   }
+}
+
+function drawNeck(ctx, scene, assets) {
+  const entry = scene.necks?.[0] ?? { neck: scene.neck, view: scene.view, caption: scene.viewCaption }
+  drawNeckBox(ctx, entry, scene, assets, { x0: 310, y0: 494, w: 940, h: 190 }, {
+    counter: scene.viewCount > 1 ? `${scene.viewIndex + 1}/${scene.viewCount}` : null,
+  })
+}
+
+/** Two-neck layout: compact chord header, bar strip, then two aligned necks. */
+function drawDual(ctx, scene, assets) {
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = scene.phase === 'intro' ? C.dim : C.text
+  fitText(ctx, scene.chordLabel || '', 560, 132, 136, 480)
+  ctx.fillStyle = C.dim
+  fitText(ctx, `${scene.labels.next}  ${scene.nextLabel || ''}`, 1040, 84, 34, 400, { weight: 'normal' })
+  const n = scene.beatsPerBar, gap = 46, startX = 1040 - ((n - 1) * gap) / 2
+  for (let i = 0; i < n; i++) {
+    const active = scene.beat === i
+    ctx.beginPath(); ctx.arc(startX + i * gap, 122, active ? 15 : 11, 0, Math.PI * 2)
+    ctx.fillStyle = active ? (i === 0 ? C.root : C.brass) : 'rgba(255,255,255,0.14)'
+    ctx.fill()
+    if (active) { ctx.lineWidth = 3; ctx.strokeStyle = C.text; ctx.stroke() }
+  }
+  drawBarStrip(ctx, scene, { top: 160, maxRowH: 30 })
+  const counter = scene.viewCount > 1 ? `${scene.viewIndex + 1}/${scene.viewCount}` : null
+  scene.necks.forEach((entry, i) => {
+    drawNeckBox(ctx, entry, scene, assets, { x0: 310, y0: i === 0 ? 282 : 508, w: 940, h: 154 }, {
+      captionPx: 22, counter: i === 0 ? counter : null,
+    })
+  })
 }
 
 export function drawFrame(ctx, scene, assets, width = DESIGN_W, height = DESIGN_H) {
@@ -211,8 +286,12 @@ export function drawFrame(ctx, scene, assets, width = DESIGN_W, height = DESIGN_
   ctx.fillStyle = g
   ctx.fillRect(0, 0, DESIGN_W, DESIGN_H)
   drawSidePanel(ctx, scene, assets)
-  drawChordHeader(ctx, scene)
-  drawBarStrip(ctx, scene)
-  drawNeck(ctx, scene, assets)
+  if (scene.layout === 'dual' && scene.necks?.length > 1) {
+    drawDual(ctx, scene, assets)
+  } else {
+    drawChordHeader(ctx, scene)
+    drawBarStrip(ctx, scene)
+    drawNeck(ctx, scene, assets)
+  }
   ctx.restore()
 }

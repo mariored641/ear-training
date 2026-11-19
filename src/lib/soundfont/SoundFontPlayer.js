@@ -683,6 +683,31 @@ export function createCaptureStream() {
   }
 }
 
+/**
+ * A second, offline FluidSynth for faster-than-real-time rendering (lesson video batch export).
+ * Mirrors the live synth: same instrument packs (from the local cache), same per-channel presets,
+ * same reverb, drums on channel 10. The caller feeds MIDI events and pulls audio with
+ * synth.render([left, right]). Pack libraries only (not the full-SF2 A/B lab library).
+ */
+export async function createOfflineSynth(sampleRate = 48000) {
+  if (!_synth) throw new Error('SoundFontPlayer: init() first')
+  if (_fullSfontId !== null) throw new Error('offline render supports instrument packs only')
+  await Synthesizer.waitForWasmInitialized()
+  const synth = new Synthesizer()
+  synth.init(sampleRate)
+  synth.setReverb(0.4, 0.4, 0.5, 0.3)
+  synth.setReverbOn(true)
+  synth.midiSetChannelType(CHANNELS.DRUMS, true)
+  const buffers = await fetchPackBuffers(_currentLibrary, [..._packSfonts.keys()])
+  const ids = new Map()
+  for (const [key, buf] of buffers) ids.set(key, await synth.loadSFont(buf))
+  for (const [channel, preset] of _channelPresets) {
+    const id = ids.get(presetKey(preset))
+    if (id !== undefined) synth.midiProgramSelect(channel, id, preset.bank ?? 0, preset.program)
+  }
+  return synth
+}
+
 /** Resume AudioContext (נדרש לאחר user interaction) */
 export function resumeAudio() {
   return _audioCtx?.resume()
