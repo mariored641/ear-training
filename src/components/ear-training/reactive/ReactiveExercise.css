@@ -1,7 +1,7 @@
 /* Reactive Ear Training — main exercise screen — Workshop theme */
 
 .reactive-screen {
-  min-height: 100vh;
+  min-height: var(--app-height);
   background: transparent;
   color: var(--paper-cream);
   font-family: var(--font-body);

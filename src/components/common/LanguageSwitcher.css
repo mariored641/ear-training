@@ -1,6 +1,6 @@
 .language-switcher {
   position: fixed;
-  inset-block-start: max(10px, env(safe-area-inset-top));
+  inset-block-start: max(10px, var(--safe-top));
   inset-inline-end: 12px;
   z-index: 1000;
   display: inline-flex;
@@ -30,7 +30,7 @@
 
 @media (max-width: 600px) {
   .language-switcher {
-    inset-block-start: max(6px, env(safe-area-inset-top));
+    inset-block-start: max(6px, var(--safe-top));
     inset-inline-end: 8px;
     min-height: 32px;
     padding: 5px 8px;

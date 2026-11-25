@@ -170,12 +170,13 @@ export default function GlobalTools() {
 
   const handlePointerDown = (e) => {
     if (e.button !== undefined && e.button !== 0) return;
+    const rect = containerRef.current?.getBoundingClientRect();
     pointerStartRef.current = {
       x: e.clientX,
       y: e.clientY,
-      // offset from FAB top-left to the pointer
-      offsetX: e.clientX - (position?.x ?? (24)),
-      offsetY: e.clientY - (position?.y ?? (window.innerHeight - 24 - FAB_SIZE)),
+      // offset from FAB top-left to the pointer (CSS may lift the default spot)
+      offsetX: e.clientX - (rect?.left ?? position?.x ?? 24),
+      offsetY: e.clientY - (rect?.top ?? position?.y ?? (window.innerHeight - 24 - FAB_SIZE)),
     };
     activePointerIdRef.current = e.pointerId;
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
