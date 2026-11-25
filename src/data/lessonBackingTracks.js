@@ -11,6 +11,13 @@
  *       BPM measured from the bar-highlight timing (see the spec for the method).
  *       The app style (`genre`) is OUR closest match to the BIAB style name — inferred.
  *   { kind: 'suggested' }  — an extra style/variant proposed here (inferred, not from Mario).
+ *   { kind: 'easy' }       — beginner version for lessons 1–3 (Mario, 2026-11): 2 bars per chord,
+ *       calm styles, ≤ 100 BPM.
+ *
+ * TEMPO RULE (Mario, 2026-11): `tempo` is the APP tempo and must suit the app style — within
+ * ±15 % of the style's native tempo (public/styles-native/index.json), or the style sounds rushed
+ * or dragging. The tempo of Mario's video stays in `source.measured.bpm` for reference only.
+ * Lessons 1–4 stay at or below MAX_EARLY_BPM (enforced by unit-tests/lessonBackingTracks.test.js).
  *
  * Neck views are named sets (NECKS) placed in the track's key; non-CAGED shapes come from
  * src/constants/neckShapes.js.
@@ -62,6 +69,8 @@ const up = (root, st, sharps) => {
 }
 
 export const FORMS = {
+  amg7_2x2: ['Am', 'Am', 'G7', 'G7'],
+  cg7_2x2: ['C', 'C', 'G7', 'G7'],
   amg7_4: ['Am', 'G7', 'Am', 'G7'],
   amg7_8: ['Am', 'Am', 'G7', 'G7', 'Am', 'Am', 'G7', 'G7'],
   amg7_16: ['Am', 'Am', 'G7', 'G7', 'Am', 'Am', 'G7', 'G7', ...rep(4, ['Am', 'G7'])],
@@ -95,6 +104,9 @@ const CAGED = ['caged_C', 'caged_A', 'caged_G', 'caged_E', 'caged_D']
 const OCTAVE = ['octave_134', 'octave_124', 'octave_hybrid']
 const NPS3 = ['nps3_1', 'nps3_2', 'nps3_3', 'nps3_4', 'nps3_5', 'nps3_6', 'nps3_7']
 const keyScale = (key) => (key.type === 'minor' ? 'aeolian' : 'ionian')
+/** Highest tempo in the beginner lessons (Mario: "no reason to go above 100, even below"). */
+export const MAX_EARLY_BPM = 100
+export const EARLY_LESSONS = [1, 2, 3, 4]
 const toSharp = (n) => ({ Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#' }[n] || n)
 
 /**
@@ -108,36 +120,42 @@ const ALL_TWO_NECKS = { id: 'all', necks: 2, groups: [['caged_C', 'caged_G', 'ca
 const CAGED_ROTATE = { id: 'rotate', necks: 1, groups: CAGED.map(id => [id]) }
 const single = (id, shape) => ({ id, necks: 1, groups: [[shape]] })
 
+/*
+ * Live neck (what the student sees while playing): ONE neck, ONE position at a time.
+ * `positions` = the round buttons above the neck (single-select), `start` = the one shown first.
+ * The multi-neck `variants` below are only for the 🎬 video export.
+ */
 export const NECKS = {
   octave: {
-    scale: keyScale,
+    scale: keyScale, positions: OCTAVE, start: 'octave_134',
     diagram: 'Octave position - AM (red) G7 (orange) — used for both Am–G7 and C–G7 (Mario, answer 2)',
     variants: [
       { id: 'two', necks: 2, groups: [['octave_134'], ['octave_124']] },
       single('134', 'octave_134'), single('124', 'octave_124'), single('hybrid', 'octave_hybrid'),
     ],
   },
-  caged_scale: { scale: keyScale, diagram: 'AM-G7_C-G7 - CAGED (+ LINE version)', variants: [ALL_TWO_NECKS, CAGED_ROTATE] },
+  caged_scale: { scale: keyScale, positions: CAGED, start: 'caged_C', diagram: 'AM-G7_C-G7 - CAGED (+ LINE version)', variants: [ALL_TWO_NECKS, CAGED_ROTATE] },
   caged_full_pent: {
-    scale: keyScale, emphasis: 'pentatonic',
+    scale: keyScale, emphasis: 'pentatonic', positions: CAGED, start: 'caged_C',
     diagram: 'global CAGED - full and pentatonic sidebyside (full scale, pentatonic emphasised — Mario, answer 6)',
     variants: [ALL_TWO_NECKS, CAGED_ROTATE],
   },
   // Round 3 (Mario): the full working scale is always visible; arpeggios / pentatonic are highlighted on top.
   caged_chords: {
-    scale: keyScale, emphasis: 'arpeggio', diagram: 'C-F-G - all CAGED (full scale, arpeggios highlighted — round 3)',
+    // Lesson 5 text: "usually we pick G\\E" → start on G.
+    scale: keyScale, emphasis: 'arpeggio', positions: CAGED, start: 'caged_G', diagram: 'C-F-G - all CAGED (full scale, arpeggios highlighted — round 3)',
     variants: [ALL_TWO_NECKS, CAGED_ROTATE],
   },
   caged_GE_chords: {
-    scale: keyScale, emphasis: 'arpeggio', diagram: 'Am-Dm-Em - all CAGED (lesson text: positions G and E; full scale, arpeggios highlighted)',
+    scale: keyScale, emphasis: 'arpeggio', positions: CAGED, start: 'caged_G', diagram: 'Am-Dm-Em - all CAGED (lesson text: positions G and E; full scale, arpeggios highlighted)',
     variants: [{ id: 'ge', necks: 2, groups: [['caged_G'], ['caged_E']] }, ALL_TWO_NECKS],
   },
   caged_chords_scale: {
-    scale: keyScale, emphasis: 'arpeggio', diagram: 'CAGED - chords in position - ALL (full scale, arpeggios highlighted)',
+    scale: keyScale, emphasis: 'arpeggio', positions: CAGED, start: 'caged_C', diagram: 'CAGED - chords in position - ALL (full scale, arpeggios highlighted)',
     variants: [ALL_TWO_NECKS, CAGED_ROTATE],
   },
   nps3: {
-    scale: keyScale, diagram: '(none — lesson 12 text: "fixed number of notes per string")',
+    scale: keyScale, positions: NPS3, start: 'nps3_1', diagram: '(none — lesson 12 text: "fixed number of notes per string")',
     variants: [{ id: 'rotate', necks: 1, groups: NPS3.map(id => [id]) }],
   },
 }
@@ -145,6 +163,19 @@ export const NECKS = {
 export const variantOf = (neckId, variantId) => {
   const vs = NECKS[neckId].variants
   return vs.find(v => v.id === variantId) ?? vs[0]
+}
+
+/** Live-neck settings of a lesson item: the full key scale, one position, the lesson highlight. */
+export function liveNeck(neckId, key) {
+  const n = NECKS[neckId]
+  const scaleId = n.scale(key)
+  return {
+    scaleId,
+    root: toSharp(key.root),
+    shapeId: n.start,
+    positions: [...n.positions],
+    emphasis: n.emphasis ?? null,
+  }
 }
 
 export function neckViews(neckId, key, variantId) {
@@ -172,26 +203,47 @@ const SUGGESTED = { kind: 'suggested' }
 const T = []
 const add = (id, type, form, key, genre, tempo, styleLabel, source) => T.push({ id, type, form, key, genre, tempo, styleLabel, source })
 
-// Am–G7 (lessons 1, 2, 3, 8, 10, 12)
-add('amg7-latin', 'am-g7', 'amg7_4', A_MINOR, 'latin_samba2', 165, 'Latin', yt('K1AMW6RMqOs', 'Am G7 - Latin', 165, 4, 40))
-add('amg7-bossa', 'am-g7', 'amg7_4', A_MINOR, 'latin_fastbossa', 190, 'Bossa', yt('aV2WwP9lPBE', 'Am G7 - Bossa', 190, 4, 30))
+const EASY = { kind: 'easy' }
+
+// Beginner Am–G7 / C–G7 (lessons 1, 2, 3 — Mario, 2026-11): 2 bars Am + 2 bars G7 (or C + G7),
+// calm styles, 68–90 BPM, every tempo close to the style's own tempo.
+add('amg7-easy-pop', 'am-g7', 'amg7_2x2', A_MINOR, 'rock_pop', 86, 'Pop rock', EASY)
+add('amg7-easy-rockballad', 'am-g7', 'amg7_2x2', A_MINOR, 'rock_16beat2', 70, 'Rock ballad', EASY)
+add('amg7-easy-blues', 'am-g7', 'amg7_2x2', A_MINOR, 'blues_kool', 80, 'Blues shuffle', EASY)
+add('amg7-easy-country', 'am-g7', 'amg7_2x2', A_MINOR, 'country_ballad', 76, 'Country ballad', EASY)
+add('amg7-easy-reggae', 'am-g7', 'amg7_2x2', A_MINOR, 'reggae', 80, 'Reggae', EASY)
+add('amg7-easy-jazz', 'am-g7', 'amg7_2x2', A_MINOR, 'jazz_ballad', 72, 'Jazz ballad', EASY)
+add('amg7-easy-soul', 'am-g7', 'amg7_2x2', A_MINOR, 'blues_16beat', 78, 'Soul groove', EASY)
+
+add('cg7-easy-pop', 'c-g7', 'cg7_2x2', C_MAJOR, 'pop_chart', 88, 'Pop', EASY)
+add('cg7-easy-rockballad', 'c-g7', 'cg7_2x2', C_MAJOR, 'rock_16beat2', 70, 'Rock ballad', EASY)
+add('cg7-easy-blues', 'c-g7', 'cg7_2x2', C_MAJOR, 'blues_soul', 90, 'Soul shuffle', EASY)
+add('cg7-easy-country', 'c-g7', 'cg7_2x2', C_MAJOR, 'country_train', 80, 'Country', EASY)
+add('cg7-easy-folk', 'c-g7', 'cg7_2x2', C_MAJOR, 'country_finger', 70, 'Finger picking', EASY)
+add('cg7-easy-reggae', 'c-g7', 'cg7_2x2', C_MAJOR, 'reggae', 80, 'Reggae', EASY)
+add('cg7-easy-jazz', 'c-g7', 'cg7_2x2', C_MAJOR, 'jazz_ballad', 72, 'Jazz ballad', EASY)
+
+// Am–G7 from Mario's videos (lessons 8, 10, 12). Forms are the videos'; tempos fit the app style.
+add('amg7-latin', 'am-g7', 'amg7_4', A_MINOR, 'latin_samba2', 110, 'Latin', yt('K1AMW6RMqOs', 'Am G7 - Latin', 165, 4, 40))
+add('amg7-bossa', 'am-g7', 'amg7_4', A_MINOR, 'latin_fastbossa', 175, 'Bossa', yt('aV2WwP9lPBE', 'Am G7 - Bossa', 190, 4, 30))
 add('amg7-pop', 'am-g7', 'amg7_8', A_MINOR, 'rock_pop', 90, 'Pop Groove (A part)', yt('NtltzDOS-vA', 'Am G7 - Pop Groove - just A part', 90, 8, 30))
-add('amg7-rock-a', 'am-g7', 'amg7_8', A_MINOR, 'rock_standard', 120, 'Rock (A part)', yt('ltNkY689lWo', 'Am G7 - Rock - just A part', 120, 8, 40))
-add('amg7-jazz', 'am-g7', 'amg7_16', A_MINOR, 'jazz_cool', 85, 'Jazz', yt('mdMnJsp9D6Q', 'Am G7 - jazz', 85, 16, 8))
-add('amg7-rock', 'am-g7', 'amg7_16', A_MINOR, 'rock_brit', 90, 'Rock', yt('bFeBdPQOhmc', 'Am G7 - 1 - rock', 90, 16, 8))
+add('amg7-rock-a', 'am-g7', 'amg7_8', A_MINOR, 'rock_standard', 112, 'Rock (A part)', yt('ltNkY689lWo', 'Am G7 - Rock - just A part', 120, 8, 40))
+add('amg7-jazz', 'am-g7', 'amg7_16', A_MINOR, 'jazz_cool', 110, 'Jazz', yt('mdMnJsp9D6Q', 'Am G7 - jazz', 85, 16, 8))
+add('amg7-rock', 'am-g7', 'amg7_16', A_MINOR, 'rock_brit', 108, 'Rock', yt('bFeBdPQOhmc', 'Am G7 - 1 - rock', 90, 16, 8))
 add('amg7-blues', 'am-g7', 'amg7_16', A_MINOR, 'blues_kool', 85, 'Blues', yt('w2_5wVL4I8c', 'Am G7 - 1 - blues', 85, 16, 8))
-add('amg7-country', 'am-g7', 'amg7_16', A_MINOR, 'country_ballad', 85, 'Country ballad', yt('1mZxzUTpEOM', 'Am G7 - 1 - country ballad', 85, 16, 8))
+add('amg7-country', 'am-g7', 'amg7_16', A_MINOR, 'country_ballad', 80, 'Country ballad', yt('1mZxzUTpEOM', 'Am G7 - 1 - country ballad', 85, 16, 8))
 add('amg7-punk', 'am-g7', 'amg7_24', A_MINOR, 'rock_power', 105, 'Punk rock ballad', yt('CVbakqNZVhY', 'Am G7 - 2 - punk rock ballad', 105, 24, 6))
 
-// C–G7 (lessons 2, 3, 8, 12)
-add('cg7-jazz', 'c-g7', 'cg7_16', C_MAJOR, 'jazz_club', 105, 'Jazz', yt('ZcJW8oGvbZY', 'C G7 - Jazz', 105, 16, 8))
-add('cg7-rockballad', 'c-g7', 'cg7_16', C_MAJOR, 'rock_16beat2', 85, 'Rock ballad', yt('dxOLtSksx78', 'C-G7 - Rock Ballad', 85, 16, 8))
-add('cg7-blues', 'c-g7', 'cg7_16', C_MAJOR, 'blues_soul', 85, 'Blues', yt('OZv8I5ZpWSc', 'C-G7 - Blues', 85, 16, 8))
-add('cg7-country', 'c-g7', 'cg7_16', C_MAJOR, 'country_modern', 120, 'Country', yt('6KYPosn775M', 'C-G7 - Country', 120, 16, 8))
-add('cg7-bossa', 'c-g7', 'cg7_4', C_MAJOR, 'latin_bossa', 130, 'Bossa (new)', SUGGESTED)
+// C–G7 from Mario's videos (lessons 8, 12)
+add('cg7-jazz', 'c-g7', 'cg7_16', C_MAJOR, 'jazz_club', 140, 'Jazz', yt('ZcJW8oGvbZY', 'C G7 - Jazz', 105, 16, 8))
+add('cg7-rockballad', 'c-g7', 'cg7_16', C_MAJOR, 'rock_16beat2', 72, 'Rock ballad', yt('dxOLtSksx78', 'C-G7 - Rock Ballad', 85, 16, 8))
+add('cg7-blues', 'c-g7', 'cg7_16', C_MAJOR, 'blues_soul', 88, 'Blues', yt('OZv8I5ZpWSc', 'C-G7 - Blues', 85, 16, 8))
+add('cg7-country', 'c-g7', 'cg7_16', C_MAJOR, 'country_modern', 104, 'Country', yt('6KYPosn775M', 'C-G7 - Country', 120, 16, 8))
+add('cg7-bossa', 'c-g7', 'cg7_4', C_MAJOR, 'latin_bossa', 150, 'Bossa (new)', SUGGESTED)
 add('cg7-funk', 'c-g7', 'cg7_16', C_MAJOR, 'rock_funkpop', 100, 'Funk pop (new)', SUGGESTED)
 
-// 12-bar blues, all keys (lesson 4; reused in 9)
+// 12-bar blues, all keys (lesson 4; reused in 9). Keys and forms from Mario's playlists;
+// lesson 4 is still a beginner lesson, so only calm styles at ≤ 92 BPM (each tempo fits its style).
 const MAJOR_BLUES = [
   ['C', 100, 'MoMo_q8qem8', '12 bar blues - C major - 100bpm'], ['Db', 85, 'XDgnyG3aeWI', '12 bar blues   Db major   100bpm'],
   ['D', 150, '2o-aPjvg1hM', '12 bar blues   D major'], ['Eb', 80, 'KOlbVI8Igtw', '12 bar blues   Eb major'],
@@ -201,14 +253,15 @@ const MAJOR_BLUES = [
   ['Bb', 80, 'aY4bHlL2vRc', '12 bar blues - Bb major'], ['B', 85, 'n7KMFG1Dq8U', '12 bar blues - B major'],
 ]
 // Answer 5: vary the styles; a style may come back, but never on neighbouring keys.
+// [app style, label, app tempo]
 const MAJOR_BLUES_STYLES = [
-  ['blues_shuffle', "Mr Mac's Blues"], ['blues_kool', 'Kool Shuffle'], ['blues_soul', 'Soul Shuffle'],
-  ['blues_simple', 'Simple Shuffle'], ['blues_rock60s', "60's Rock & Roll"], ['country_shuffle', 'Country Shuffle'],
-  ['blues_gospel', 'Gospel Swing'], ['blues_funk', 'Jazz Funk'],
+  ['blues_shuffle', "Mr Mac's Blues", 66], ['blues_kool', 'Kool Shuffle', 84], ['blues_soul', 'Soul Shuffle', 90],
+  ['blues_16beat', '16 Beat Ferna', 78], ['blues_slow', 'Slow Blues', 54], ['country_train', 'Country Train Beat', 80],
+  ['rock_pop', 'Pop Rock', 88], ['reggae', 'Reggae', 80],
 ]
 MAJOR_BLUES.forEach(([k, bpm, vid, title], i) => {
-  const [genre, label] = MAJOR_BLUES_STYLES[i % MAJOR_BLUES_STYLES.length]
-  add(`blues-${k}`, 'blues-major', `blues12:${k}`, { root: k, type: 'major' }, genre, bpm, label, yt(vid, title, bpm, 12, 8))
+  const [genre, label, tempo] = MAJOR_BLUES_STYLES[i % MAJOR_BLUES_STYLES.length]
+  add(`blues-${k}`, 'blues-major', `blues12:${k}`, { root: k, type: 'major' }, genre, tempo, label, yt(vid, title, bpm, 12, 8))
 })
 const MINOR_BLUES = [
   ['C', 70, 'b9oSYYu-VkI', '12 Bar Blues - Cm'], ['C#', 120, '7gMPWMd7xVI', '12 Bar Blues - C#m'],
@@ -216,48 +269,48 @@ const MINOR_BLUES = [
   ['E', 90, 'WR_fMImGSj4', '12 Bar Blues - Em'], ['F', 130, 'SzQcZLbVDJA', '12 Bar Blues - Fm'],
   ['F#', 130, 'riZbzu1Aw7I', '12 Bar Blues - F#m'], ['G', 115, 'ZEmAuMyKjsE', '12 Bar Blues - Gm'],
   ['G#', 65, 'kCAC3ZfeCMw', '12 Bar Blues - G#m'], ['A', 100, 'BXNp72In9xc', '12 bar blues - A minor - 100bpm'],
-  ['Bb', 110, null, null], ['B', 95, null, null],
+  ['Bb', null, null, null], ['B', null, null, null],
 ]
 const MINOR_BLUES_STYLES = [
-  ['blues_16beat', '16 Beat Ferna'], ['blues_koolfunk', 'Kool Funk'], ['blues_funk', 'Jazz Funk'],
-  ['rock_16beat2', '16 Beat Ballad 2'], ['blues_slow', 'Slow Blues'], ['latin_bossa', 'Cool Bossa'],
-  ['rock_pop', 'Pop Rock'], ['jazz_cool', 'LA Cool Swing'],
+  ['blues_16beat', '16 Beat Ferna', 76], ['blues_koolfunk', 'Kool Funk', 92], ['rock_16beat2', '16 Beat Ballad 2', 68],
+  ['blues_slow', 'Slow Blues', 54], ['country_folkball', 'Folk Ballad', 72], ['jazz_ballad', 'Orch Jazz Ballad', 72],
+  ['rock_pop', 'Pop Rock', 86], ['reggae', 'Reggae', 78],
 ]
 MINOR_BLUES.forEach(([k, bpm, vid, title], i) => {
-  const [genre, label] = MINOR_BLUES_STYLES[i % MINOR_BLUES_STYLES.length]
-  add(`blues-${k}m`, 'blues-minor', `blues12m:${k}`, { root: k, type: 'minor' }, genre, bpm, label,
+  const [genre, label, tempo] = MINOR_BLUES_STYLES[i % MINOR_BLUES_STYLES.length]
+  add(`blues-${k}m`, 'blues-minor', `blues12m:${k}`, { root: k, type: 'minor' }, genre, tempo, label,
     vid ? yt(vid, title, bpm, 12, 8) : SUGGESTED)
 })
 
 // C–F–G (lesson 5; reused in 8, 10)
-add('cfg-rock', 'c-f-g', 'cgfc', C_MAJOR, 'rock_standard', 75, 'Rock', yt('csvL9jF5bmI', 'C F G - Rock', 75, 4, 30))
+add('cfg-rock', 'c-f-g', 'cgfc', C_MAJOR, 'rock_standard', 95, 'Rock', yt('csvL9jF5bmI', 'C F G - Rock', 75, 4, 30))
 add('cfg-spanish', 'c-f-g', 'cgfc', C_MAJOR, 'latin_chacha', 120, 'Spanish dance', yt('zAnirdGcRK8', 'C F G - Spanish dance', 120, 4, 20))
-add('cfg-jazz', 'c-f-g', 'cfg_jazz32', C_MAJOR, 'jazz_swing', 105, 'Jazz, quick changes', yt('bJIzn4PyYCo', 'C F G - jazz, quick changes', 105, 32, 3))
+add('cfg-jazz', 'c-f-g', 'cfg_jazz32', C_MAJOR, 'jazz_cool', 110, 'Jazz, quick changes', yt('bJIzn4PyYCo', 'C F G - jazz, quick changes', 105, 32, 3))
 add('cfg-blues', 'c-f-g', 'cfg_blues8', C_MAJOR, 'blues_shuffle', 65, 'Simple blues', yt('G77JfJySBm4', 'C F G - simple, blues', 65, 8, 20))
-add('cfg-country', 'c-f-g', 'cfgc', C_MAJOR, 'country_train', 110, 'Simple country', yt('SkOPAqf2BbM', 'C F G - simple, country', 110, 4, 30))
+add('cfg-country', 'c-f-g', 'cfgc', C_MAJOR, 'country_train', 90, 'Simple country', yt('SkOPAqf2BbM', 'C F G - simple, country', 110, 4, 30))
 add('cfg-pop', 'c-f-g', 'cfgc', C_MAJOR, 'pop_chart', 92, 'Chart pop (new)', SUGGESTED)
 
 // Am–Dm–Em (lesson 6; reused in 8)
-add('amdmem-rockballad', 'am-dm-em', 'am_em_dm_am', A_MINOR, 'rock_16beat2', 85, 'Rock ballad', yt('1SYXYoD3jVA', 'Am Dm Em - Rock Ballad', 85, 4, 40))
-add('amdmem-countryballad', 'am-dm-em', 'am_em_dm_am', A_MINOR, 'country_folkball', 85, 'Country ballad', yt('JFIVJp0h1q0', 'Am Dm Em - Country Ballad', 85, 4, 40))
-add('amdmem-blues', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'blues_slow', 60, 'Blues', yt('dl9ittae9Aw', 'Am Dm Em - Blues', 60, 4, 20))
-add('amdmem-country', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'country_brothers', 113, 'Country', yt('-Xsuwj5X_zU', 'Am Dm Em - Country', 113, 4, 20))
-add('amdmem-rock', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'rock_brit', 65, 'Rock 1', yt('SzPklzLpKGk', 'Am Dm Em - Rock 1', 65, 4, 20))
-add('amdmem-bossa', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'latin_bossa', 120, 'Bossa (new)', SUGGESTED)
+add('amdmem-rockballad', 'am-dm-em', 'am_em_dm_am', A_MINOR, 'rock_16beat2', 72, 'Rock ballad', yt('1SYXYoD3jVA', 'Am Dm Em - Rock Ballad', 85, 4, 40))
+add('amdmem-countryballad', 'am-dm-em', 'am_em_dm_am', A_MINOR, 'country_folkball', 78, 'Country ballad', yt('JFIVJp0h1q0', 'Am Dm Em - Country Ballad', 85, 4, 40))
+add('amdmem-blues', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'blues_slow', 54, 'Blues', yt('dl9ittae9Aw', 'Am Dm Em - Blues', 60, 4, 20))
+add('amdmem-country', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'country_brothers', 100, 'Country', yt('-Xsuwj5X_zU', 'Am Dm Em - Country', 113, 4, 20))
+add('amdmem-rock', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'rock_pop', 84, 'Rock 1', yt('SzPklzLpKGk', 'Am Dm Em - Rock 1', 65, 4, 20))
+add('amdmem-bossa', 'am-dm-em', 'am_dm_em_am', A_MINOR, 'latin_bossa', 150, 'Bossa (new)', SUGGESTED)
 
 // C / Am diatonic chords (lesson 7; reused in 8)
-add('cam-easy', 'c-am-chords', 'easy_c_16', C_MAJOR, 'country_ballad', 85, 'Easy chords ballad', yt('Y3DvRERF4Jc', 'Easy chords - C Major ballad', 85, 16, 8))
+add('cam-easy', 'c-am-chords', 'easy_c_16', C_MAJOR, 'country_ballad', 80, 'Easy chords ballad', yt('Y3DvRERF4Jc', 'Easy chords - C Major ballad', 85, 16, 8))
 add('cam-ballad', 'c-am-chords', 'ballad_c_20', C_MAJOR, 'rock_16beat2', 60, 'C major ballad', yt('zaAwbG0rONQ', 'C major - ballad', 60, 20, 3))
-add('cam-slowrock', 'c-am-chords', 'slow_c_am_24', C_MAJOR, 'rock_pop', 60, 'Slow rock', yt('TGjr87jho14', 'slow chords - C major+A minor - slow rock', 60, 24, 8))
-add('cam-slowblues', 'c-am-chords', 'slow_c_am_24', C_MAJOR, 'blues_slow', 60, 'Slow blues', yt('-t0qDsSYBqg', 'slow chords - C major+A minor - slow blues', 60, 24, 8))
-add('cam-pop', 'c-am-chords', 'pop_c_am_f_g', C_MAJOR, 'pop_chart', 100, 'Chart pop (new)', SUGGESTED)
+add('cam-slowrock', 'c-am-chords', 'slow_c_am_24', C_MAJOR, 'blues_16beat', 70, 'Slow rock', yt('TGjr87jho14', 'slow chords - C major+A minor - slow rock', 60, 24, 8))
+add('cam-slowblues', 'c-am-chords', 'slow_c_am_24', C_MAJOR, 'blues_slow', 54, 'Slow blues', yt('-t0qDsSYBqg', 'slow chords - C major+A minor - slow blues', 60, 24, 8))
+add('cam-pop', 'c-am-chords', 'pop_c_am_f_g', C_MAJOR, 'pop_chart', 96, 'Chart pop (new)', SUGGESTED)
 
 // Lesson 11 — 7th chords (no source tracks; all new)
-add('sevenths-jazz', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'jazz_cool', 126, 'LA Cool Swing (new)', SUGGESTED)
-add('sevenths-bossa', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'latin_bossa', 140, 'Cool Bossa (new)', SUGGESTED)
+add('sevenths-jazz', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'jazz_cool', 120, 'LA Cool Swing (new)', SUGGESTED)
+add('sevenths-bossa', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'latin_bossa', 150, 'Cool Bossa (new)', SUGGESTED)
 add('sevenths-ballad', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'jazz_ballad', 72, 'Orch Jazz Ballad (new)', SUGGESTED)
-add('sevenths-gospel', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'jazz_gospel', 110, 'Gospel Swing (new)', SUGGESTED)
-add('sevenths-funk', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'rock_funkpop', 100, 'Funk Pop Rock (new)', SUGGESTED)
+add('sevenths-gospel', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'jazz_gospel', 104, 'Gospel Swing (new)', SUGGESTED)
+add('sevenths-funk', 'sevenths', 'i_vi_ii_v', C_MAJOR, 'rock_funkpop', 96, 'Funk Pop Rock (new)', SUGGESTED)
 
 export const TRACKS = T
 export const TRACKS_BY_ID = Object.fromEntries(T.map(t => [t.id, t]))
@@ -282,7 +335,8 @@ export function trackBars(track) {
 export const trackChords = (track) => barsToChords(trackBars(track))
 
 // ── Lessons ─────────────────────────────────────────────────────────────────
-const ids = (type) => T.filter(t => t.type === type).map(t => t.id)
+const ids = (type) => T.filter(t => t.type === type && t.source.kind !== 'easy').map(t => t.id)
+const easyIds = (type) => T.filter(t => t.type === type && t.source.kind === 'easy').map(t => t.id)
 const items = (trackIds, neck) => trackIds.map(trackId => ({ trackId, neck }))
 
 /**
@@ -290,12 +344,13 @@ const items = (trackIds, neck) => trackIds.map(trackId => ({ trackId, neck }))
  * has no backing-track link (see the spec's open questions).
  */
 export const LESSONS = [
+  // Lessons 1–3: beginner tracks only (2 bars per chord, calm, ≤ 100 BPM — Mario, 2026-11).
   { n: 1, titleHe: 'יוניסונים, אוקטבות ופריסת הצוואר', titleEn: 'Unisons, octaves and the neck layout',
-    items: items(ids('am-g7'), 'octave') },
+    items: items(easyIds('am-g7'), 'octave') },
   { n: 2, titleHe: 'סולמות – מז׳ור, מינור וקוד טונאלי', titleEn: 'Scales – major, minor and the tonal code',
-    items: [...items(ids('am-g7'), 'octave'), ...items(ids('c-g7'), 'octave')] },
+    items: [...items(easyIds('am-g7'), 'octave'), ...items(easyIds('c-g7'), 'octave')] },
   { n: 3, titleHe: 'CAGED', titleEn: 'CAGED',
-    items: [...items(ids('am-g7'), 'caged_scale'), ...items(ids('c-g7'), 'caged_scale')] },
+    items: [...items(easyIds('am-g7'), 'caged_scale'), ...items(easyIds('c-g7'), 'caged_scale')] },
   { n: 4, titleHe: 'כל הסולמות! ופנטטוני', titleEn: 'All keys! And pentatonic',
     items: [...items(ids('blues-major'), 'caged_full_pent'), ...items(ids('blues-minor'), 'caged_full_pent')] },
   { n: 5, titleHe: 'ארפג׳ים 1: הצורות המז׳וריות, C-F-G', titleEn: 'Arpeggios 1: major shapes, C-F-G',
@@ -375,6 +430,7 @@ export function lessonPreset(lessonN, trackId, variantId) {
     key: { root: track.key.root, type: track.key.type },
     export: { repetitions: plan.repetitions, rotateEvery: plan.rotateEvery, necksPerScreen: plan.necksPerScreen, views: plan.views },
     plan,
+    live: liveNeck(item.neck, track.key),
   }
 }
 

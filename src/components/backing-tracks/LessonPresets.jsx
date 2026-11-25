@@ -78,8 +78,12 @@ export function LessonPresets({ onLoad, loadedId }) {
                     {formatNoteName(p.key.root, i18n.language)}{p.key.type === 'minor' ? 'm' : ''}
                     {' · '}{p.tempo} bpm
                     {' · '}{t('backing.lessons.barsCount', { count: trackBars(p.track).length })}
-                    {' · '}🎬 {formatDuration(p.plan.dialogEstimateSec)} ({p.export.repetitions}×)
                   </div>
+                  {/* 🎬 Video export versions (teacher tool) — folded away so students see one simple Load button */}
+                  <details className="lp-video">
+                    <summary data-testid={`lesson-video-${p.track.id}`}>
+                      🎬 {t('backing.lessons.videoVariants')} · {formatDuration(p.plan.dialogEstimateSec)} ({p.export.repetitions}×)
+                    </summary>
                   <div className="lp-variants" role="group" aria-label={t('backing.lessons.videoVariants')}>
                     {[p, ...alts].map(v => (
                       <button
@@ -92,6 +96,7 @@ export function LessonPresets({ onLoad, loadedId }) {
                       >🎬 {t(`backing.lessons.variants.${v.variantId}`)}</button>
                     ))}
                   </div>
+                  </details>
                 </div>
                 <button
                   type="button"

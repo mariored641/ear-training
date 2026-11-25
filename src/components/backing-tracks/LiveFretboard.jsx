@@ -1,5 +1,5 @@
 import { usePersistentState, readLastState, useRemember } from '../../utils/lastState';
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import AllScalesFretboard from '../positions/AllScalesFretboard';
 import {
@@ -80,6 +80,35 @@ export default function LiveFretboard({
     () => (shapeId ? shapeSet(shapeId, majorRootOf(selectedKey.root, selectedKey.type)) : null),
     [shapeId, selectedKey.root, selectedKey.type],
   );
+  // Position picker: round buttons for the current shape family (CAGED / octave / 3-per-string).
+  // Single-select — clicking one replaces the previous one, so the neck shows ONE position.
+  const positionGroup = useMemo(
+    () => (shapeIds.length ? SHAPE_GROUPS.find(g => shapeIds.every(id => g.shapes.includes(id))) ?? null : null),
+    [shapeId], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const activePosition = shapeIds.length === 1 ? shapeIds[0] : null;
+  const positionLabel = (id) => (id === 'octave_hybrid' ? t('backing.lessons.variants.hybrid') : shapeShortLabel(id));
+  // With a position picker on screen the other settings stay folded away (simple for beginners).
+  const [showMore, setShowMore] = usePersistentState('backing-fretboard', 'showMore', false);
+  const showAdvanced = !positionGroup || showMore;
+  // Narrow screens scroll the neck: bring the chosen position into view.
+  const neckWrapRef = useRef(null);
+  useEffect(() => {
+    if (!shape || !isOpen) return undefined;
+    const raf = requestAnimationFrame(() => {
+      const box = neckWrapRef.current?.querySelector('.asf-container');
+      if (!box || box.scrollWidth <= box.clientWidth) return;
+      // Only the drawn notes of the position (cells outside the shape render as 'inactive').
+      const notes = [...box.querySelectorAll('.asf-note:not(.inactive)')];
+      if (!notes.length) return;
+      const r = box.getBoundingClientRect();
+      const left = Math.min(...notes.map(n => n.getBoundingClientRect().left));
+      const right = Math.max(...notes.map(n => n.getBoundingClientRect().right));
+      // Relative scroll works in both LTR and RTL scroll coordinates.
+      box.scrollBy?.({ left: (left + right) / 2 - (r.left + r.width / 2), behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [shape, isOpen]);
   const comboLabel = (ids) => `${t(`positions.shapeGroups.${ids[0].split('_')[0]}`)} ${ids.map(shapeShortLabel).join(' + ')}`;
   const [fretRangeStart, setFretRangeStart] = usePersistentState('backing-fretboard', 'fretRangeStart', null);
   const [fretRangeEnd, setFretRangeEnd] = usePersistentState('backing-fretboard', 'fretRangeEnd', null);
@@ -226,7 +255,33 @@ export default function LiveFretboard({
             isPlaying={isPlaying}
           />
 
+          {/* Position picker — one position at a time */}
+          {positionGroup && (
+            <div className="lf-positions" role="group" aria-label={t('backing.lessons.pickPosition')} data-testid="lf-positions">
+              <span className="lf-positions-label">
+                {positionGroup.id === 'caged' ? t('backing.lessons.positionCaged')
+                  : positionGroup.id === 'octave' ? t('backing.lessons.positionOctave')
+                    : t('backing.lessons.positionNps3')}
+              </span>
+              <div className="lf-positions-btns">
+                {positionGroup.shapes.map(id => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`lf-pos-btn lf-pos-btn--${positionGroup.id}${activePosition === id ? ' active' : ''}`}
+                    aria-pressed={activePosition === id}
+                    aria-label={t(`positions.shapes.${id}`)}
+                    title={t(`positions.shapes.${id}`)}
+                    data-testid={`lf-pos-${id}`}
+                    onClick={() => setShapeId(id)}
+                  >{positionLabel(id)}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Fretboard */}
+          <div ref={neckWrapRef}>
           <AllScalesFretboard
             activeNoteClasses={scaleNotes}
             selectedRoot={selectedRoot}
@@ -244,6 +299,7 @@ export default function LiveFretboard({
             softNotes={softNotes}
             noteDisplayMap={noteDisplayMap}
           />
+          </div>
 
           {/* Controls bar */}
           <div className="lf-controls">
@@ -262,6 +318,17 @@ export default function LiveFretboard({
               </div>
             </div>
 
+            {positionGroup && (
+              <button
+                type="button"
+                className={`lf-action-btn lf-more-btn${showMore ? ' active' : ''}`}
+                aria-expanded={showMore}
+                data-testid="lf-more"
+                onClick={() => setShowMore(v => !v)}
+              >⚙️ {showMore ? t('backing.lessons.lessSettings') : t('backing.lessons.moreSettings')}</button>
+            )}
+
+            {showAdvanced && (<>
             {/* Global root + scale selectors (when polyscale OFF) */}
             {!polyscaleEnabled && (
               <>
@@ -345,6 +412,7 @@ export default function LiveFretboard({
             >
               {t('backing.polyscale')} {polyscaleEnabled ? '●' : ''}
             </button>
+            </>)}
 
             {/* Clear fret range */}
             {hasRange && (

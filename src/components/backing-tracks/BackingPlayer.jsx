@@ -448,10 +448,12 @@ export function BackingPlayer({ hideFretboard = false } = {}) {
   const [loadedLessonId, setLoadedLessonId] = usePersistentState('backing-lessons', 'loaded', null)
   const handleLoadLesson = useCallback((preset) => {
     loadLessonPreset(preset)
-    const first = preset.export.views[0]
+    // Live neck: one position at a time (the round position buttons pick another one).
+    // The multi-neck layouts are only for the 🎬 export below.
+    const { live } = preset
     const neck = {
-      globalScaleId: first.scaleId, globalRoot: first.root, shapeId: (first.shapeIds || [first.shapeId]).join(','),
-      emphasis: first.emphasis ?? null, fretRangeStart: null, fretRangeEnd: null,
+      globalScaleId: live.scaleId, globalRoot: live.root, shapeId: live.shapeId,
+      emphasis: live.emphasis, fretRangeStart: null, fretRangeEnd: null, showMore: false,
     }
     for (const [field, value] of Object.entries(neck)) writeLastState(`backing-fretboard.${field}`, 1, { value })
     const saved = sanitizeSettings(readLastState(VIDEO_EXPORT_STORAGE_ID, 1, DEFAULT_SETTINGS))

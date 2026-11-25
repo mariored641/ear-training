@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import { execFileSync } from 'child_process';
 import {
-  LESSONS, TRACKS, TRACK_TYPES, NECKS, trackBars, trackChords, lessonPreset, lessonPresetVariants, exportPlanFor, chord, barsToChords,
+  LESSONS, TRACKS, TRACK_TYPES, NECKS, MAX_EARLY_BPM, EARLY_LESSONS, liveNeck, trackBars, trackChords, lessonPreset, lessonPresetVariants, exportPlanFor, chord, barsToChords,
   MIN_SEC, MAX_SEC, INTRO_ENDING_ALLOWANCE_SEC, TARGET_SEC,
 } from '../src/data/lessonBackingTracks.js';
 import { validProgression } from '../src/utils/backingState.js';
@@ -12,6 +12,8 @@ import { isShapeId } from '../src/constants/neckShapes.js';
 
 const engineSrc = fs.readFileSync(new URL('../src/components/backing-tracks/useBackingTrackEngine.js', import.meta.url), 'utf8');
 const GENRES = new Set([...engineSrc.matchAll(/\{ id: '([a-z0-9_]+)',\s*label:/g)].map(m => m[1]));
+const NATIVE_TEMPO = Object.fromEntries(JSON.parse(fs.readFileSync(new URL('../public/styles-native/index.json', import.meta.url), 'utf8'))
+  .styles.map(s => [s.id, s.tempo]));
 
 test('chord parser builds app chord objects (incl. half bars)', () => {
   assert.deepEqual(chord('Am'), { root: 'A', quality: 'minor', extensions: [] });
@@ -30,10 +32,53 @@ test('12 lessons, every lesson has presets, every track is valid and 4/4-playabl
     assert.ok(t.tempo >= 40 && t.tempo <= 240, t.id);
     if (t.source.kind === 'youtube') {
       assert.equal(trackBars(t).length, t.source.measured.formBars, `${t.id} form length`);
-      assert.equal(t.tempo, t.source.measured.bpm, `${t.id} tempo`);
     }
   }
   assert.equal(new Set(TRACKS.map(t => t.id)).size, TRACKS.length);
+});
+
+// Mario, 2026-11: some styles sounded rushed ("a mess") — the video BPM had been copied onto app
+// styles built for a very different tempo. The app tempo must suit the app style.
+test('every track tempo is within ±15 % of its app style\'s own tempo', () => {
+  for (const t of TRACKS) {
+    const native = NATIVE_TEMPO[t.genre];
+    assert.ok(native, `${t.id}: ${t.genre} has no native style`);
+    const r = t.tempo / native;
+    assert.ok(r >= 0.85 && r <= 1.15, `${t.id}: ${t.tempo} bpm on ${t.genre} (native ${native}) = ×${r.toFixed(2)}`);
+  }
+});
+
+test('lessons 1–4 are calm: every track ≤ 100 BPM; lessons 1–3 use 2 bars per chord', () => {
+  assert.equal(MAX_EARLY_BPM, 100);
+  for (const l of LESSONS.filter(x => EARLY_LESSONS.includes(x.n))) {
+    for (const item of l.items) {
+      const t = TRACKS.find(x => x.id === item.trackId);
+      assert.ok(t.tempo <= MAX_EARLY_BPM, `L${l.n} ${t.id}: ${t.tempo}`);
+      if (l.n <= 3) {
+        const bars = trackBars(t);
+        assert.equal(t.source.kind, 'easy', `L${l.n} ${t.id}`);
+        assert.deepEqual(bars, [bars[0], bars[0], bars[2], bars[2]], `L${l.n} ${t.id}: ${bars.join(' ')}`);
+        assert.notEqual(bars[0], bars[2]);
+      }
+    }
+  }
+  assert.deepEqual(trackBars(TRACKS.find(t => t.id === 'amg7-easy-pop')), ['Am', 'Am', 'G7', 'G7']);
+  assert.deepEqual(trackBars(TRACKS.find(t => t.id === 'cg7-easy-pop')), ['C', 'C', 'G7', 'G7']);
+});
+
+test('live neck: one position at a time, picked from round buttons', () => {
+  for (const [id, n] of Object.entries(NECKS)) {
+    assert.ok(n.positions.length >= 3 && n.positions.every(isShapeId), id);
+    assert.ok(n.positions.includes(n.start), id);
+  }
+  assert.deepEqual(liveNeck('caged_scale', { root: 'A', type: 'minor' }),
+    { scaleId: 'aeolian', root: 'A', shapeId: 'caged_C', positions: ['caged_C', 'caged_A', 'caged_G', 'caged_E', 'caged_D'], emphasis: null });
+  assert.deepEqual(liveNeck('octave', { root: 'C', type: 'major' }).positions, ['octave_134', 'octave_124', 'octave_hybrid']);
+  assert.equal(liveNeck('caged_GE_chords', { root: 'A', type: 'minor' }).shapeId, 'caged_G');
+  for (const l of LESSONS) for (const item of l.items) {
+    const live = lessonPreset(l.n, item.trackId).live;
+    assert.ok(!live.shapeId.includes(','), `L${l.n} ${item.trackId}: one position only`);
+  }
 });
 
 test('every track type has at least 5 different styles', () => {
@@ -60,16 +105,17 @@ test('every lesson export lands in 5–10 minutes and fits the dialog limits', (
 });
 
 test('lesson preset = backing state + export settings that survive sanitising', () => {
-  const p = lessonPreset(1, 'amg7-bossa');
-  assert.equal(p.id, 'L1-amg7-bossa');
+  const p = lessonPreset(1, 'amg7-easy-reggae');
+  assert.equal(p.id, 'L1-amg7-easy-reggae');
   assert.deepEqual(p.key, { root: 'A', type: 'minor' });
-  assert.equal(p.genre, 'latin_fastbossa'); assert.equal(p.tempo, 190);
-  assert.deepEqual(p.chords.map(c => c.root), ['A', 'G', 'A', 'G']);
+  assert.equal(p.genre, 'reggae'); assert.equal(p.tempo, 80);
+  assert.deepEqual(p.chords.map(c => c.root), ['A', 'A', 'G', 'G']);
+  assert.equal(p.live.shapeId, 'octave_134');
   // Answer 2: octave positions on two necks by default, single shapes as extra videos.
   assert.equal(p.export.necksPerScreen, 2);
   assert.deepEqual(p.export.views.map(v => v.shapeIds), [['octave_134'], ['octave_124']]);
-  assert.deepEqual(lessonPresetVariants(1, 'amg7-bossa').map(x => x.id),
-    ['L1-amg7-bossa', 'L1-amg7-bossa~134', 'L1-amg7-bossa~124', 'L1-amg7-bossa~hybrid']);
+  assert.deepEqual(lessonPresetVariants(1, 'amg7-easy-reggae').map(x => x.id),
+    ['L1-amg7-easy-reggae', 'L1-amg7-easy-reggae~134', 'L1-amg7-easy-reggae~124', 'L1-amg7-easy-reggae~hybrid']);
   const s = sanitizeSettings({ resolution: '720p', ...p.export });
   assert.equal(s.repetitions, p.export.repetitions);
   assert.equal(s.rotateEvery, p.export.rotateEvery);
@@ -83,7 +129,8 @@ test('lesson preset = backing state + export settings that survive sanitising', 
   assert.deepEqual(blues.export.views.map(v => v.shapeIds), [['caged_C', 'caged_G', 'caged_D'], ['caged_A', 'caged_E']]);
   assert.deepEqual(lessonPreset(6, 'amdmem-blues').export.views.map(v => v.shapeIds), [['caged_G'], ['caged_E']]);
   assert.equal(lessonPreset(1, 'nope'), null);
-  assert.equal(lessonPreset(99, 'amg7-bossa'), null);
+  assert.equal(lessonPreset(99, 'amg7-easy-reggae'), null);
+  assert.equal(lessonPreset(1, 'amg7-bossa'), null);                 // the fast videos left lessons 1–3
 });
 
 test('the committed spec is generated from the data file (no drift)', () => {
