@@ -204,3 +204,66 @@ test('reggae chord tones follow the chart and the instrument map is playable', (
   assert.equal(map.bass.program, GM.ELECTRIC_BASS_FINGER)
   assert.equal(map.piano.program, GM.RHODES)
 })
+
+const HARMONIC = new Set(['BASS', 'CHORD1', 'CHORD2', 'PAD', 'PHRASE1', 'PHRASE2'])
+const RHYTHM = new Set(['RHYTHM', 'SUBRHYTHM'])
+
+function notesByAccType(part) {
+  const counts = {}
+  for (const channel of Object.values(part.channels)) {
+    const accType = channel.ctab.accType
+    counts[accType] = (counts[accType] || 0) + channel.notes.length
+  }
+  return counts
+}
+
+function assertDrumsOnlyIntro(style, label) {
+  const intro = style.parts.Intro_A
+  assert.ok(intro, `${label} has Intro_A`)
+  const counts = notesByAccType(intro)
+  for (const [accType, count] of Object.entries(counts)) {
+    if (HARMONIC.has(accType)) {
+      assert.equal(count, 0, `${label} Intro_A ${accType} should be empty`)
+    } else {
+      assert.ok(RHYTHM.has(accType), `${label} Intro_A unexpected accType ${accType}`)
+    }
+  }
+  const rhythmNotes = [...RHYTHM].reduce((sum, accType) => sum + (counts[accType] || 0), 0)
+  assert.ok(rhythmNotes > 0, `${label} Intro_A is silent`)
+}
+
+test('reggae Intro_A is a one-bar drums-only count-in, like the common shipped styles', () => {
+  const style = loadStyle()
+  const result = validateStyle(style)
+  assert.equal(result.valid, true, result.errors.join('; '))
+  assert.deepEqual(result.errors, [])
+
+  const intro = style.parts.Intro_A
+  assert.equal(intro.sizeInBeats, 4)
+  assertDrumsOnlyIntro(style, 'reggae')
+
+  const drums = intro.channels['9'].notes
+  const perc = intro.channels['8'].notes
+  assert.ok(drums.some(note => note.pitch === KICK && note.position === 2), 'one-drop kick on beat 3')
+  assert.equal(drums.some(note => note.pitch === KICK && beatInBar(note.position) === 0), false, 'no kick on beat 1')
+  assert.ok(drums.some(note => note.pitch === 37), 'cross-stick')
+  assert.ok(drums.some(note => note.pitch === 42), 'closed hat')
+  assert.ok(perc.some(note => note.pitch === 69), 'cabasa')
+  assert.equal(intro.channels['10'].notes.length, 0)
+  assert.equal(intro.channels['11'].notes.length, 0)
+  assert.equal(intro.channels['12'].notes.length, 0)
+  assert.ok(style.parts.Main_A.channels['10'].notes.length > 0, 'Main_A still has bass')
+  assert.ok(style.parts.Main_A.channels['12'].notes.length > 0, 'Main_A still has the skank')
+
+  // Same drums-only Intro_A convention as the common shipped styles.
+  // Outliers whose Intro_A still has chords or bass, and which this test does
+  // not treat as the model: latin_salsa, latin_samba2, latin_mambo,
+  // blues_shuffle, country_train, country_modern.
+  const index = JSON.parse(fs.readFileSync(new URL('../public/styles-native/index.json', import.meta.url), 'utf8'))
+  for (const id of ['latin_bossa', 'rock_pop', 'rock_standard', 'country_shuffle', 'jazz_swing', 'blues_simple']) {
+    const entry = index.styles.find(item => item.id === id)
+    assert.ok(entry, id)
+    const other = JSON.parse(fs.readFileSync(new URL(`../public/styles-native/${entry.path}`, import.meta.url), 'utf8'))
+    assertDrumsOnlyIntro(other, id)
+  }
+})

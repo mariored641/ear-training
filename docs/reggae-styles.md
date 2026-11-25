@@ -16,6 +16,12 @@ Terminology: some writers call a quarter-note kick "rockers" and an eighth-note 
 
 The file is 4/4, `division: "BINARY"` (straight 8ths). Each main is 2 bars (8 beats). Fills are 1 bar (4 beats), which is what `resolveFillPart` substitutes for the last bar of a main. Guitar is a muted-guitar chop (`CHORD2`). The keyboard bubble is Rhodes (`CHORD1`) because drawbar organ is not in the shipped SF3 packs. Bass notes are C-major chord tones so the transposer follows the chart (`BASS` + `MELODY` + `ROOT_TRANSPOSITION`; drums `BYPASS`). The humanizer preset `reggae` sits a little behind the beat.
 
+## Count-in
+
+Play always starts on `Intro_A`. `useBackingTrackEngine` calls `setSkipIntro(false)`, and `BackingTrackEngine._resetForPlay()` picks `getIntroName('Main_A')`, which is `Intro_A`. The engine does not mute bass or chord channels during that bar, so the count-in is exactly the notes in `Intro_A`. Other shipped styles keep harmonic channels empty there and use drums (and sometimes percussion) to set the groove. Reggae follows that.
+
+`Intro_B` and `Intro_C` are not the count-in. After `Intro_A` the engine goes to `Main_A`. Later A→B→C→D changes use fills, not intros. Those two parts stay as longer musical intros (the band coming in over several bars). Nothing in playback starts on them.
+
 ## Tempo: 84 BPM
 
 A style file has one tempo, and `GENRE_CATALOG` has one bpm. The player uses the catalog bpm; the user can still move the tempo control.
@@ -35,9 +41,9 @@ A style file has one tempo, and `GENRE_CATALOG` has one bpm. The player uses the
 | Fill_In_CC | 4 | Steppers quarters, then extra snare hits from the "&" of 3 through the last 16th. Bass walks the bar in quarters instead of the main's syncopation. |
 | Fill_In_DD | 4 | Fuller steppers for two beats (quarters, the "&" of 1, 16th hats and tambourine, the longer chop), then a rising snare roll. Hats drop out under the roll. Bass climbs the chord tones instead of looping the main. |
 | Fill_In_BA | 4 | Rockers → one drop. Beat 1 and the "&" of 2 are the rockers kicks and the longer chop. Beat 3 is the one-drop kick and loud cross-stick, and the chop shortens. A snare pickup on the "&" of 4 leads into the empty one-drop downbeat. There is no Intro_D or Ending_D; `getIntroName('Main_D')` stays null, as it does for the other shipped styles. |
-| Intro_A | 4 | One drop in one bar: no kick until beat 3, bass off the downbeat, short chops, one bubble. |
-| Intro_B | 8 | Rockers. Bar 1 is drums and cabasa only. Bar 2 brings in bass, the longer chop, and the bubble. |
-| Intro_C | 16 | Steppers build. Bar 1 is kick and hat. Bar 2 adds snare and tambourine. Bar 3 adds bass. Bar 4 is the full double-chop groove. |
+| Intro_A | 4 | Count-in. One-drop drums and cabasa only, one bar. Closed hats on straight 8ths (quiet on the downbeat, louder on the "&"), cross-stick on beats 2 and 4, kick plus a loud cross-stick on beat 3, cabasa on every "&", open hat on the last "&" into Main A. Bass, guitar chop, and Rhodes have empty `notes`. |
+| Intro_B | 8 | Musical intro, not the count-in. Rockers. Bar 1 is drums and cabasa only. Bar 2 brings in bass, the longer chop, and the bubble. |
+| Intro_C | 16 | Musical intro, not the count-in. Steppers build. Bar 1 is kick and hat. Bar 2 adds snare and tambourine. Bar 3 adds bass. Bar 4 is the full double-chop groove. |
 | Ending_A | 4 | One-drop button. The band hits the beat-3 drop and holds the chord and bass root. A soft cross-stick on beat 4 closes it. |
 | Ending_B | 8 | One bar of rockers, then a second bar that keeps the kick on 1 and the "&" of 2 and lands the chord on beat 3. |
 | Ending_C | 12 | Two bars of steppers, then a last bar that drives for two beats, a short snare pickup, and a final kick, snare, and chord on beat 3. |

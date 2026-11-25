@@ -5397,20 +5397,7 @@
             },
             "ctb2High": null
           },
-          "notes": [
-            {
-              "pitch": 36,
-              "velocity": 108,
-              "position": 0.5,
-              "duration": 0.5
-            },
-            {
-              "pitch": 43,
-              "velocity": 96,
-              "position": 2.5,
-              "duration": 0.4
-            }
-          ]
+          "notes": []
         },
         "11": {
           "ctab": {
@@ -5435,26 +5422,7 @@
             },
             "ctb2High": null
           },
-          "notes": [
-            {
-              "pitch": 60,
-              "velocity": 68,
-              "position": 1.5,
-              "duration": 0.25
-            },
-            {
-              "pitch": 64,
-              "velocity": 68,
-              "position": 1.5,
-              "duration": 0.25
-            },
-            {
-              "pitch": 67,
-              "velocity": 68,
-              "position": 1.5,
-              "duration": 0.25
-            }
-          ]
+          "notes": []
         },
         "12": {
           "ctab": {
@@ -5479,80 +5447,7 @@
             },
             "ctb2High": null
           },
-          "notes": [
-            {
-              "pitch": 55,
-              "velocity": 106,
-              "position": 0.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 60,
-              "velocity": 106,
-              "position": 0.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 64,
-              "velocity": 106,
-              "position": 0.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 55,
-              "velocity": 106,
-              "position": 1.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 60,
-              "velocity": 106,
-              "position": 1.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 64,
-              "velocity": 106,
-              "position": 1.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 55,
-              "velocity": 106,
-              "position": 2.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 60,
-              "velocity": 106,
-              "position": 2.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 64,
-              "velocity": 106,
-              "position": 2.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 55,
-              "velocity": 106,
-              "position": 3.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 60,
-              "velocity": 106,
-              "position": 3.5,
-              "duration": 0.125
-            },
-            {
-              "pitch": 64,
-              "velocity": 106,
-              "position": 3.5,
-              "duration": 0.125
-            }
-          ]
+          "notes": []
         }
       }
     },
