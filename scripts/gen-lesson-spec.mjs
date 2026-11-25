@@ -79,8 +79,10 @@ p('## 0. Legend — what is read vs. inferred')
 p()
 p('| Mark | Meaning |')
 p('|---|---|')
-p('| **[YT]** | Read from Mario\'s YouTube video: chords + form read off the Band-in-a-Box chord chart shown on screen; BPM **measured** from the bar-highlight timing (frame-difference events, 97–322 bar changes per video, all intervals within 10 % of the median; BPM = 240 / bar-seconds, assuming 4/4); source repeats = (bars played) / (form length). |')
+p('| **[YT]** | Read from Mario\'s YouTube video: chords + form read off the Band-in-a-Box chord chart shown on screen; source repeats = (bars played) / (form length). The video\'s tempo is NOT used. |')
 p('| **App style** | The app\'s own backing-track style. Mario (answer 1): Band-in-a-Box styles and app styles are different things — no style correspondence is implied; the app styles are simply chosen to vary. |')
+p('| **[easy]** | Beginner track for lessons 1–3 (Mario, 2026-11): 2 bars per chord (Am Am G7 G7 / C C G7 G7), calm style, ≤ 100 BPM. |')
+p('| **BPM** | The app style\'s own default tempo (Mario, 2026-11 — unrelated to the YouTube videos). Lessons 1–4 only use styles whose default is ≤ 100 BPM. |')
 p('| **[new]** | Extra style/variant suggested here so each track type has ≥ 5 styles (inferred; not in Mario\'s material). |')
 p('| **[lesson-inferred]** | The lesson text has no backing-track link; the list is our suggestion (see open questions). |')
 p('| Neck shapes | Octave positions: cells copied from Mario\'s Guitar Scientist diagram data (read). CAGED windows: the app\'s existing Positions-tab ranges (read from code; consistent with the "AM-G7_C-G7 - CAGED" PDF fret labels). 3NPS: computed (inferred — lesson 12 only names the idea). |')
@@ -167,7 +169,7 @@ for (const lesson of LESSONS) {
     allVersionExports += variants.length
     const src = t.source.kind === 'youtube'
       ? `[YT] [${t.source.videoId}](https://youtu.be/${t.source.videoId}) "${t.source.title}" (${t.source.measured.repeats}× in video)`
-      : '[new]'
+      : t.source.kind === 'easy' ? '[easy]' : '[new]'
     const app = STYLE_LABEL[t.genre] ?? t.genre
     p(`| ${i + 1} | ${TRACK_TYPES[t.type].labelEn} → ${app} | ${formText(bars)} | ${bars.length}-bar form | ${keyLabel(t.key)} | ${t.tempo} | \`${t.genre}\` (${app}) | ${src} | ${plan.repetitions} × (${bars.length * 4}×60/${t.tempo} = ${r1(plan.repSec)} s) = ${r1(plan.musicSec)} s → **${sec(plan.musicSec)}** (dialog ${sec(plan.dialogEstimateSec)}) | ${plan.viewChanges ? `${plan.rotateEvery} rep (${plan.viewChanges} changes)` : '— (no rotation)'} | ${viewsText(plan.views, plan.necksPerScreen)} (+ ${variants.length - 1} other version${variants.length === 2 ? '' : 's'}) |`)
     totalItems++

@@ -31,3 +31,6 @@
   border: 1px solid rgba(212, 169, 79, 0.45); background: transparent; color: var(--text-dim);
 }
 .lp-variant-btn.active { background: rgba(212, 169, 79, 0.25); color: var(--text); }
+.lp-video { margin-top: 4px; }
+.lp-video > summary { font-size: 11px; color: var(--text-dim); cursor: pointer; width: fit-content; }
+.lp-video[open] > summary { margin-bottom: 2px; }

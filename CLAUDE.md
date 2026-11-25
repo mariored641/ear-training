@@ -173,6 +173,10 @@ Production: https://ear-training-rose.vercel.app
   - Minor→Major = −3 semitones
   - Enharmonic naming: מפתחות שטוחים → שמות שטוחים (Db, Eb…), דיאזים → שמות דיאז (C#, D#…)
   - פונקציות עזר ב-`useBackingTrackEngine.js`: `transposeChordProgression`, `noteNamesForKey`, `transposeNoteName`
+- **מודול השיעורים ("אלתור בהישג יד")**: `src/data/lessonBackingTracks.js` (מקור אמת יחיד; `docs/lesson-backing-tracks-spec.md` נוצר ממנו ב-`node scripts/gen-lesson-spec.mjs`). כללים (מריו, 2026-11), נאכפים ב-`unit-tests/lessonBackingTracks.test.js`:
+  - טמפו של כל טראק = הטמפו הדיפולטי של הסגנון באפליקציה (`bpm` ב-GENRE_CATALOG, מועתק ל-`STYLE_DEFAULT_BPM`). לא קשור לטמפו של הסרטונים ביוטיוב.
+  - שיעורים 1–4: רק סגנונות שהדיפולט שלהם ≤100 BPM. שיעורים 1–3: רק טראקים `easy` — 2 תיבות לכל אקורד (Am Am G7 G7 / C C G7 G7), סגנונות רגועים.
+  - צוואר חי: פוזיציה אחת בכל פעם, נבחרת מכפתורים עגולים (`NECKS[...].positions/start` → `preset.live`). הצוואר הכפול (2 צווארים) רק לייצוא וידאו 🎬.
 - **SF2 Library Lab** (נסתר): `/test/sf2-lab` → `sf2-lab/Sf2LabPage.jsx`
   - דשבורד A/B להשוואת ספריות SoundFont (JJazzLab / FluidR3 / GeneralUser / Arachno)
   - מחליף SF2 בזמן ריצה דרך `SFP.swapSoundFont(libraryConfig, onProgress)`
