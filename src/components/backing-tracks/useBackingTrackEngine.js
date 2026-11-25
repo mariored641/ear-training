@@ -111,9 +111,7 @@ export const GENRE_CATALOG = [
     label: 'Reggae',
     icon: '🇯🇲',
     subtypes: [
-      { id: 'reggae_onedrop',  label: 'Reggae – One Drop',  bpm: 80, human: 'reggae' },
-      { id: 'reggae_steppers', label: 'Reggae – Steppers',  bpm: 96, human: 'reggae' },
-      { id: 'reggae_rockers',  label: 'Reggae – Rockers',   bpm: 74, human: 'reggae' },
+      { id: 'reggae', label: 'Reggae', bpm: 84, human: 'reggae' },
     ],
   },
   {
@@ -843,31 +841,9 @@ export const GENRE_DEFAULTS = {
     ],
   },
 
-  // ── Reggae — one chord per bar so the groove is easy to hear ──
-  reggae_onedrop: {
-    tempo: 80,
-    defaultChord: { root: 'C', quality: 'major', extensions: [] },
-    presetBarCount: 4,
-    preset: [
-      { root: 'C', quality: 'major', extensions: [] },
-      { root: 'G', quality: 'major', extensions: [] },
-      { root: 'A', quality: 'minor', extensions: [] },
-      { root: 'F', quality: 'major', extensions: [] },
-    ],
-  },
-  reggae_steppers: {
-    tempo: 96,
-    defaultChord: { root: 'C', quality: 'major', extensions: [] },
-    presetBarCount: 4,
-    preset: [
-      { root: 'C', quality: 'major', extensions: [] },
-      { root: 'G', quality: 'major', extensions: [] },
-      { root: 'A', quality: 'minor', extensions: [] },
-      { root: 'F', quality: 'major', extensions: [] },
-    ],
-  },
-  reggae_rockers: {
-    tempo: 74,
+  // ── Reggae — one chord per bar so the four mains are easy to hear ──
+  reggae: {
+    tempo: 84,
     defaultChord: { root: 'C', quality: 'major', extensions: [] },
     presetBarCount: 4,
     preset: [

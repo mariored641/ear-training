@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-25T05:40:00.000Z",
+  "generatedAt": "2026-11-25T07:10:00.000Z",
   "repoCommit": null,
-  "catalogTotal": 55,
-  "converted": 51,
+  "catalogTotal": 53,
+  "converted": 49,
   "skipped": [],
   "styles": [
     {
@@ -1266,55 +1266,31 @@
       "sha256OfSource": "dc76d3056e1e6dd9eed1ec73d1adbeeeea1bca71f07aff6db3e106bb9ea18ac3"
     },
     {
-      "id": "reggae_onedrop",
-      "label": "Reggae – One Drop",
+      "id": "reggae",
+      "label": "Reggae",
       "category": "reggae",
-      "path": "reggae/reggae_onedrop.json",
-      "name": "Reggae One Drop",
-      "tempo": 80,
+      "path": "reggae/reggae.json",
+      "name": "Reggae",
+      "tempo": 84,
       "timeSignature": "4/4",
       "sffType": "SFF1",
       "division": "BINARY",
       "parts": [
         "Main_A",
         "Main_B",
-        "Fill_In_AA"
-      ],
-      "sourceSty": null,
-      "authoring": "hand-authored generic pattern"
-    },
-    {
-      "id": "reggae_rockers",
-      "label": "Reggae – Rockers",
-      "category": "reggae",
-      "path": "reggae/reggae_rockers.json",
-      "name": "Reggae Rockers",
-      "tempo": 74,
-      "timeSignature": "4/4",
-      "sffType": "SFF1",
-      "division": "BINARY",
-      "parts": [
-        "Main_A",
-        "Main_B",
-        "Fill_In_AA"
-      ],
-      "sourceSty": null,
-      "authoring": "hand-authored generic pattern"
-    },
-    {
-      "id": "reggae_steppers",
-      "label": "Reggae – Steppers",
-      "category": "reggae",
-      "path": "reggae/reggae_steppers.json",
-      "name": "Reggae Steppers",
-      "tempo": 96,
-      "timeSignature": "4/4",
-      "sffType": "SFF1",
-      "division": "BINARY",
-      "parts": [
-        "Main_A",
-        "Main_B",
-        "Fill_In_AA"
+        "Main_C",
+        "Main_D",
+        "Fill_In_AA",
+        "Fill_In_BB",
+        "Fill_In_CC",
+        "Fill_In_DD",
+        "Intro_A",
+        "Ending_A",
+        "Fill_In_BA",
+        "Intro_B",
+        "Intro_C",
+        "Ending_B",
+        "Ending_C"
       ],
       "sourceSty": null,
       "authoring": "hand-authored generic pattern"

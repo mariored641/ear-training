@@ -134,11 +134,6 @@ const OVERRIDES_BY_ID = {
   // ── Country refinements ──
   country_brothers: { guitar: { program: GM.NYLON_GUITAR, volume: 90 } },
   country_ballad:   { guitar: { program: GM.NYLON_GUITAR, volume: 85 } },
-
-  // ── Reggae refinements ──
-  reggae_steppers: { bass: { program: GM.ELECTRIC_BASS_PICK, volume: 102 },
-                     guitar: { program: GM.MUTED_GUITAR, volume: 96 } },
-  reggae_rockers:  { piano: { program: GM.RHODES, volume: 76 } },
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
