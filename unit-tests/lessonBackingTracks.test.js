@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import { execFileSync } from 'child_process';
 import {
-  LESSONS, TRACKS, TRACK_TYPES, NECKS, MAX_EARLY_BPM, EARLY_LESSONS, liveNeck, trackBars, trackChords, lessonPreset, lessonPresetVariants, exportPlanFor, chord, barsToChords,
+  LESSONS, TRACKS, TRACK_TYPES, NECKS, MAX_EARLY_BPM, EARLY_LESSONS, liveNeck, STYLE_DEFAULT_BPM, trackBars, trackChords, lessonPreset, lessonPresetVariants, exportPlanFor, chord, barsToChords,
   MIN_SEC, MAX_SEC, INTRO_ENDING_ALLOWANCE_SEC, TARGET_SEC,
 } from '../src/data/lessonBackingTracks.js';
 import { validProgression } from '../src/utils/backingState.js';
@@ -12,8 +12,7 @@ import { isShapeId } from '../src/constants/neckShapes.js';
 
 const engineSrc = fs.readFileSync(new URL('../src/components/backing-tracks/useBackingTrackEngine.js', import.meta.url), 'utf8');
 const GENRES = new Set([...engineSrc.matchAll(/\{ id: '([a-z0-9_]+)',\s*label:/g)].map(m => m[1]));
-const NATIVE_TEMPO = Object.fromEntries(JSON.parse(fs.readFileSync(new URL('../public/styles-native/index.json', import.meta.url), 'utf8'))
-  .styles.map(s => [s.id, s.tempo]));
+const CATALOG_BPM = Object.fromEntries([...engineSrc.matchAll(/\{ id: '([a-z0-9_]+)',\s*label: (?:"[^"]*"|'[^']*'),\s*bpm: (\d+)/g)].map(m => [m[1], +m[2]]));
 
 test('chord parser builds app chord objects (incl. half bars)', () => {
   assert.deepEqual(chord('Am'), { root: 'A', quality: 'minor', extensions: [] });
@@ -37,15 +36,12 @@ test('12 lessons, every lesson has presets, every track is valid and 4/4-playabl
   assert.equal(new Set(TRACKS.map(t => t.id)).size, TRACKS.length);
 });
 
-// Mario, 2026-11: some styles sounded rushed ("a mess") — the video BPM had been copied onto app
-// styles built for a very different tempo. The app tempo must suit the app style.
-test('every track tempo is within ±15 % of its app style\'s own tempo', () => {
-  for (const t of TRACKS) {
-    const native = NATIVE_TEMPO[t.genre];
-    assert.ok(native, `${t.id}: ${t.genre} has no native style`);
-    const r = t.tempo / native;
-    assert.ok(r >= 0.85 && r <= 1.15, `${t.id}: ${t.tempo} bpm on ${t.genre} (native ${native}) = ×${r.toFixed(2)}`);
-  }
+// Mario, 2026-11: every style plays at its own default tempo in the app — nothing to do with
+// the tempo of the YouTube videos (copying those made some styles rushed, "a mess").
+test('every track plays its style at the style\'s default app tempo', () => {
+  for (const [genre, bpm] of Object.entries(STYLE_DEFAULT_BPM)) assert.equal(bpm, CATALOG_BPM[genre], genre);
+  for (const t of TRACKS) assert.equal(t.tempo, CATALOG_BPM[t.genre], `${t.id} (${t.genre})`);
+  for (const t of TRACKS) assert.equal(t.source.measured?.bpm, undefined, `${t.id}: no video tempo`);
 });
 
 test('lessons 1–4 are calm: every track ≤ 100 BPM; lessons 1–3 use 2 bars per chord', () => {
@@ -108,7 +104,7 @@ test('lesson preset = backing state + export settings that survive sanitising', 
   const p = lessonPreset(1, 'amg7-easy-reggae');
   assert.equal(p.id, 'L1-amg7-easy-reggae');
   assert.deepEqual(p.key, { root: 'A', type: 'minor' });
-  assert.equal(p.genre, 'reggae'); assert.equal(p.tempo, 80);
+  assert.equal(p.genre, 'reggae'); assert.equal(p.tempo, 84);
   assert.deepEqual(p.chords.map(c => c.root), ['A', 'A', 'G', 'G']);
   assert.equal(p.live.shapeId, 'octave_134');
   // Answer 2: octave positions on two necks by default, single shapes as extra videos.
