@@ -1,13 +1,13 @@
 /* Ear Training Hub — Workshop theme */
 
 .et-hub-page {
-  min-height: 100vh;
+  min-height: var(--app-height);
   background: transparent;
   color: var(--paper-cream);
   font-family: var(--font-body);
   position: relative;
   z-index: 2;
-  padding: 24px 20px 40px;
+  padding: calc(24px + var(--safe-top)) max(20px, var(--safe-right)) calc(40px + var(--safe-bottom)) max(20px, var(--safe-left));
   direction: inherit;
 }
 

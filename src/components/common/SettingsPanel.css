@@ -13,7 +13,8 @@
   top: 0;
   right: -400px;
   width: 400px;
-  height: 100vh;
+  height: var(--app-height);
+  padding-bottom: var(--safe-bottom);
   background-color: var(--color-bg);
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
   transition: right var(--transition-normal);

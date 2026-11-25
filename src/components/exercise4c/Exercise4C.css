@@ -2,7 +2,7 @@
 @import '../exercise4a/Exercise4A.css';
 
 .exercise4c {
-  min-height: 100vh;
+  min-height: var(--app-height);
   background: var(--bg-primary);
   padding-bottom: 40px;
 }

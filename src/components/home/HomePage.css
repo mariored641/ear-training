@@ -8,7 +8,7 @@
 .home-page-constellation {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  height: var(--app-height);
   overflow: hidden;
   color: var(--paper-cream);
   font-family: var(--font-body);
@@ -23,7 +23,7 @@ body.home-page-active {
   margin: 0;
 }
 body.home-page-active #root {
-  height: 100vh;
+  height: var(--app-height);
   overflow: hidden;
 }
 
@@ -99,8 +99,8 @@ body.home-page-active #root {
 .home-page-constellation .stage {
   position: relative;
   z-index: 1;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,7 +108,9 @@ body.home-page-active #root {
 .home-page-constellation .constellation {
   position: relative;
   width: min(90vmin, 760px);
+  width: min(90svmin, 760px);
   height: min(90vmin, 760px);
+  height: min(90svmin, 760px);
 }
 
 /* ===== Center hub — brass-rimmed leather medallion ===== */

@@ -2,7 +2,7 @@
    Backing Tracks — Aurora / Constellation theme (v2)
    Three-layer architecture:
      .bp-chord-layer (flex:1, scrollable)
-     .bp-bottom-dock (fixed at bottom, z-10)
+     .bp-bottom-dock (in-flow at the bottom of the column, z-10)
      .bp-popup-overlay (absolute, z-20, slides up between them)
    ═══════════════════════════════════════════════════════ */
 
@@ -22,8 +22,8 @@
   --glass-border: rgba(184, 146, 61, 0.30);
   --danger:     #c0392b;            /* deeper red, oxblood-tinted */
 
-  min-height: 100vh;
-  height: 100vh;
+  min-height: var(--app-height);
+  height: var(--app-height);
   background: transparent;
   color: var(--text);
   display: flex;
@@ -39,7 +39,7 @@ body.backing-page-active {
   margin: 0;
 }
 body.backing-page-active #root {
-  height: 100vh;
+  height: var(--app-height);
   overflow: hidden;
 }
 
@@ -115,7 +115,7 @@ body.backing-page-active #root {
   z-index: 5;
   display: flex;
   align-items: center;
-  padding: 10px 14px;
+  padding: calc(10px + var(--safe-top)) max(14px, var(--safe-right)) 10px max(14px, var(--safe-left));
   background:
     linear-gradient(180deg, rgba(255, 200, 160, 0.06), rgba(0, 0, 0, 0.35) 100%),
     linear-gradient(180deg, var(--leather-oxblood), var(--leather-dark));
@@ -701,7 +701,11 @@ body.backing-page-active #root {
     inset 0 1px 0 rgba(255, 220, 160, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5),
     0 -4px 18px rgba(0, 0, 0, 0.5);
-  padding: 6px 12px 10px;
+  padding:
+    6px
+    max(12px, var(--safe-right))
+    calc(10px + var(--safe-bottom))
+    max(12px, var(--safe-left));
   margin-top: 0;
 }
 
@@ -1097,6 +1101,7 @@ body.backing-page-active #root {
   width: 100%;
   max-width: 480px;
   max-height: 90vh;
+  max-height: 90svh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

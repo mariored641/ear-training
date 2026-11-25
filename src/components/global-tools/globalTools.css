@@ -5,12 +5,23 @@
    ───────────────────────────────────────────────────────────── */
 .gt-cluster {
   position: fixed;
-  left: 24px;
-  bottom: 24px;
+  left: calc(24px + var(--safe-left));
+  bottom: calc(24px + var(--safe-bottom));
   width: 56px;
   height: 56px;
   z-index: 2100;
   pointer-events: none; /* children re-enable */
+}
+
+/* The backing dock is full-width and sits on the visual viewport.
+   The default bottom-left wrench would cover the Practice tab. */
+body.backing-page-active .gt-cluster {
+  bottom: calc(var(--bp-dock-height, 176px) + 12px);
+}
+
+/* Looper's fixed action bar sits on the same corner as the default wrench. */
+body.looper-page-active .gt-cluster {
+  bottom: calc(88px + var(--safe-bottom));
 }
 
 .gt-cluster.is-dragging .gt-fab-main {

@@ -66,7 +66,7 @@ export default function StyleParserTest() {
   const validation = result?.validation
 
   return (
-    <div style={{ padding: 24, fontFamily: 'monospace', background: '#0f0f1e', color: '#e0e0e0', minHeight: '100vh' }}>
+    <div style={{ padding: 24, fontFamily: 'monospace', background: '#0f0f1e', color: '#e0e0e0', minHeight: 'var(--app-height)' }}>
       <h2 style={{ color: '#a78bfa', marginBottom: 16 }}>🎵 Style Parser Test — שלב 2</h2>
 
       {/* Preset buttons */}

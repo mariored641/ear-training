@@ -377,7 +377,7 @@ export default function TimingTestPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ background:'#0f0f1e', color:'#e0e0f0', minHeight:'100vh',
+    <div style={{ background:'#0f0f1e', color:'#e0e0f0', minHeight:'var(--app-height)',
                   fontFamily:'monospace', fontSize:13, padding:24 }}>
 
       <h2 style={{ color:'#88aaff', marginTop:0 }}>🎯 Timing Diagnostic v2</h2>

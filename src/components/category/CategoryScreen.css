@@ -1,13 +1,13 @@
 /* Workshop theme — Category screen (Dictation, legacy Melodic/Harmonic) */
 
 .category-screen {
-  min-height: 100vh;
+  min-height: var(--app-height);
   background-color: transparent;
   color: var(--paper-cream);
   font-family: var(--font-body);
   position: relative;
   z-index: 2;
-  padding: 24px;
+  padding: calc(24px + var(--safe-top)) 24px calc(24px + var(--safe-bottom));
 }
 
 .category-screen-header {

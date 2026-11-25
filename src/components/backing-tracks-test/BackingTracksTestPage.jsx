@@ -53,7 +53,7 @@ export default function BackingTracksTestPage() {
 }
 
 const pageStyle = {
-  minHeight: '100vh',
+  minHeight: 'var(--app-height)',
   background: '#0e0e1a',
   color: '#e0e0f0',
   fontFamily: 'system-ui, -apple-system, sans-serif',

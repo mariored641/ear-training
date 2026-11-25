@@ -3,7 +3,7 @@
   background: rgba(10, 6, 3, 0.72); padding: 12px; direction: ltr;
 }
 .vx-dialog {
-  width: min(680px, 100%); max-height: 94vh; display: flex; flex-direction: column;
+  width: min(680px, 100%); max-height: 94vh; max-height: 94svh; display: flex; flex-direction: column;
   background: linear-gradient(180deg, #2c1a0e, #1a130a); color: #f0e0c0;
   border: 1px solid #7d5f22; border-radius: 14px; overflow: hidden;
 }
