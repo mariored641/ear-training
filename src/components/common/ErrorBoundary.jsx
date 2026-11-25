@@ -23,7 +23,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div style={{
-          minHeight: '100vh',
+          minHeight: 'var(--app-height)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

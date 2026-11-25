@@ -1,7 +1,7 @@
 /* ── FeedbackPage.css — Workshop theme ─────────────────────────── */
 
 .fb-page {
-  min-height: 100vh;
+  min-height: var(--app-height);
   background: transparent;
   color: var(--paper-cream);
   font-family: var(--font-body);
@@ -13,7 +13,7 @@
 
 .fb-nav-back {
   position: fixed;
-  top: 14px;
+  top: calc(14px + var(--safe-top));
   right: 16px;
   background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 60%, var(--control-accent-low) 100%);
   color: var(--wood-darkest);
@@ -33,7 +33,7 @@
 /* ── Prep Screen ─────────────────────────────────────────────── */
 
 .fb-prep-screen {
-  min-height: 100vh;
+  min-height: var(--app-height);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -396,7 +396,7 @@
 
 .fb-timer {
   position: fixed;
-  top: 14px; left: 50%; transform: translateX(-50%);
+  top: calc(14px + var(--safe-top)); left: 50%; transform: translateX(-50%);
   background: rgba(200, 30, 30, 0.92);
   color: white; padding: 5px 20px; border-radius: 24px;
   font-size: 18px; font-weight: 700;
@@ -411,7 +411,7 @@
 
 .fb-rec-area {
   position: fixed;
-  bottom: 24px; left: 50%; transform: translateX(-50%);
+  bottom: calc(24px + var(--safe-bottom)); left: 50%; transform: translateX(-50%);
   z-index: 60;
 }
 .fb-rec-btn {
@@ -441,7 +441,7 @@
 /* ── Back button ─────────────────────────────────────────────── */
 
 .fb-back-btn {
-  position: fixed; top: 14px; right: 14px;
+  position: fixed; top: calc(14px + var(--safe-top)); right: max(14px, var(--safe-right));
   background: rgba(42, 24, 16, 0.6); color: var(--paper-cream);
   border: 1px solid var(--brass-dark);
   border-radius: 20px; padding: 6px 16px;
@@ -455,7 +455,7 @@
 /* ── Preview Screen ──────────────────────────────────────────── */
 
 .fb-preview-screen {
-  min-height: 100vh;
+  min-height: var(--app-height);
   display: flex; align-items: center; justify-content: center;
   padding: 80px 20px 20px;
   background: transparent;

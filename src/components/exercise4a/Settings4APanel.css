@@ -13,7 +13,8 @@
   top: 0;
   right: 0;
   width: 400px;
-  height: 100vh;
+  height: var(--app-height);
+  padding-bottom: var(--safe-bottom);
   background: white;
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
   z-index: 1000;

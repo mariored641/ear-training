@@ -236,7 +236,7 @@ export default function ChordEngineTest() {
   })
 
   return (
-    <div style={{ padding: 24, fontFamily: 'monospace', background: BG, color: FG, minHeight: '100vh' }}>
+    <div style={{ padding: 24, fontFamily: 'monospace', background: BG, color: FG, minHeight: 'var(--app-height)' }}>
       <h2 style={{ color: PURP, marginBottom: 4 }}>🎵 Chord Engine Test — שלב 3</h2>
       <p style={{ color: GRAY, fontSize: 13, marginBottom: 20 }}>
         StyleParser + ChordEngine + SoundFontPlayer

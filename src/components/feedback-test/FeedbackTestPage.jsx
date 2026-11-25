@@ -143,7 +143,7 @@ export default function FeedbackTestPage() {
   };
 
   return (
-    <div style={{ padding: 20, fontFamily: 'monospace', background: '#0f172a', color: '#e2e8f0', minHeight: '100vh', direction: 'ltr' }}>
+    <div style={{ padding: 20, fontFamily: 'monospace', background: '#0f172a', color: '#e2e8f0', minHeight: 'var(--app-height)', direction: 'ltr' }}>
       <h2 style={{ marginTop: 0 }}>🔬 Feedback Recording Diagnostic</h2>
 
       <div style={{ background: '#1e293b', padding: 12, borderRadius: 8, marginBottom: 16 }}>

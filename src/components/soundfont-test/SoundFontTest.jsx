@@ -153,7 +153,7 @@ export default function SoundFontTest() {
 
 const styles = {
   page: {
-    minHeight: '100vh',
+    minHeight: 'var(--app-height)',
     background: '#0f0f1e',
     display: 'flex',
     alignItems: 'center',

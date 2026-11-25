@@ -1,5 +1,5 @@
 .exercise4a {
-  min-height: 100vh;
+  min-height: var(--app-height);
   background: var(--bg-primary);
   padding-bottom: 40px;
 }
@@ -142,7 +142,7 @@
 
 /* Summary Screen */
 .summary-screen {
-  min-height: 100vh;
+  min-height: var(--app-height);
   display: flex;
   flex-direction: column;
   align-items: center;
