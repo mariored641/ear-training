@@ -542,12 +542,24 @@ export const AmbientWaveIcon = (props) => (
   </Svg>
 );
 
+export const ReggaeSkankIcon = (props) => (
+  <Svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeLinecap="round" {...props}>
+    <path strokeWidth="2" opacity="0.35" d="M6 50 H58" />
+    <path strokeWidth="1.6" opacity="0.28" d="M10 16 V50 M24 16 V50 M38 16 V50 M52 16 V50" />
+    <path strokeWidth="3.2" d="M15 42 L19 24" />
+    <path strokeWidth="3.2" d="M29 42 L33 24" />
+    <path strokeWidth="3.2" d="M43 42 L47 24" />
+    <circle cx="38" cy="12" r="3.2" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
 export const GENRE_ICON_MAP = {
   jazz:    JazzSaxIcon,
   latin:   LatinMaracasIcon,
   blues:   BluesHarpIcon,
   rock:    RockElectricIcon,
   country: CountryAcousticIcon,
+  reggae:  ReggaeSkankIcon,
   ambient: AmbientWaveIcon,
 };
 

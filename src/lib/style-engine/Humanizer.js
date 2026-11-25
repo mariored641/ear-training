@@ -84,6 +84,12 @@ export const PRESETS = Object.freeze({
     timingBias:         0.00,
     velocityRandomness: 0.15,
   },
+  reggae: {
+    // Straight 8ths, slightly behind the beat. Not a swing/triplet feel.
+    timingRandomness:   0.18,
+    timingBias:         0.08,
+    velocityRandomness: 0.22,
+  },
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -257,4 +263,4 @@ export class Humanizer {
 //  Configs / Presets:
 //    DEFAULT_CONFIG           — { tr:0.2, tb:0, vr:0.2 }
 //    ZERO_CONFIG              — no humanization
-//    PRESETS.jazz / .bossa / .blues / .funk / .latin / .rock
+//    PRESETS.jazz / .bossa / .blues / .funk / .latin / .rock / .reggae

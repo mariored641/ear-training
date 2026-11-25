@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-05-28T13:36:34.807Z",
+  "generatedAt": "2026-11-25T05:40:00.000Z",
   "repoCommit": null,
-  "catalogTotal": 52,
-  "converted": 48,
+  "catalogTotal": 55,
+  "converted": 51,
   "skipped": [],
   "styles": [
     {
@@ -1264,6 +1264,60 @@
       ],
       "sourceSty": "D:/Users/Documents/ear-training/public/styles/Dance/UKPop.S583.prs",
       "sha256OfSource": "dc76d3056e1e6dd9eed1ec73d1adbeeeea1bca71f07aff6db3e106bb9ea18ac3"
+    },
+    {
+      "id": "reggae_onedrop",
+      "label": "Reggae – One Drop",
+      "category": "reggae",
+      "path": "reggae/reggae_onedrop.json",
+      "name": "Reggae One Drop",
+      "tempo": 80,
+      "timeSignature": "4/4",
+      "sffType": "SFF1",
+      "division": "BINARY",
+      "parts": [
+        "Main_A",
+        "Main_B",
+        "Fill_In_AA"
+      ],
+      "sourceSty": null,
+      "authoring": "hand-authored generic pattern"
+    },
+    {
+      "id": "reggae_rockers",
+      "label": "Reggae – Rockers",
+      "category": "reggae",
+      "path": "reggae/reggae_rockers.json",
+      "name": "Reggae Rockers",
+      "tempo": 74,
+      "timeSignature": "4/4",
+      "sffType": "SFF1",
+      "division": "BINARY",
+      "parts": [
+        "Main_A",
+        "Main_B",
+        "Fill_In_AA"
+      ],
+      "sourceSty": null,
+      "authoring": "hand-authored generic pattern"
+    },
+    {
+      "id": "reggae_steppers",
+      "label": "Reggae – Steppers",
+      "category": "reggae",
+      "path": "reggae/reggae_steppers.json",
+      "name": "Reggae Steppers",
+      "tempo": 96,
+      "timeSignature": "4/4",
+      "sffType": "SFF1",
+      "division": "BINARY",
+      "parts": [
+        "Main_A",
+        "Main_B",
+        "Fill_In_AA"
+      ],
+      "sourceSty": null,
+      "authoring": "hand-authored generic pattern"
     },
     {
       "id": "rock_16beat2",

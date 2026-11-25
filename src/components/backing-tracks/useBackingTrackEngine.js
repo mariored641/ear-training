@@ -20,7 +20,7 @@ import i18n                    from '../../i18n'
 import { readLastState, useRemember, hasLastState } from '../../utils/lastState'
 
 // ─── Genre Catalog ─────────────────────────────────────────────────────────────
-// 4 categories × 3 sub-styles each
+// Each subtype loads native JSON via loadStyleById (ambient is the procedural exception).
 
 export const GENRE_CATALOG = [
   {
@@ -104,6 +104,16 @@ export const GENRE_CATALOG = [
       { id: 'country_ballad',   label: 'Pop Ballad',      bpm: 77,  sty: '/styles/Country/PopBallad.S540.prs',            human: 'rock' },
       { id: 'country_90sgpop',  label: "90's Guitar Pop", bpm: 96,  sty: "/styles/Country/90'sGuitarPop.S080.prs",        human: 'rock' },
       { id: 'country_folkball', label: 'Folk Ballad',     bpm: 72,  sty: '/styles/Country/Folkball.S702.sty',             human: 'rock' },
+    ],
+  },
+  {
+    category: 'reggae',
+    label: 'Reggae',
+    icon: '🇯🇲',
+    subtypes: [
+      { id: 'reggae_onedrop',  label: 'Reggae – One Drop',  bpm: 80, human: 'reggae' },
+      { id: 'reggae_steppers', label: 'Reggae – Steppers',  bpm: 96, human: 'reggae' },
+      { id: 'reggae_rockers',  label: 'Reggae – Rockers',   bpm: 74, human: 'reggae' },
     ],
   },
   {
@@ -830,6 +840,41 @@ export const GENRE_DEFAULTS = {
       { root: 'A', quality: 'minor', extensions: [] },
       { root: 'F', quality: 'major', extensions: [] },
       { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+
+  // ── Reggae — one chord per bar so the groove is easy to hear ──
+  reggae_onedrop: {
+    tempo: 80,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+    ],
+  },
+  reggae_steppers: {
+    tempo: 96,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
+    ],
+  },
+  reggae_rockers: {
+    tempo: 74,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
     ],
   },
 

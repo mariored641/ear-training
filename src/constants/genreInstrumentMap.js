@@ -93,6 +93,14 @@ const DEFAULTS_BY_CATEGORY = {
     piano:  { program: GM.ACOUSTIC_GRAND,       volume: 80 },
     guitar: { program: GM.STEEL_GUITAR,         volume: 90 },
   },
+  reggae: {
+    // Bubble keyboard is Rhodes (GM 4): drawbar organ is not in the shipped SF3 packs.
+    // Drum-kit program is recorded for the map; playback keeps the standard kit on channel 9.
+    drums:  { program: GM.DRUMS_STANDARD,       volume: 90 },
+    bass:   { program: GM.ELECTRIC_BASS_FINGER, volume: 100 },
+    piano:  { program: GM.RHODES,               volume: 68 },
+    guitar: { program: GM.MUTED_GUITAR,         volume: 90 },
+  },
   // biab styles already encode their own instruments inside the JSON pattern.
   // Returning null from getInstrumentMap means "don't override".
   biab: null,
@@ -126,6 +134,11 @@ const OVERRIDES_BY_ID = {
   // ── Country refinements ──
   country_brothers: { guitar: { program: GM.NYLON_GUITAR, volume: 90 } },
   country_ballad:   { guitar: { program: GM.NYLON_GUITAR, volume: 85 } },
+
+  // ── Reggae refinements ──
+  reggae_steppers: { bass: { program: GM.ELECTRIC_BASS_PICK, volume: 102 },
+                     guitar: { program: GM.MUTED_GUITAR, volume: 96 } },
+  reggae_rockers:  { piano: { program: GM.RHODES, volume: 76 } },
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────

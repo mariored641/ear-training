@@ -1164,6 +1164,7 @@ const en = {
       blues: 'Blues',
       rock: 'Rock & Pop',
       country: 'Country',
+      reggae: 'Reggae',
       ambient: 'Ambient',
     },
     styles: {
@@ -1215,6 +1216,9 @@ const en = {
       country_ballad: 'Pop Ballad',
       country_90sgpop: '90\'s Guitar Pop',
       country_folkball: 'Folk Ballad',
+      reggae_onedrop: 'Reggae – One Drop',
+      reggae_steppers: 'Reggae – Steppers',
+      reggae_rockers: 'Reggae – Rockers',
       ambient_strings: 'Strings',
       ambient_pad: 'Warm Pad',
       ambient_choir: 'Choir',

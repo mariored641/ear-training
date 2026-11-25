@@ -1176,6 +1176,7 @@ const he = {
       blues: 'בלוז',
       rock: 'רוק ופופ',
       country: 'קאנטרי',
+      reggae: 'ראגיי',
       ambient: 'אמביינט',
     },
     styles: {
@@ -1227,6 +1228,9 @@ const he = {
       country_ballad: 'בלדת פופ',
       country_90sgpop: 'פופ גיטרות שנות ה־90',
       country_folkball: 'בלדת פולק',
+      reggae_onedrop: 'ראגיי – One Drop',
+      reggae_steppers: 'ראגיי – Steppers',
+      reggae_rockers: 'ראגיי – Rockers',
       ambient_strings: 'כלי קשת',
       ambient_pad: 'פד חם',
       ambient_choir: 'מקהלה',
