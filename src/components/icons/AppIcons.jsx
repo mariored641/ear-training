@@ -481,6 +481,16 @@ export const JazzSaxIcon = (props) => (
   </Svg>
 );
 
+export const WorldGlobeIcon = (props) => (
+  <Svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeLinecap="round" {...props}>
+    <circle cx="32" cy="32" r="22" strokeWidth="2.5" />
+    <ellipse cx="32" cy="32" rx="10" ry="22" strokeWidth="2" />
+    <path strokeWidth="2" d="M10 32 H54" />
+    <path strokeWidth="1.6" opacity="0.7" d="M14 22 Q32 28 50 22" />
+    <path strokeWidth="1.6" opacity="0.7" d="M14 42 Q32 36 50 42" />
+  </Svg>
+);
+
 export const LatinMaracasIcon = (props) => (
   <Svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeLinecap="round" {...props}>
     <circle cx="18" cy="22" r="13" strokeWidth="2.5" />
@@ -555,11 +565,10 @@ export const ReggaeSkankIcon = (props) => (
 
 export const GENRE_ICON_MAP = {
   jazz:    JazzSaxIcon,
-  latin:   LatinMaracasIcon,
+  latin:   WorldGlobeIcon,
   blues:   BluesHarpIcon,
   rock:    RockElectricIcon,
   country: CountryAcousticIcon,
-  reggae:  ReggaeSkankIcon,
   ambient: AmbientWaveIcon,
 };
 

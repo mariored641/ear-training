@@ -41,8 +41,8 @@ export const GENRE_CATALOG = [
   },
   {
     category: 'latin',
-    label: 'Latin',
-    icon: '🌴',
+    label: 'World',
+    icon: '🌍',
     subtypes: [
       { id: 'latin_bossa',     label: 'Cool Bossa',      bpm: 168, sty: '/styles/Latin/CoolBossa.S460.sty',        human: 'bossa' },
       { id: 'latin_samba',     label: 'Brazilian Samba', bpm: 96,  sty: '/styles/Latin/BrazilianSamba.sty',        human: 'latin' },
@@ -52,6 +52,7 @@ export const GENRE_CATALOG = [
       { id: 'latin_samba2',    label: 'Samba 3',         bpm: 110, sty: '/styles/Latin/Samba_3.S506.STY',          human: 'latin' },
       { id: 'latin_salsa',     label: 'Salsa 1',         bpm: 92,  sty: '/styles/Latin/Salsa 1.S651.STY',          human: 'latin' },
       { id: 'latin_chacha',    label: 'Organ Cha-Cha',   bpm: 132, sty: '/styles/Latin/OrganChaCha.sty',           human: 'latin' },
+      { id: 'reggae',          label: 'Reggae',          bpm: 84,  human: 'reggae' },
     ],
   },
   {
@@ -104,14 +105,6 @@ export const GENRE_CATALOG = [
       { id: 'country_ballad',   label: 'Pop Ballad',      bpm: 77,  sty: '/styles/Country/PopBallad.S540.prs',            human: 'rock' },
       { id: 'country_90sgpop',  label: "90's Guitar Pop", bpm: 96,  sty: "/styles/Country/90'sGuitarPop.S080.prs",        human: 'rock' },
       { id: 'country_folkball', label: 'Folk Ballad',     bpm: 72,  sty: '/styles/Country/Folkball.S702.sty',             human: 'rock' },
-    ],
-  },
-  {
-    category: 'reggae',
-    label: 'Reggae',
-    icon: '🇯🇲',
-    subtypes: [
-      { id: 'reggae', label: 'Reggae', bpm: 84, human: 'reggae' },
     ],
   },
   {

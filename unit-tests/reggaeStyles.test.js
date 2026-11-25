@@ -82,18 +82,30 @@ test('reggae is one 15-part style, registered and translated', () => {
   const entry = index.styles.find(item => item.id === ID)
   assert.ok(entry, 'reggae missing from index')
   assert.equal(entry.path, 'reggae/reggae.json')
+  // File-family folder name. The loader keys off id + path, not the picker category.
   assert.equal(entry.category, 'reggae')
   assert.equal(index.styles.some(item => ['reggae_onedrop', 'reggae_steppers', 'reggae_rockers'].includes(item.id)), false)
 
   const engine = fs.readFileSync(new URL('../src/components/backing-tracks/useBackingTrackEngine.js', import.meta.url), 'utf8')
   const catalog = engine.slice(engine.indexOf('export const GENRE_CATALOG'), engine.indexOf('const GENRE_STYLES'))
-  assert.match(catalog, /category:\s*'reggae'/)
-  assert.ok(catalog.includes(`id: '${ID}'`))
+  assert.equal(/category:\s*'reggae'/.test(catalog), false, 'reggae is not its own picker category')
   assert.equal(catalog.includes('reggae_onedrop'), false)
-  assert.equal(typeof en.backing.styles[ID], 'string')
-  assert.equal(typeof he.backing.styles[ID], 'string')
-  assert.equal(en.backing.genreCategories.reggae, 'Reggae')
-  assert.equal(he.backing.genreCategories.reggae, 'ראגיי')
+
+  const latinBlock = catalog.slice(catalog.indexOf("category: 'latin'"), catalog.indexOf("category: 'blues'"))
+  assert.ok(latinBlock.includes("label: 'World'"))
+  const latinIds = [...latinBlock.matchAll(/id:\s*'([^']+)'/g)].map(match => match[1])
+  assert.deepEqual(latinIds, [
+    'latin_bossa', 'latin_samba', 'latin_54', 'latin_fastbossa',
+    'latin_mambo', 'latin_samba2', 'latin_salsa', 'latin_chacha', 'reggae',
+  ])
+  assert.match(latinBlock, /id:\s*'reggae',\s*label:\s*'Reggae',\s*bpm:\s*84,\s*human:\s*'reggae'/)
+
+  assert.equal(en.backing.genreCategories.latin, 'World')
+  assert.equal(he.backing.genreCategories.latin, 'עולם')
+  assert.equal('reggae' in en.backing.genreCategories, false)
+  assert.equal('reggae' in he.backing.genreCategories, false)
+  assert.equal(en.backing.styles[ID], 'Reggae')
+  assert.equal(he.backing.styles[ID], 'ראגיי')
   assert.equal(PRESETS.reggae.timingBias > 0, true)
   assert.ok(PRESETS.reggae.timingRandomness < PRESETS.blues.timingRandomness)
 })

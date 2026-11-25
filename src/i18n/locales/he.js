@@ -1172,11 +1172,10 @@ const he = {
     },
     genreCategories: {
       jazz: 'ג׳אז',
-      latin: 'לטיני',
+      latin: 'עולם',
       blues: 'בלוז',
       rock: 'רוק ופופ',
       country: 'קאנטרי',
-      reggae: 'ראגיי',
       ambient: 'אמביינט',
     },
     styles: {

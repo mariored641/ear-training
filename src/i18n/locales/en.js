@@ -1160,11 +1160,10 @@ const en = {
     },
     genreCategories: {
       jazz: 'Jazz',
-      latin: 'Latin',
+      latin: 'World',
       blues: 'Blues',
       rock: 'Rock & Pop',
       country: 'Country',
-      reggae: 'Reggae',
       ambient: 'Ambient',
     },
     styles: {

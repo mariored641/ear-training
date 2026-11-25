@@ -1,6 +1,10 @@
 # Reggae backing-track style
 
-One hand-authored native style, `reggae` (category `reggae`). It is a generic groove, not a transcription. The four mains are the three patterns Mario already liked, plus a busier steppers variation, so a long progression can move Main A → B → C → D without leaving reggae.
+One hand-authored native style, `reggae`. In the backing-track picker it is the last style under **World** (Hebrew: עולם). That picker category keeps the internal id `latin` — only the label changed from Latin / לטיני — so saved state, lessons, and `latin_*` style ids stay valid. Reggae does not have its own category row.
+
+The style id stays `reggae`, the file stays `public/styles-native/reggae/reggae.json`, and the humanizer preset stays `reggae`. `index.json` still records `"category": "reggae"` because that field names the file family (the folder). `StyleLoader` resolves a style by id and path, and it does not compare this field to the picker category. `getInstrumentMap('reggae')` still uses `DEFAULTS_BY_CATEGORY.reggae`, because an id with no underscore is its own instrument category; the Latin instrument defaults stay on the `latin_*` ids.
+
+It is a generic groove, not a transcription. The four mains are the three patterns Mario already liked, plus a busier steppers variation, so a long progression can move Main A → B → C → D without leaving reggae.
 
 Sources used while writing the original grooves:
 
