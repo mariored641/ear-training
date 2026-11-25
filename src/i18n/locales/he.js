@@ -1172,7 +1172,7 @@ const he = {
     },
     genreCategories: {
       jazz: 'ג׳אז',
-      latin: 'לטיני',
+      latin: 'עולם',
       blues: 'בלוז',
       rock: 'רוק ופופ',
       country: 'קאנטרי',
@@ -1227,6 +1227,7 @@ const he = {
       country_ballad: 'בלדת פופ',
       country_90sgpop: 'פופ גיטרות שנות ה־90',
       country_folkball: 'בלדת פולק',
+      reggae: 'ראגיי',
       ambient_strings: 'כלי קשת',
       ambient_pad: 'פד חם',
       ambient_choir: 'מקהלה',

@@ -1160,7 +1160,7 @@ const en = {
     },
     genreCategories: {
       jazz: 'Jazz',
-      latin: 'Latin',
+      latin: 'World',
       blues: 'Blues',
       rock: 'Rock & Pop',
       country: 'Country',
@@ -1215,6 +1215,7 @@ const en = {
       country_ballad: 'Pop Ballad',
       country_90sgpop: '90\'s Guitar Pop',
       country_folkball: 'Folk Ballad',
+      reggae: 'Reggae',
       ambient_strings: 'Strings',
       ambient_pad: 'Warm Pad',
       ambient_choir: 'Choir',

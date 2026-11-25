@@ -20,7 +20,7 @@ import i18n                    from '../../i18n'
 import { readLastState, useRemember, hasLastState } from '../../utils/lastState'
 
 // ─── Genre Catalog ─────────────────────────────────────────────────────────────
-// 4 categories × 3 sub-styles each
+// Each subtype loads native JSON via loadStyleById (ambient is the procedural exception).
 
 export const GENRE_CATALOG = [
   {
@@ -41,8 +41,8 @@ export const GENRE_CATALOG = [
   },
   {
     category: 'latin',
-    label: 'Latin',
-    icon: '🌴',
+    label: 'World',
+    icon: '🌍',
     subtypes: [
       { id: 'latin_bossa',     label: 'Cool Bossa',      bpm: 168, sty: '/styles/Latin/CoolBossa.S460.sty',        human: 'bossa' },
       { id: 'latin_samba',     label: 'Brazilian Samba', bpm: 96,  sty: '/styles/Latin/BrazilianSamba.sty',        human: 'latin' },
@@ -52,6 +52,7 @@ export const GENRE_CATALOG = [
       { id: 'latin_samba2',    label: 'Samba 3',         bpm: 110, sty: '/styles/Latin/Samba_3.S506.STY',          human: 'latin' },
       { id: 'latin_salsa',     label: 'Salsa 1',         bpm: 92,  sty: '/styles/Latin/Salsa 1.S651.STY',          human: 'latin' },
       { id: 'latin_chacha',    label: 'Organ Cha-Cha',   bpm: 132, sty: '/styles/Latin/OrganChaCha.sty',           human: 'latin' },
+      { id: 'reggae',          label: 'Reggae',          bpm: 84,  human: 'reggae' },
     ],
   },
   {
@@ -830,6 +831,19 @@ export const GENRE_DEFAULTS = {
       { root: 'A', quality: 'minor', extensions: [] },
       { root: 'F', quality: 'major', extensions: [] },
       { root: 'G', quality: 'major', extensions: [] },
+    ],
+  },
+
+  // ── Reggae — one chord per bar so the four mains are easy to hear ──
+  reggae: {
+    tempo: 84,
+    defaultChord: { root: 'C', quality: 'major', extensions: [] },
+    presetBarCount: 4,
+    preset: [
+      { root: 'C', quality: 'major', extensions: [] },
+      { root: 'G', quality: 'major', extensions: [] },
+      { root: 'A', quality: 'minor', extensions: [] },
+      { root: 'F', quality: 'major', extensions: [] },
     ],
   },
 
